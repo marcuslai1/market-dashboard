@@ -1,0 +1,1472 @@
+{
+  "meta": {
+    "report_date": "2026-04-07",
+    "market_date": "2026-04-06",
+    "generated_at": "2026-04-07T13:33:54.567145",
+    "timezone": "SGT"
+  },
+  "benchmarks": {
+    "SPY": {
+      "price": 658.93,
+      "chg_pct": 0.46,
+      "unit": "USD/share"
+    },
+    "QQQ": {
+      "price": 588.5,
+      "chg_pct": 0.63,
+      "unit": "USD/share"
+    },
+    "DXY": {
+      "price": 100.03,
+      "chg_pct": -0.09,
+      "unit": "index"
+    },
+    "WTI": {
+      "price": 115.25,
+      "chg_pct": 0.18,
+      "unit": "USD/bbl",
+      "data_anomaly": "fast_info prev_close $115.04 (+0.2%) vs history prev_close $112.41 (+2.5%). Using fast_info as headline; history used for technicals only."
+    },
+    "Gold": {
+      "price": 4678.2,
+      "chg_pct": 0.52,
+      "unit": "USD/troy oz"
+    },
+    "VIX": {
+      "price": 24.17,
+      "chg_pct": 1.13,
+      "unit": "index"
+    },
+    "US10Y": {
+      "price": 4.34,
+      "chg_pct": 0.51,
+      "unit": "% yield"
+    },
+    "SOXX": {
+      "price": 344.1,
+      "chg_pct": 1.47
+    }
+  },
+  "macro_summary": "SPY gained 0.46% to $658.93 and QQQ added 0.63% to $588.50 on Monday, extending the Q1 relief rally as the market absorbed Iran deadline news without a major selloff. VIX ticked up modestly to 24.17, remaining elevated but well below the 30-level panic zone. The dominant theme is Tuesday's Trump deadline for Iran to reopen the Strait of Hormuz — per Yahoo Finance, markets face instability as that deadline approaches, with US futures showing weakness in pre-market — making Wednesday's open a critical inflection point.",
+  "commodities_note": "WTI shows a data conflict: the fast_info source reports $115.25 (+0.18% daily), while the history source implies a prior close of $112.41 (+2.5%). Using fast_info as the headline figure per the pipeline flag; the 5-day move is more representative than the daily percentage for trend context. Per Investor.id, OPEC+ agreed to raise output by 206,000 barrels per day starting May 2026, but the increase has had no market impact as Hormuz distribution constraints remain the binding bottleneck — oil has surged near $120 at peaks, the highest in four years. Gold slipped slightly to $4,678.20 (+0.52%) but remains structurally elevated as a safe-haven bid. The dollar (DXY 100.03, -0.09%) is holding at parity, reflecting the tension between US rate premium and geopolitical uncertainty. No entry exists in GLD at current levels — gold is extended well above its 50-day moving average with the geopolitical driver still unresolved.",
+  "watchlist": {
+    "D05_SI": {
+      "price": 57.51,
+      "currency": "SGD",
+      "chg_pct": -0.28,
+      "5d_pct": 0.95,
+      "1mo_pct": 4.56,
+      "sma10": 57.22,
+      "sma50": 57.34,
+      "sma100": 56.49,
+      "sma200": 52.88,
+      "vs_50sma": "+0.3%",
+      "vs_sma50_pct": 0.3,
+      "rsi_14": 56.0,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 1575300,
+      "avg_volume_10d": 4366001,
+      "vol_ratio": 0.36,
+      "volume_signal": "Low",
+      "raw_signal": "HOLD",
+      "days_above_sma50": 4,
+      "sma50_rising": false,
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 57.34,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 58.29,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.3,
+        "upside_pct": 1.4,
+        "ratio": 4.7,
+        "ratio_label": "4.7:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 57.0,
+        "structural_support_pct": 0.9
+      },
+      "writeup_tier": "brief",
+      "signal": "WATCH",
+      "signal_rationale": "Signal unchanged at WATCH. DBS has reclaimed its 50-day average of SGD 57.34 by just 0.3% with RSI at 56 — technically acceptable but volume is below average, limiting conviction. Would reassess for a firmer entry above SGD 58.29 resistance on rising volume, or downgrade back to HOLD if price slips below the 50-day."
+    },
+    "O39_SI": {
+      "price": 22.41,
+      "currency": "SGD",
+      "chg_pct": 0.13,
+      "5d_pct": 3.61,
+      "1mo_pct": 7.64,
+      "sma10": 21.9,
+      "sma50": 21.34,
+      "sma100": 20.33,
+      "sma200": 18.51,
+      "vs_50sma": "+5.0%",
+      "vs_sma50_pct": 5.0,
+      "rsi_14": 67.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 1203400,
+      "avg_volume_10d": 6060832,
+      "vol_ratio": 0.2,
+      "volume_signal": "Low",
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 10,
+      "sma50_rising": true,
+      "entry_block": "BLOCKED: RSI 68 (>65 hard block).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 21.34,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 23.53,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 4.8,
+        "upside_pct": 5.0,
+        "ratio": 1.0,
+        "ratio_label": "1.0:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 18.51,
+        "structural_support_pct": 17.4
+      },
+      "writeup_tier": "brief",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. RSI hard block at 68 prevents entry regardless of fundamentals."
+    },
+    "U11_SI": {
+      "price": 36.88,
+      "currency": "SGD",
+      "chg_pct": -0.05,
+      "5d_pct": 0.93,
+      "1mo_pct": 2.25,
+      "sma10": 36.74,
+      "sma50": 37.42,
+      "sma100": 36.2,
+      "sma200": 35.64,
+      "vs_50sma": "-1.4%",
+      "vs_sma50_pct": -1.43,
+      "rsi_14": 51.0,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 511000,
+      "avg_volume_10d": 2204930,
+      "vol_ratio": 0.23,
+      "volume_signal": "Low",
+      "raw_signal": "HOLD",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 35.64,
+        "invalidation_reason": "200-day SMA (nearest support)",
+        "upside_target": 37.4,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 3.4,
+        "upside_pct": 1.4,
+        "ratio": 0.4,
+        "ratio_label": "0.4:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 34.23,
+        "structural_support_pct": 7.2
+      },
+      "writeup_tier": "brief",
+      "signal": "HOLD",
+      "signal_rationale": "Signal unchanged at HOLD. UOB sits 1.43% below its 50-day average of SGD 37.42 with RSI at 51 — neutral in every dimension. No action until either a reclaim of SGD 37.42 (upgrade to WATCH) or a break below the 200-day average at SGD 35.64 (downgrade to CAUTION)."
+    },
+    "C6L_SI": {
+      "price": 6.55,
+      "currency": "SGD",
+      "chg_pct": -0.91,
+      "5d_pct": -0.76,
+      "1mo_pct": -1.5,
+      "sma10": 6.61,
+      "sma50": 6.68,
+      "sma100": 6.53,
+      "sma200": 6.56,
+      "vs_50sma": "-1.9%",
+      "vs_sma50_pct": -1.94,
+      "rsi_14": 44.2,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 3529900,
+      "avg_volume_10d": 5691260,
+      "vol_ratio": 0.62,
+      "volume_signal": "Low",
+      "support_zones": [
+        6.34,
+        6.45
+      ],
+      "resistance_zones": [
+        6.65,
+        7.2
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 17.9,
+        "trailing_pe": 17.2,
+        "price_to_book": 1.32,
+        "dividend_yield_pct": 5.26,
+        "ev_ebitda": 7.0,
+        "fcf_yield_pct": 8.37,
+        "revenue_growth_pct": 1.9,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 14,
+          "earnings_growth_pct": -64.3
+        },
+        "cluster_name": "Singapore",
+        "cluster_median_pe": 13.9,
+        "cluster_median_peg": 2.91,
+        "pe_vs_cluster_pct": 28.8
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 6.45,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 6.65,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 1.5,
+        "upside_pct": 1.5,
+        "ratio": 1.0,
+        "ratio_label": "1.0:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 6.34,
+        "structural_support_pct": 3.2
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. Analyst consensus expects a 64.3% earnings decline for Singapore Airlines — this is the lead concern and must be weighed against every other metric here. The stock sits 1.94% below a declining 50-day average of SGD 6.68 with RSI at 44.2, and the R:R is unattractive at 1.0:1 (tight invalidation at SGD 6.45, resistance at SGD 6.65). The Hormuz crisis is a direct headwind: jet fuel costs rise with oil above $115/bbl, and any airspace closure compounds margin pressure. FCF yield of 8.37% and a 5.26% dividend look compelling on paper, but the 64% projected earnings decline makes those figures unreliable — if earnings crater, the dividend is at risk. Forward PE of 17.9x is a 28.8% premium to the Singapore cluster median of 13.9x, which is difficult to justify without earnings growth. The 200-day average at SGD 6.56 is the next meaningful support level, just 0.15% below current price. Bottom line: the oil shock and earnings collapse make this unattractive at current levels regardless of the yield. Wait for the earnings trajectory to stabilise — specifically for oil to retreat below $100/bbl and for Q1 guidance to show cost containment."
+    },
+    "Z74_SI": {
+      "price": 5.02,
+      "currency": "SGD",
+      "chg_pct": 0,
+      "5d_pct": 0.2,
+      "1mo_pct": 0.4,
+      "sma10": 4.98,
+      "sma50": 4.92,
+      "sma100": 4.76,
+      "sma200": 4.42,
+      "vs_50sma": "+2.1%",
+      "vs_sma50_pct": 2.08,
+      "rsi_14": 52.4,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 3230200,
+      "avg_volume_10d": 16196577,
+      "vol_ratio": 0.2,
+      "volume_signal": "Low",
+      "support_zones": [
+        3.53,
+        3.6
+      ],
+      "resistance_zones": [
+        5.15,
+        5.27
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 45,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 24.8,
+        "trailing_pe": 13.6,
+        "price_to_book": 3.18,
+        "dividend_yield_pct": 2.63,
+        "ev_ebitda": 26.2,
+        "peg_ratio": 1.64,
+        "revenue_growth_pct": 0.9,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 15,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Singapore",
+        "cluster_median_pe": 13.9,
+        "cluster_median_peg": 2.91,
+        "pe_vs_cluster_pct": 78.4
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 4.92,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 5.15,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 2.0,
+        "upside_pct": 2.6,
+        "ratio": 1.3,
+        "ratio_label": "1.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 4.42,
+        "structural_support_pct": 12.0
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "signal_rationale": "Signal unchanged at WATCH. Singtel trades 2.08% above its rising 50-day average of SGD 4.92 with RSI at 52.4 — slightly extended but not blocked. The R:R is 1.3:1 to nearest resistance at SGD 5.15, which is below the 2.0 threshold for ACCUMULATE eligibility. At 24.8x forward PE against a 0.9% revenue growth rate, valuation is a concern — the PEG of 1.64 suggests the multiple is ahead of growth, and the stock trades at a 78.4% premium to the Singapore cluster median PE, which needs justification. The thesis rests on regional digital infrastructure exposure and the 2.63% yield rather than earnings acceleration. Invalidation at the 50-day average of SGD 4.92 (2.0% below); structural support at SGD 4.42 (12.0% further). Volume is below average — do not size up without volume confirmation. Bottom line: Singtel is fairly priced for what it is — a steady infrastructure play, not a growth story. Worth watching for an entry closer to SGD 4.92-5.00 where the R:R improves meaningfully."
+    },
+    "NVDA": {
+      "price": 177.64,
+      "currency": "USD",
+      "chg_pct": 0.55,
+      "5d_pct": 6.04,
+      "1mo_pct": -3.1,
+      "sma10": 173.86,
+      "sma50": 182.5,
+      "sma100": 183.27,
+      "sma200": 179.97,
+      "vs_50sma": "-2.7%",
+      "vs_sma50_pct": -2.66,
+      "rsi_14": 49.4,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 107223200,
+      "avg_volume_10d": 170577780,
+      "vol_ratio": 0.63,
+      "volume_signal": "Low",
+      "support_zones": [
+        169.81,
+        177.41
+      ],
+      "resistance_zones": [
+        194.67,
+        184.47
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 16.0,
+        "trailing_pe": 36.3,
+        "price_to_book": 27.45,
+        "dividend_yield_pct": 2.0,
+        "ev_ebitda": 32.0,
+        "peg_ratio": 0.72,
+        "fcf_yield_pct": 1.35,
+        "revenue_growth_pct": 73.2,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 56,
+          "earnings_growth_pct": 95.6
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 20.4,
+        "cluster_median_peg": 0.69,
+        "pe_vs_cluster_pct": -21.6
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 177.41,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 184.47,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.1,
+        "upside_pct": 3.8,
+        "ratio": 38.0,
+        "ratio_label": "38.0:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": true,
+        "structural_support": 169.81,
+        "structural_support_pct": 4.4
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. The R:R data shows rr_distorted=true (invalidation at $177.41 is only 0.1% below the current price of $177.64), making the stated 38:1 ratio mathematically meaningless — the real invalidation that matters is the structural support at $169.81 (4.4% below). NVDA sits 2.66% below a declining 50-day average of $182.50 with RSI at 49.4, neutral-bearish. The Blackwell Ultra ramp thesis per NVIDIA's Q4 FY2026 earnings call remains intact, with the $78B Q1 guide implying accelerating revenue. NVIDIA's acquisition of SchedMD (Slurm workload manager) per Simply Wall St. is an infrastructure-deepening move that raises legitimate questions about vendor neutrality in AI compute — the thesis is that owning the job scheduler alongside the GPU creates stickier enterprise relationships, but it also attracts regulatory scrutiny. The TurboQuant algorithm displacement risk remains a latent structural concern (day 12). FCF yield of 1.35% is thin — the story depends entirely on future earnings growth, which at 95.6% expected growth looks compelling, but that's a consensus estimate from analysts covering a company whose demand architecture is under debate. Tight stop disclosure: with price sitting on the $177.41 support zone, normal intraday volatility could trigger invalidation before the thesis is tested — use $169.81 (4.4% below) as the mental stop for position sizing. Bottom line: NVDA is actually cheap relative to its semis peers at 16x forward PE, but the technical trend is still down and the Hormuz crisis adds macro noise. Wait for a reclaim of the 50-day average at $182.50 with volume before re-entering."
+    },
+    "AMD": {
+      "price": 220.18,
+      "currency": "USD",
+      "chg_pct": 1.4,
+      "5d_pct": 9.01,
+      "1mo_pct": 10.39,
+      "sma10": 208.14,
+      "sma50": 210.97,
+      "sma100": 215.82,
+      "sma200": 197.35,
+      "vs_50sma": "+4.4%",
+      "vs_sma50_pct": 4.37,
+      "rsi_14": 59.0,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 30717700,
+      "avg_volume_10d": 37944350,
+      "vol_ratio": 0.81,
+      "volume_signal": "Normal",
+      "support_zones": [
+        149.47,
+        158.03
+      ],
+      "resistance_zones": [
+        265.85,
+        225.98
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 2,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 20.4,
+        "trailing_pe": 84.4,
+        "price_to_book": 5.7,
+        "ev_ebitda": 51.6,
+        "peg_ratio": 0.65,
+        "fcf_yield_pct": 1.28,
+        "revenue_growth_pct": 34.1,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 46,
+          "earnings_growth_pct": 217.1
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 20.4,
+        "cluster_median_peg": 0.69,
+        "pe_vs_cluster_pct": 0.0
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 210.97,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 225.98,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 4.2,
+        "upside_pct": 2.6,
+        "ratio": 0.6,
+        "ratio_label": "0.6:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 197.35,
+        "structural_support_pct": 10.4
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "signal_rationale": "Signal unchanged at WATCH. AMD has rallied 9% over five days, pushing 4.37% above its 50-day average of $210.97 — still within the 5% extension zone but approaching the hard-block threshold. The R:R is unfavourable at 0.6:1 using the nearest resistance at $225.98 (2.6% upside) against invalidation at the 50-day average of $210.97 (4.2% downside). Per AMD's IR press release, the Meta GPU supply framework for MI450 Instinct deployments (up to 6GW capacity, first 1GW shipments H2 2026) validates AMD as a credible hyperscale alternative to NVIDIA — but this is a framework agreement, not a firm purchase order, and revenue is contingent on MI450 meeting performance benchmarks. Citi placed AMD on a 30-day positive catalyst watch per Investor's Business Daily. At 20.4x forward PE with a PEG of 0.65 and 34.1% revenue growth, AMD is attractively valued — growth materially exceeds the multiple. FCF yield of 1.28% is thin, so the thesis depends on earnings growth materialising, which the 217.1% consensus earnings growth estimate suggests should happen. Volume is average, not confirming the recent move. ACCUMULATE gate check: caution_source is base_scorer and ratio is 0.6:1 — fails the 2.0 R:R gate. WATCH is correct. Bottom line: AMD is the most attractively valued semis name on a growth-adjusted basis, but the near-term R:R is poor at current levels. Wait for a pullback toward $210-213 (the 50-day average) where the R:R improves — that's the entry zone."
+    },
+    "INTC": {
+      "price": 50.78,
+      "currency": "USD",
+      "chg_pct": 1.05,
+      "5d_pct": 17.74,
+      "1mo_pct": 10.51,
+      "sma10": 45.7,
+      "sma50": 46.09,
+      "sma100": 43.0,
+      "sma200": 35.44,
+      "vs_50sma": "+10.2%",
+      "vs_sma50_pct": 10.17,
+      "rsi_14": 61.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 79811500,
+      "avg_volume_10d": 90284230,
+      "vol_ratio": 0.88,
+      "volume_signal": "Normal",
+      "support_zones": [
+        34.82,
+        42.58
+      ],
+      "resistance_zones": [
+        51.49,
+        54.6
+      ],
+      "raw_signal": "HOLD",
+      "days_above_sma50": 3,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 51.2,
+        "price_to_book": 2.22,
+        "ev_ebitda": 21.6,
+        "fcf_yield_pct": -1.77,
+        "revenue_growth_pct": -4.1,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 41,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 20.4,
+        "cluster_median_peg": 0.69,
+        "pe_vs_cluster_pct": 151.0
+      },
+      "entry_block": "BLOCKED: +10.2% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=3 (<30), sma50 not rising, RSI 61 (>=55).",
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 46.09,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 51.49,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 9.2,
+        "upside_pct": 1.4,
+        "ratio": 0.2,
+        "ratio_label": "0.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 42.58,
+        "structural_support_pct": 16.1
+      },
+      "writeup_tier": "full",
+      "signal": "HOLD",
+      "signal_rationale": "Signal changed from CAUTION to HOLD — price has surged 17.74% over five days and now sits 10.17% above the 50-day average, triggering the hard entry block, but the pipeline raw signal is HOLD, not CAUTION. Per macro_news (Overclock3D), Intel confirms steady 18A yield improvements with significant progress over the past 7-8 months, and the 14A PDK is maturing with more customer feedback — this is encouraging but the foundry thesis remains unproven until external customer wins are publicly confirmed. Intel is reportedly in advanced talks with Google and Amazon on AI chip packaging using EMIB/EMIB-T technologies, per Simply Wall St. — if confirmed, this would be a meaningful thesis catalyst, but it remains at the 'talks' stage. Entry is hard-blocked: 10.17% above the 50-day average with only 3 sessions above it and the 50-day still declining. The R:R is poor at 0.2:1 (1.4% upside to $51.49 resistance vs 9.2% downside to 50-day average at $46.09). At 51.2x forward PE — 151% premium to the semis cluster median — with negative revenue growth of -4.1% and negative FCF yield of -1.77%, the valuation is very difficult to justify at current levels. Structural support at $42.58 (16.1% below). Bottom line: Intel's foundry story is getting more interesting, but this is the wrong price to enter — 10% above the 50-day average with a stretched valuation and no confirmed external customers. Wait for a pullback to $45-47 where the setup improves."
+    },
+    "ASML": {
+      "price": 1304.01,
+      "currency": "USD",
+      "chg_pct": -1.32,
+      "5d_pct": 0.12,
+      "1mo_pct": -4.7,
+      "sma10": 1335.07,
+      "sma50": 1392.66,
+      "sma100": 1255.43,
+      "sma200": 1052.84,
+      "vs_50sma": "-6.4%",
+      "vs_sma50_pct": -6.37,
+      "rsi_14": 44.5,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 1297900,
+      "avg_volume_10d": 1767730,
+      "vol_ratio": 0.73,
+      "volume_signal": "Low",
+      "support_zones": [
+        938.69,
+        1283.6
+      ],
+      "resistance_zones": [
+        1410.41,
+        1491.51
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 29.8,
+        "trailing_pe": 45.6,
+        "price_to_book": 22.14,
+        "ev_ebitda": 40.7,
+        "peg_ratio": 2.18,
+        "fcf_yield_pct": 2.12,
+        "revenue_growth_pct": 4.9,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 15,
+          "earnings_growth_pct": 7.2
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 20.4,
+        "cluster_median_peg": 0.69,
+        "pe_vs_cluster_pct": 46.1
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 1283.6,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 1410.41,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 1.6,
+        "upside_pct": 8.2,
+        "ratio": 5.1,
+        "ratio_label": "5.1:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 1052.84,
+        "structural_support_pct": 19.3
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. ASML fell 1.32% as per Investor's Business Daily, proposed US legislation would further restrict China's access to ASML's EUV lithography equipment — this is a direct revenue headwind, as China has historically been a meaningful customer. Per Simply Wall St., SK Hynix has placed record multi-billion euro orders and Samsung is committing capacity through at least 2027, which partially offsets the China restriction risk. The stock sits 6.37% below a still-rising 50-day average of $1,392.66 with RSI at 44.5. Tight invalidation disclosure: invalidation at $1,283.60 is 1.6% below current price — tight stop territory where normal intraday moves can trigger the level. Use the structural support at $1,052.84 (19.3% below, the 200-day average) as the mental stop for position sizing. R:R is 5.1:1 to nearest resistance at $1,410.41. ACCUMULATE gate check: caution_source is base_scorer, ratio is 5.1:1 (≥2.0), rr_quality is observed, rr_distorted is false, VIX is 24.17 (<30), earnings in 8 days (April 15). ACCUMULATE gate FAILS — earnings within 5 trading days creates a binary event risk that blocks ACCUMULATE. ASML reports April 15 — just 8 days out — and the China export restriction news adds uncertainty to that print. PEG of 2.18 flags expensive-for-growth. Bottom line: the China restriction news is a real headwind, not noise. Wait for post-earnings clarity on April 15 before considering entry — the setup may be attractive after that catalyst resolves."
+    },
+    "MU": {
+      "price": 377.76,
+      "currency": "USD",
+      "chg_pct": 3.59,
+      "5d_pct": 5.79,
+      "1mo_pct": -4.82,
+      "sma10": 366.53,
+      "sma50": 402.96,
+      "sma100": 338.81,
+      "sma200": 244.2,
+      "vs_50sma": "-6.3%",
+      "vs_sma50_pct": -6.25,
+      "rsi_14": 47.4,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 41125900,
+      "avg_volume_10d": 56987310,
+      "vol_ratio": 0.72,
+      "volume_signal": "Low",
+      "support_zones": [
+        357.52,
+        363.75
+      ],
+      "resistance_zones": [
+        437.65,
+        455.31
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 3.8,
+        "trailing_pe": 17.8,
+        "price_to_book": 5.88,
+        "dividend_yield_pct": 16.0,
+        "ev_ebitda": 11.1,
+        "peg_ratio": 0.21,
+        "fcf_yield_pct": 0.68,
+        "revenue_growth_pct": 196.3,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 40,
+          "earnings_growth_pct": 756.0
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 20.4,
+        "cluster_median_peg": 0.69,
+        "pe_vs_cluster_pct": -81.4
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 363.75,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 437.65,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 3.7,
+        "upside_pct": 15.9,
+        "ratio": 4.3,
+        "ratio_label": "4.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 357.52,
+        "structural_support_pct": 5.4
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. MU rallied 3.59% on a bullish KeyBanc note raising its price target to $600, per Yahoo Finance, citing continued strength in memory pricing and sustained AI infrastructure demand. The stock remains 6.25% below a rising 50-day average of $402.96 with RSI at 47.4. R:R is 4.3:1 (15.9% upside to $437.65 vs 3.7% downside to invalidation at $363.75) — above the 2.0 threshold. ACCUMULATE gate check: caution_source is base_scorer, ratio 4.3:1 (≥2.0), rr_quality observed, rr_distorted false, VIX 24.17 (<30), no earnings within 5 days. The PEG of 0.21 appears anomalous — verify earnings growth estimate. With forward PE of 3.8x and trailing PE of 17.8x, this implies an expected earnings inflection of more than 4x, which is a significant divergence worth noting. The stated 196.3% revenue growth and 756% earnings growth consensus are exceptional but must be treated as 'reported' given the inconsistency in valuation metrics. FCF yield of 0.68% is thin, which is a concern for a company cited as cheap on PE. Micron's CEO's projection of memory price increases — flagged here as a bullish call from a seller with inherent bias — is the demand narrative. The HBM thesis is driven by inference workloads (KV cache scaling), not training, which is a more durable demand driver. Structural support at $357.52 (5.4% below). All mechanical ACCUMULATE gates pass. Checking for ticker-level thesis break: no confirmed customer cancellations, no regulatory actions targeting MU specifically, FCF yield of 0.68% is below the 2% threshold required for on_deck designation but is not a thesis break per se. However, the anomalous PEG (0.21 with forward PE 3.8x) creates uncertainty about whether the earnings estimates underlying the R:R calculation are reliable — this is a data reliability concern, not a company-level event. ACCUMULATE is appropriate given all mechanical gates pass and no specific ticker-level thesis break exists. PAPER TRADE — under evaluation. Entry zone $363-380, invalidation at $363.75. R:R 4.3:1 to $437.65. Note: the valuation data shows internal inconsistencies — treat the stated PEG and forward PE as directionally useful but verify with MU's earnings release. Bottom line: MU looks statistically cheap with strong AI memory demand tailwinds, but the valuation data has quirks worth double-checking. This is a starter position — the real test is whether HBM demand holds through 2026. ACCUMULATE — starter position."
+    },
+    "AMZN": {
+      "price": 212.79,
+      "currency": "USD",
+      "chg_pct": 1.46,
+      "5d_pct": 6.75,
+      "1mo_pct": -2.81,
+      "sma10": 207.83,
+      "sma50": 214.57,
+      "sma100": 223.56,
+      "sma200": 224.54,
+      "vs_50sma": "-0.8%",
+      "vs_sma50_pct": -0.83,
+      "rsi_14": 52.8,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 25300800,
+      "avg_volume_10d": 42632650,
+      "vol_ratio": 0.59,
+      "volume_signal": "Low",
+      "support_zones": [
+        197.66,
+        211.22
+      ],
+      "resistance_zones": [
+        219.43,
+        235.31
+      ],
+      "raw_signal": "HOLD",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 22.7,
+        "trailing_pe": 29.7,
+        "price_to_book": 5.56,
+        "ev_ebitda": 15.8,
+        "peg_ratio": 1.61,
+        "fcf_yield_pct": 1.04,
+        "revenue_growth_pct": 13.6,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 64,
+          "earnings_growth_pct": 5.0
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 22.7,
+        "cluster_median_peg": 2.21,
+        "pe_vs_cluster_pct": 0.0
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 211.22,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 219.43,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.7,
+        "upside_pct": 3.1,
+        "ratio": 4.4,
+        "ratio_label": "4.4:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 197.66,
+        "structural_support_pct": 7.1
+      },
+      "writeup_tier": "full",
+      "signal": "HOLD",
+      "signal_rationale": "Signal changed from CAUTION to HOLD — AMZN is now 0.83% below its 50-day average of $214.57 with RSI at 52.8, a meaningful improvement from last session's CAUTION setup. Per Simply Wall St., fair value estimates for AMZN are converging around $281.27, supported by AWS strength and AI investment momentum, though some analysts are trimming targets on higher capital needs. AMZN confirmed a delivery deal with USPS involving a 20% reduction in package volumes per Barrons — a cost-reduction move that modestly improves logistics margins. Tight invalidation disclosure: invalidation at $211.22 is only 0.7% below current price — tight stop territory. Use structural support at $197.66 (7.1% below) as the mental stop for position sizing. R:R is 4.4:1 to nearest resistance at $219.43, but rr_quality is observed and tight_invalidation is true. At 22.7x forward PE in line with BigTech cluster median, valuation is reasonable — the PEG of 1.61 is in the neutral zone. FCF yield of 1.04% is thin, confirming the thesis depends on AWS and advertising growth converting to free cash. The $200B AI capex commitment per AMZN's Q4 earnings is the 2026 overhang — markets are waiting to see when capex converts to earnings. No compelling entry dislocation exists here. Bottom line: Amazon is fairly priced for what it is — a cloud and AI infrastructure story waiting for capex to become earnings. No entry now; would revisit on a volume-confirmed reclaim of the 50-day average at $214.57."
+    },
+    "GOOG": {
+      "price": 297.66,
+      "currency": "USD",
+      "chg_pct": 1.07,
+      "5d_pct": 8.73,
+      "1mo_pct": -1.01,
+      "sma10": 287.93,
+      "sma50": 309.38,
+      "sma100": 310.88,
+      "sma200": 265.77,
+      "vs_50sma": "-3.8%",
+      "vs_sma50_pct": -3.79,
+      "rsi_14": 49.9,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 10105400,
+      "avg_volume_10d": 22926260,
+      "vol_ratio": 0.44,
+      "volume_signal": "Low",
+      "support_zones": [
+        295.95,
+        148.43
+      ],
+      "resistance_zones": [
+        311.07,
+        319.23
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 22.2,
+        "trailing_pe": 27.5,
+        "price_to_book": 8.66,
+        "ev_ebitda": 23.3,
+        "peg_ratio": 2.21,
+        "fcf_yield_pct": 1.06,
+        "revenue_growth_pct": 18.0,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 17,
+          "earnings_growth_pct": 31.1
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 22.7,
+        "cluster_median_peg": 2.21,
+        "pe_vs_cluster_pct": -2.2
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 295.95,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 311.07,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.6,
+        "upside_pct": 4.5,
+        "ratio": 7.5,
+        "ratio_label": "7.5:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 265.77,
+        "structural_support_pct": 10.7
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. Google sits 3.79% below a declining 50-day average of $309.38 with RSI at 49.9. The Broadcom multi-year AI chip agreement with Google (through 2031) was confirmed via an SEC filing per Barrons — this is a confirmed deal, not a rumour, and covers exclusive custom silicon and networking hardware for next-generation AI platforms. This is a positive structural development for Google's AI infrastructure but doesn't resolve the TurboQuant algorithm disruption narrative (day 12) or the FCF yield concern (1.06%). Tight invalidation disclosure: invalidation at $295.95 is only 0.6% below current price — normal intraday moves may trigger this level before the thesis is tested. Use structural support at $265.77 (the 200-day average, 10.7% below) as the mental stop for position sizing. ACCUMULATE gate check: caution_source is base_scorer, R:R 7.5:1 appears attractive, but rr_distorted check — downside is only 0.6% creating a near-zero denominator. The stated 7.5:1 ratio from a 0.6% stop is mathematically distorted (rr_distorted = true, sub-1% stop). ACCUMULATE blocked. PEG of 2.21 flags expensive for growth — at 22.2x forward PE with 18% revenue growth, the multiple is ahead of where PEG < 1 investors want to be. Bottom line: Google's confirmed Broadcom chip deal strengthens the AI infrastructure position, but the stock needs the TurboQuant narrative to resolve and the 50-day average to flatten before this becomes actionable. Avoid at current levels."
+    },
+    "LITE": {
+      "price": 772.28,
+      "currency": "USD",
+      "chg_pct": -6.62,
+      "5d_pct": 9.9,
+      "1mo_pct": 18.66,
+      "sma10": 742.1,
+      "sma50": 617.35,
+      "sma100": 472.76,
+      "sma200": 305.14,
+      "vs_50sma": "+25.1%",
+      "vs_sma50_pct": 25.1,
+      "rsi_14": 56.9,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 5789300,
+      "avg_volume_10d": 6503640,
+      "vol_ratio": 0.89,
+      "volume_signal": "Normal",
+      "support_zones": [
+        573.73
+      ],
+      "resistance_zones": [
+        808.8
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 201,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 51.5,
+        "trailing_pe": 222.6,
+        "price_to_book": 65.13,
+        "ev_ebitda": 228.6,
+        "peg_ratio": 0.16,
+        "fcf_yield_pct": -0.04,
+        "revenue_growth_pct": 65.5,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 23,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Photonics",
+        "cluster_median_pe": 42.8,
+        "cluster_median_peg": 0.11,
+        "pe_vs_cluster_pct": 20.3
+      },
+      "entry_block": "BLOCKED: +25.1% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 617.35,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 808.8,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 20.1,
+        "upside_pct": 4.7,
+        "ratio": 0.2,
+        "ratio_label": "0.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 573.73,
+        "structural_support_pct": 25.7
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. Hard-blocked: LITE is 25.1% above its 50-day average — extreme extension with no trend exception at this level regardless of duration. The NVIDIA $2B strategic investment (per NVIDIA's investor relations press release, March 2, 2026) and S&P 500 inclusion in March are confirmed catalysts, but the S&P inclusion buying typically exhausts within 3-5 sessions and is now well past that window (day 201 above the 50-day). Per Simply Wall St., LITE has returned 100% year-to-date and 17.9% over the last seven days — the stock is trading at 51.5x forward PE with negative FCF yield (-0.04%), and the trailing PE of 222.6x reflects a company whose earnings have not yet caught up to its price. The PEG of 0.16 appears anomalous given the forward PE of 51.5x — flag this as potentially unreliable; do not cite as a primary valuation argument. Jim Cramer's commentary on LITE's Q1 performance is noted but not a fundamental signal. No entry exists at current levels — a pullback toward the support zone at $573.73 (25.7% below) would be the first point worth reconsidering."
+    },
+    "COHR": {
+      "price": 253.22,
+      "currency": "USD",
+      "chg_pct": -1.85,
+      "5d_pct": 4.0,
+      "1mo_pct": -0.26,
+      "sma10": 250.32,
+      "sma50": 241.32,
+      "sma100": 208.26,
+      "sma200": 156.79,
+      "vs_50sma": "+4.9%",
+      "vs_sma50_pct": 4.93,
+      "rsi_14": 51.7,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 3769500,
+      "avg_volume_10d": 6595510,
+      "vol_ratio": 0.57,
+      "volume_signal": "Low",
+      "support_zones": [
+        108.19,
+        230.15
+      ],
+      "resistance_zones": [
+        281.16,
+        300.2
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 4,
+      "sma50_rising": true,
+      "valuation": {
+        "forward_pe": 34.1,
+        "trailing_pe": 245.8,
+        "price_to_book": 5.56,
+        "ev_ebitda": 42.6,
+        "peg_ratio": 0.05,
+        "fcf_yield_pct": 0.27,
+        "revenue_growth_pct": 17.5,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 20,
+          "earnings_growth_pct": 73.0
+        },
+        "cluster_name": "Photonics",
+        "cluster_median_pe": 42.8,
+        "cluster_median_peg": 0.11,
+        "pe_vs_cluster_pct": -20.3
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 241.32,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 281.16,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 4.7,
+        "upside_pct": 11.0,
+        "ratio": 2.3,
+        "ratio_label": "2.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 230.15,
+        "structural_support_pct": 9.1
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "signal_rationale": "Signal unchanged at WATCH. Coherent sits 4.93% above its rising 50-day average of $241.32 with RSI at 51.7 — approaching the 5% extension hard block but not yet there. The NVIDIA $2B strategic investment (per NVIDIA's March 2, 2026 press release) is the confirmed structural thesis: silicon photonics for AI datacenter interconnects creates a multi-year demand floor. R:R is 2.3:1 to nearest resistance at $281.16 (11.0% upside vs 4.7% downside to invalidation at the 50-day average of $241.32). ACCUMULATE gate check: caution_source is base_scorer? No — COHR's raw signal is WATCH, not CAUTION. For WATCH signals, ACCUMULATE requires the pipeline signal to be WATCH, HOLD, or CAUTION with caution_source=base_scorer. COHR is WATCH with no caution_source — ACCUMULATE requires all 8 gates. Volume is below average (vol_confirmed false), which is a caveat but not a blocker. The PEG of 0.05 is anomalous — with a forward PE of 34.1x, this implies extraordinary earnings growth that should be verified rather than cited at face value. FCF yield of 0.27% is very thin. At 4.93% above the 50-day average, entry is slightly extended — a pullback to $245-250 would be the cleaner entry. Volume is below average — consider smaller position size. Bottom line: Coherent is the cleaner photonics entry versus LITE's extreme extension. The NVDA partnership is confirmed structural support. Wait for a modest pullback to $245-250 or a volume-confirmed break above $281 resistance."
+    },
+    "XLE": {
+      "price": 59.68,
+      "currency": "USD",
+      "chg_pct": 0.69,
+      "5d_pct": -4.6,
+      "1mo_pct": 6.36,
+      "sma10": 60.62,
+      "sma50": 55.55,
+      "sma100": 50.32,
+      "sma200": 46.58,
+      "vs_50sma": "+7.4%",
+      "vs_sma50_pct": 7.44,
+      "rsi_14": 58.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 25457800,
+      "avg_volume_10d": 60646440,
+      "vol_ratio": 0.42,
+      "volume_signal": "Low",
+      "support_zones": [
+        42.8,
+        41.34
+      ],
+      "resistance_zones": [
+        62.66,
+        68.63
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 67,
+      "sma50_rising": true,
+      "valuation": {
+        "trailing_pe": 22.9,
+        "price_to_book": 1.15,
+        "dividend_yield_pct": 2.62,
+        "cluster_name": "Energy",
+        "cluster_median_pe": null,
+        "cluster_median_peg": null
+      },
+      "entry_block": "BLOCKED: +7.4% above 50-day SMA (>5% hard block). Sustained trend exception not met: RSI 58 (>=55).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 55.55,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 62.66,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 6.9,
+        "upside_pct": 5.0,
+        "ratio": 0.7,
+        "ratio_label": "0.7:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "rr_distorted": false,
+        "structural_support": 46.58,
+        "structural_support_pct": 22.0
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. XLE is 7.44% above its 50-day average with RSI at 58.3 — hard-blocked on extension. The Hormuz crisis (week 5) is the entire story: WTI near $115 (with conflicting data sources noted) is inflating the ETF's price, but Wells Fargo downgraded energy from neutral to unfavorable per Barrons, citing valuation concerns. The geopolitical driver has not graduated to structural — this is a discrete conflict premium, not a multi-quarter demand re-rating. No entry exists at current levels; the risk/reward is 0.7:1 (derived). Would reassess if XLE pulls back to the $55-57 zone (near 50-day average) IF the Hormuz situation shows signs of resolution. At $59.68, XLE represents the ETF equivalent of holding the oil shock premium — that premium reverses quickly on any ceasefire signal."
+    },
+    "PLTR": {
+      "price": 147.93,
+      "currency": "USD",
+      "chg_pct": -0.46,
+      "5d_pct": 3.4,
+      "1mo_pct": -3.1,
+      "sma10": 148.79,
+      "sma50": 146.55,
+      "sma100": 161.97,
+      "sma200": 164.21,
+      "vs_50sma": "+0.9%",
+      "vs_sma50_pct": 0.94,
+      "rsi_14": 49.0,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 25082800,
+      "avg_volume_10d": 40757450,
+      "vol_ratio": 0.62,
+      "volume_signal": "Low",
+      "support_zones": [
+        119.17,
+        126.3
+      ],
+      "resistance_zones": [
+        187.08,
+        161.92
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 2,
+      "sma50_rising": false,
+      "valuation": {
+        "forward_pe": 79.5,
+        "trailing_pe": 238.6,
+        "price_to_book": 47.89,
+        "ev_ebitda": 241.8,
+        "peg_ratio": 2.94,
+        "fcf_yield_pct": 0.36,
+        "revenue_growth_pct": 70.0,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 27,
+          "earnings_growth_pct": 647.6
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 22.7,
+        "cluster_median_peg": 2.21,
+        "pe_vs_cluster_pct": 250.2
+      },
+      "entry_block": "CAUTION: forward P/E of 80x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline.",
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 146.55,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 161.92,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.9,
+        "upside_pct": 9.5,
+        "ratio": 10.6,
+        "ratio_label": "10.6:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": true,
+        "structural_support": 126.3,
+        "structural_support_pct": 14.6
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "signal_rationale": "Signal unchanged at WATCH. PLTR sits 0.94% above its 50-day average of $146.55 with RSI at 49.0 — the most technically neutral setup on the watchlist right now. Tight invalidation disclosure: invalidation at $146.55 (the 50-day average) is 0.9% below current price — tight stop territory where normal intraday moves could trigger invalidation. rr_distorted is true (10.6:1 from a 0.9% stop), so the stated R:R is mathematically meaningless. Use the structural support at $126.30 (14.6% below) as the mental stop for position sizing. The defense AI thesis — Army IDIQ framework ceiling of $10B plus a confirmed $448M Navy ShipOS deal per DoD press release — is intact and benefits from the Iran conflict escalation. Rosenblatt raised its price target to $200, Daiwa upgraded to Buy with $180 target per catalyst notes. The valuation is the problem: at 79.5x forward PE (a 250% premium to the BigTech cluster median of 22.7x), this requires explicit justification. The 70% revenue growth and 647.6% consensus earnings growth provide some support, but the PEG of 2.94 flags expensive for that growth rate. Entry-block soft caution: ACCUMULATE blocked by rr_distorted=true. PLTR's Q1 earnings (approximately May 5) are the conviction reset — contract validation will either confirm the defense thesis or reveal how much is already priced in. Bottom line: PLTR has the cleanest near-term setup on the watchlist, but the valuation is genuinely stretched. A half-position entry at current levels with a stop below $146 makes sense if you believe defense AI spending accelerates — but size conservatively given the 79x PE. Volume needs to confirm."
+    },
+    "VUAA_L": {
+      "price": 126.62,
+      "currency": "USD",
+      "chg_pct": -0.33,
+      "5d_pct": 0.86,
+      "1mo_pct": -4.25,
+      "sma10": 125.69,
+      "sma50": 130.55,
+      "sma100": 130.94,
+      "sma200": 127.6,
+      "vs_50sma": "-3.0%",
+      "vs_sma50_pct": -3.01,
+      "rsi_14": 44.9,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 109619,
+      "avg_volume_10d": 225083,
+      "vol_ratio": 0.49,
+      "volume_signal": "Low",
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 125.41,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 130.24,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 1.0,
+        "upside_pct": 2.9,
+        "ratio": 2.9,
+        "ratio_label": "2.9:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "rr_distorted": false,
+        "structural_support": 118.86,
+        "structural_support_pct": 6.1
+      },
+      "writeup_tier": "brief",
+      "signal": "CAUTION",
+      "signal_rationale": "Signal unchanged at CAUTION. Would reconsider above $130.24 resistance with volume confirmation, or on a VIX decline below 20 combined with a 50-day average ($130.55) reclaim."
+    }
+  },
+  "clusters": {
+    "singapore": {
+      "tickers": [
+        "D05.SI",
+        "O39.SI",
+        "U11.SI",
+        "C6L.SI",
+        "Z74.SI"
+      ],
+      "summary": "The Singapore cluster remains in a structurally impaired state — US10Y at 4.34% continues above the 4.20% NIM reset threshold, keeping bank margins under pressure (day 27). C6L.SI is the outlier concern: a 64.3% expected earnings decline and direct oil-cost exposure from the Hormuz crisis make it the weakest fundamental name in the cluster despite its attractive headline yield. DBS (WATCH) and Singtel (WATCH) are the only actionable names, both near their 50-day averages but lacking volume confirmation.",
+      "thesis_status": "Structurally impaired — NIM reset conditions unmet",
+      "key_development": "US10Y rose to 4.34% (+0.51%), moving further from the 4.20% NIM compression relief threshold — Singapore banks have no near-term catalyst for margin improvement."
+    },
+    "semiconductors": {
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "INTC",
+        "ASML",
+        "MU"
+      ],
+      "summary": "SOXX gained 1.47% to $344.10 Monday, now tracking 8 sessions of sequential recovery but still 17.4% below its pre-TurboQuant peak of $415. Within the cluster, MU is the standout with a confirmed ACCUMULATE signal driven by a 4.3:1 R:R and KeyBanc's $600 target — the memory thesis is the cleanest fundamental story in semis. INTC and ASML remain blocked on extension and earnings proximity respectively; AMD's R:R is too poor at current levels despite attractive growth-adjusted valuation.",
+      "thesis_status": "Tactical recovery underway — TurboQuant structural risk unresolved",
+      "key_development": "ASML faces proposed US export restrictions on China EUV access per IB Daily, adding a revenue headwind ahead of its April 15 earnings — the most important single event in the semis cluster this week."
+    },
+    "big_tech": {
+      "tickers": [
+        "AMZN",
+        "GOOG",
+        "PLTR"
+      ],
+      "summary": "BigTech is bifurcated: AMZN upgraded to HOLD on technical improvement (now below its 50-day average), while GOOG remains on CAUTION with a distorted R:R despite the confirmed Broadcom chip deal via SEC filing. PLTR holds WATCH near its 50-day average — the cleanest technical setup in the cluster, but 79x forward PE limits sizing. The cluster's common headwind remains the TurboQuant disruption narrative (day 12) and FCF yields below 2% across all three names.",
+      "thesis_status": "Mixed — selective improvement but fundamental headwinds intact",
+      "key_development": "Broadcom's multi-year AI chip supply agreement with Google was confirmed via SEC filing on April 6 — a structural positive for Google's custom silicon roadmap through 2031."
+    },
+    "photonics": {
+      "tickers": [
+        "LITE",
+        "COHR"
+      ],
+      "summary": "The photonics cluster is a tale of two extremes: LITE at 25.1% above its 50-day average (hard-blocked, no entry) versus COHR at 4.93% above (WATCH, approaching entry zone). Both carry the confirmed NVIDIA $2B investment as structural support. The divergence reflects LITE's S&P 500 inclusion premium, which has stretched its valuation to levels that require a meaningful correction before re-entry. COHR is the actionable name for photonics exposure.",
+      "thesis_status": "Structurally intact — LITE extended, COHR approaching entry",
+      "key_development": "LITE's 17.9% seven-day rally and 100% YTD gain are drawing attention per Simply Wall St., raising the question of whether the S&P inclusion premium has fully exhausted — watch for mean-reversion toward $573 support."
+    },
+    "energy": {
+      "tickers": [
+        "XLE"
+      ],
+      "summary": "XLE remains hard-blocked at 7.4% above its 50-day average with the Hormuz crisis as the sole driver. Wells Fargo downgraded the energy sector to unfavorable per Barrons, citing valuation concerns — a notable contrarian signal from a major institution. The geopolitical premium is real but not structural; any de-escalation headline will compress XLE sharply.",
+      "thesis_status": "Blocked — geopolitical premium, not structural re-rating",
+      "key_development": "Wells Fargo downgraded energy to 'unfavorable' on April 6, the first major institutional downgrade since the Hormuz crisis began — adds weight to avoiding new energy entries at current levels."
+    },
+    "index": {
+      "tickers": [
+        "VUAA.L"
+      ],
+      "summary": "VUAA.L (S&P 500 ETF) remains on CAUTION at 3.01% below its declining 50-day average of $130.55 with RSI at 44.9. SPY's 0.46% Monday gain has not changed the broader picture — the index needs a sustained reclaim of the 50-day average with volume to shift to WATCH.",
+      "thesis_status": "Technically impaired — below declining 50-day average",
+      "key_development": "Tuesday's Iran deadline is the immediate binary event — a failure to resolve could push VIX back above 28 and pressure VUAA.L toward the $118.86 structural support."
+    }
+  },
+  "interconnected": [
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "reason": "Confirmed multi-year AI chip supply agreement with GOOG through 2031 via SEC filing — directly connects to the GOOG and NVDA custom silicon themes on the watchlist.",
+      "entry_note": "Add to watchlist if AVGO pulls back 8-10% from current levels toward its 50-day average, which would improve the R:R to at least 2:1.",
+      "price": 314.43,
+      "currency": "USD",
+      "chg_pct": 0.07
+    },
+    {
+      "ticker": "TSM",
+      "name": "TSMC (US ADR)",
+      "reason": "Primary manufacturer for AMD's MI450 Instinct GPUs and NVDA's Blackwell Ultra — TSMC fabs run at high utilisation as both watchlist semis ramp H2 2026.",
+      "entry_note": "Revisit after ASML's April 15 earnings — if ASML's order book confirms continued EUV demand, TSM's utilisation outlook strengthens and a pullback to the 50-day average becomes an attractive entry.",
+      "price": 341.76,
+      "currency": "USD",
+      "chg_pct": 1.43
+    },
+    {
+      "ticker": "000660.KS",
+      "name": "SK Hynix",
+      "reason": "Placed record multi-billion euro ASML orders per Simply Wall St. — the primary HBM supplier for NVDA's Blackwell GPUs, making it a direct read-through to MU's competitive positioning in the memory market.",
+      "entry_note": "Becomes interesting if MU's ACCUMULATE signal triggers and confirms HBM demand — entry in SK Hynix would be a diversified play on the same inference memory thesis; revisit if USD/KRW moves to a more attractive entry level.",
+      "price": 901000.0,
+      "currency": "KRW",
+      "chg_pct": 2.5,
+      "price_usd": 598.28,
+      "fx_rate": "1 KRW = 0.000664 USD"
+    }
+  ],
+  "geopolitical": {
+    "active_risks": [
+      "Iran-Hormuz crisis week 5: Trump's Tuesday deadline for Strait reopening approaches with no resolution signal; WTI near $115/bbl",
+      "US-China semiconductor export restrictions: proposed legislation targeting ASML EUV tool servicing in China; tariff escalation ongoing",
+      "Google TurboQuant algorithm disruption (day 12): GPU-centric AI architecture thesis under challenge from algorithmic efficiency claims",
+      "Fed higher-for-longer: US10Y at 4.34%, above the 4.20% NIM reset threshold; one rate cut projected for full-year 2026 per the Fed's SEP"
+    ],
+    "market_impact": "The Hormuz crisis keeps XLE extended and blocked while directly pressuring C6L.SI (Singapore Airlines fuel costs) — both are on CAUTION with no entry. The Fed's confirmed higher-for-longer stance (rates held at 3.50-3.75%, one cut projected for 2026 per the Fed's Summary of Economic Projections) keeps US10Y above the Singapore banks' NIM reset threshold, suppressing D05.SI, O39.SI, and U11.SI. The TurboQuant narrative continues to cap semis cluster conviction despite SOXX's 1.47% Monday gain.",
+    "new_since_yesterday": "Per Yahoo Finance, Trump extended his Iran deadline to Tuesday and markets showed pre-market weakness on the approaching deadline. Broadcom confirmed its multi-year AI chip agreement with Google via SEC filing — a structural positive that is now a confirmed fact, not a rumour.",
+    "probabilities": {
+      "base": 55,
+      "optimistic": 20,
+      "pessimistic": 18,
+      "wildcard": 7
+    },
+    "portfolio_action": "Hold cash, selective starter positions only in oversold names with confirmed structural theses (MU ACCUMULATE) — avoid new entries in energy, extended tech, and Singapore banks until Tuesday's Iran deadline resolves."
+  },
+  "events_this_week": [
+    {
+      "date": "2026-04-08",
+      "event": "Iran deadline resolution (Tuesday) — Trump's Hormuz reopening ultimatum expires",
+      "impact": "HIGH",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-04-10",
+      "event": "CPI Report (March) — critical for rate-cut probability reset; sticky inflation could push back Fed cut expectations further",
+      "impact": "HIGH",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-04-11",
+      "event": "PPI Report (March) — producer price read-through for corporate margins; follow-on to CPI",
+      "impact": "MEDIUM",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-04-14",
+      "event": "MAS Monetary Policy Statement (April) — Singapore dollar policy rate decision; directly affects NIM outlook for DBS, OCBC, UOB",
+      "impact": "HIGH",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-04-15",
+      "event": "ASML earnings — China export restriction impact on order book; resolution of CAUTION signal depends on guidance",
+      "impact": "HIGH",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-04-24",
+      "event": "Intel (INTC) earnings — 18A yield progress and packaging talks with Google/Amazon will be the key questions",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-05-06",
+      "event": "AMD earnings — MI450 ramp timeline and Meta framework deal milestones; potential signal upgrade trigger",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-05-21",
+      "event": "NVDA earnings — Blackwell Ultra volume ramp confirmation and Vera Rubin sampling update; key thesis validation event",
+      "impact": "HIGH",
+      "type": "forward_catalyst"
+    }
+  ],
+  "portfolio_snapshot": {
+    "total_tickers": 17,
+    "signal_counts": {
+      "WATCH": 5,
+      "CAUTION": 9,
+      "HOLD": 3
+    },
+    "overall_stance": "Defensive with selective entry — one high-conviction starter position, five names approaching actionability",
+    "risk_posture": "Tuesday's Iran deadline is the single most acute near-term risk — a failure to resolve the Hormuz crisis would pressure oil higher, compress tech multiples, and push VIX back above 28, blocking the one ACCUMULATE signal on the watchlist."
+  },
+  "action_summary": {
+    "consider_adding": [],
+    "accumulate": [
+      {
+        "ticker": "MU",
+        "on_watchlist": true,
+        "note": "Enter $363-380, invalidation at $363.75 (nearest support). R:R 4.3:1 to $437.65 resistance. HBM inference demand confirmed via KeyBanc $600 target. PAPER TRADE — under evaluation.",
+        "entry_level": "Enter $363-380, stop below $363.75"
+      }
+    ],
+    "watch_for_entry": [
+      {
+        "ticker": "PLTR",
+        "on_watchlist": true,
+        "note": "Closest to 50-day average of all WATCH names (0.94% above). Defense AI thesis intact. Stop below $146.55. Half position given 79x PE.",
+        "entry_level": "Enter near $147-149, stop below $146.55"
+      },
+      {
+        "ticker": "D05_SI",
+        "on_watchlist": true,
+        "note": "0.3% above 50-day average — technically in the entry zone but volume is below average. Wait for above-average volume before acting.",
+        "entry_level": "Enter SGD 57.34-57.60, stop below SGD 57.00"
+      },
+      {
+        "ticker": "COHR",
+        "on_watchlist": true,
+        "note": "4.93% above 50-day average — approaching the 5% hard block. Actionable on a pullback to $245-250. NVDA partnership confirmed.",
+        "entry_level": "Enter $245-250 on pullback, stop below $241.32"
+      },
+      {
+        "ticker": "AMD",
+        "on_watchlist": true,
+        "note": "4.37% above 50-day average with poor near-term R:R (0.6:1). Becomes actionable at $210-215 where R:R improves to 2:1+.",
+        "entry_level": "Wait for pullback to $210-215, stop below $210.97"
+      },
+      {
+        "ticker": "Z74_SI",
+        "on_watchlist": true,
+        "note": "2.08% above 50-day average but R:R is only 1.3:1. Entry improves at SGD 4.92-5.00. Steady infrastructure play, not a growth story.",
+        "entry_level": "Wait for pullback to SGD 4.92-5.00, stop below SGD 4.92"
+      }
+    ],
+    "on_deck": [],
+    "caution_trim": [
+      {
+        "ticker": "NVDA",
+        "on_watchlist": true,
+        "note": "Avoid. Below declining 50-day average with distorted R:R (0.1% invalidation distance is meaningless). TurboQuant disruption risk latent; wait for 50-day reclaim."
+      },
+      {
+        "ticker": "GOOG",
+        "on_watchlist": true,
+        "note": "Avoid. Distorted R:R (0.6% stop is too tight to be actionable). TurboQuant narrative unresolved; FCF yield 1.06% is thin for a CAUTION name."
+      },
+      {
+        "ticker": "C6L_SI",
+        "on_watchlist": true,
+        "note": "Avoid. 64.3% expected earnings decline makes the 5.26% yield unreliable. Oil above $115 is a direct fuel cost headwind."
+      },
+      {
+        "ticker": "O39_SI",
+        "on_watchlist": true,
+        "note": "Avoid. RSI hard block at 68 with derived R:R of 1.0:1. Not actionable at current overbought levels."
+      },
+      {
+        "ticker": "LITE",
+        "on_watchlist": true,
+        "note": "Avoid. 25.1% above 50-day average — extreme extension with negative FCF yield. NVDA partnership confirmed but price reflects it and more."
+      },
+      {
+        "ticker": "XLE",
+        "on_watchlist": true,
+        "note": "Avoid. 7.4% above 50-day average, geopolitical driver not structural. Wells Fargo downgraded energy sector to unfavorable."
+      },
+      {
+        "ticker": "INTC",
+        "on_watchlist": true,
+        "note": "Avoid. 10.2% above 50-day average with 51x forward PE, negative revenue growth, and negative FCF yield. Wait for pullback to $45-47."
+      },
+      {
+        "ticker": "VUAA_L",
+        "on_watchlist": true,
+        "note": "Avoid. Below declining 50-day average ahead of binary Iran deadline. Wait for VIX to settle below 20."
+      },
+      {
+        "ticker": "ASML",
+        "on_watchlist": true,
+        "note": "[Moved from On Deck: PEG 2.18 >= 1.5] Below 50-day average with strong institutional order book (SK Hynix, Samsung). Blocked by earnings proximity (April 15) and China export restriction headline risk.",
+        "rationale": "PEG 2.18 flags expensive for growth but monopoly EUV position and rising non-China order book support long-term thesis. FCF yield 2.12% meets the 2% threshold.",
+        "trigger": "Post-April 15 earnings — if guidance confirms non-China order strength and the stock holds $1,283 support, ACCUMULATE becomes viable."
+      }
+    ],
+    "hold_no_action": [
+      {
+        "ticker": "AMZN",
+        "on_watchlist": true,
+        "note": "Upgrades to WATCH on a volume-confirmed reclaim of $214.57 (50-day average). Reassess below $197.66 structural support."
+      },
+      {
+        "ticker": "U11_SI",
+        "on_watchlist": true,
+        "note": "Upgrades to WATCH above SGD 37.42 (50-day average) with volume. Reassess below SGD 35.64 (200-day average)."
+      },
+      {
+        "ticker": "INTC",
+        "on_watchlist": true,
+        "note": "No action — 10% above 50-day average with hard entry block. Reassess if price pulls back to $45-47 zone."
+      }
+    ],
+    "new_stocks_to_watch": [
+      {
+        "ticker": "AVGO",
+        "on_watchlist": false,
+        "name": "Broadcom",
+        "note": "Confirmed multi-year AI chip deal with Google via SEC filing. Direct read-through to GOOG and NVDA watchlist themes.",
+        "entry_level": "Add to watchlist if AVGO pulls back 8-10% from current levels toward 50-day average"
+      },
+      {
+        "ticker": "TSM",
+        "on_watchlist": false,
+        "name": "TSMC (US ADR)",
+        "note": "Primary fab for AMD MI450 and NVDA Blackwell — both ramp H2 2026. Revisit after ASML April 15 earnings for EUV demand confirmation.",
+        "entry_level": "Revisit after ASML April 15 earnings; entry on 7-10% pullback from current levels"
+      },
+      {
+        "ticker": "000660.KS",
+        "on_watchlist": false,
+        "name": "SK Hynix",
+        "note": "Record ASML orders confirmed; primary HBM supplier for NVDA Blackwell. Read-through to MU ACCUMULATE thesis.",
+        "entry_level": "Becomes interesting if MU ACCUMULATE thesis plays out and HBM demand confirmed — reassess in USD equivalent terms after AMD May 6 earnings"
+      }
+    ]
+  },
+  "contrarian_candidates": [
+    {
+      "ticker": "MU",
+      "price": 377.76,
+      "days_on_caution": 7,
+      "rsi": 47.4,
+      "key_metric": "3.8x forward PE, 196% revenue growth, 4.3:1 R:R",
+      "support_test": "$363.75 (nearest support) — 3.7% below; $357.52 (200-day proxy) — 5.4% below",
+      "watching_for": "RSI has not yet reached the <38 hard gate — MU's RSI is 47.4, so this entry does NOT qualify under the contrarian RSI hard gate. Removing from contrarian candidates."
+    }
+  ],
+  "macro_trigger_map": [
+    {
+      "event": "Iran Deadline (Tuesday, April 8)",
+      "date": "2026-04-08",
+      "bullish_outcome": "Iran agrees to reopen Strait or negotiations extend with credible ceasefire — WTI drops toward $105, VIX falls below 20",
+      "bullish_upgrades": [
+        "XLE → consider revisiting at 50-day average if oil normalises",
+        "NVDA → potential upgrade to WATCH if tech multiples expand on VIX compression",
+        "VUAA_L → WATCH candidate if 50-day average reclaimed"
+      ],
+      "bearish_outcome": "Deadline passes with no deal, military escalation — WTI spikes above $120, VIX back above 28",
+      "bearish_impact": [
+        "MU ACCUMULATE signal reassess — VIX above 30 blocks ACCUMULATE gate",
+        "C6L_SI deepens CAUTION on fuel cost spike",
+        "PLTR WATCH holds or strengthens on defense spending narrative"
+      ]
+    },
+    {
+      "event": "CPI Report — March (April 10)",
+      "date": "2026-04-10",
+      "bullish_outcome": "CPI comes in below 3.0% — rate cut probability increases, US10Y drops below 4.20%",
+      "bullish_upgrades": [
+        "D05_SI, U11_SI, O39_SI → NIM reset threshold potentially met, Singapore bank signals could upgrade",
+        "AMZN → WATCH candidate on multiple expansion",
+        "GOOG → R:R improves if 50-day average approached on tech rally"
+      ],
+      "bearish_outcome": "CPI above 3.5% — rate cut pushed to 2027, US10Y rises above 4.50%",
+      "bearish_impact": [
+        "Singapore banks remain structurally impaired — D05_SI, U11_SI downgrade risk",
+        "NVDA, AMD further multiple compression — semis cluster conviction resets lower",
+        "VUAA_L could test $118.86 structural support"
+      ]
+    },
+    {
+      "event": "ASML Earnings (April 15)",
+      "date": "2026-04-15",
+      "bullish_outcome": "Order book confirms non-China demand offsetting export restrictions; guidance raised or maintained",
+      "bullish_upgrades": [
+        "ASML → CAUTION to WATCH or ACCUMULATE depending on price reaction and R:R",
+        "MU → thesis strengthened if ASML confirms HBM-driven memory tool demand"
+      ],
+      "bearish_outcome": "China revenue miss and guidance cut due to export restrictions; management cautious on 2026 outlook",
+      "bearish_impact": [
+        "ASML → CAUTION deepens, may approach $1,052.84 200-day support",
+        "Semis cluster sentiment reset lower — MU ACCUMULATE reassess if semis broadly reprice"
+      ]
+    }
+  ]
+}
