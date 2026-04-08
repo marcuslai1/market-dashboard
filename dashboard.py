@@ -655,243 +655,41 @@ if page == "Today's Snapshot":
 # PAGE 1: Daily Report Viewer
 # ════════════════════════════════════════════
 elif page == "Daily Report":
-    st.title("Daily Report Viewer")
+    st.title("Daily Report")
     reports = filter_reports(load_all_reports())
     if not reports:
-        st.error("No report files found in market_data/ for the selected date range.")
+        st.error("No report files found for the selected date range.")
         st.stop()
 
     dates = sorted(reports.keys(), reverse=True)
-
-    # ── Watchlist Bias Over Time ──
-    st.subheader("Watchlist Bias")
-    bias_rows = []
-    for d in sorted(reports.keys()):
-        wl = reports[d].get("watchlist", {})
-        counts = {"BUY": 0, "ACCUMULATE": 0, "WATCH": 0, "HOLD": 0, "CAUTION": 0}
-        for tk_data in wl.values():
-            sig = tk_data.get("signal", "")
-            if sig in counts:
-                counts[sig] += 1
-        counts["date"] = pd.to_datetime(d)
-        bias_rows.append(counts)
-
-    if bias_rows:
-        bias_df = pd.DataFrame(bias_rows)
-        # Today's stance summary
-        latest = bias_rows[-1]
-        parts = []
-        for sig in ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]:
-            if latest[sig] > 0:
-                parts.append(f"{latest[sig]} {sig}")
-        stance = reports[dates[0]].get("portfolio_snapshot", {}).get("overall_stance", "")
-        stance_text = f"**Stance: {stance}** — " if stance else ""
-        st.markdown(f"{stance_text}{', '.join(parts)}")
-
-        fig_bias = go.Figure()
-        for sig, color in [("BUY", "#22c55e"), ("ACCUMULATE", "#3498db"),
-                           ("WATCH", "#f59e0b"), ("HOLD", "#6b7280"),
-                           ("CAUTION", "#ef4444")]:
-            fig_bias.add_trace(go.Bar(
-                x=bias_df["date"], y=bias_df[sig],
-                name=sig, marker_color=color,
-            ))
-        fig_bias.update_layout(
-            barmode="stack", height=250,
-            yaxis_title="Tickers",
-            margin=dict(l=0, r=0, t=30, b=0),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        )
-        st.plotly_chart(fig_bias, use_container_width=True)
-
-    st.divider()
-
     selected = st.selectbox("Report Date", dates)
     report = reports[selected]
+    watchlist = report.get("watchlist", {})
+    all_reports = reports
 
-    # ── Meta bar ──
+    # ── 1. STANCE + SIGNAL COUNTS ──
     meta = report.get("meta", {})
     snapshot = report.get("portfolio_snapshot", {})
-    cols = st.columns(4)
-    cols[0].metric("Report Date", meta.get("report_date", selected))
-    cols[1].metric("Market Date", meta.get("market_date", "—"))
-    if snapshot:
-        cols[2].metric("Stance", snapshot.get("overall_stance", "—"))
-        cols[3].metric("Tickers", snapshot.get("total_tickers", "—"))
+    signal_counts = snapshot.get("signal_counts", {})
 
-    # ── Signal counts bar ──
-    if snapshot and snapshot.get("signal_counts"):
-        sc = snapshot["signal_counts"]
-        scols = st.columns(len(sc))
-        for i, (sig, count) in enumerate(sc.items()):
-            color = SIGNAL_COLORS.get(sig, "#6b7280")
-            scols[i].markdown(
-                f"<div style='text-align:center;padding:8px;border-radius:6px;"
-                f"background-color:{color}20;border:1px solid {color}'>"
-                f"<b style='color:{color}'>{sig}</b><br>"
-                f"<span style='font-size:1.8em;font-weight:bold'>{count}</span></div>",
-                unsafe_allow_html=True,
-            )
+    stance = snapshot.get("overall_stance", "")
+    if stance:
+        st.markdown(f"### {_escape_dollars(stance)}")
 
-    # ── Automated Insights ──
-    st.subheader("Automated Insights")
-    watchlist = report.get("watchlist", {})
-    all_reports = reports  # already loaded
+    scols = st.columns(5)
+    for i, sig in enumerate(["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]):
+        count = signal_counts.get(sig, 0)
+        color = SIGNAL_COLORS.get(sig, "#6b7280")
+        scols[i].markdown(
+            f"<div style='text-align:center;padding:6px;border-radius:6px;"
+            f"background-color:{color}20;border:1px solid {color}'>"
+            f"<b style='color:{color}'>{sig}</b><br>"
+            f"<span style='font-size:1.6em;font-weight:bold'>{count}</span></div>",
+            unsafe_allow_html=True,
+        )
 
-    # 1) Closest to Entry — tickers nearest SMA50 from above
-    closest_entries = []
-    for tk, d in watchlist.items():
-        vs50 = d.get("vs_sma50_pct")
-        sig = d.get("signal", "")
-        if vs50 is not None and sig in ("WATCH", "HOLD") and vs50 > -2:
-            closest_entries.append((tk, vs50, sig))
-    closest_entries.sort(key=lambda x: abs(x[1]))
-
-    # 2) Signal Persistence Warnings — same WATCH signal 3+ consecutive days
-    persistence_warnings = []
-    sorted_dates = sorted(all_reports.keys())
-    sel_idx = sorted_dates.index(selected) if selected in sorted_dates else -1
-    if sel_idx >= 2:
-        for tk in watchlist:
-            streak = 0
-            for i in range(sel_idx, max(sel_idx - 7, -1), -1):
-                prev_wl = all_reports.get(sorted_dates[i], {}).get("watchlist", {})
-                if prev_wl.get(tk, {}).get("signal") == "WATCH":
-                    streak += 1
-                else:
-                    break
-            if streak >= 3:
-                persistence_warnings.append((tk, streak))
-    persistence_warnings.sort(key=lambda x: -x[1])
-
-    # 3) Weekly Signal Trend — net BUY/WATCH changes this week
-    recent_dates = [d for d in sorted_dates if d <= selected][-5:]
-    signal_change_count = {"upgrades": 0, "downgrades": 0}
-    if len(recent_dates) >= 2:
-        first_wl = all_reports.get(recent_dates[0], {}).get("watchlist", {})
-        last_wl = all_reports.get(recent_dates[-1], {}).get("watchlist", {})
-        signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-        for tk in set(first_wl) | set(last_wl):
-            r1 = signal_rank.get(first_wl.get(tk, {}).get("signal", ""), 0)
-            r2 = signal_rank.get(last_wl.get(tk, {}).get("signal", ""), 0)
-            if r2 > r1:
-                signal_change_count["upgrades"] += 1
-            elif r2 < r1:
-                signal_change_count["downgrades"] += 1
-
-    # 4) Approaching Earnings
-    earnings = report.get("earnings_calendar", [])
-    approaching_earnings = [e for e in earnings if isinstance(e.get("days_until"), (int, float)) and e["days_until"] <= 7]
-
-    # 5) WATCH Queue Depth
-    watch_count = sum(1 for d in watchlist.values() if d.get("signal") == "WATCH")
-    buy_count = sum(1 for d in watchlist.values() if d.get("signal") == "BUY")
-
-    # Render insights
-    icols = st.columns(3)
-    with icols[0]:
-        if closest_entries:
-            st.markdown("**Closest to Entry**")
-            for tk, vs50, sig in closest_entries[:4]:
-                direction = "above" if vs50 > 0 else "below"
-                st.markdown(f"- **{tk}**: {abs(vs50):.1f}% {direction} SMA50 ({sig})")
-        else:
-            st.markdown("**Closest to Entry**")
-            st.caption("No tickers near SMA50")
-
-    with icols[1]:
-        st.markdown("**Signal Persistence**")
-        if persistence_warnings:
-            for tk, streak in persistence_warnings[:4]:
-                st.markdown(f"- **{tk}**: WATCH for {streak} consecutive days")
-        else:
-            st.caption("No extended WATCH streaks")
-
-        if approaching_earnings:
-            st.markdown("**Earnings This Week**")
-            for e in approaching_earnings:
-                st.markdown(f"- **{e.get('ticker', '?')}**: {e.get('days_until', '?')}d away")
-
-    with icols[2]:
-        st.markdown("**Queue & Trend**")
-        st.markdown(f"- WATCH queue: **{watch_count}** tickers")
-        st.markdown(f"- BUY active: **{buy_count}** tickers")
-        if signal_change_count["upgrades"] or signal_change_count["downgrades"]:
-            st.markdown(
-                f"- This week: **{signal_change_count['upgrades']}** upgrades, "
-                f"**{signal_change_count['downgrades']}** downgrades"
-            )
-
+    # ── 2. ACTION SUMMARY — "What do I do today?" ──
     st.divider()
-
-    # ── Market Pulse ──
-    st.subheader("Market Pulse")
-    st.write(_escape_dollars(report.get("macro_summary", "—")))
-
-    # Benchmarks table
-    benchmarks = report.get("benchmarks", {})
-    if benchmarks:
-        bm_rows = []
-        for name, data in benchmarks.items():
-            chg = data.get("chg_pct")
-            bm_rows.append({
-                "Benchmark": name,
-                "Price": data.get("price"),
-                "Daily Change %": f"{chg:+.2f}%" if chg is not None else "—",
-                "Unit": data.get("unit", ""),
-            })
-        st.dataframe(pd.DataFrame(bm_rows), width="stretch", hide_index=True)
-
-    comm = report.get("commodities_note", "")
-    if comm:
-        st.caption(f"**Commodities:** {_escape_dollars(comm)}")
-
-    # ── Watchlist ──
-    st.subheader("Watchlist")
-    if watchlist:
-        for ticker, data in watchlist.items():
-            signal = data.get("signal", "?")
-            color = SIGNAL_COLORS.get(signal, "#6b7280")
-            price = data.get("price")
-            chg = data.get("chg_pct")
-            rsi = data.get("rsi_14")
-            vs50 = data.get("vs_sma50_pct")
-
-            display_ticker = TICKER_DISPLAY.get(ticker, ticker)
-            curr = data.get("currency", "USD")
-            header_parts = [f"**{display_ticker}**"]
-            if price is not None:
-                header_parts.append(_price_str(price, curr))
-            if chg is not None:
-                header_parts.append(f"({chg:+.2f}%)")
-            st_color = SIGNAL_ST_COLORS.get(signal, "gray")
-
-            with st.expander(
-                f"{' '.join(header_parts)}  —  :{st_color}[{signal}]",
-                expanded=False,
-            ):
-                mcols = st.columns(4)
-                mcols[0].metric("Signal", signal)
-                mcols[1].metric("RSI", f"{rsi:.1f}" if rsi else "—")
-                mcols[2].metric("vs SMA50", f"{vs50:+.1f}%" if vs50 else "—")
-                entry_block = data.get("entry_block")
-                mcols[3].metric("Entry Block", entry_block[:30] if entry_block else "None")
-
-                rationale = data.get("signal_rationale", "")
-                if rationale:
-                    st.markdown(_escape_dollars(rationale))
-
-    # ── Clusters ──
-    st.subheader("Cluster Deep Dives")
-    clusters = report.get("clusters", {})
-    for name, cdata in clusters.items():
-        with st.expander(f"**{name.replace('_', ' ').title()}** — {cdata.get('thesis_status', '')}"):
-            st.write(_escape_dollars(cdata.get("summary", "")))
-            kd = cdata.get("key_development", "")
-            if kd:
-                st.caption(f"**Key development:** {kd}")
-
-    # ── Action Summary ──
     st.subheader("Action Summary")
     action = report.get("action_summary", {})
     category_labels = {
@@ -899,149 +697,268 @@ elif page == "Daily Report":
         "accumulate": ("Accumulate", "blue"),
         "watch_for_entry": ("Watch for Entry", "orange"),
         "on_deck": ("On Deck — Fundamentally Attractive", "blue"),
-        "hold_no_action": ("Hold — No Action", "gray"),
         "caution_trim": ("Caution — Thesis Weakened", "red"),
         "new_stocks_to_watch": ("New Stocks to Watch", "blue"),
+        "hold_no_action": ("Hold — No Action", "gray"),
     }
+    any_actions = False
     for key, (label, color) in category_labels.items():
         items = action.get(key, [])
         if not items:
             continue
+        any_actions = True
         st.markdown(f"**:{color}[{label}]** ({len(items)})")
         for item in items:
-            ticker = item.get("ticker", "?")
-            note = _escape_dollars(item.get("note", ""))
-            entry = _escape_dollars(item.get("entry_level", ""))
-            line = f"- **{ticker}**: {note}"
-            if entry:
-                line += f" | *{entry}*"
+            if isinstance(item, dict):
+                ticker = item.get("ticker", "?")
+                note = _escape_dollars(item.get("note", ""))
+                entry = _escape_dollars(item.get("entry_level", ""))
+                line = f"- **{ticker}**: {note}"
+                if entry:
+                    line += f" | *{entry}*"
+            else:
+                line = f"- **{item}**"
             st.markdown(line)
+    if not any_actions:
+        st.caption("No actionable signals today.")
 
-    # ── Entry Trigger Tracker ──
-    import re as _re
-    on_deck = action.get("on_deck", [])
-    watch_entry = action.get("watch_for_entry", [])
-    trigger_items = on_deck + watch_entry
-    if trigger_items:
-        st.subheader("Entry Trigger Tracker")
-        for item in trigger_items:
-            tk = item.get("ticker", "?")
-            note = item.get("note", "")
-            trigger = item.get("trigger", "")
-            text = note or trigger
-            # Try to extract a dollar price level from trigger/note
-            price_match = _re.search(r'\$(\d[\d,.]*)', trigger or note)
-            tk_price = watchlist.get(tk, {}).get("price")
-            distance_pct = None
-            target_price = None
-            if price_match and tk_price:
-                try:
-                    target_price = float(price_match.group(1).replace(",", ""))
-                    distance_pct = (target_price - tk_price) / tk_price * 100
-                except (ValueError, ZeroDivisionError):
-                    pass
-            # Color indicator
-            if distance_pct is not None:
-                abs_d = abs(distance_pct)
-                if abs_d <= 2:
-                    ind = ":green[within 2%]"
-                elif abs_d <= 5:
-                    ind = f":orange[{abs_d:.1f}% away]"
-                else:
-                    ind = f":red[{abs_d:.1f}% away]"
-                direction = "above" if distance_pct > 0 else "below"
+    # ── 3. SIGNAL CHANGES — "What's different?" ──
+    st.divider()
+    st.subheader("Signal Changes")
+
+    sorted_dates = sorted(all_reports.keys())
+    sel_idx = sorted_dates.index(selected) if selected in sorted_dates else -1
+    prev_date = sorted_dates[sel_idx - 1] if sel_idx > 0 else None
+    prev_report = all_reports.get(prev_date) if prev_date else None
+
+    if prev_report is None:
+        st.caption("No previous report to compare.")
+    else:
+        wl_today = watchlist
+        wl_yesterday = prev_report.get("watchlist", {})
+        signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
+        changes = []
+
+        for tk in sorted(set(wl_today) | set(wl_yesterday)):
+            sig_old = wl_yesterday.get(tk, {}).get("signal", "—")
+            sig_new = wl_today.get(tk, {}).get("signal", "—")
+            if sig_old == sig_new:
+                continue
+            r_old = signal_rank.get(sig_old, 0)
+            r_new = signal_rank.get(sig_new, 0)
+            if sig_old == "—":
+                arrow = "+"
+            elif sig_new == "—":
+                arrow = "-"
+            elif r_new > r_old:
+                arrow = "^"
+            else:
+                arrow = "v"
+            display_tk = TICKER_DISPLAY.get(tk, tk)
+            rationale = wl_today.get(tk, {}).get("signal_rationale", "")
+            short_rationale = rationale[:200] + "..." if len(rationale) > 200 else rationale
+            st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
+            st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
+            changes.append({
+                "ticker": display_tk, "from_sig": sig_old, "to_sig": sig_new,
+                "arrow": arrow, "rationale": short_rationale,
+                "st_old": st_old, "st_new": st_new,
+            })
+
+        if changes:
+            for c in changes:
                 st.markdown(
-                    f"**{tk}** — trigger \\${target_price:,.0f} | "
-                    f"current \\${tk_price:,.2f} ({abs_d:.1f}% {direction}) {ind}"
+                    f"**{c['ticker']}** {c['arrow']} "
+                    f":{c['st_old']}[{c['from_sig']}] -> :{c['st_new']}[{c['to_sig']}]"
+                )
+                if c["rationale"]:
+                    st.caption(_escape_dollars(c["rationale"]))
+        else:
+            st.success("No signal changes — steady state.")
+
+    # ── 4. WATCHLIST TABLE — scannable grid ──
+    st.divider()
+    st.subheader("Watchlist")
+    if watchlist:
+        wl_rows = []
+        for tk, d in watchlist.items():
+            sig = d.get("signal", "?")
+            rr = d.get("risk_reward", {})
+            curr = d.get("currency", "USD")
+            pfx = "S$" if curr == "SGD" else "$"
+            wl_rows.append({
+                "Ticker": TICKER_DISPLAY.get(tk, tk),
+                "Price": f"{pfx}{d.get('price', 0):,.2f}" if d.get("price") else "—",
+                "Chg%": f"{d.get('chg_pct', 0):+.2f}%" if d.get("chg_pct") is not None else "—",
+                "Signal": sig,
+                "RSI": f"{d.get('rsi_14', 0):.1f}" if d.get("rsi_14") else "—",
+                "vs SMA50": f"{d.get('vs_sma50_pct', 0):+.1f}%" if d.get("vs_sma50_pct") is not None else "—",
+                "R:R": f"{rr.get('ratio', 0):.1f}" if rr.get("ratio") else "—",
+                "_tk_key": tk,
+                "_sig_rank": {"BUY": 1, "ACCUMULATE": 2, "WATCH": 3, "HOLD": 4, "CAUTION": 5}.get(sig, 6),
+            })
+        wl_df = pd.DataFrame(wl_rows).sort_values("_sig_rank")
+
+        # Color-code the signal column
+        def _signal_color(val):
+            colors = {"BUY": "#22c55e", "ACCUMULATE": "#3498db", "WATCH": "#f59e0b",
+                      "HOLD": "#6b7280", "CAUTION": "#ef4444"}
+            c = colors.get(val, "#6b7280")
+            return f"color: {c}; font-weight: bold"
+
+        display_df = wl_df.drop(columns=["_tk_key", "_sig_rank"])
+        styled = display_df.style.map(_signal_color, subset=["Signal"])
+        st.dataframe(styled, hide_index=True, use_container_width=True)
+
+        # Expanders for individual ticker rationales
+        st.caption("Click a ticker below for the full signal rationale.")
+        # Group by signal for cleaner browsing
+        for tk, d in watchlist.items():
+            signal = d.get("signal", "?")
+            rationale = d.get("signal_rationale", "")
+            if not rationale:
+                continue
+            display_tk = TICKER_DISPLAY.get(tk, tk)
+            st_color = SIGNAL_ST_COLORS.get(signal, "gray")
+            curr = d.get("currency", "USD")
+            price = d.get("price")
+            price_str = _price_str(price, curr) if price else ""
+            with st.expander(f"{display_tk} {price_str} — :{st_color}[{signal}]"):
+                mcols = st.columns(4)
+                mcols[0].metric("RSI", f"{d.get('rsi_14', 0):.1f}" if d.get("rsi_14") else "—")
+                mcols[1].metric("vs SMA50", f"{d.get('vs_sma50_pct', 0):+.1f}%" if d.get("vs_sma50_pct") is not None else "—")
+                entry_block = d.get("entry_block")
+                mcols[2].metric("Entry Block", entry_block[:30] if entry_block else "None")
+                rr = d.get("risk_reward", {})
+                mcols[3].metric("R:R", f"{rr.get('ratio', 0):.1f}" if rr.get("ratio") else "—")
+                st.markdown(_escape_dollars(rationale))
+
+    # ── 5. BENCHMARKS & MACRO ──
+    st.divider()
+    st.subheader("Market Pulse")
+    macro = report.get("macro_summary", "")
+    if macro:
+        st.write(_escape_dollars(macro))
+
+    benchmarks = report.get("benchmarks", {})
+    if benchmarks:
+        bm_cols = st.columns(min(len(benchmarks), 5))
+        SNAPSHOT_BM = ["SPY", "VIX", "WTI", "Gold", "SOXX", "QQQ", "DXY", "US10Y"]
+        shown = [b for b in SNAPSHOT_BM if b in benchmarks]
+        for i, bm_name in enumerate(shown[:5]):
+            bm = benchmarks[bm_name]
+            price = bm.get("price")
+            chg = bm.get("chg_pct")
+            if chg is not None:
+                delta_color = "inverse" if bm_name == "VIX" else "normal"
+                bm_cols[i % 5].metric(
+                    bm_name,
+                    f"{price:,.2f}" if price is not None else "—",
+                    f"{chg:+.2f}%", delta_color=delta_color,
                 )
             else:
-                st.markdown(f"**{tk}**")
-            if text:
-                st.caption(_escape_dollars(text))
+                bm_cols[i % 5].metric(bm_name, f"{price:,.2f}" if price else "—")
 
-    # ── Interconnected Stocks ──
+    comm = report.get("commodities_note", "")
+    if comm:
+        st.caption(f"**Commodities:** {_escape_dollars(comm)}")
+
+    # ── 6. DEEP DIVES (expandable) ──
+    st.divider()
+
+    # Clusters
+    clusters = report.get("clusters", {})
+    if clusters:
+        st.subheader("Cluster Deep Dives")
+        for name, cdata in clusters.items():
+            with st.expander(f"**{name.replace('_', ' ').title()}** — {cdata.get('thesis_status', '')}"):
+                st.write(_escape_dollars(cdata.get("summary", "")))
+                kd = cdata.get("key_development", "")
+                if kd:
+                    st.caption(f"**Key development:** {kd}")
+
+    # Interconnected
     inter = report.get("interconnected", [])
     if inter:
-        st.subheader("Interconnected Stocks")
-        for item in inter:
-            tk = item.get("ticker", "?")
-            name = item.get("name", "")
-            reason = item.get("reason", "")
-            entry_note = item.get("entry_note", "")
-            price = item.get("price")
-            chg = item.get("chg_pct")
-            curr = item.get("currency", "USD")
-            label = f"**{tk}**"
-            if name:
-                label += f" ({name})"
-            if price is not None:
-                label += f" — {_price_str(price, curr)}"
-            if chg is not None:
-                label += f" ({chg:+.2f}%)"
-            with st.expander(label):
+        with st.expander(f"Interconnected Stocks ({len(inter)})"):
+            for item in inter:
+                tk = item.get("ticker", "?")
+                name = item.get("name", "")
+                reason = item.get("reason", "")
+                entry_note = item.get("entry_note", "")
+                price = item.get("price")
+                chg = item.get("chg_pct")
+                curr = item.get("currency", "USD")
+                label = f"**{tk}**"
+                if name:
+                    label += f" ({name})"
+                if price is not None:
+                    label += f" — {_price_str(price, curr)}"
+                if chg is not None:
+                    label += f" ({chg:+.2f}%)"
+                st.markdown(label)
                 if reason:
-                    st.write(_escape_dollars(reason))
+                    st.caption(_escape_dollars(reason))
                 if entry_note:
                     st.caption(f"Entry: {_escape_dollars(entry_note)}")
 
-    # ── Geopolitical Scenarios ──
-    st.subheader("Geopolitical Scenarios")
+    # Geopolitical
     geo = report.get("geopolitical", {})
-    risks = geo.get("active_risks", [])
-    if risks:
-        for r in risks:
-            st.markdown(f"- {_escape_dollars(r)}")
-    # New simple format: market_impact + new_since_yesterday + probabilities
-    impact_text = geo.get("market_impact", "") or geo.get("macro_outlook", "")
-    if impact_text:
-        st.info(_escape_dollars(impact_text))
+    has_geo = geo.get("active_risks") or geo.get("market_impact") or geo.get("scenarios")
+    if has_geo:
+        with st.expander("Geopolitical Scenarios"):
+            risks = geo.get("active_risks", [])
+            if risks:
+                for r in risks:
+                    st.markdown(f"- {_escape_dollars(r)}")
+            impact_text = geo.get("market_impact", "") or geo.get("macro_outlook", "")
+            if impact_text:
+                st.info(_escape_dollars(impact_text))
+            new_since = geo.get("new_since_yesterday", "")
+            if new_since:
+                st.warning(f"**New today:** {_escape_dollars(new_since)}")
+            probs = geo.get("probabilities", {})
+            if probs:
+                prob_cols = st.columns(4)
+                for col, (label, key) in zip(prob_cols, [("Base", "base"), ("Optimistic", "optimistic"),
+                                                          ("Pessimistic", "pessimistic"), ("Wildcard", "wildcard")]):
+                    val = probs.get(key, "?")
+                    col.metric(label, f"{val}%")
+            port_action = geo.get("portfolio_action", "")
+            if port_action:
+                st.success(f"**Action:** {_escape_dollars(port_action)}")
+            scenarios = geo.get("scenarios", {})
+            for sc_name, sc in scenarios.items():
+                prob = sc.get("probability", "?")
+                sc_label = sc_name.replace("_", " ").title()
+                st.markdown(f"**{sc_label}** — {prob}")
+                st.write(_escape_dollars(sc.get("description", "")))
 
-    new_since = geo.get("new_since_yesterday", "")
-    if new_since:
-        st.warning(f"**New today:** {_escape_dollars(new_since)}")
-
-    probs = geo.get("probabilities", {})
-    if probs:
-        prob_cols = st.columns(4)
-        for col, (label, key) in zip(prob_cols, [("Base", "base"), ("Optimistic", "optimistic"),
-                                                  ("Pessimistic", "pessimistic"), ("Wildcard", "wildcard")]):
-            val = probs.get(key, "?")
-            col.metric(label, f"{val}%")
-
-    port_action = geo.get("portfolio_action", "")
-    if port_action:
-        st.success(f"**Action:** {_escape_dollars(port_action)}")
-
-    # Legacy full scenarios (only present on Mondays or major events)
-    scenarios = geo.get("scenarios", {})
-    for name, sc in scenarios.items():
-        prob = sc.get("probability", "?")
-        label = name.replace("_", " ").title()
-        with st.expander(f"**{label}** — {prob}"):
-            st.write(_escape_dollars(sc.get("description", "")))
-            st.markdown(f"**Market Impact:** {_escape_dollars(sc.get('market_impact', ''))}")
-            st.markdown(f"**Portfolio Action:** {_escape_dollars(sc.get('portfolio_action', ''))}")
-
-    # ── Events ──
-    st.subheader("Key Events")
+    # Events
     events = report.get("events_this_week", [])
     if events:
-        ev_df = pd.DataFrame(events)
-        if "date" in ev_df.columns:
-            ev_df = ev_df.sort_values("date")
-        st.dataframe(ev_df, width="stretch", hide_index=True)
+        with st.expander(f"Key Events ({len(events)})"):
+            ev_df = pd.DataFrame(events)
+            if "date" in ev_df.columns:
+                ev_df = ev_df.sort_values("date")
+            st.dataframe(ev_df, width="stretch", hide_index=True)
 
-    # ── Macro Trigger Map ──
+    # Macro Trigger Map
     trigger_map = report.get("macro_trigger_map", [])
+    # Flatten if double-nested
+    if trigger_map and isinstance(trigger_map[0], list):
+        trigger_map = [item for sublist in trigger_map for item in sublist]
     if trigger_map:
-        st.subheader("Macro Trigger Map")
-        for tm in trigger_map:
-            event_name = tm.get("event", "")
-            event_date = tm.get("date", "")
-            header = f"**{event_name}**"
-            if event_date:
-                header += f" ({event_date})"
-            with st.expander(header):
+        with st.expander(f"Macro Trigger Map ({len(trigger_map)})"):
+            for tm in trigger_map:
+                if not isinstance(tm, dict):
+                    continue
+                event_name = tm.get("event", "")
+                event_date = tm.get("date", "")
+                header = f"**{event_name}**"
+                if event_date:
+                    header += f" ({event_date})"
+                st.markdown(header)
                 bullish = tm.get("bullish_outcome", "")
                 upgrades = tm.get("bullish_upgrades", [])
                 if bullish:
@@ -1058,8 +975,81 @@ elif page == "Daily Report":
                     if impact_str:
                         bear_text += f" -> {impact_str}"
                     st.markdown(bear_text)
+                st.markdown("---")
 
-    # ── Benchmark Trend Chart ──
+    # ── Entry Trigger Tracker ──
+    import re as _re
+    on_deck = action.get("on_deck", [])
+    watch_entry = action.get("watch_for_entry", [])
+    trigger_items = on_deck + watch_entry
+    if trigger_items:
+        with st.expander(f"Entry Trigger Tracker ({len(trigger_items)})"):
+            for item in trigger_items:
+                tk = item.get("ticker", "?")
+                note = item.get("note", "")
+                trigger = item.get("trigger", "")
+                text = note or trigger
+                price_match = _re.search(r'\$(\d[\d,.]*)', trigger or note)
+                tk_price = watchlist.get(tk, {}).get("price")
+                distance_pct = None
+                target_price = None
+                if price_match and tk_price:
+                    try:
+                        target_price = float(price_match.group(1).replace(",", ""))
+                        distance_pct = (target_price - tk_price) / tk_price * 100
+                    except (ValueError, ZeroDivisionError):
+                        pass
+                if distance_pct is not None:
+                    abs_d = abs(distance_pct)
+                    if abs_d <= 2:
+                        ind = ":green[within 2%]"
+                    elif abs_d <= 5:
+                        ind = f":orange[{abs_d:.1f}% away]"
+                    else:
+                        ind = f":red[{abs_d:.1f}% away]"
+                    direction = "above" if distance_pct > 0 else "below"
+                    st.markdown(
+                        f"**{tk}** — trigger \\${target_price:,.0f} | "
+                        f"current \\${tk_price:,.2f} ({abs_d:.1f}% {direction}) {ind}"
+                    )
+                else:
+                    st.markdown(f"**{tk}**")
+                if text:
+                    st.caption(_escape_dollars(text))
+
+    # ── Watchlist Bias Over Time ──
+    st.divider()
+    st.subheader("Watchlist Bias Over Time")
+    bias_rows = []
+    for d in sorted(reports.keys()):
+        wl = reports[d].get("watchlist", {})
+        counts = {"BUY": 0, "ACCUMULATE": 0, "WATCH": 0, "HOLD": 0, "CAUTION": 0}
+        for tk_data in wl.values():
+            sig = tk_data.get("signal", "")
+            if sig in counts:
+                counts[sig] += 1
+        counts["date"] = pd.to_datetime(d)
+        bias_rows.append(counts)
+
+    if bias_rows:
+        bias_df = pd.DataFrame(bias_rows)
+        fig_bias = go.Figure()
+        for sig, color in [("BUY", "#22c55e"), ("ACCUMULATE", "#3498db"),
+                           ("WATCH", "#f59e0b"), ("HOLD", "#6b7280"),
+                           ("CAUTION", "#ef4444")]:
+            fig_bias.add_trace(go.Bar(
+                x=bias_df["date"], y=bias_df[sig],
+                name=sig, marker_color=color,
+            ))
+        fig_bias.update_layout(
+            barmode="stack", height=250,
+            yaxis_title="Tickers",
+            margin=dict(l=0, r=0, t=30, b=0),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        )
+        st.plotly_chart(fig_bias, use_container_width=True)
+
+    # ── Benchmark Trends ──
     st.subheader("Benchmark Trends")
     all_reports_sorted = sorted(reports.items())
     bench_series: dict[str, list] = {}
@@ -1076,7 +1066,6 @@ elif page == "Daily Report":
         key="bm_trend",
     )
     if show_bm and bench_dates:
-        # Normalize to % change from first value for comparability
         fig_bm = go.Figure()
         bm_colors = {"SPY": "#3b82f6", "QQQ": "#8b5cf6", "VIX": "#ef4444",
                       "WTI": "#f59e0b", "Gold": "#fbbf24", "SOXX": "#22c55e",
