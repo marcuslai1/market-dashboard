@@ -17,6 +17,177 @@ DATA_DIR = Path(__file__).parent / "data"
 
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
+# ── Theme CSS: navy-blue dark theme matching PDF report palette ──
+st.markdown("""<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── Global: navy-blue dark theme ── */
+.stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #1a1a2e;
+}
+[data-testid="stSidebar"] {
+    background: #121f3d;
+    border-right: 1px solid #2a3a5c;
+}
+
+/* ── Metric cards: panel treatment ── */
+[data-testid="stMetric"] {
+    background: #16213e;
+    border: 1px solid #2a3a5c;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+[data-testid="stMetricValue"] {
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+}
+[data-testid="stMetricLabel"] {
+    font-size: 0.7rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b0b0b0 !important;
+}
+[data-testid="stMetricDelta"] {
+    font-size: 0.8rem !important;
+}
+
+/* ── Typography: tighter, financial ── */
+h1 {
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+    color: #e0e0e0 !important;
+}
+h2, [data-testid="stSubheader"] {
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    color: #e0e0e0 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+h3 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #b0b0b0 !important;
+}
+
+/* ── Dividers ── */
+hr {
+    border-color: #2a2a4a !important;
+}
+
+/* ── Expanders ── */
+[data-testid="stExpander"] {
+    background: #16213e;
+    border: 1px solid #2a3a5c;
+    border-radius: 8px;
+}
+[data-testid="stExpander"] summary span {
+    font-weight: 600 !important;
+    font-size: 0.9em;
+}
+
+/* ── Selectbox / inputs ── */
+.stSelectbox [data-baseweb="select"] {
+    background-color: #16213e;
+    border-color: #2a3a5c;
+    border-radius: 6px;
+}
+.stSelectbox [data-baseweb="select"]:hover {
+    border-color: #3498db;
+}
+[data-baseweb="popover"] [data-baseweb="menu"] {
+    background-color: #121f3d;
+    border: 1px solid #2a3a5c;
+}
+
+/* ── Buttons ── */
+.stButton button {
+    background-color: #0f3460;
+    color: #e0e0e0;
+    border: 1px solid #2a3a5c;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85em;
+    transition: background 0.15s, border-color 0.15s;
+}
+.stButton button:hover {
+    background-color: #16213e;
+    border-color: #3498db;
+    color: #ffffff;
+}
+
+/* ── Dataframes ── */
+[data-testid="stDataFrame"] {
+    border: 1px solid #2a3a5c;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0;
+    border-bottom: 1px solid #2a3a5c;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #b0b0b0;
+    font-size: 0.85em;
+    font-weight: 500;
+    padding: 8px 16px;
+}
+.stTabs [aria-selected="true"] {
+    color: #e0e0e0 !important;
+    font-weight: 600;
+    border-bottom: 2px solid #3498db !important;
+}
+
+/* ── Captions ── */
+.stCaption, [data-testid="stCaptionContainer"] {
+    font-size: 0.78rem !important;
+    color: #b0b0b0 !important;
+}
+
+/* ── Sidebar header ── */
+.sidebar-header {
+    text-align: center;
+    padding: 16px 8px 12px;
+    border-bottom: 1px solid #2a3a5c;
+    margin-bottom: 12px;
+}
+.sidebar-header h2 {
+    color: #e0e0e0 !important;
+    font-size: 1.1em !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em;
+    margin: 0;
+    text-transform: none !important;
+}
+.sidebar-header .subtitle {
+    color: #b0b0b0;
+    font-size: 0.75em;
+    margin-top: 2px;
+}
+
+/* ── Sidebar status badge ── */
+.sidebar-status {
+    background: #16213e;
+    border: 1px solid #2a3a5c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 8px 0;
+    font-size: 0.8em;
+}
+.sidebar-status .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+}
+.sidebar-status .status-label { color: #b0b0b0; }
+.sidebar-status .status-value { color: #e0e0e0; font-weight: 600; }
+</style>""", unsafe_allow_html=True)
+
 
 def _escape_dollars(text: str) -> str:
     """Escape $ signs so Streamlit doesn't render them as LaTeX."""
@@ -409,11 +580,60 @@ TICKER_DISPLAY = {
     "VIX": "^VIX", "TNX": "^TNX",
 }
 
+# ── Sidebar header ──
+st.sidebar.markdown(
+    '<div class="sidebar-header">'
+    '<h2>MarketReport</h2>'
+    '<div class="subtitle">Signal Intelligence Dashboard</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
 # ── Sidebar navigation ──
 page = st.sidebar.radio(
     "Navigate",
-    ["Today's Snapshot", "Daily Report", "Signal Tracker", "Pipeline Stats", "Ticker Comparison", "Scenario Log", "Report Comparison"],
+    ["Today's Snapshot", "Daily Report", "Signal Tracker",
+     "Pipeline Stats", "Ticker Comparison", "Scenario Log",
+     "Report Comparison"],
+    label_visibility="collapsed",
 )
+
+st.sidebar.divider()
+
+# ── Mini status summary ──
+_status_reports = load_all_reports()
+_latest_date = max(_status_reports.keys()) if _status_reports else "—"
+_latest_rpt = _status_reports.get(_latest_date, {})
+_sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
+
+_status_html = '<div class="sidebar-status">'
+_status_html += (
+    '<div class="status-row">'
+    '<span class="status-label">Latest report</span>'
+    f'<span class="status-value">{_latest_date}</span></div>'
+)
+_status_html += (
+    '<div class="status-row">'
+    '<span class="status-label">Tickers</span>'
+    f'<span class="status-value">{sum(_sig_counts.values())}</span></div>'
+)
+_sig_dots = ""
+for _sig, _color in [("BUY", "#22c55e"), ("ACCUMULATE", "#3498db"),
+                      ("WATCH", "#f59e0b"), ("HOLD", "#6b7280"),
+                      ("CAUTION", "#ef4444")]:
+    _cnt = _sig_counts.get(_sig, 0)
+    if _cnt:
+        _sig_dots += (
+            f'<span style="color:{_color};font-weight:700;margin-right:8px;">'
+            f'●{_cnt}</span>'
+        )
+_status_html += (
+    '<div class="status-row" style="margin-top:4px;">'
+    '<span class="status-label">Signals</span>'
+    f'<span>{_sig_dots}</span></div>'
+)
+_status_html += '</div>'
+st.sidebar.markdown(_status_html, unsafe_allow_html=True)
 
 st.sidebar.divider()
 
@@ -457,16 +677,20 @@ def filter_prices(df: pd.DataFrame) -> pd.DataFrame:
 
 
 st.sidebar.divider()
+
+# ── Signal legend (coloured dots) ──
 st.sidebar.markdown(
-    "**Signal Hierarchy**\n\n"
-    "1. :green[**BUY**] — All 4 entry gates passed; enter now\n"
-    "2. :blue[**ACCUMULATE**] — Add to existing position on strength\n"
-    "3. :orange[**WATCH**] — Thesis intact, waiting for a trigger\n"
-    "4. :gray[**HOLD**] — No action needed; maintain position\n"
-    "5. :red[**CAUTION**] — Avoid or consider trimming"
+    '<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">'
+    '<span style="color:#22c55e;font-weight:700;">● BUY</span> — Enter now<br>'
+    '<span style="color:#3498db;font-weight:700;">● ACCUMULATE</span> — Add on strength<br>'
+    '<span style="color:#f59e0b;font-weight:700;">● WATCH</span> — Waiting for trigger<br>'
+    '<span style="color:#6b7280;font-weight:700;">● HOLD</span> — Maintain<br>'
+    '<span style="color:#ef4444;font-weight:700;">● CAUTION</span> — Trim / avoid'
+    '</div>',
+    unsafe_allow_html=True,
 )
 
-if st.sidebar.button("Refresh Data"):
+if st.sidebar.button("↻ Refresh Data"):
     st.cache_data.clear()
     st.rerun()
 
