@@ -572,6 +572,153 @@ SIGNAL_ST_COLORS = {
     "CAUTION": "red",
 }
 
+
+def _render_signal_guide() -> None:
+    """Render the collapsible Signal Guide panel."""
+    with st.expander("Signal Guide", expanded=False):
+        guide_html = f"""
+<table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-bottom:12px;">
+<thead>
+<tr style="border-bottom:1px solid #2a3a5c;">
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;width:120px;">Signal</th>
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;">If You Don't Own It</th>
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;">If You Already Own It</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;"><span style="color:#22c55e;font-weight:700;">● BUY</span></td>
+  <td style="padding:8px;color:#e0e0e0;">Thesis has multiple independent support legs, technicals are clean (near 50-day SMA, RSI neutral, volume confirmed), and R:R is favourable. Consider entering.</td>
+  <td style="padding:8px;color:#e0e0e0;">Hold and monitor. The thesis is working.</td>
+</tr>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;"><span style="color:#3498db;font-weight:700;">● ACCUMULATE</span></td>
+  <td style="padding:8px;color:#e0e0e0;">All 8 mechanical gates passed. R:R is favourable and thesis supports entry, but not all technical conditions are perfect. Start a position.</td>
+  <td style="padding:8px;color:#e0e0e0;">Add to your position if sizing allows.</td>
+</tr>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;"><span style="color:#f59e0b;font-weight:700;">● WATCH</span></td>
+  <td style="padding:8px;color:#e0e0e0;">Thesis is intact but entry conditions aren't met yet — waiting for a specific trigger (pullback to SMA, volume confirmation, catalyst). Not actionable today.</td>
+  <td style="padding:8px;color:#e0e0e0;">Hold. Nothing has changed to warrant action.</td>
+</tr>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;"><span style="color:#6b7280;font-weight:700;">● HOLD</span></td>
+  <td style="padding:8px;color:#e0e0e0;">Not interesting for entry — no clear catalyst, mixed technicals, or poor R:R. Ignore it.</td>
+  <td style="padding:8px;color:#e0e0e0;">Keep your position. Thesis hasn't broken, but there's no reason to add.</td>
+</tr>
+<tr>
+  <td style="padding:8px;"><span style="color:#ef4444;font-weight:700;">● CAUTION</span></td>
+  <td style="padding:8px;color:#e0e0e0;">Stay away. Thesis is degrading, key support is broken, or valuation is extreme.</td>
+  <td style="padding:8px;color:#e0e0e0;">Consider trimming or exiting. Something material has changed.</td>
+</tr>
+</tbody>
+</table>
+<div style="font-size:0.82em;color:#b0b0b0;line-height:1.5;margin-bottom:10px;">
+<b style="color:#e0e0e0;">Key distinction:</b> WATCH, HOLD, and CAUTION all mean "don't enter now" — but for different reasons.
+WATCH means "this is interesting, wait for a better price."
+HOLD means "nothing to see here."
+CAUTION means "actively avoid."
+The difference matters when a signal changes — a WATCH moving to BUY is a setup working as expected,
+while a HOLD moving to BUY is a new development worth investigating.
+</div>
+<div style="font-size:0.82em;color:#b0b0b0;line-height:1.5;margin-bottom:10px;">
+<b style="color:#e0e0e0;">Signals are states, not a ladder.</b> A signal can change to any other signal in a single session.
+A BUY becoming HOLD overnight doesn't mean the framework failed — it means new information changed the
+situation fundamentally (e.g. a catalyst collapsed). There is no requirement for signals to move
+one step at a time.
+</div>
+<div style="font-size:0.82em;color:#b0b0b0;line-height:1.5;margin-bottom:14px;">
+<b style="color:#e0e0e0;">Fragility Gate:</b> BUY requires multiple independent support legs — distinct reasons the stock
+should appreciate that don't depend on each other. If the entire thesis rests on a single catalyst whose failure would
+collapse the case, the maximum signal is WATCH until the catalyst demonstrates multi-day durability or a second
+independent leg emerges.
+</div>
+<div style="font-size:0.85em;margin-bottom:6px;"><b style="color:#e0e0e0;">Reading the Numbers</b></div>
+<table style="width:100%;border-collapse:collapse;font-size:0.82em;">
+<thead>
+<tr style="border-bottom:1px solid #2a3a5c;">
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;width:100px;">Metric</th>
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;">What It Means</th>
+  <th style="padding:6px 8px;text-align:left;color:#b0b0b0;width:280px;">Cell Colours</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;color:#e0e0e0;font-weight:600;">RSI</td>
+  <td style="padding:8px;color:#b0b0b0;">Relative Strength Index (14-day). Measures whether a stock has been bought or sold too aggressively in recent sessions. Not a signal on its own — context matters.</td>
+  <td style="padding:8px;color:#b0b0b0;">
+    <span style="background:#1a3a2a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">Below 40</span> oversold (potentially attractive)
+    &nbsp;&nbsp;<span style="padding:2px 6px;color:#e0e0e0;">40–70</span> neutral
+    &nbsp;&nbsp;<span style="background:#3a1a1a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">Above 70</span> overbought (avoid)
+  </td>
+</tr>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;color:#e0e0e0;font-weight:600;">vs SMA50</td>
+  <td style="padding:8px;color:#b0b0b0;">How far the current price is from the 50-day simple moving average — the stock's recent trend line. The pipeline uses this as the primary entry gate: the closer to the SMA, the cleaner the entry.</td>
+  <td style="padding:8px;color:#b0b0b0;">
+    <span style="background:#1a3a2a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">Within ±2%</span> clean entry zone
+    &nbsp;&nbsp;<span style="background:#3a2a1a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">2–5% above</span> extended
+    &nbsp;&nbsp;<span style="background:#3a1a1a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">&gt;5% above</span> blocked
+  </td>
+</tr>
+<tr style="border-bottom:1px solid #2a3a5c20;">
+  <td style="padding:8px;color:#e0e0e0;font-weight:600;">R:R</td>
+  <td style="padding:8px;color:#b0b0b0;">Risk-to-Reward ratio. Compares the potential upside (to nearest resistance) against the downside (to the invalidation/stop level). An R:R of 2.4 means you stand to gain 2.4x what you're risking. Uses the nearest target only — not a distant best-case.</td>
+  <td style="padding:8px;color:#b0b0b0;">
+    <span style="background:#1a3a2a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">Above 2.0</span> favourable
+    &nbsp;&nbsp;<span style="background:#3a2a1a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">1.0–2.0</span> mixed
+    &nbsp;&nbsp;<span style="background:#3a1a1a;padding:2px 6px;border-radius:3px;color:#e0e0e0;">Below 1.0</span> unfavourable
+  </td>
+</tr>
+<tr>
+  <td style="padding:8px;color:#e0e0e0;font-weight:600;">Entry Block</td>
+  <td style="padding:8px;color:#b0b0b0;">If present, the pipeline has mechanically blocked entry for this ticker — usually because the price is too far above the SMA50 or RSI is extreme. "None" means no block is active.</td>
+  <td style="padding:8px;color:#b0b0b0;">—</td>
+</tr>
+</tbody>
+</table>"""
+        st.markdown(guide_html, unsafe_allow_html=True)
+
+
+# ── Metric color helpers ──
+def _metric_bg(value: float | None, thresholds: list[tuple[object, str]],
+               default: str = "transparent") -> str:
+    """Return a muted background color for a metric value.
+
+    *thresholds* is a list of (test, color) pairs evaluated in order.
+    Each *test* is a callable ``(value) -> bool``.
+    """
+    if value is None:
+        return default
+    for test, color in thresholds:
+        if test(value):
+            return color
+    return default
+
+
+_GREEN_BG = "#1a3a2a"
+_ORANGE_BG = "#3a2a1a"
+_RED_BG = "#3a1a1a"
+
+_RSI_THRESHOLDS: list[tuple[object, str]] = [
+    (lambda v: v < 40, _GREEN_BG),
+    (lambda v: v > 70, _RED_BG),
+]
+
+_VS_SMA50_THRESHOLDS: list[tuple[object, str]] = [
+    (lambda v: v > 5, _RED_BG),
+    (lambda v: 2 < v <= 5, _ORANGE_BG),
+    (lambda v: -2 <= v <= 2, _GREEN_BG),
+    (lambda v: v < -2, _GREEN_BG),
+]
+
+_RR_THRESHOLDS: list[tuple[object, str]] = [
+    (lambda v: v >= 2.0, _GREEN_BG),
+    (lambda v: 1.0 <= v < 2.0, _ORANGE_BG),
+    (lambda v: v < 1.0, _RED_BG),
+]
+
+
 # Reverse ticker_to_key: restore dots/hyphens/carets for display
 TICKER_DISPLAY = {
     "D05_SI": "D05.SI", "O39_SI": "O39.SI", "U11_SI": "U11.SI",
@@ -733,6 +880,8 @@ if page == "Today's Snapshot":
             f"<span style='font-size:1.4em;font-weight:bold'>{count}</span></div>",
             unsafe_allow_html=True,
         )
+
+    _render_signal_guide()
 
     # ── Key benchmarks ──
     st.divider()
@@ -912,6 +1061,8 @@ elif page == "Daily Report":
             unsafe_allow_html=True,
         )
 
+    _render_signal_guide()
+
     # ── 2. ACTION SUMMARY — "What do I do today?" ──
     st.divider()
     st.subheader("Action Summary")
@@ -1003,6 +1154,10 @@ elif page == "Daily Report":
     # ── 4. WATCHLIST TABLE — scannable grid ──
     st.divider()
     st.subheader("Watchlist")
+    st.caption(
+        "Cell colors indicate entry quality: "
+        "green = favourable, orange = caution, red = avoid"
+    )
     if watchlist:
         wl_rows = []
         for tk, d in watchlist.items():
@@ -1010,16 +1165,26 @@ elif page == "Daily Report":
             rr = d.get("risk_reward", {})
             curr = d.get("currency", "USD")
             pfx = "S$" if curr == "SGD" else "$"
+            rsi_raw = d.get("rsi_14")
+            vs50_raw = d.get("vs_sma50_pct")
+            rr_raw = rr.get("ratio")
+            rr_distorted = rr.get("rr_distorted", False)
+            rr_display = "—"
+            if rr_raw:
+                rr_display = f"{rr_raw:.1f}*" if rr_distorted else f"{rr_raw:.1f}"
             wl_rows.append({
                 "Ticker": TICKER_DISPLAY.get(tk, tk),
                 "Price": f"{pfx}{d.get('price', 0):,.2f}" if d.get("price") else "—",
                 "Chg%": f"{d.get('chg_pct', 0):+.2f}%" if d.get("chg_pct") is not None else "—",
                 "Signal": sig,
-                "RSI": f"{d.get('rsi_14', 0):.1f}" if d.get("rsi_14") else "—",
-                "vs SMA50": f"{d.get('vs_sma50_pct', 0):+.1f}%" if d.get("vs_sma50_pct") is not None else "—",
-                "R:R": f"{rr.get('ratio', 0):.1f}" if rr.get("ratio") else "—",
+                "RSI": f"{rsi_raw:.1f}" if rsi_raw else "—",
+                "vs SMA50": f"{vs50_raw:+.1f}%" if vs50_raw is not None else "—",
+                "R:R": rr_display,
                 "_tk_key": tk,
                 "_sig_rank": {"BUY": 1, "ACCUMULATE": 2, "WATCH": 3, "HOLD": 4, "CAUTION": 5}.get(sig, 6),
+                "_rsi_raw": rsi_raw,
+                "_vs50_raw": vs50_raw,
+                "_rr_raw": rr_raw,
             })
         wl_df = pd.DataFrame(wl_rows).sort_values("_sig_rank")
 
@@ -1030,9 +1195,54 @@ elif page == "Daily Report":
             c = colors.get(val, "#6b7280")
             return f"color: {c}; font-weight: bold"
 
-        display_df = wl_df.drop(columns=["_tk_key", "_sig_rank"])
-        styled = display_df.style.map(_signal_color, subset=["Signal"])
+        # Metric background color-coding
+        def _rsi_bg(row_idx):
+            raw = wl_df.iloc[row_idx]["_rsi_raw"]
+            bg = _metric_bg(raw, _RSI_THRESHOLDS)
+            return f"background-color: {bg}"
+
+        def _vs50_bg(row_idx):
+            raw = wl_df.iloc[row_idx]["_vs50_raw"]
+            bg = _metric_bg(raw, _VS_SMA50_THRESHOLDS)
+            return f"background-color: {bg}"
+
+        def _rr_bg(row_idx):
+            raw = wl_df.iloc[row_idx]["_rr_raw"]
+            bg = _metric_bg(raw, _RR_THRESHOLDS)
+            return f"background-color: {bg}"
+
+        display_df = wl_df.drop(columns=["_tk_key", "_sig_rank", "_rsi_raw", "_vs50_raw", "_rr_raw"])
+
+        def _apply_metric_bg(styler):
+            """Apply muted background colors to RSI, vs SMA50, R:R cells."""
+            rsi_styles = [_metric_bg(v, _RSI_THRESHOLDS) for v in wl_df["_rsi_raw"]]
+            vs50_styles = [_metric_bg(v, _VS_SMA50_THRESHOLDS) for v in wl_df["_vs50_raw"]]
+            rr_styles = [_metric_bg(v, _RR_THRESHOLDS) for v in wl_df["_rr_raw"]]
+
+            bg_df = pd.DataFrame("", index=display_df.index, columns=display_df.columns)
+            for i, idx in enumerate(display_df.index):
+                bg_df.at[idx, "RSI"] = f"background-color: {rsi_styles[i]}"
+                bg_df.at[idx, "vs SMA50"] = f"background-color: {vs50_styles[i]}"
+                bg_df.at[idx, "R:R"] = f"background-color: {rr_styles[i]}"
+            return bg_df
+
+        styled = (
+            display_df.style
+            .map(_signal_color, subset=["Signal"])
+            .apply(lambda _: _apply_metric_bg(None), axis=None)
+        )
         st.dataframe(styled, hide_index=True, use_container_width=True)
+
+        # Footnote for distorted R:R
+        has_distorted = any(
+            d.get("risk_reward", {}).get("rr_distorted", False)
+            for d in watchlist.values()
+        )
+        if has_distorted:
+            st.caption(
+                "\\* R:R is distorted — invalidation or upside target is too close "
+                "to price for the ratio to be meaningful. See the writeup for context."
+            )
 
         # Expanders for individual ticker rationales
         st.caption("Click a ticker below for the full signal rationale.")
@@ -1048,13 +1258,49 @@ elif page == "Daily Report":
             price = d.get("price")
             price_str = _price_str(price, curr) if price else ""
             with st.expander(f"{display_tk} {price_str} — :{st_color}[{signal}]"):
-                mcols = st.columns(4)
-                mcols[0].metric("RSI", f"{d.get('rsi_14', 0):.1f}" if d.get("rsi_14") else "—")
-                mcols[1].metric("vs SMA50", f"{d.get('vs_sma50_pct', 0):+.1f}%" if d.get("vs_sma50_pct") is not None else "—")
+                rsi_val = d.get("rsi_14")
+                vs50_val = d.get("vs_sma50_pct")
                 entry_block = d.get("entry_block")
-                mcols[2].metric("Entry Block", entry_block[:30] if entry_block else "None")
                 rr = d.get("risk_reward", {})
-                mcols[3].metric("R:R", f"{rr.get('ratio', 0):.1f}" if rr.get("ratio") else "—")
+                rr_val = rr.get("ratio")
+                rr_distorted = rr.get("rr_distorted", False)
+
+                rsi_bg = _metric_bg(rsi_val, _RSI_THRESHOLDS)
+                vs50_bg = _metric_bg(vs50_val, _VS_SMA50_THRESHOLDS)
+                rr_bg = _metric_bg(rr_val, _RR_THRESHOLDS)
+
+                rsi_str = f"{rsi_val:.1f}" if rsi_val else "—"
+                vs50_str = f"{vs50_val:+.1f}%" if vs50_val is not None else "—"
+                eb_str = (entry_block[:30] if entry_block else "None")
+                rr_str = "—"
+                if rr_val:
+                    rr_str = f"{rr_val:.1f}*" if rr_distorted else f"{rr_val:.1f}"
+
+                _card = (
+                    '<div style="display:flex;gap:8px;margin-bottom:10px;">'
+                    f'<div style="flex:1;background:{rsi_bg};border:1px solid #2a3a5c;'
+                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
+                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;">RSI</div>'
+                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{rsi_str}</div></div>'
+                    f'<div style="flex:1;background:{vs50_bg};border:1px solid #2a3a5c;'
+                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
+                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;">vs SMA50</div>'
+                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{vs50_str}</div></div>'
+                    f'<div style="flex:1;background:#16213e;border:1px solid #2a3a5c;'
+                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
+                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;">Entry Block</div>'
+                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{eb_str}</div></div>'
+                    f'<div style="flex:1;background:{rr_bg};border:1px solid #2a3a5c;'
+                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
+                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
+                    f'letter-spacing:0.06em;">R:R</div>'
+                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{rr_str}</div></div>'
+                    '</div>'
+                )
+                st.markdown(_card, unsafe_allow_html=True)
                 st.markdown(_escape_dollars(rationale))
 
     # ── 5. BENCHMARKS & MACRO ──
