@@ -15,6 +15,10 @@ import streamlit as st
 # ── Config ──
 DATA_DIR = Path(__file__).parent / "data"
 
+# Tickers removed from the watchlist — filter from all dashboard views.
+# Historical data is preserved in the raw JSONs/SQLite if needed.
+RETIRED_TICKERS = {"C6L_SI", "Z74_SI", "XLE", "VUAA_L"}
+
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
 # ── Theme CSS: navy-blue dark theme matching PDF report palette ──
@@ -227,6 +231,8 @@ def load_sqlite_prices() -> pd.DataFrame:
     df = pd.read_csv(csv_path)
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"])
+        if "ticker" in df.columns:
+            df = df[~df["ticker"].isin(RETIRED_TICKERS)]
     return df
 
 
@@ -281,6 +287,8 @@ def extract_signal_history(reports: dict) -> pd.DataFrame:
     for date_str, report in reports.items():
         watchlist = report.get("watchlist", {})
         for ticker, data in watchlist.items():
+            if ticker in RETIRED_TICKERS:
+                continue
             rows.append({
                 "date": pd.to_datetime(date_str),
                 "ticker": ticker,
@@ -722,7 +730,6 @@ _RR_THRESHOLDS: list[tuple[object, str]] = [
 # Reverse ticker_to_key: restore dots/hyphens/carets for display
 TICKER_DISPLAY = {
     "D05_SI": "D05.SI", "O39_SI": "O39.SI", "U11_SI": "U11.SI",
-    "C6L_SI": "C6L.SI", "Z74_SI": "Z74.SI", "VUAA_L": "VUAA.L",
     "DX_Y_NYB": "DX-Y.NYB", "CL_F": "CL=F", "GC_F": "GC=F",
     "VIX": "^VIX", "TNX": "^TNX",
 }
