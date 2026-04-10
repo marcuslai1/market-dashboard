@@ -17,7 +17,7 @@ DATA_DIR = Path(__file__).parent / "data"
 
 # Tickers removed from the watchlist — filter from all dashboard views.
 # Historical data is preserved in the raw JSONs/SQLite if needed.
-RETIRED_TICKERS = {"C6L_SI", "Z74_SI", "XLE", "VUAA_L"}
+RETIRED_TICKERS = {"C6L_SI", "Z74_SI", "XLE", "VUAA_L", "COHR"}
 
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
