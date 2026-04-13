@@ -932,7 +932,7 @@ if page == "Today's Snapshot":
             if sig_old == "—":
                 arrow = "+"
             elif sig_new == "—":
-                arrow = "-"
+                continue  # hide removed tickers — watchlist edits, not signal events
             elif r_new > r_old:
                 arrow = "^"
             else:
@@ -940,7 +940,11 @@ if page == "Today's Snapshot":
 
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = rationale[:150] + "..." if len(rationale) > 150 else rationale
+            if len(rationale) > 200:
+                cut = rationale[:200].rfind(". ")
+                short_rationale = rationale[: cut + 1] if cut > 80 else rationale[:200] + "..."
+            else:
+                short_rationale = rationale
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
 
@@ -1131,14 +1135,18 @@ elif page == "Daily Report":
             if sig_old == "—":
                 arrow = "+"
             elif sig_new == "—":
-                arrow = "-"
+                continue  # hide removed tickers — watchlist edits, not signal events
             elif r_new > r_old:
                 arrow = "^"
             else:
                 arrow = "v"
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = rationale[:200] + "..." if len(rationale) > 200 else rationale
+            if len(rationale) > 200:
+                cut = rationale[:200].rfind(". ")
+                short_rationale = rationale[: cut + 1] if cut > 80 else rationale[:200] + "..."
+            else:
+                short_rationale = rationale
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
             changes.append({
