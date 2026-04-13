@@ -1,7 +1,53 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-04-10",
+  "_last_updated": "2026-04-13",
   "rolling_summaries": [
+    {
+      "date": "2026-04-13",
+      "themes": [
+        "US-Iran escalation resumes: Hormuz blockade + port sanctions",
+        "Oil shock transmission: WTI +8.64% to $104.91 single session",
+        "Semis bifurcation persists: SOXX +2.23% but mega-cap duration headwinds structural",
+        "BigTech split: AMZN/AVGO overbought post-recovery vs. tech sector caution",
+        "US-China tech restrictions + rare earths leverage escalating"
+      ],
+      "signals_snapshot": {
+        "BUY": [],
+        "WATCH": [
+          "D05_SI",
+          "NVDA",
+          "MU",
+          "GOOG",
+          "WRD"
+        ],
+        "HOLD": [
+          "U11_SI",
+          "AMD",
+          "INTC",
+          "AMZN",
+          "AVGO"
+        ],
+        "CAUTION": [
+          "O39_SI",
+          "ASML",
+          "TSM",
+          "MSFT",
+          "LITE",
+          "PLTR"
+        ]
+      },
+      "key_prices": {
+        "SPY": 679.46,
+        "WTI": 104.91,
+        "VIX": 19.23,
+        "Gold": 4738.5
+      },
+      "interconnected_suggested": [
+        "TSM",
+        "AVGO"
+      ],
+      "one_liner": "WTI +8.64% on Hormuz blockade threatens $100-135 range. SPY flat but semis diverge (SOXX +2.23%). BigTech overbought on recovery."
+    },
     {
       "date": "2026-04-10",
       "themes": [
@@ -295,59 +341,6 @@
         "AVGO"
       ],
       "one_liner": "Q1 rally extends +0.46% SPY to $655.24; WTI +1.24% on Hormuz geopolitical premium. SOXX +2.17% but TurboQuant GPU demand thesis credibility unresolved. Fed hawkish floor US10Y 4.32% persists."
-    },
-    {
-      "date": "2026-04-01",
-      "themes": [
-        "Quarter-end rally reverses TurboQuant weakness",
-        "Semis cluster bounces on war de-escalation",
-        "Fed hawkish floor (US10Y 4.31%) persists",
-        "BigTech bifurcation: GOOG rebounds, AMZN caution",
-        "Singapore banking NIM compression day 21 unresolved"
-      ],
-      "signals_snapshot": {
-        "BUY": [],
-        "ACCUMULATE": [
-          "NVDA",
-          "AMD"
-        ],
-        "WATCH": [
-          "Z74_SI"
-        ],
-        "HOLD": [
-          "D05_SI",
-          "O39_SI",
-          "U11_SI",
-          "COHR",
-          "XLE",
-          "VUAA_L"
-        ],
-        "CAUTION": [
-          "C6L_SI",
-          "INTC",
-          "ASML",
-          "MU",
-          "AMZN",
-          "GOOG",
-          "LITE",
-          "PLTR"
-        ]
-      },
-      "key_prices": {
-        "SPY": 650.34,
-        "QQQ": 577.18,
-        "WTI": 102.97,
-        "Gold": 4713.6,
-        "VIX": 25.25,
-        "US10Y": 4.31,
-        "DXY": 99.76,
-        "SOXX": 328.66
-      },
-      "interconnected_suggested": [
-        "TSM",
-        "AVGO"
-      ],
-      "one_liner": "SPY +3.1% Q1 close on war de-escalation easing. SOXX +7.2% semis bounce but TurboQuant threat persists. US10Y 4.31 (-0.03)."
     }
   ],
   "active_narratives": [
@@ -358,10 +351,8 @@
       "status": "active",
       "summary": "Strait of Hormuz traffic halting due to Iran conflict, pushing WTI from $115+ range down 22% to $90.16 on March 9 before recovery talks; analysts warn $100â€“135/bbl trajectory if conflict extends 4+ months.",
       "affected_tickers": [
-        "C6L_SI",
         "O39_SI",
-        "WTI",
-        "XLE"
+        "WTI"
       ],
       "thesis": "Geopolitical risk premium in oil is volatile but structural; energy names on CAUTION due to uncertainty around supply reopening timeline and demand destruction. Watch for OPEC+ output curbs and tanker rerouting costs. Secondary pressure: logistics cost inflation (air cargo reroutes, tanker diversions) compounding margin impact beyond direct commodity price moves.",
       "key_levels": {
@@ -369,19 +360,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "WTI 94.72 (-0.85%). Two-week ceasefire announced overnight; Strait of Hormuz reopening hopes crater oil 22% from 115.25 peak. Geopolitical premium structural but supply risk abates. Watch for ceasefire extension/collapse timing."
-        },
-        {
           "date": "2026-04-09",
           "note": "Iran claims ceasefire broken <24hrs post-announcement (2026-04-08 declaration). WTI 97.03 (+0.57%) but data anomaly (fast_info vs. history divergence) signals market uncertainty on Strait reopening credibility. Geopolitical premium structural; resolution timeline now compressed to hours, not weeks."
         },
         {
           "date": "2026-04-10",
           "note": "Day 32 Hormuz closure. WTI 98.37 (-0.37%). Ceasefire collapse confirmed day 31 but market repricing stabilized. Geopolitical premium structural; resolution timeline now hours-to-days vs. weeks. Supply reopening credibility intact short-term."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "WTI 104.91 (+6.54 from 98.37 Fri). US Navy Hormuz blockade + Iran port sanctions confirmed; ceasefire collapse structural. Strait reopening timeline extended; supply risk re-escalates. Geopolitical premium structural; $100-135 analyst range now active trigger."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "sp500_technical_breakdown",
@@ -391,16 +382,11 @@
       "summary": "S&P 500 (VUAA_L, SPY) broke below 100-day moving average on recent weakness; technical analysis suggests potential eyes on 6500 support as key level.",
       "affected_tickers": [
         "SPY",
-        "VUAA_L",
         "QQQ"
       ],
       "thesis": "Despite March 9 bounce (+1% SPY, +1.4% QQQ), underlying trend structure is weakening. VUAA on CAUTION; breadth and sector dispersion (tech strong, index weak) suggest rally may be tactical rather than structural.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-04-08",
-          "note": "SPY 659.22 (+0.29 from 658.93). Ceasefire relief supports Q1 rally extension; 6500 support intact. VIX 25.78 elevated but risk-on sentiment broadening. Technical conviction improving."
-        },
         {
           "date": "2026-04-09",
           "note": "SPY 676.01 (+16.8 from 659.22 pre-ceasefire Wed). Q1 rally extends but VUAA_L 50-day MA retest fragile on ceasefire collapse risk emerging. VIX 21.04 (-18.3%) may reverse sharply if Iran escalation confirmed. Technical support 6500 intact but conviction weakening."
@@ -408,9 +394,13 @@
         {
           "date": "2026-04-10",
           "note": "SPY 679.91 (+3.9 from 676.01 Thurs). Q1 relief rally extends; 6500 support test avoided. VIX 19.49 (-7.37%) signals risk-on breadth expansion. Technical conviction improving but VUAA_L 50-day MA retest fragile on Hormuz escalation risk."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "SPY 679.46 (+0.03% flat Fri). Q1 rally extends but oil shock transmission risks test 6500 support credibility. VIX 19.23 (-0.26) compression fragile on Hormuz escalation. Breadth dispersion (semis +2.23% vs. index flat) signals tactical divergence."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "semiconductor_divergence",
@@ -429,19 +419,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "SOXX 347.76 (+3.66 from 344.10, +1.18%). Ceasefire relief supports broad semis rally; mid-cap foundry benefiting from geopolitical de-escalation. TurboQuant threat latent but Q1 relief momentum sustains."
-        },
-        {
           "date": "2026-04-09",
           "note": "SOXX +2.49% to 370.40 (fast_info basis) reflects broad semis relief on ceasefire bounce, but bifurcation persists: mid-cap foundry resilience (MU, ASML WATCH→BUY) vs. mega-cap duration pressure (NVDA WATCH). TurboQuant algorithm displacement threat latent; Q1 earnings validation critical."
         },
         {
           "date": "2026-04-10",
           "note": "SOXX 378.63 (+3.03% to strongest session in weeks). Mid-cap foundry (MU, ASML) bifurcation solidifies vs. mega-cap duration drag (NVDA, AMD HOLD). INTC TeraFab + GOOG partnership drives semis cluster relief. TurboQuant threat latent; Q1 foundry orders validation critical."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "SOXX 386.60 (+2.23% Fri). Mid-cap foundry (MU, ASML) WATCH isolated from mega-cap duration drag (NVDA WATCH, AMD HOLD). Oil shock headwind (logistics, cost inflation) secondary pressure on ASML/TSM supply chain. TurboQuant latent threat unvalidated; Q1 earnings validation critical."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "fed_rate_pivot",
@@ -458,19 +448,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "US10Y 4.34 (+0.03 from 4.31). Hawkish floor persists despite risk-on sentiment. Ceasefire relief insufficient to break structural duration headwinds. April CPI print remains critical catalyst."
-        },
-        {
           "date": "2026-04-09",
           "note": "US10Y 4.29% (-0.05 from 4.34 Wed). Ceasefire relief supports mild duration compression but hawkish floor persists structural. Chicago Fed Goolsbee 'nervous' on oil shock—suggests rate path sensitivity to Hormuz reopening timeline. April CPI remains critical catalyst for pivot conviction."
         },
         {
           "date": "2026-04-10",
           "note": "US10Y 4.29% (-0.05 from Thu). Hawkish floor persists structural despite VIX compression. April CPI remains critical catalyst for rate-cut reset. Fed holds 3.50%-3.75% confirmed; sticky inflation narrative intact."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "US10Y 4.32% (+0.03 from 4.29 Fri). Hawkish floor persists; oil shock inflation expectations re-escalate duration headwinds. April CPI print (week of 4/15) now binary catalyst: sticky inflation validates Fed pause vs. energy transient supports cut conviction."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -479,11 +469,9 @@
       "status": "active",
       "summary": "Singapore cluster uniformly CAUTION/HOLD since March 11. Structural NIM compression from Fed rate pause constraining bank margins.",
       "affected_tickers": [
-        "C6L_SI",
         "D05_SI",
         "O39_SI",
-        "U11_SI",
-        "Z74_SI"
+        "U11_SI"
       ],
       "thesis": "Mean reversion dependent on US10Y breaking below 4.20% and STI stabilizing above 5,000. Until both conditions met, cluster remains structurally impaired.",
       "key_levels": {
@@ -492,19 +480,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "Cluster day 29 NIM compression. US10Y 4.34 continues away from 4.20% reset threshold. Ceasefire relief benefits risk-on sentiment but duration headwinds structural. Reset conditions (US10Y <4.20% + STI >5000) unmet."
-        },
-        {
           "date": "2026-04-09",
           "note": "Cluster day 30 NIM compression. US10Y 4.29 continues above 4.20% reset threshold. Ceasefire relief reduces geopolitical premium but duration headwinds structural. SIA -4.7% per ST report signals Middle East turmoil impact. Reset conditions unmet; structural impairment persists."
         },
         {
           "date": "2026-04-10",
           "note": "Day 31 NIM compression. US10Y 4.29% continues above 4.20% reset threshold. Ceasefire relief supports risk-on but duration headwinds structural. Reset conditions (US10Y <4.20% + STI >5000) unmet. Cluster remains CAUTION."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "Cluster day 32 NIM compression. US10Y 4.32% extends away from 4.20% reset threshold. Oil shock inflation expectations re-escalate duration headwinds. Reset conditions (US10Y <4.20% + STI >5000) unmet; structural impairment persists."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "hyperscaler_capex_sustainability_debate",
@@ -526,19 +514,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "No new capex guidance. Ceasefire relief supports risk-on but $1.7T by 2030 target credibility dependent on sustained Fed accommodation. Duration headwinds persist; Q1 earnings guidance critical."
-        },
-        {
           "date": "2026-04-09",
           "note": "$1.7T by 2030 target credibility now hinges on Iran escalation resolution (cost-of-capital lens secondary to geopolitical uncertainty). Ceasefire collapse <24hrs signals capex visibility risk. Q1 earnings guidance (AMZN, GOOG) critical for conviction reset amid dual headwinds (Fed hawkish + geopolitical volatility)."
         },
         {
           "date": "2026-04-10",
           "note": "$1.7T by 2030 credibility hinges on dual validation: Iran escalation resolution (geopolitical lens) + Q1 earnings guidance (capex conviction lens). Ceasefire stabilization supports near-term sentiment but TurboQuant algorithm displacement threat dormant. AMZN/GOOG WATCH reflects tactical bounce conviction."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "$1.7T by 2030 target credibility now dual-pressured: Hormuz escalation (cost-of-capital headwind re-escalates) + TurboQuant algorithm displacement (latent but unvalidated). Oil shock inflation expectations compound duration pressure. Q1 earnings (AMZN, GOOG, NVDA foundry orders) critical validators."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -553,19 +541,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "PLTR remains WATCH. Defense AI contracting thesis structurally insulated from geopolitical volatility. Ceasefire relief supports broader market but PLTR fundamental catalyst (Q1 earnings contract validation) unchanged."
-        },
-        {
           "date": "2026-04-09",
           "note": "PLTR remains CAUTION despite defense AI fundamentals. Ceasefire collapse risk elevates defense budget cycle uncertainty; geopolitical volatility may compress near-term contract momentum visibility. Q1 earnings defense contract validation becomes binary catalyst (bullish breakout vs. stall)."
         },
         {
           "date": "2026-04-10",
           "note": "PLTR remains CAUTION despite defense AI fundamentals. Ceasefire stabilization reduces immediate defense budget cycle disruption but geopolitical volatility persists. Q1 earnings contract validation becomes key binary catalyst for conviction reset."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "PLTR CAUTION persists. US-Iran escalation escalates defense budget cycle uncertainty; geopolitical volatility compresses near-term contract momentum visibility. Hormuz blockade + port sanctions signal sustained conflict risk. Q1 earnings contract validation becomes binary catalyst."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "mid_cap_foundry_vs_mega_cap_duration",
@@ -588,19 +576,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "SOXX consolidation breaks upward on ceasefire relief. Mid-cap foundry bifurcation thesis strengthens as risk-on sentiment isolates from mega-cap duration pressure. Algorithm displacement threat latent."
-        },
-        {
           "date": "2026-04-09",
           "note": "SOXX consolidation breaks upward (+2.49% to 370.40) on ceasefire relief. Mid-cap foundry bifurcation strengthens (MU, ASML WATCH/BUY outperform NVDA, AMD HOLD). Algorithm displacement threat latent but foundry supply-chain isolation thesis gains credibility vs. mega-cap duration compression."
         },
         {
           "date": "2026-04-10",
           "note": "SOXX 378.63 (+3.03%) extends bifurcation thesis. MU/ASML WATCH gain traction on foundry supply-chain isolation; NVDA/AMD HOLD persist on duration compression. Fed hawkish floor (US10Y 4.29%) structural; mid-cap foundry isolation thesis gains credibility vs. mega-cap multiple compression."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "SOXX 386.60 (+2.23% Fri). Mid-cap foundry isolation thesis bifurcates further on oil shock transmission (logistics cost inflation pressure on ASML, TSM supply chain). NVDA, AMD duration drag persists structural (US10Y 4.32% +0.03). Fed hawkish floor persists; foundry supply-chain isolation gains credibility."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "us_china_semiconductor_supply_chain",
@@ -621,19 +609,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "No new developments. Supply-chain reshaping thesis quiet; ceasefire relief focuses attention on Hormuz reopening vs. tariff escalation. ASML/INTC roadmaps intact but TurboQuant credibility threat unresolved."
-        },
-        {
           "date": "2026-04-09",
           "note": "No new developments. Supply-chain reshaping thesis quiet; Hormuz ceasefire collapse refocuses attention from tariff escalation to geopolitical supply risk. ASML $71B 2030 revenue target, INTC 18A roadmap credibility dependent on sustained capex spending conviction."
         },
         {
           "date": "2026-04-10",
           "note": "No new developments. Supply-chain reshaping thesis quiet; Hormuz ceasefire stabilization refocuses attention from tariff escalation to geopolitical supply risk. ASML $71B 2030 revenue target, INTC 18A roadmap credibility dependent on sustained capex spending conviction."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "US-China rare earths leverage escalating; tech restrictions + port sanctions compound supply chain reshaping uncertainty. ASML $71B 2030 target, INTC 18A foundry credibility now pressured by dual headwinds (Iran logistics disruption + China tariff escalation). TSM CAUTION elevated."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -650,19 +638,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-07",
-          "note": "China stimulus narrative quiet. Manufacturing resilience provides limited support amid algorithm displacement threat and prior weakness. Non-semis exports benefit more."
-        },
-        {
           "date": "2026-04-09",
           "note": "No material change."
         },
         {
           "date": "2026-04-10",
           "note": "No material change."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "No material change. US-Iran escalation dominates commodity/logistics narrative. China stimulus efficacy vs. geopolitical supply chain disruption risk unresolved. Non-semis export benefit potential but semiconductor supply chain reshaping dominates."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "ecb_monetary_policy_divergence",
@@ -671,8 +659,7 @@
       "status": "active",
       "summary": "ECB holding interest rates as eurozone economic growth remains subdued, creating divergence from Fed's hawkish pause thesis. European banking sector structural weakness mirrors Singapore cluster impairment. DXY strength (99.61) reflects US rate premium persistence.",
       "affected_tickers": [
-        "DXY",
-        "VUAA_L"
+        "DXY"
       ],
       "thesis": "ECB rate hold amid eurozone economic weakness creates structural divergence from Fed's higher-for-longer thesis. Dollar strength (DXY 99.61) reflects US rate premium; European equities face competitiveness headwinds if Fed remains hawkish longer than ECB easing cycle suggests. Parallel structural weakness in both Singapore banking (NIM compression) and eurozone banking (economic weakness) suggests global duration headwinds across developed markets. Monitor ECB guidance for potential easing timeline to assess whether euro weakness persists.",
       "key_levels": {
@@ -680,19 +667,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "DXY 98.69 (down from 100.03). Ceasefire relief supports broad risk-on, USD weakness on reduced flight-to-safety demand. ECB divergence thesis persists but geopolitical premium abatement supports EUR recovery."
-        },
-        {
           "date": "2026-04-09",
           "note": "DXY 99.03 (-1.66 from 100.69 Wed). Ceasefire relief supports EUR recovery on reduced flight-to-safety demand. ECB divergence thesis persists but geopolitical premium abatement supports currency strength. US rate premium persists structural if Hormuz escalation materializes."
         },
         {
           "date": "2026-04-10",
           "note": "DXY 98.91 (-0.12 from Thu). Ceasefire stabilization supports EUR recovery on reduced flight-to-safety demand. ECB divergence thesis persists but geopolitical premium abatement moderates USD strength. US rate premium persists if Hormuz escalation materializes."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "DXY 99.03 (+0.12 from 98.91 Fri). Oil shock inflation expectations re-escalate flight-to-safety demand; USD strength resumes on rate premium persistence. ECB divergence thesis persists; eurozone competitiveness headwinds re-escalate if Hormuz crisis sustained."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "gold_data_conflict",
@@ -734,19 +721,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "No new distribution signals. GOOG/AMZN both CAUTION. Ceasefire relief supports capex sentiment but TurboQuant algorithm displacement risk + Fed hawkish duration headwinds unresolved. Q1 earnings guidance critical."
-        },
-        {
           "date": "2026-04-09",
           "note": "GOOG/AMZN upgraded→WATCH on ceasefire relief. Capex architecture uncertainty (TurboQuant + Fed hawkish) persists but near-term sentiment improvement supports cluster rebalancing. Q1 earnings guidance critical to validate capex conviction reset vs. tactical bounce."
         },
         {
           "date": "2026-04-10",
           "note": "GOOG/AMZN remain WATCH on ceasefire relief. BigTech cluster bifurcation persists (AMZN +6.05% on AWS capex sentiment vs. GOOG consolidation). Capex conviction dual-tested: Hormuz escalation (geopolitical) + TurboQuant credibility (technological). Q1 earnings guidance critical."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "AMZN/AVGO overbought on Friday recovery (+11.7% violent bounce). GOOG consolidation persists on duration headwinds + TurboQuant credibility uncertainty. Cluster bifurcation (AMZN/AVGO HOLD vs. GOOG WATCH) signals capex conviction fragility on oil shock inflation re-escalation."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
     },
     {
       "id": "google_turboquant_algorithm_disruption",
@@ -761,7 +748,6 @@
         "ASML",
         "MU",
         "LITE",
-        "COHR",
         "INTC",
         "AMZN"
       ],
@@ -769,23 +755,134 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-08",
-          "note": "TurboQuant day 12 (announced 2026-03-27). Q1 rally suppresses acute pressure; ceasefire relief broadens risk-on sentiment. Algorithm displacement threat latent; LITE/COHR photonics still impaired but SOXX rally suggests temporary reprieve."
-        },
-        {
           "date": "2026-04-09",
           "note": "TurboQuant day 13 (announced 2026-03-27). Ceasefire relief provides temporary reprieve; SOXX +2.49% suggests latent threat remains dormant. Algorithm displacement credibility risk unvalidated but Q1 earnings season (GOOG, NVDA, MU foundry orders) will signal conviction. LITE/COHR photonics still impaired despite reprieve."
         },
         {
           "date": "2026-04-10",
           "note": "TurboQuant day 14 (announced 2026-03-27). Ceasefire relief suppresses acute pressure; SOXX +3.03% suggests latent threat remains dormant. Algorithm displacement risk unvalidated but Q1 earnings (GOOG, NVDA, foundry orders) will signal conviction. LITE/COHR photonics impaired but reprieve extends."
+        },
+        {
+          "date": "2026-04-13",
+          "note": "TurboQuant day 17 (announced 2026-03-27). Oil shock inflation expectations suppress acute algorithm displacement pressure; reprieve extends. Latent threat remains dormant but Q1 earnings (GOOG, NVDA, foundry orders) will signal credibility. LITE/COHR photonics impaired but reprieve holds."
         }
       ],
-      "last_updated": "2026-04-10"
+      "last_updated": "2026-04-13"
+    },
+    {
+      "id": "us_iran_hormuz_blockade",
+      "title": "US-Iran Hormuz Blockade Escalation: Oil Supply Crisis Resurfaces",
+      "started": "2026-04-13",
+      "status": "active",
+      "summary": "US Navy blockade of Iran ports + US tech/rare earths sanctions escalate Middle East crisis beyond ceasefire collapse. WTI surges +8.64% to $104.91 single session on Hormuz supply closure threat. Logistics disruption (airspace closures, shipping reroutes) compounds margin pressure beyond direct commodity moves. Strait reopening timeline extends from days to weeks+.",
+      "affected_tickers": [
+        "WTI",
+        "O39_SI",
+        "XOM",
+        "CVX",
+        "ASML",
+        "TSM",
+        "LITE"
+      ],
+      "thesis": "US-Iran escalation (blockade + sanctions) signals sustained geopolitical premium structural; Hormuz supply reopening credibility collapses. Oil shock transmission cascade: (1) direct WTI +8.64% move re-escalates energy inflation expectations, (2) logistics cost inflation (rerouting, tanker diversions) pressures semiconductor supply chain (ASML, TSM, MU), (3) Fed rate pause credibility pressured by sticky inflation narrative validation. Macro impact: cost-of-capital headwinds re-escalate for capex-intensive names (hyperscaler capex conviction pressured). Supply chain resilience (ASML foundry isolation thesis) offset by oil shock logistics transmission. Strategic focus: April CPI print (week of 4/15) now binary validator of transient vs. sticky inflation thesis.",
+      "key_levels": {
+        "WTI_single_session_surge": "104.91",
+        "WTI_analyst_range": "100-135"
+      },
+      "updates": [
+        {
+          "date": "2026-04-13",
+          "note": "WTI 104.91 (+8.64% single session). US Navy Hormuz blockade + Iran port sanctions confirmed. Ceasefire collapse structural; Strait reopening timeline extends weeks+. Oil shock inflation expectations re-escalate duration headwinds for capex-intensive mega-cap cluster (AMZN, GOOG, NVDA). Q1 earnings critical validators."
+        }
+      ],
+      "last_updated": "2026-04-13"
     }
   ],
   "lessons_learned": [],
   "news_digest": [
+    {
+      "date": "2026-04-13",
+      "topics": [
+        {
+          "topic": "US-Iran Hormuz escalation & oil supply crisis",
+          "summary": "US Navy blockades Iran ports; tech + rare earths sanctions escalate. WTI surges +8.64% to $104.91 single session on Strait closure threat. Ceasefire collapsed; supply reopening timeline extends weeks+. Logistics disruption (airspace, shipping reroutes) compounds margin pressure.",
+          "tickers": [
+            "WTI",
+            "XOM",
+            "CVX",
+            "ASML",
+            "TSM",
+            "O39_SI"
+          ]
+        },
+        {
+          "topic": "Semiconductor supply chain transmission of oil shock",
+          "summary": "WTI +8.64% escalates logistics cost inflation for chip supply chains. ASML, TSM, MU supply-chain isolation thesis pressured by rerouting costs + tanker diversions. Mid-cap foundry bifurcation persists (SOXX +2.23%) but logistics headwinds secondary pressure. Q1 earnings validation critical.",
+          "tickers": [
+            "ASML",
+            "TSM",
+            "MU",
+            "NVDA",
+            "AMD",
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Fed rate pause + oil shock inflation re-escalation",
+          "summary": "US10Y 4.32% (+0.03) as oil shock re-escalates sticky inflation narrative. April CPI print (week of 4/15) binary validator: transient energy shock vs. structural inflation. Fed hawkish floor persists; capex-intensive mega-cap cluster (AMZN, GOOG, NVDA) duration headwinds re-escalate.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY",
+            "AMZN",
+            "GOOG",
+            "NVDA"
+          ]
+        },
+        {
+          "topic": "BigTech cluster bifurcation on recovery overbought conditions",
+          "summary": "AMZN +11.7% recovery overbought post-ceasefire bounce; AVGO similarly extended. GOOG consolidates on duration pressure + TurboQuant credibility uncertainty. Cluster capex conviction fragility exposed by oil shock inflation re-escalation. Q1 earnings (AMZN AWS, GOOG capex) critical validators.",
+          "tickers": [
+            "AMZN",
+            "GOOG",
+            "AVGO",
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "Singapore banking cluster structural impairment persists",
+          "summary": "Cluster day 32 NIM compression. US10Y 4.32% extends away from 4.20% reset threshold. Oil shock inflation re-escalates duration headwinds. Reset conditions (US10Y <4.20% + STI >5000) unmet; structural impairment persists.",
+          "tickers": [
+            "D05_SI",
+            "O39_SI",
+            "U11_SI"
+          ]
+        },
+        {
+          "topic": "US-China tech restrictions + rare earths leverage escalation",
+          "summary": "US escalates sanctions (tech restrictions, rare earths leverage) alongside Hormuz blockade. Supply-chain reshaping pressure compounds: tariff + geopolitical supply disruption dual headwinds. ASML $71B 2030 target, INTC 18A foundry credibility pressured. TSM CAUTION elevated on dual risks.",
+          "tickers": [
+            "TSM",
+            "ASML",
+            "INTC",
+            "MU",
+            "NVDA"
+          ]
+        },
+        {
+          "topic": "Hyperscaler capex sustainability debate pressured by dual headwinds",
+          "summary": "$1.7T by 2030 target credibility pressured by oil shock inflation (cost-of-capital re-escalation) + TurboQuant algorithm displacement (latent validation pending). Q1 earnings (AMZN, GOOG, NVDA foundry orders) critical to signal capex conviction vs. tactical reprieve.",
+          "tickers": [
+            "AMZN",
+            "GOOG",
+            "NVDA",
+            "ASML",
+            "MU",
+            "INTC"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-04-10",
       "topics": [
@@ -793,8 +890,7 @@
           "topic": "Iran-Hormuz ceasefire stabilization (Day 32 ongoing)",
           "summary": "Ceasefire collapse confirmed day 31 but market repricing stabilized. WTI 98.37 (-0.37%); geopolitical premium structural. Strait reopening timeline now measured in hours-to-days vs. weeks. Supply risk abates but volatility persists.",
           "tickers": [
-            "WTI",
-            "XLE"
+            "WTI"
           ]
         },
         {
@@ -855,8 +951,7 @@
           "topic": "ECB rate hold divergence from Fed hawkish pause; euro weakness moderating",
           "summary": "DXY 98.91 (-0.12%) as ceasefire relief supports EUR recovery. ECB rate hold divergence persists but geopolitical premium abatement moderates USD flight-to-safety demand. US rate premium persists if Hormuz escalation materializes.",
           "tickers": [
-            "DXY",
-            "VUAA_L"
+            "DXY"
           ]
         }
       ]
@@ -868,9 +963,7 @@
           "topic": "Iran ceasefire fragility: Collapse threat <24hrs post-announcement",
           "summary": "Iran claims two-week ceasefire broken overnight (announced 2026-04-08). Strait of Hormuz reopening hopes crater; oil volatility resurfaces. Trump threatens Iran infrastructure (bridges, power plants). Market repricing Hormuz supply reopening timeline from weeks to hours.",
           "tickers": [
-            "WTI",
-            "XLE",
-            "C6L_SI"
+            "WTI"
           ]
         },
         {
@@ -878,7 +971,6 @@
           "summary": "WTI 97.03 (+0.57%) but fast_info vs. historical data divergence signals market confusion on ceasefire credibility. Geopolitical premium structural; Strait reopening timeline now compressed. Supply reopening expectations volatile.",
           "tickers": [
             "WTI",
-            "XLE",
             "O39_SI"
           ]
         },
@@ -886,9 +978,7 @@
           "topic": "Middle East logistics disruption persists despite ceasefire attempt",
           "summary": "Airspace closures, shipping rerouting compound margin pressure beyond direct commodity moves. SIA -4.7% on Middle East turmoil. Logistics cost inflation secondary pressure unresolved despite Hormuz reopening hopes.",
           "tickers": [
-            "SIA",
-            "C6L_SI",
-            "Z74_SI"
+            "SIA"
           ]
         },
         {
@@ -927,67 +1017,7 @@
           "tickers": [
             "D05_SI",
             "O39_SI",
-            "U11_SI",
-            "C6L_SI",
-            "Z74_SI"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-04-08",
-      "topics": [
-        {
-          "topic": "US-Iran ceasefire breakthrough",
-          "summary": "Two-week ceasefire announced overnight; markets surge on Strait of Hormuz reopening hopes. Dow/S&P 500/Nasdaq futures surge; geopolitical premium abates but resolution timeline uncertain. De-escalation reduces war risk but fragility evident.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "WTI",
-            "XLE",
-            "C6L_SI"
-          ]
-        },
-        {
-          "topic": "Oil price crater on ceasefire relief",
-          "summary": "WTI closes $94.72 (-0.85%) from $115.25 peak; 22% decline reflects Strait reopening hopes. OPEC+ output hikes insufficient to prevent supply relief pricing. Geopolitical premium structural but supply risk abates materially.",
-          "tickers": [
-            "WTI",
-            "XLE",
-            "CVX",
-            "XOM"
-          ]
-        },
-        {
-          "topic": "Middle East airspace closures persist",
-          "summary": "Global aviation disruption continues despite ceasefire announcement; shipping rerouting compounds logistics cost inflation. Margin pressure extends beyond commodity moves; secondary pressure on discretionary consumer/logistics names unresolved.",
-          "tickers": [
-            "LUV",
-            "UAL",
-            "DAL",
-            "JBLU"
-          ]
-        },
-        {
-          "topic": "ECB holds rates amid eurozone resilience",
-          "summary": "ECB maintains accommodative stance as eurozone economic growth remains robust. Divergence from Fed's hawkish pause persists; duration headwinds across developed markets structural.",
-          "tickers": [
-            "DXY",
-            "VUAA_L",
-            "EWU",
-            "EWG"
-          ]
-        },
-        {
-          "topic": "Semiconductors rally on risk-on sentiment",
-          "summary": "SOXX +1.18% to $347.76 as ceasefire relief broadens risk appetite; mid-cap foundry (MU, ASML) benefits from geopolitical de-escalation. TurboQuant algorithm displacement threat remains latent.",
-          "tickers": [
-            "SOXX",
-            "NVDA",
-            "AMD",
-            "ASML",
-            "MU",
-            "INTC"
+            "U11_SI"
           ]
         }
       ]
