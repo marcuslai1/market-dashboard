@@ -198,17 +198,25 @@ def _escape_dollars(text: str) -> str:
     return text.replace("$", "\\$") if text else text
 
 
-def _truncate_rationale(text: str, limit: int = 200) -> str:
-    """Truncate rationale at the nearest natural break point."""
-    if not text or len(text) <= limit:
+def _truncate_rationale(text: str) -> str:
+    """Show the first 1-2 complete sentences of the rationale."""
+    if not text:
         return text
-    window = text[:limit]
-    # Try break points in order of preference
-    for sep in [". ", ") ", " — ", "; "]:
-        pos = window.rfind(sep)
-        if pos > 80:
-            return window[: pos + len(sep)].rstrip()
-    return window + "..."
+    # Find the second sentence boundary to capture 1-2 full sentences
+    end = -1
+    for i, ch in enumerate(text):
+        if ch == '.' and i + 1 < len(text) and text[i + 1] == ' ':
+            if end == -1:
+                end = i + 1  # first sentence
+            else:
+                end = i + 1  # second sentence
+                break
+    # If text ends with a period (single sentence, no trailing space)
+    if end == -1 and text.rstrip().endswith('.'):
+        return text.rstrip()
+    if end == -1:
+        return text  # no sentence boundary found, show all
+    return text[:end]
 
 
 def _price_str(price, currency: str = "USD") -> str:
@@ -953,7 +961,7 @@ if page == "Today's Snapshot":
 
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = _truncate_rationale(rationale, 200)
+            short_rationale = _truncate_rationale(rationale)
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
 
@@ -1151,7 +1159,7 @@ elif page == "Daily Report":
                 arrow = "v"
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = _truncate_rationale(rationale, 200)
+            short_rationale = _truncate_rationale(rationale)
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
             changes.append({
