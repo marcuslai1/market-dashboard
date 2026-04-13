@@ -198,6 +198,19 @@ def _escape_dollars(text: str) -> str:
     return text.replace("$", "\\$") if text else text
 
 
+def _truncate_rationale(text: str, limit: int = 200) -> str:
+    """Truncate rationale at the nearest natural break point."""
+    if not text or len(text) <= limit:
+        return text
+    window = text[:limit]
+    # Try break points in order of preference
+    for sep in [". ", ") ", " — ", "; "]:
+        pos = window.rfind(sep)
+        if pos > 80:
+            return window[: pos + len(sep)].rstrip()
+    return window + "..."
+
+
 def _price_str(price, currency: str = "USD") -> str:
     """Format a price with currency-aware prefix, escaped for Streamlit."""
     if price is None:
@@ -940,11 +953,7 @@ if page == "Today's Snapshot":
 
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            if len(rationale) > 200:
-                cut = rationale[:200].rfind(". ")
-                short_rationale = rationale[: cut + 1] if cut > 80 else rationale[:200] + "..."
-            else:
-                short_rationale = rationale
+            short_rationale = _truncate_rationale(rationale, 200)
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
 
@@ -1142,11 +1151,7 @@ elif page == "Daily Report":
                 arrow = "v"
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            if len(rationale) > 200:
-                cut = rationale[:200].rfind(". ")
-                short_rationale = rationale[: cut + 1] if cut > 80 else rationale[:200] + "..."
-            else:
-                short_rationale = rationale
+            short_rationale = _truncate_rationale(rationale, 200)
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
             changes.append({
