@@ -288,6 +288,27 @@ def load_token_usage() -> pd.DataFrame:
 
 
 @st.cache_data(ttl=300)
+def load_signal_log() -> pd.DataFrame:
+    """Load signal_evaluation_log export (paper-trade outcomes)."""
+    csv_path = DATA_DIR / "signal_log.csv"
+    if not csv_path.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(csv_path)
+    if df.empty:
+        return df
+    df["date"] = pd.to_datetime(df["date"])
+    for col in ["price_after_5d", "price_after_10d", "price_after_20d",
+                "entry_price", "invalidation", "upside_target", "rr_ratio"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    for horizon in ["5d", "10d", "20d"]:
+        pa = f"price_after_{horizon}"
+        if pa in df.columns:
+            df[f"return_{horizon}"] = (df[pa] - df["entry_price"]) / df["entry_price"] * 100
+    return df
+
+
+@st.cache_data(ttl=300)
 def load_report_memory() -> dict:
     """Load report_memory.json for narrative tracking."""
     mem_path = DATA_DIR / "report_memory.json"
@@ -2008,6 +2029,79 @@ elif page == "Signal Tracker":
                             st.caption(_escape_dollars(rationale))
 
                 prev_signal = signal
+
+    # ── Paper Trade Outcomes (from pipeline signal_evaluation_log) ──
+    st.divider()
+    st.subheader("Paper Trade Outcomes")
+    st.caption(
+        "Realised returns from the pipeline's own log — `entry_price` and "
+        "`invalidation` are what the pipeline saw at signal time, not "
+        "reconstructed after the fact. Outcomes fill in as trading days elapse."
+    )
+
+    sig_log = load_signal_log()
+    if sig_log.empty:
+        st.info("No signal log data yet — `signal_log.csv` will appear after the next pipeline run.")
+    else:
+        # Summary metrics
+        total_rows = len(sig_log)
+        by_type = sig_log["entry_type"].value_counts().to_dict()
+        summary_cols = st.columns(4)
+        summary_cols[0].metric("Total Signals Logged", total_rows)
+        summary_cols[1].metric("Catalyst Entries", by_type.get("catalyst", 0))
+        summary_cols[2].metric("Standard Entries", by_type.get("standard", 0))
+        summary_cols[3].metric("Monitor (non-entry)", by_type.get("monitor", 0))
+
+        # Hit-rate on invalidation vs upside target (rows with final outcomes)
+        finalised = sig_log.dropna(subset=["price_after_20d"])
+        if not finalised.empty:
+            hit_inv = int(finalised["hit_invalidation"].fillna(0).sum())
+            hit_up = int(finalised["hit_upside_target"].fillna(0).sum())
+            hr_cols = st.columns(3)
+            hr_cols[0].metric("Rows with 20d Outcome", len(finalised))
+            hr_cols[1].metric(
+                "Hit Invalidation", f"{hit_inv} ({hit_inv / len(finalised) * 100:.0f}%)"
+            )
+            hr_cols[2].metric(
+                "Hit Upside Target", f"{hit_up} ({hit_up / len(finalised) * 100:.0f}%)"
+            )
+        else:
+            st.caption("No signals have aged 20 trading sessions yet — hit-rate stats pending.")
+
+        # Per-signal, per-entry-type realised return breakdown
+        st.markdown("**Realised Return by Signal × Entry Type**")
+        breakdown_rows = []
+        for (sig_type, etype), group in sig_log.groupby(["signal", "entry_type"]):
+            row = {"Signal": sig_type, "Entry Type": etype, "Count": len(group)}
+            for h in ["5d", "10d", "20d"]:
+                valid = group[f"return_{h}"].dropna()
+                if len(valid) >= 1:
+                    row[f"{h} Avg"] = f"{valid.mean():+.1f}%"
+                    row[f"{h} N"] = len(valid)
+                else:
+                    row[f"{h} Avg"] = "—"
+                    row[f"{h} N"] = 0
+            breakdown_rows.append(row)
+        if breakdown_rows:
+            bd_df = pd.DataFrame(breakdown_rows).sort_values(
+                ["Entry Type", "Signal"]
+            ).reset_index(drop=True)
+            st.dataframe(bd_df, use_container_width=True, hide_index=True)
+
+        # Open positions — logged but still within the 20-session window
+        open_rows = sig_log[sig_log["price_after_20d"].isna()].copy()
+        if not open_rows.empty:
+            with st.expander(f"Open positions ({len(open_rows)}) — outcomes still resolving"):
+                open_display = open_rows[[
+                    "date", "ticker", "signal", "entry_type",
+                    "entry_price", "invalidation", "upside_target",
+                    "price_after_5d", "price_after_10d",
+                ]].copy()
+                open_display["ticker"] = open_display["ticker"].map(
+                    lambda t: TICKER_DISPLAY.get(t, t)
+                )
+                open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
+                st.dataframe(open_display, use_container_width=True, hide_index=True)
 
 
 # ════════════════════════════════════════════
