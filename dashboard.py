@@ -289,33 +289,47 @@ def load_token_usage() -> pd.DataFrame:
 
 def _classify_episode_verdict(signal: str, ret: float | None,
                               run_during: float | None, is_active: bool) -> str:
-    """Label an episode based on signal type and realised return."""
-    if ret is None:
-        return "—"
-    if signal in ("BUY", "ACCUMULATE"):
-        if is_active and abs(ret) < 2:
-            return "… active"
-        return "✓ profit" if ret > 0 else "✗ loss"
-    if signal == "CAUTION":
-        if is_active and abs(ret) < 2:
-            return "… active"
-        return "✓ avoided" if ret < 0 else "✗ wrong"
+    """Label an episode based on signal type and realised return.
+
+    Active episodes (no closing signal fired yet) get the ⏳ prefix so
+    resolved wins/losses read differently from still-open ones.
+    """
+    if signal == "HOLD":
+        return "— non-directional"
     if signal == "WATCH":
         if run_during is not None and run_during >= 5:
             return "⚠ missed"
         return "— quiet"
-    if signal == "HOLD":
-        return "— non-directional"
+    if ret is None:
+        return "—"
+    prefix = "⏳ " if is_active else ""
+    if signal in ("BUY", "ACCUMULATE"):
+        return f"{prefix}✓ profit" if ret > 0 else f"{prefix}✗ loss"
+    if signal == "CAUTION":
+        return f"{prefix}✓ avoided" if ret < 0 else f"{prefix}✗ wrong"
     return "—"
 
 
 def build_signal_episodes(sig_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.DataFrame:
-    """Collapse consecutive-same-signal rows per ticker into episodes.
+    """Collapse consecutive-same-signal rows per ticker into episodes, then
+    compute trade-economics returns.
 
-    Each episode is one contiguous run where the signal stayed the same.
-    Entry price = first-day price. Exit price = last-day price if closed,
-    else latest available close for the ticker. Return is computed against
-    exit price; run_during_pct is peak intra-episode price vs entry.
+    Episode = one contiguous run of the same signal. Entry price = first-day
+    price of the episode. Exit price depends on signal semantics:
+
+    - BUY / ACCUMULATE: position opens on entry; held through subsequent
+      HOLD/WATCH (non-directional). Closes when the next CAUTION fires
+      for this ticker. If no CAUTION has fired yet, position is still open
+      and exit = latest available price.
+    - CAUTION: the "avoid / trim" call. Measured until the next
+      BUY/ACCUMULATE (signal to re-enter) or latest price if none.
+      Negative return = the call was right (you avoided a drop).
+    - WATCH / HOLD: non-actionable; exit price is the episode's last-day
+      price (only used to display something; verdict ignores return).
+
+    Because of this, a 1-day ACCUMULATE that flipped to HOLD tomorrow
+    does NOT return 0% — the position stays open until a CAUTION or
+    measures to current price.
     """
     if sig_df.empty:
         return pd.DataFrame()
@@ -330,43 +344,72 @@ def build_signal_episodes(sig_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.D
     out = []
     for ticker, group in sig_df.sort_values("date").groupby("ticker"):
         group = group.reset_index(drop=True)
-        last_date = group["date"].iloc[-1]
         sig = group["signal"].fillna("")
         episode_id = (sig != sig.shift()).cumsum()
+
+        ticker_eps = []
         for _, ep in group.groupby(episode_id):
             signal = ep["signal"].iloc[0]
             if not signal:
                 continue
-            start = ep["date"].iloc[0]
-            end = ep["date"].iloc[-1]
             prices = pd.to_numeric(ep["price"], errors="coerce").dropna()
-            entry_price = float(prices.iloc[0]) if len(prices) else None
-            peak = float(prices.max()) if len(prices) else None
-            is_active = end == last_date
-            if is_active:
-                exit_price = latest_by_ticker.get(ticker)
-                if exit_price is None and len(prices):
-                    exit_price = float(prices.iloc[-1])
+            ticker_eps.append({
+                "signal": signal,
+                "start": ep["date"].iloc[0],
+                "end": ep["date"].iloc[-1],
+                "entry_price": float(prices.iloc[0]) if len(prices) else None,
+                "peak": float(prices.max()) if len(prices) else None,
+                "last_in_ep": float(prices.iloc[-1]) if len(prices) else None,
+            })
+
+        for i, ep in enumerate(ticker_eps):
+            signal = ep["signal"]
+            entry_price = ep["entry_price"]
+            exit_price = None
+            exit_date = None
+            is_active = False
+
+            if signal in ("BUY", "ACCUMULATE"):
+                for j in range(i + 1, len(ticker_eps)):
+                    if ticker_eps[j]["signal"] == "CAUTION":
+                        exit_price = ticker_eps[j]["entry_price"]
+                        exit_date = ticker_eps[j]["start"]
+                        break
+                if exit_price is None:
+                    exit_price = latest_by_ticker.get(ticker) or ep["last_in_ep"]
+                    is_active = True
+            elif signal == "CAUTION":
+                for j in range(i + 1, len(ticker_eps)):
+                    if ticker_eps[j]["signal"] in ("BUY", "ACCUMULATE"):
+                        exit_price = ticker_eps[j]["entry_price"]
+                        exit_date = ticker_eps[j]["start"]
+                        break
+                if exit_price is None:
+                    exit_price = latest_by_ticker.get(ticker) or ep["last_in_ep"]
+                    is_active = True
             else:
-                exit_price = float(prices.iloc[-1]) if len(prices) else None
+                exit_price = ep["last_in_ep"]
+
             ret = None
             if entry_price and exit_price:
                 ret = (exit_price - entry_price) / entry_price * 100
             run_during = None
-            if entry_price and peak:
-                run_during = (peak - entry_price) / entry_price * 100
+            if entry_price and ep["peak"]:
+                run_during = (ep["peak"] - entry_price) / entry_price * 100
+
             out.append({
                 "ticker": ticker,
                 "signal": signal,
-                "start": start,
-                "end": end,
-                "duration_days": int((end - start).days) + 1,
+                "start": ep["start"],
+                "end": ep["end"],
+                "duration_days": int((ep["end"] - ep["start"]).days) + 1,
                 "entry_price": entry_price,
                 "exit_price": exit_price,
+                "exit_date": exit_date,
                 "return_pct": ret,
                 "run_during_pct": run_during,
-                "is_active": bool(is_active),
-                "verdict": _classify_episode_verdict(signal, ret, run_during, bool(is_active)),
+                "is_active": is_active,
+                "verdict": _classify_episode_verdict(signal, ret, run_during, is_active),
             })
     return pd.DataFrame(out)
 
@@ -1758,7 +1801,10 @@ elif page == "Signal Tracker":
     st.subheader("Signal Outcome History")
     st.caption(
         "Each row = one *episode* (consecutive days with the same signal, collapsed). "
-        "Return compares entry-day price to current price (or exit-day price if the signal flipped). "
+        "Return uses trade-economics, not signal-window boundaries: "
+        "BUY/ACCUMULATE is held through HOLD/WATCH and only closes on the next **CAUTION** "
+        "(or stays open vs. current price if no CAUTION has fired). CAUTION is measured "
+        "until the next BUY/ACCUMULATE. ⏳ = trade still open. "
         "BUY/ACCUMULATE: ✓ if up. CAUTION: ✓ if down (loss avoided). "
         "WATCH: ⚠ missed if price ran ≥5% during the episode."
     )
@@ -1799,19 +1845,22 @@ elif page == "Signal Tracker":
                 active = tk_eps["is_active"].sum()
                 summary = f"**{display_tk}** — {len(tk_eps)} episodes"
                 if total_scored:
-                    summary += f", {wins}/{total_scored} worked out ({wins / total_scored * 100:.0f}%)"
+                    summary += f", {wins}/{total_scored} closed trades worked out ({wins / total_scored * 100:.0f}%)"
                 if active:
-                    summary += f" · {active} active"
+                    summary += f" · {active} still open"
                 st.markdown(summary)
 
                 display_df = tk_eps[[
-                    "signal", "start", "end", "duration_days",
+                    "signal", "start", "exit_date", "duration_days",
                     "entry_price", "exit_price", "return_pct",
                     "run_during_pct", "is_active", "verdict",
                 ]].copy()
                 display_df["start"] = display_df["start"].dt.strftime("%Y-%m-%d")
-                display_df["end"] = display_df.apply(
-                    lambda r: "active" if r["is_active"] else r["end"].strftime("%Y-%m-%d"),
+                display_df["exit_date"] = display_df.apply(
+                    lambda r: (
+                        "open" if r["is_active"]
+                        else (r["exit_date"].strftime("%Y-%m-%d") if pd.notna(r["exit_date"]) else "—")
+                    ),
                     axis=1,
                 )
                 display_df["entry_price"] = display_df["entry_price"].map(
@@ -1828,7 +1877,7 @@ elif page == "Signal Tracker":
                 )
                 display_df = display_df.drop(columns=["is_active"])
                 display_df.columns = [
-                    "Signal", "Started", "Ended", "Days",
+                    "Signal", "Entry date", "Exit date", "Signal days",
                     "Entry", "Exit/Now", "Return", "Peak run", "Verdict",
                 ]
                 st.dataframe(display_df, use_container_width=True, hide_index=True)
