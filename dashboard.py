@@ -601,6 +601,14 @@ SIGNAL_ST_COLORS = {
     "CAUTION": "red",
 }
 
+SIGNAL_VERBS = {
+    "BUY": "Enter now",
+    "ACCUMULATE": "Add on strength",
+    "WATCH": "Wait for trigger",
+    "HOLD": "Maintain",
+    "CAUTION": "Trim / avoid",
+}
+
 
 def _render_signal_guide() -> None:
     """Render the collapsible Signal Guide panel."""
@@ -905,7 +913,9 @@ if page == "Today's Snapshot":
             f"<div style='text-align:center;padding:4px;border-radius:6px;"
             f"background-color:{color}20;border:1px solid {color}'>"
             f"<b style='color:{color}'>{sig}</b><br>"
-            f"<span style='font-size:1.4em;font-weight:bold'>{count}</span></div>",
+            f"<span style='font-size:1.4em;font-weight:bold'>{count}</span>"
+            f"<div style='font-size:0.7em;color:#b0b0b0;margin-top:2px'>"
+            f"{SIGNAL_VERBS[sig]}</div></div>",
             unsafe_allow_html=True,
         )
 
@@ -914,9 +924,15 @@ if page == "Today's Snapshot":
     # ── Key benchmarks ──
     st.divider()
     benchmarks = report.get("benchmarks", {})
-    SNAPSHOT_BM = ["SPY", "VIX", "WTI", "Gold", "SOXX"]
+    SNAPSHOT_BM = [
+        ("SPY",  "S&P 500"),
+        ("VIX",  "Fear gauge"),
+        ("WTI",  "Crude oil"),
+        ("Gold", "Gold"),
+        ("SOXX", "Semis ETF"),
+    ]
     bm_cols = st.columns(len(SNAPSHOT_BM))
-    for i, bm_name in enumerate(SNAPSHOT_BM):
+    for i, (bm_name, bm_label) in enumerate(SNAPSHOT_BM):
         bm = benchmarks.get(bm_name, {})
         price = bm.get("price")
         chg = bm.get("chg_pct")
@@ -930,6 +946,7 @@ if page == "Today's Snapshot":
             )
         else:
             bm_cols[i].metric(bm_name, f"{price:,.2f}" if price else "—")
+        bm_cols[i].caption(bm_label)
 
     # ── Signal changes since yesterday ──
     st.divider()
@@ -951,25 +968,27 @@ if page == "Today's Snapshot":
             r_old = signal_rank.get(sig_old, 0)
             r_new = signal_rank.get(sig_new, 0)
             if sig_old == "—":
-                arrow = "+"
+                arrow = "★"
             elif sig_new == "—":
                 continue  # hide removed tickers — watchlist edits, not signal events
             elif r_new > r_old:
-                arrow = "^"
+                arrow = "↑"
             else:
-                arrow = "v"
+                arrow = "↓"
 
             display_tk = TICKER_DISPLAY.get(tk, tk)
             rationale = wl_today.get(tk, {}).get("signal_rationale", "")
             short_rationale = _truncate_rationale(rationale)
             st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
             st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
+            arrow_color = SIGNAL_COLORS.get(sig_new, "#6b7280")
 
             changes.append({
                 "ticker": display_tk,
                 "from_sig": sig_old,
                 "to_sig": sig_new,
                 "arrow": arrow,
+                "arrow_color": arrow_color,
                 "rationale": short_rationale,
                 "st_old": st_old,
                 "st_new": st_new,
@@ -977,9 +996,14 @@ if page == "Today's Snapshot":
 
         if changes:
             for c in changes:
+                arrow_html = (
+                    f"<span style='color:{c['arrow_color']};font-weight:700'>"
+                    f"{c['arrow']}</span>"
+                )
                 st.markdown(
-                    f"**{c['ticker']}** {c['arrow']} "
-                    f":{c['st_old']}[{c['from_sig']}] → :{c['st_new']}[{c['to_sig']}]"
+                    f"**{c['ticker']}** {arrow_html} "
+                    f":{c['st_old']}[{c['from_sig']}] → :{c['st_new']}[{c['to_sig']}]",
+                    unsafe_allow_html=True,
                 )
                 if c["rationale"]:
                     st.caption(_escape_dollars(c["rationale"]))
@@ -992,6 +1016,7 @@ if page == "Today's Snapshot":
 
     with lo_cols[0]:
         st.subheader("Closest to Entry")
+        st.caption("Tickers within 2% of their 50-day average — most likely to trigger soon.")
         watchlist = report.get("watchlist", {})
         closest = []
         for tk, d in watchlist.items():
@@ -1007,7 +1032,7 @@ if page == "Today's Snapshot":
                 direction = "above" if vs50 > 0 else "below"
                 st_c = SIGNAL_ST_COLORS.get(sig, "gray")
                 st.markdown(
-                    f"**{display_tk}**: {abs(vs50):.1f}% {direction} SMA50 "
+                    f"**{display_tk}**: {abs(vs50):.1f}% {direction} 50-day avg "
                     f"— :{st_c}[{sig}]"
                 )
         else:
@@ -1041,7 +1066,11 @@ if page == "Today's Snapshot":
         if active_narr:
             top = max(active_narr, key=lambda n: n.get("last_updated", ""))
             st.markdown(f"**Latest:** {top.get('title', 'N/A')}")
-            st.caption(_escape_dollars(top.get("summary", "")[:200]))
+            summary = top.get("summary", "")
+            clean = _truncate_rationale(summary)
+            if len(clean) > 280:
+                clean = summary[:200] + "…"
+            st.caption(_escape_dollars(clean))
 
     if len(active_narr) > 1:
         with st.expander(f"All {len(active_narr)} active narratives"):
@@ -1067,6 +1096,15 @@ elif page == "Daily Report":
     report = reports[selected]
     watchlist = report.get("watchlist", {})
     all_reports = reports
+
+    report_path = DATA_DIR / f"morning_report_{selected}.json"
+    if report_path.exists():
+        st.download_button(
+            label="↓ Download JSON for this day",
+            data=report_path.read_bytes(),
+            file_name=f"morning_report_{selected}.json",
+            mime="application/json",
+        )
 
     # ── 1. STANCE + SIGNAL COUNTS ──
     meta = report.get("meta", {})
