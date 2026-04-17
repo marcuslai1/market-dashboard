@@ -1754,11 +1754,92 @@ elif page == "Signal Tracker":
         st.info("Select at least one ticker.")
         st.stop()
 
-    # ── Signal Accuracy Scorecard (all tickers, independent of selector) ──
-    st.subheader("Signal Accuracy Scorecard")
+    # ── Signal Outcome History (per-ticker episode view) ──
+    st.subheader("Signal Outcome History")
     st.caption(
-        "BUY/WATCH: did the price go **up** after the signal? (positive = correct) | "
-        "HOLD/CAUTION: did the price go **down** after the signal? (negative = correct — you avoided a loss)"
+        "Each row = one *episode* (consecutive days with the same signal, collapsed). "
+        "Return compares entry-day price to current price (or exit-day price if the signal flipped). "
+        "BUY/ACCUMULATE: ✓ if up. CAUTION: ✓ if down (loss avoided). "
+        "WATCH: ⚠ missed if price ran ≥5% during the episode."
+    )
+
+    show_all = st.checkbox(
+        "Show all episodes (include HOLD and quiet WATCH)",
+        value=False,
+        help="By default only actionable episodes are shown: BUY, ACCUMULATE, CAUTION, and WATCH episodes where price moved ≥5%.",
+    )
+
+    episodes = build_signal_episodes(
+        sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
+    )
+
+    if episodes.empty:
+        st.info("No episode data available yet.")
+    else:
+        if not show_all:
+            actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"])
+            watch_triggered = (episodes["signal"] == "WATCH") & (
+                episodes["run_during_pct"].fillna(0) >= 5
+            )
+            episodes = episodes[actionable_mask | watch_triggered]
+
+        if episodes.empty:
+            st.caption("No actionable episodes for the selected tickers — toggle 'Show all' to see HOLD/quiet WATCH.")
+        else:
+            for ticker in selected_tickers:
+                tk_eps = episodes[episodes["ticker"] == ticker].sort_values("start", ascending=False)
+                if tk_eps.empty:
+                    continue
+                display_tk = TICKER_DISPLAY.get(ticker, ticker)
+
+                scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"]) &
+                                ~tk_eps["is_active"]]
+                wins = scored["verdict"].isin(["✓ profit", "✓ avoided"]).sum()
+                total_scored = len(scored)
+                active = tk_eps["is_active"].sum()
+                summary = f"**{display_tk}** — {len(tk_eps)} episodes"
+                if total_scored:
+                    summary += f", {wins}/{total_scored} worked out ({wins / total_scored * 100:.0f}%)"
+                if active:
+                    summary += f" · {active} active"
+                st.markdown(summary)
+
+                display_df = tk_eps[[
+                    "signal", "start", "end", "duration_days",
+                    "entry_price", "exit_price", "return_pct",
+                    "run_during_pct", "is_active", "verdict",
+                ]].copy()
+                display_df["start"] = display_df["start"].dt.strftime("%Y-%m-%d")
+                display_df["end"] = display_df.apply(
+                    lambda r: "active" if r["is_active"] else r["end"].strftime("%Y-%m-%d"),
+                    axis=1,
+                )
+                display_df["entry_price"] = display_df["entry_price"].map(
+                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
+                )
+                display_df["exit_price"] = display_df["exit_price"].map(
+                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
+                )
+                display_df["return_pct"] = display_df["return_pct"].map(
+                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
+                )
+                display_df["run_during_pct"] = display_df["run_during_pct"].map(
+                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
+                )
+                display_df = display_df.drop(columns=["is_active"])
+                display_df.columns = [
+                    "Signal", "Started", "Ended", "Days",
+                    "Entry", "Exit/Now", "Return", "Peak run", "Verdict",
+                ]
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+    st.divider()
+
+    # ── Aggregate Calibration (one-number-across-the-watchlist sanity check) ──
+    st.subheader("Aggregate Calibration")
+    st.caption(
+        "Win rates across **all tickers** at 5d / 10d horizons — answers "
+        "\"is the pipeline systematically good at calling BUYs / avoiding CAUTIONs?\""
     )
     acc_df = compute_signal_accuracy(sig_df, prices_df)  # uses ALL tickers
 
@@ -1823,74 +1904,6 @@ elif page == "Signal Tracker":
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         if hold_count > 0:
             st.caption(f"HOLD signals: {hold_count} days across all tickers (not scored — HOLD is non-directional)")
-
-        # B) Signal performance table — all 4 types
-        st.markdown("**Performance by Signal Type**")
-        perf_rows = []
-        for sig_type in ["BUY", "ACCUMULATE", "WATCH", "CAUTION"]:
-            sig_data = acc_df[acc_df["signal"] == sig_type]
-            count = len(sig_data)
-            if count == 0:
-                continue
-            is_defensive = sig_type == "CAUTION"
-            row = {"Signal": sig_type, "Count": count}
-            for label in ["5d", "10d", "20d"]:
-                valid = sig_data[f"return_{label}"].dropna()
-                if len(valid) >= min_samples:
-                    if is_defensive:
-                        row[f"{label} Correct %"] = f"{(valid <= 0).mean() * 100:.1f}%"
-                    else:
-                        row[f"{label} Correct %"] = f"{(valid > 0).mean() * 100:.1f}%"
-                    row[f"{label} Avg Return"] = f"{valid.mean():+.1f}%"
-                    excess = sig_data[f"excess_{label}"].dropna()
-                    if len(excess) >= min_samples:
-                        row[f"{label} Avg Excess"] = f"{excess.mean():+.1f}%"
-                    else:
-                        row[f"{label} Avg Excess"] = "—"
-                else:
-                    row[f"{label} Correct %"] = "—"
-                    row[f"{label} Avg Return"] = "—"
-                    row[f"{label} Avg Excess"] = "—"
-            perf_rows.append(row)
-
-        if perf_rows:
-            st.dataframe(pd.DataFrame(perf_rows), width="stretch", hide_index=True)
-
-        # C) Individual signal detail table
-        st.markdown("**Individual Signal Detail**")
-        detail_filter = st.radio(
-            "Show", ["All", "BUY only", "ACCUMULATE only", "WATCH only", "CAUTION only"],
-            horizontal=True, key="acc_filter"
-        )
-        detail = acc_df.copy()
-        filter_map = {
-            "BUY only": "BUY", "ACCUMULATE only": "ACCUMULATE",
-            "WATCH only": "WATCH", "CAUTION only": "CAUTION",
-        }
-        if detail_filter in filter_map:
-            detail = detail[detail["signal"] == filter_map[detail_filter]]
-        detail = detail.sort_values("date", ascending=False)
-        detail["date"] = detail["date"].dt.strftime("%Y-%m-%d")
-        detail["price"] = detail["price"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "—")
-
-        for label in ["5d", "10d", "20d"]:
-            detail[f"{label} Return"] = detail[f"return_{label}"].apply(
-                lambda x: f"{x:+.1f}%" if pd.notna(x) else "Pending"
-            )
-            detail[f"{label} SPY"] = detail[f"spy_{label}"].apply(
-                lambda x: f"{x:+.1f}%" if pd.notna(x) else "N/A"
-            )
-            detail[f"{label} Excess"] = detail[f"excess_{label}"].apply(
-                lambda x: f"{x:+.1f}%" if pd.notna(x) else "—"
-            )
-
-        display_cols = ["date", "ticker", "signal", "price",
-                        "5d Return", "5d SPY", "5d Excess",
-                        "10d Return", "10d SPY", "10d Excess"]
-        display_df = detail[display_cols].rename(columns={
-            "date": "Date", "ticker": "Ticker", "signal": "Signal", "price": "Entry Price",
-        })
-        st.dataframe(display_df, width="stretch", hide_index=True)
 
     st.divider()
 
@@ -2073,46 +2086,45 @@ elif page == "Signal Tracker":
     st.divider()
 
     # ── Feature 2: Historical Writeup Viewer ──
-    st.subheader("Historical Writeup Viewer")
-    st.caption("Read the full signal rationale for a ticker across dates to see how the narrative evolves.")
+    with st.expander("Historical Writeup Viewer", expanded=False):
+        st.caption("Read the full signal rationale for a ticker across dates to see how the narrative evolves.")
 
-    all_tickers_writeup = sorted(sig_df["ticker"].unique())
-    writeup_ticker = st.selectbox("Ticker", all_tickers_writeup, key="writeup_ticker")
+        all_tickers_writeup = sorted(sig_df["ticker"].unique())
+        writeup_ticker = st.selectbox("Ticker", all_tickers_writeup, key="writeup_ticker")
 
-    if writeup_ticker:
-        tk_writeups = sig_df[sig_df["ticker"] == writeup_ticker].sort_values("date", ascending=False)
-        if tk_writeups.empty:
-            st.info("No data for this ticker.")
-        else:
-            prev_signal = None
-            for _, row in tk_writeups.iterrows():
-                date_label = row["date"].strftime("%Y-%m-%d")
-                signal = row["signal"]
-                rationale = row.get("rationale", "") or ""
-                price = row.get("price")
-                price_str = f" — ${price:,.2f}" if price is not None else ""
+        if writeup_ticker:
+            tk_writeups = sig_df[sig_df["ticker"] == writeup_ticker].sort_values("date", ascending=False)
+            if tk_writeups.empty:
+                st.info("No data for this ticker.")
+            else:
+                prev_signal = None
+                for _, row in tk_writeups.iterrows():
+                    date_label = row["date"].strftime("%Y-%m-%d")
+                    signal = row["signal"]
+                    rationale = row.get("rationale", "") or ""
+                    price = row.get("price")
+                    price_str = f" — ${price:,.2f}" if price is not None else ""
 
-                # Detect signal change (compared to next chronological day, since we're newest-first)
-                signal_changed = prev_signal is not None and signal != prev_signal
+                    signal_changed = prev_signal is not None and signal != prev_signal
 
-                header = f"**{date_label}** | {signal}{price_str}"
-                if signal_changed:
-                    header += f"  *(changed from {prev_signal})*"
+                    header = f"**{date_label}** | {signal}{price_str}"
+                    if signal_changed:
+                        header += f"  *(changed from {prev_signal})*"
 
-                if signal_changed:
-                    st.markdown(
-                        f"<div style='border-left:4px solid #f59e0b;padding-left:12px;"
-                        f"margin-bottom:8px;background-color:#f59e0b10;padding:8px;border-radius:4px'>"
-                        f"{header}<br><span style='font-size:0.9em'>{_escape_dollars(rationale)}</span></div>",
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    with st.container():
-                        st.markdown(header)
-                        if rationale:
-                            st.caption(_escape_dollars(rationale))
+                    if signal_changed:
+                        st.markdown(
+                            f"<div style='border-left:4px solid #f59e0b;padding-left:12px;"
+                            f"margin-bottom:8px;background-color:#f59e0b10;padding:8px;border-radius:4px'>"
+                            f"{header}<br><span style='font-size:0.9em'>{_escape_dollars(rationale)}</span></div>",
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        with st.container():
+                            st.markdown(header)
+                            if rationale:
+                                st.caption(_escape_dollars(rationale))
 
-                prev_signal = signal
+                    prev_signal = signal
 
     # ── Paper Trade Outcomes (from pipeline signal_evaluation_log) ──
     st.divider()
@@ -2186,87 +2198,6 @@ elif page == "Signal Tracker":
                 )
                 open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
                 st.dataframe(open_display, use_container_width=True, hide_index=True)
-
-    # ── Signal Outcome History (per-ticker episode view) ──
-    st.divider()
-    st.subheader("Signal Outcome History")
-    st.caption(
-        "Each row = one *episode* (consecutive days with the same signal, collapsed). "
-        "Return compares entry-day price to current price (or exit-day price if the signal flipped). "
-        "BUY/ACCUMULATE: ✓ if up. CAUTION: ✓ if down (loss avoided). "
-        "WATCH: ⚠ missed if price ran ≥5% during the episode."
-    )
-
-    show_all = st.checkbox(
-        "Show all episodes (include HOLD and quiet WATCH)",
-        value=False,
-        help="By default only actionable episodes are shown: BUY, ACCUMULATE, CAUTION, and WATCH episodes where price moved ≥5%.",
-    )
-
-    episodes = build_signal_episodes(
-        sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
-    )
-
-    if episodes.empty:
-        st.info("No episode data available yet.")
-    else:
-        if not show_all:
-            actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"])
-            watch_triggered = (episodes["signal"] == "WATCH") & (
-                episodes["run_during_pct"].fillna(0) >= 5
-            )
-            episodes = episodes[actionable_mask | watch_triggered]
-
-        if episodes.empty:
-            st.caption("No actionable episodes for the selected tickers — toggle 'Show all' to see HOLD/quiet WATCH.")
-        else:
-            for ticker in selected_tickers:
-                tk_eps = episodes[episodes["ticker"] == ticker].sort_values("start", ascending=False)
-                if tk_eps.empty:
-                    continue
-                display_tk = TICKER_DISPLAY.get(ticker, ticker)
-
-                # Per-ticker summary line
-                scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"]) &
-                                ~tk_eps["is_active"]]
-                wins = scored["verdict"].isin(["✓ profit", "✓ avoided"]).sum()
-                total_scored = len(scored)
-                active = tk_eps["is_active"].sum()
-                summary = f"**{display_tk}** — {len(tk_eps)} episodes"
-                if total_scored:
-                    summary += f", {wins}/{total_scored} worked out ({wins / total_scored * 100:.0f}%)"
-                if active:
-                    summary += f" · {active} active"
-                st.markdown(summary)
-
-                display_df = tk_eps[[
-                    "signal", "start", "end", "duration_days",
-                    "entry_price", "exit_price", "return_pct",
-                    "run_during_pct", "is_active", "verdict",
-                ]].copy()
-                display_df["start"] = display_df["start"].dt.strftime("%Y-%m-%d")
-                display_df["end"] = display_df.apply(
-                    lambda r: "active" if r["is_active"] else r["end"].strftime("%Y-%m-%d"),
-                    axis=1,
-                )
-                display_df["entry_price"] = display_df["entry_price"].map(
-                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
-                )
-                display_df["exit_price"] = display_df["exit_price"].map(
-                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
-                )
-                display_df["return_pct"] = display_df["return_pct"].map(
-                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
-                )
-                display_df["run_during_pct"] = display_df["run_during_pct"].map(
-                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
-                )
-                display_df = display_df.drop(columns=["is_active"])
-                display_df.columns = [
-                    "Signal", "Started", "Ended", "Days",
-                    "Entry", "Exit/Now", "Return", "Peak run", "Verdict",
-                ]
-                st.dataframe(display_df, use_container_width=True, hide_index=True)
 
 
 # ════════════════════════════════════════════
