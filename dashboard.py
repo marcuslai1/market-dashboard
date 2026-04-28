@@ -1726,7 +1726,7 @@ st.markdown(
 st.markdown('<div class="topnav-wrap">', unsafe_allow_html=True)
 page = st.radio(
     "Navigate",
-    ["Briefing", "Daily Report", "Signal Tracker",
+    ["Briefing", "Daily Report", "Watchlist", "Signal Tracker",
      "Pipeline Stats", "Scenario Log",
      "Report Comparison"],
     horizontal=True,
@@ -1850,44 +1850,44 @@ if page == "Briefing":
     geo = report.get("geopolitical", {})
     events = report.get("events_this_week", []) or []
 
-    sub_brief, sub_watch, sub_cal, sub_macro = st.tabs(
-        ["Briefing", "Watchlist", "Calendar", "Macro"]
+    render_stance(snapshot, len(watchlist))
+    render_pulse(benchmarks)
+    render_changes(
+        watchlist,
+        prev_report.get("watchlist", {}) if prev_report else {},
     )
+    render_action_card(watchlist, events)
 
-    with sub_brief:
-        render_stance(snapshot, len(watchlist))
-        render_pulse(benchmarks)
-        render_changes(
-            watchlist,
-            prev_report.get("watchlist", {}) if prev_report else {},
-        )
-        render_action_card(watchlist, events)
-
-        macro_col, cal_col = st.columns([3, 2])
-        with macro_col:
-            render_macro(report.get("macro_summary", ""), geo)
-        with cal_col:
-            render_section_head("The Week Ahead", "Catalysts that move signals")
-            render_calendar(events)
-
-        _render_signal_guide()
-
-    with sub_watch:
-        render_section_head(
-            "The Watchlist",
-            f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · "
-            "click an actionable row to expand"
-        )
-        render_pulse(benchmarks)
-        render_watchlist(watchlist)
-
-    with sub_cal:
-        render_section_head("The Week Ahead", "Earnings · macro · Fed")
+    macro_col, cal_col = st.columns([3, 2])
+    with macro_col:
+        render_macro(report.get("macro_summary", ""), geo)
+    with cal_col:
+        render_section_head("The Week Ahead", "Catalysts that move signals")
         render_calendar(events)
 
-    with sub_macro:
-        render_section_head("The Macro Note", "Geopolitics · rates · cross-asset")
-        render_macro(report.get("macro_summary", ""), geo)
+    _render_signal_guide()
+
+
+# ════════════════════════════════════════════
+# PAGE: Watchlist (full drill-down view)
+# ════════════════════════════════════════════
+elif page == "Watchlist":
+    all_reports = load_all_reports()
+    if not all_reports:
+        st.error("No report files found in market_data/.")
+        st.stop()
+    sorted_dates = sorted(all_reports.keys(), reverse=True)
+    report = all_reports[sorted_dates[0]]
+    watchlist = report.get("watchlist", {})
+    benchmarks = report.get("benchmarks", {})
+
+    render_section_head(
+        "The Watchlist",
+        f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · "
+        "click an actionable row to expand"
+    )
+    render_pulse(benchmarks)
+    render_watchlist(watchlist)
 
 
 # ════════════════════════════════════════════
