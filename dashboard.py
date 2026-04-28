@@ -219,6 +219,46 @@ def _truncate_rationale(text: str) -> str:
     return text[:end]
 
 
+def _writeup_for_render(d: dict) -> dict:
+    """Return {headline, what_to_do, entry_block} from new schema, or shim from legacy.
+
+    For old reports that only have signal_rationale: headline = first sentence,
+    what_to_do = remaining sentences (or None for HOLD / CAUTION-technical), and
+    entry_block reads the top-level mechanical entry_block field.
+    """
+    wu = d.get("writeup")
+    if isinstance(wu, dict):
+        return {
+            "headline": wu.get("headline") or "",
+            "what_to_do": wu.get("what_to_do"),
+            "entry_block": wu.get("entry_block") or d.get("entry_block"),
+        }
+    rat = (d.get("signal_rationale") or "").strip()
+    if not rat:
+        return {"headline": "", "what_to_do": None, "entry_block": d.get("entry_block")}
+    # Split first sentence as headline, rest as what_to_do.
+    headline = rat
+    rest = ""
+    for i, ch in enumerate(rat):
+        if ch == "." and i + 1 < len(rat) and rat[i + 1] == " ":
+            headline = rat[: i + 1]
+            rest = rat[i + 2 :].strip()
+            break
+    # Suppress what_to_do for signals where new schema mandates null.
+    sig = d.get("signal", "")
+    cs = d.get("caution_source", "")
+    if sig == "HOLD":
+        rest = ""
+    elif sig == "CAUTION" and cs == "hard_block":
+        # Mechanical block, treat as technical_only — entry_block carries the gate.
+        rest = ""
+    return {
+        "headline": headline,
+        "what_to_do": rest or None,
+        "entry_block": d.get("entry_block"),
+    }
+
+
 def _price_str(price, currency: str = "USD") -> str:
     """Format a price with currency-aware prefix, escaped for Streamlit."""
     if price is None:
@@ -559,50 +599,6 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
                 "probability_mid": mid,
                 "description": sc.get("description", ""),
             })
-    return pd.DataFrame(rows) if rows else pd.DataFrame()
-
-
-def compute_signal_streaks(reports: dict) -> pd.DataFrame:
-    """Compute consecutive days each ticker has held its current signal.
-
-    Returns a DataFrame with columns: ticker, signal, days, vs_sma50_start, vs_sma50_end.
-    vs_sma50_start/end track whether the ticker moved closer to entry during the streak.
-    """
-    sorted_dates = sorted(reports.keys(), reverse=True)
-    if not sorted_dates:
-        return pd.DataFrame()
-
-    latest_report = reports[sorted_dates[0]]
-    latest_wl = latest_report.get("watchlist", {})
-
-    rows = []
-    for ticker, data in latest_wl.items():
-        current_signal = data.get("signal", "")
-        if not current_signal:
-            continue
-        streak = 1
-        vs_sma50_end = data.get("vs_sma50_pct")
-        vs_sma50_start = vs_sma50_end
-
-        for prev_date in sorted_dates[1:]:
-            prev_wl = reports.get(prev_date, {}).get("watchlist", {})
-            prev_data = prev_wl.get(ticker, {})
-            if prev_data.get("signal") == current_signal:
-                streak += 1
-                prev_vs = prev_data.get("vs_sma50_pct")
-                if prev_vs is not None:
-                    vs_sma50_start = prev_vs
-            else:
-                break
-
-        rows.append({
-            "ticker": ticker,
-            "signal": current_signal,
-            "days": streak,
-            "vs_sma50_start": vs_sma50_start,
-            "vs_sma50_end": vs_sma50_end,
-        })
-
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
 
@@ -1308,10 +1304,12 @@ def _render_changes_ribbon(wl_today: dict, wl_yesterday: dict) -> None:
         else:
             arrow = "↓"
         display_tk = TICKER_DISPLAY.get(tk, tk)
-        rationale = wl_today.get(tk, {}).get("signal_rationale", "")
+        wu = _writeup_for_render(wl_today.get(tk, {}))
+        # Prefer the punchline; fall back to first sentence of what_to_do.
+        note = wu["headline"] or (wu["what_to_do"] or "").split(". ", 1)[0]
         changes.append((display_tk, sig_old, sig_new, arrow))
-        if rationale:
-            rationales[display_tk] = _truncate_rationale(rationale)
+        if note:
+            rationales[display_tk] = note
     if not changes:
         return
 
@@ -1367,20 +1365,24 @@ def _render_action_callout(wl: dict, events: list) -> None:
     price = d.get("price")
     ccy = d.get("currency", "USD")
     chg = d.get("chg_pct")
-    rationale = _truncate_rationale(d.get("signal_rationale", ""))
+    wu = _writeup_for_render(d)
+    headline = wu["headline"]
+    body = wu["what_to_do"] or ""
+    block = wu["entry_block"]
     rr = d.get("risk_reward", {}).get("ratio_label", "")
     rr_line = f"R:R {rr}" if rr else ""
-
-    next_event = "—"
-    for e in events:
-        if tk.replace("_SI", ".SI") in e.get("event", "") or tk in e.get("event", ""):
-            next_event = e.get("event", "")[:60]
-            break
 
     price_prefix = "S$" if ccy == "SGD" else "$"
     price_str = f"{price_prefix}{price:,.2f}" if price is not None else "—"
     delta_color = "#22c55e" if (chg or 0) >= 0 else "#ef4444"
     delta_str = f"{chg:+.2f}%" if chg is not None else ""
+
+    block_html = (
+        f'<div style="margin-top:8px;font-size:0.8rem;color:#fbb454;'
+        f'border-left:2px solid #f59e0b80;padding-left:8px;line-height:1.5;">'
+        f'{_escape_dollars(block)}</div>'
+        if block else ""
+    )
 
     st.markdown(
         f'<div class="briefing-section-title">If you only do one thing today</div>'
@@ -1391,8 +1393,9 @@ def _render_action_callout(wl: dict, events: list) -> None:
         f'</div>'
         f'<div>'
         f'<div class="a-ticker">{display_tk}{" · " + cluster if cluster else ""}</div>'
-        f'<div class="a-headline">{_escape_dollars(rationale[:160])}</div>'
-        f'<div class="a-rationale">{_escape_dollars(rationale[160:480])}</div>'
+        f'<div class="a-headline">{_escape_dollars(headline)}</div>'
+        f'<div class="a-rationale">{_escape_dollars(body)}</div>'
+        f'{block_html}'
         f'</div>'
         f'<div class="a-r">'
         f'<div class="a-price">{price_str}</div>'
@@ -1528,7 +1531,7 @@ st.sidebar.markdown(
 page = st.sidebar.radio(
     "Navigate",
     ["Briefing", "Daily Report", "Signal Tracker",
-     "Pipeline Stats", "Ticker Comparison", "Scenario Log",
+     "Pipeline Stats", "Scenario Log",
      "Report Comparison"],
     label_visibility="collapsed",
 )
@@ -2430,125 +2433,6 @@ elif page == "Signal Tracker":
         fig.update_layout(height=max(200, 40 * len(selected_tickers)), margin=dict(l=0, r=0, t=30, b=0))
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Signal Persistence ──
-    st.subheader("Signal Persistence")
-    streak_df = compute_signal_streaks(reports)
-    if not streak_df.empty:
-        display_streaks = streak_df[streak_df["ticker"].isin(selected_tickers)].copy()
-        display_streaks = display_streaks.sort_values("days", ascending=False)
-
-        # Color-code days column for display
-        def _streak_label(row):
-            d = row["days"]
-            if d >= 11:
-                return f"{d} days"
-            elif d >= 6:
-                return f"{d} days"
-            return f"{d} days"
-
-        display_streaks["Days at Signal"] = display_streaks.apply(_streak_label, axis=1)
-        streak_table = display_streaks[["ticker", "signal", "Days at Signal"]].rename(columns={
-            "ticker": "Ticker", "signal": "Signal",
-        })
-        st.dataframe(streak_table, width="stretch", hide_index=True)
-
-        # Stale WATCH callouts
-        stale = display_streaks[
-            (display_streaks["signal"] == "WATCH") & (display_streaks["days"] >= 10)
-        ]
-        for _, row in stale.iterrows():
-            approaching = ""
-            if row["vs_sma50_start"] is not None and row["vs_sma50_end"] is not None:
-                if row["vs_sma50_end"] < row["vs_sma50_start"]:
-                    approaching = " (but moving closer to entry)"
-                else:
-                    approaching = ", not approaching entry"
-            st.warning(
-                f"Stale — **{row['ticker']}** at WATCH for {row['days']} consecutive days{approaching}"
-            )
-
-    st.divider()
-
-    # ── Per-ticker price + signal chart (%-normalized range) ──
-    st.subheader("Price & SMA50 Over Time")
-    st.caption("Y axis shows actual prices. All charts use the same percentage range so moves are visually comparable.")
-
-    # First pass: find the max % swing across all selected tickers
-    max_pct_swing = 5.0  # minimum ±5%
-    ticker_chart_data = {}
-    for ticker in selected_tickers:
-        db_ticker = _report_ticker_to_db(ticker)
-        tk_prices = prices_df[prices_df["ticker"] == db_ticker].sort_values("date") if not prices_df.empty else pd.DataFrame()
-        tk_signals = filtered[filtered["ticker"] == ticker].sort_values("date")
-        ticker_chart_data[ticker] = (tk_prices, tk_signals)
-
-        if not tk_prices.empty:
-            prices_arr = tk_prices["last_price"].dropna()
-            if len(prices_arr) >= 2:
-                mid = (prices_arr.max() + prices_arr.min()) / 2
-                if mid > 0:
-                    swing = (prices_arr.max() - prices_arr.min()) / mid * 100
-                    max_pct_swing = max(max_pct_swing, swing)
-
-    # Add some padding
-    chart_pct_range = max_pct_swing * 0.6  # half-range with padding
-
-    # Second pass: render charts with consistent range
-    for ticker in selected_tickers:
-        tk_prices, tk_signals = ticker_chart_data[ticker]
-
-        if tk_prices.empty and tk_signals.empty:
-            continue
-
-        fig = go.Figure()
-
-        mid_price = None
-        if not tk_prices.empty:
-            prices_arr = tk_prices["last_price"].dropna()
-            mid_price = (prices_arr.max() + prices_arr.min()) / 2
-            y_min = mid_price * (1 - chart_pct_range / 100)
-            y_max = mid_price * (1 + chart_pct_range / 100)
-
-            fig.add_trace(go.Scatter(
-                x=tk_prices["date"], y=tk_prices["last_price"],
-                mode="lines+markers", name="Price",
-                line=dict(color="#3b82f6", width=2),
-            ))
-            if tk_prices["sma_50"].notna().any():
-                fig.add_trace(go.Scatter(
-                    x=tk_prices["date"], y=tk_prices["sma_50"],
-                    mode="lines", name="SMA50",
-                    line=dict(color="#f59e0b", width=1, dash="dash"),
-                ))
-
-            fig.update_yaxes(range=[y_min, y_max])
-
-        # Signal markers from reports
-        if not tk_signals.empty and tk_signals["price"].notna().any():
-            for _, row in tk_signals.iterrows():
-                color = SIGNAL_COLORS.get(row["signal"], "#6b7280")
-                fig.add_trace(go.Scatter(
-                    x=[row["date"]], y=[row["price"]],
-                    mode="markers",
-                    marker=dict(size=14, color=color, symbol="diamond",
-                                line=dict(width=2, color="white")),
-                    name=row["signal"],
-                    hovertext="<br>".join(
-                        [f"<b>{row['signal']}</b>"] +
-                        [row.get("rationale", "")[i:i+80]
-                         for i in range(0, min(len(row.get("rationale", "")), 400), 80)]
-                    ),
-                    showlegend=False,
-                ))
-
-        fig.update_layout(
-            title=ticker, height=300,
-            margin=dict(l=0, r=0, t=40, b=0),
-            xaxis_title="", yaxis_title="Price",
-            hovermode="x unified",
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
     # ── Signal change log ──
     st.subheader("Signal Changes")
     changes = []
@@ -2687,119 +2571,6 @@ elif page == "Signal Tracker":
                 )
                 open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
                 st.dataframe(open_display, use_container_width=True, hide_index=True)
-
-
-# ════════════════════════════════════════════
-# PAGE 3: Ticker Comparison Overlay
-# ════════════════════════════════════════════
-elif page == "Ticker Comparison":
-    st.title("Ticker Comparison Overlay")
-    st.caption("Compare two tickers' key metrics side by side.")
-
-    reports = filter_reports(load_all_reports())
-    sig_df = extract_signal_history(reports)
-    prices_df = filter_prices(load_sqlite_prices())
-
-    if sig_df.empty:
-        st.warning("No signal data available yet.")
-        st.stop()
-
-    all_tickers = sorted(sig_df["ticker"].unique())
-    col_a, col_b = st.columns(2)
-    with col_a:
-        ticker_a = st.selectbox("Ticker A", all_tickers, index=0, key="cmp_a")
-    with col_b:
-        default_b = min(1, len(all_tickers) - 1)
-        ticker_b = st.selectbox("Ticker B", all_tickers, index=default_b, key="cmp_b")
-
-    if ticker_a == ticker_b:
-        st.info("Select two different tickers to compare.")
-        st.stop()
-
-    def _get_ticker_data(ticker):
-        db_tk = _report_ticker_to_db(ticker)
-        tk_prices = prices_df[prices_df["ticker"] == db_tk].sort_values("date") if not prices_df.empty else pd.DataFrame()
-        tk_signals = sig_df[sig_df["ticker"] == ticker].sort_values("date")
-        return tk_prices, tk_signals
-
-    prices_a, signals_a = _get_ticker_data(ticker_a)
-    prices_b, signals_b = _get_ticker_data(ticker_b)
-
-    # ── RSI over time ──
-    st.subheader("RSI Comparison")
-    fig_rsi = go.Figure()
-    if not prices_a.empty and prices_a["rsi_14"].notna().any():
-        fig_rsi.add_trace(go.Scatter(
-            x=prices_a["date"], y=prices_a["rsi_14"],
-            mode="lines+markers", name=ticker_a,
-            line=dict(color="#3b82f6", width=2),
-        ))
-    if not prices_b.empty and prices_b["rsi_14"].notna().any():
-        fig_rsi.add_trace(go.Scatter(
-            x=prices_b["date"], y=prices_b["rsi_14"],
-            mode="lines+markers", name=ticker_b,
-            line=dict(color="#ef4444", width=2),
-        ))
-    # Reference lines at 30/70
-    fig_rsi.add_hline(y=30, line_dash="dot", line_color="#22c55e", annotation_text="Oversold (30)")
-    fig_rsi.add_hline(y=70, line_dash="dot", line_color="#ef4444", annotation_text="Overbought (70)")
-    fig_rsi.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0), yaxis_title="RSI", hovermode="x unified")
-    st.plotly_chart(fig_rsi, use_container_width=True)
-
-    # ── Price vs SMA50 % over time ──
-    st.subheader("Price vs SMA50 (%)")
-    fig_sma = go.Figure()
-    for ticker, tk_prices, color in [(ticker_a, prices_a, "#3b82f6"), (ticker_b, prices_b, "#ef4444")]:
-        if not tk_prices.empty and tk_prices["sma_50"].notna().any():
-            pct = ((tk_prices["last_price"] - tk_prices["sma_50"]) / tk_prices["sma_50"] * 100).round(2)
-            fig_sma.add_trace(go.Scatter(
-                x=tk_prices["date"], y=pct,
-                mode="lines+markers", name=ticker,
-                line=dict(color=color, width=2),
-            ))
-    fig_sma.add_hline(y=0, line_dash="dash", line_color="#6b7280")
-    fig_sma.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0), yaxis_title="% from SMA50", hovermode="x unified")
-    st.plotly_chart(fig_sma, use_container_width=True)
-
-    # ── Signal timeline side by side ──
-    st.subheader("Signal Timeline")
-    signal_map = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-    combined_signals = []
-    for ticker, tk_signals in [(ticker_a, signals_a), (ticker_b, signals_b)]:
-        for _, row in tk_signals.iterrows():
-            combined_signals.append({
-                "date": row["date"],
-                "ticker": ticker,
-                "signal": row["signal"],
-                "signal_num": signal_map.get(row["signal"], 0),
-            })
-
-    if combined_signals:
-        cdf = pd.DataFrame(combined_signals)
-        pivot = cdf.pivot_table(index="ticker", columns="date", values="signal_num", aggfunc="first")
-        pivot_labels = cdf.pivot_table(index="ticker", columns="date", values="signal", aggfunc="first")
-
-        fig_sig = go.Figure(data=go.Heatmap(
-            z=pivot.values,
-            x=[d.strftime("%b %d") for d in pivot.columns],
-            y=pivot.index.tolist(),
-            text=pivot_labels.values,
-            texttemplate="%{text}",
-            colorscale=[
-                [0, "#ef4444"],     # CAUTION
-                [0.25, "#6b7280"],  # HOLD
-                [0.5, "#f59e0b"],   # WATCH
-                [0.75, "#3498db"],  # ACCUMULATE
-                [1, "#22c55e"],     # BUY
-            ],
-            zmin=1, zmax=5,
-            showscale=False,
-            hovertemplate="<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
-        ))
-        fig_sig.update_layout(height=150, margin=dict(l=0, r=0, t=10, b=0))
-        st.plotly_chart(fig_sig, use_container_width=True)
-    else:
-        st.caption("No signal data for selected tickers.")
 
 
 # ════════════════════════════════════════════
@@ -2999,26 +2770,6 @@ elif page == "Pipeline Stats":
         margin=dict(l=0, r=0, t=30, b=0),
     )
     st.plotly_chart(fig_cum, use_container_width=True)
-
-    # ── Report sizes ──
-    st.subheader("Report Sizes")
-    sizes = []
-    for date_str, report in sorted(reports.items()):
-        wl = report.get("watchlist", {})
-        action = report.get("action_summary", {})
-        sizes.append({
-            "Date": date_str,
-            "Watchlist Tickers": len(wl),
-            "Watch": len(action.get("watch_for_entry", [])),
-            "Buy": len(action.get("consider_adding", [])),
-            "Accumulate": len(action.get("accumulate", [])),
-            "On Deck": len(action.get("on_deck", [])),
-            "Hold": len(action.get("hold_no_action", [])),
-            "Caution": len(action.get("caution_trim", [])),
-            "Interconnected": len(report.get("interconnected", [])),
-        })
-    if sizes:
-        st.dataframe(pd.DataFrame(sizes), width="stretch", hide_index=True)
 
     # ── Articles Fed to Prompt ──
     st.subheader("Articles Fed to Prompt")
