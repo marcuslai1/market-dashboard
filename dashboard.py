@@ -911,6 +911,610 @@ TICKER_DISPLAY = {
     "VIX": "^VIX", "TNX": "^TNX",
 }
 
+CLUSTER_MAP = {
+    "NVDA": "Semis", "AMD": "Semis", "INTC": "Semis", "MU": "Semis",
+    "TSM": "Semis", "AVGO": "Semis", "ASML": "Semis",
+    "AMZN": "BigTech", "GOOG": "BigTech", "MSFT": "BigTech",
+    "D05_SI": "SG Banks", "O39_SI": "SG Banks", "U11_SI": "SG Banks",
+    "LITE": "AI Optics", "PLTR": "Defense AI", "WRD": "China Tech",
+}
+
+# ── Briefing CSS (scoped to .briefing-* classes) ──
+st.markdown("""<style>
+.briefing-stance {
+    padding: 24px 0 28px;
+    border-bottom: 1px solid #2a3a5c;
+    margin-bottom: 24px;
+}
+.briefing-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #7a8aa8;
+    margin-bottom: 8px;
+}
+.briefing-stance-headline {
+    font-size: 1.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #f0f0f0;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+}
+.briefing-stance-sub {
+    font-size: 0.95rem;
+    color: #b0b0b0;
+    line-height: 1.5;
+    max-width: 840px;
+}
+.briefing-counts {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    border-top: 1px solid #2a3a5c40;
+    border-bottom: 1px solid #2a3a5c40;
+    margin-top: 18px;
+}
+.briefing-count {
+    padding: 12px 16px;
+    border-right: 1px solid #2a3a5c40;
+    text-align: left;
+}
+.briefing-count:last-child { border-right: none; }
+.briefing-count .count-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.briefing-count .count-num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1;
+}
+.briefing-count .count-verb {
+    font-size: 0.7rem;
+    color: #7a8aa8;
+    margin-top: 4px;
+}
+.briefing-count.zero .count-num { color: #4a5878; }
+.briefing-count.zero .count-label { color: #5a6a85; }
+
+.briefing-pulse {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0;
+    margin: 0 0 24px;
+    border-top: 1px solid #2a3a5c40;
+    border-bottom: 1px solid #2a3a5c40;
+    padding: 14px 0;
+}
+.briefing-pulse-cell {
+    padding: 0 14px;
+    border-right: 1px solid #2a3a5c30;
+    text-align: left;
+}
+.briefing-pulse-cell:last-child { border-right: none; }
+.briefing-pulse-cell .p-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #7a8aa8;
+    margin-bottom: 4px;
+}
+.briefing-pulse-cell .p-price {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+.briefing-pulse-cell .p-delta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    margin-top: 2px;
+}
+.p-up { color: #22c55e; }
+.p-down { color: #ef4444; }
+.p-flat { color: #b0b0b0; }
+
+.briefing-changes {
+    background: #16213e80;
+    border: 1px solid #2a3a5c;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 0 0 24px;
+    font-size: 0.88rem;
+}
+.briefing-changes .changes-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7a8aa8;
+    margin-right: 14px;
+    font-weight: 600;
+}
+.briefing-changes .change-item {
+    display: inline-block;
+    margin-right: 22px;
+    color: #d8d8d8;
+}
+.briefing-changes .change-item b { color: #f0f0f0; }
+.briefing-changes .pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    margin: 0 2px;
+    letter-spacing: 0.04em;
+}
+.briefing-changes .arrow { font-weight: 700; margin: 0 4px; }
+
+.briefing-action {
+    border: 1px solid #2a3a5c;
+    background: linear-gradient(180deg, #1f2d4f 0%, #16213e 100%);
+    border-left: 3px solid;
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    gap: 24px;
+    align-items: start;
+}
+.briefing-action .a-tag {
+    font-size: 0.72rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #7a8aa8;
+    line-height: 1.4;
+}
+.briefing-action .a-pill {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.briefing-action .a-ticker {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f0f0f0;
+    margin-bottom: 4px;
+}
+.briefing-action .a-headline {
+    font-size: 1.05rem;
+    color: #e0e0e0;
+    line-height: 1.45;
+    margin-bottom: 8px;
+}
+.briefing-action .a-rationale {
+    font-size: 0.88rem;
+    color: #b0b0b0;
+    line-height: 1.55;
+}
+.briefing-action .a-r {
+    text-align: right;
+    font-size: 0.84rem;
+    color: #b0b0b0;
+}
+.briefing-action .a-price {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f0f0f0;
+    line-height: 1.1;
+}
+
+.briefing-section-title {
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #7a8aa8;
+    font-weight: 600;
+    margin: 0 0 10px;
+}
+
+.briefing-macro p {
+    color: #d8d8d8;
+    line-height: 1.6;
+    font-size: 0.92rem;
+    margin: 0 0 14px;
+}
+.briefing-macro .macro-action {
+    font-size: 0.88rem;
+    color: #b0b0b0;
+    border-left: 2px solid #2a3a5c;
+    padding-left: 12px;
+    margin: 14px 0 18px;
+    line-height: 1.55;
+}
+
+.briefing-probs {
+    display: flex;
+    width: 100%;
+    height: 22px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.briefing-probs-seg {
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.briefing-probs-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.78rem;
+    color: #b0b0b0;
+}
+.briefing-probs-key .sw {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.briefing-cal-day {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a3a5c40;
+}
+.briefing-cal-day:last-child { border-bottom: none; }
+.briefing-cal-date {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    color: #d8d8d8;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.briefing-cal-date .dow {
+    display: block;
+    font-size: 0.66rem;
+    color: #7a8aa8;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+}
+.briefing-cal-event {
+    font-size: 0.86rem;
+    color: #d0d0d0;
+    line-height: 1.45;
+    margin-bottom: 4px;
+}
+.briefing-cal-event:last-child { margin-bottom: 0; }
+.briefing-cal-impact {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-right: 8px;
+    vertical-align: 1px;
+}
+.briefing-cal-impact.HIGH { background: #ef444430; color: #ff7a7a; }
+.briefing-cal-impact.MEDIUM { background: #f59e0b30; color: #fbb454; }
+.briefing-cal-impact.LOW { background: #2a3a5c; color: #b0b0b0; }
+</style>""", unsafe_allow_html=True)
+
+
+# ── Briefing helpers ──
+SIGNAL_ORDER = ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]
+
+
+def _briefing_delta_class(chg: float | None, inverse: bool = False) -> str:
+    if chg is None or chg == 0:
+        return "p-flat"
+    up = chg > 0
+    if inverse:
+        return "p-down" if up else "p-up"
+    return "p-up" if up else "p-down"
+
+
+def _render_stance_hero(snapshot: dict, total_tracked: int) -> None:
+    stance = snapshot.get("overall_stance", "—")
+    risk_posture = snapshot.get("risk_posture", "")
+    counts = snapshot.get("signal_counts", {})
+
+    cells_html = ""
+    for sig in SIGNAL_ORDER:
+        n = counts.get(sig, 0)
+        color = SIGNAL_COLORS.get(sig, "#6b7280")
+        verb = SIGNAL_VERBS.get(sig, "")
+        cls = "briefing-count zero" if n == 0 else "briefing-count"
+        num_color_style = f"color:{color};" if n > 0 else ""
+        cells_html += (
+            f'<div class="{cls}">'
+            f'<div class="count-label" style="color:{color};">{sig}</div>'
+            f'<div class="count-num" style="{num_color_style}">{n}</div>'
+            f'<div class="count-verb">{verb}</div>'
+            '</div>'
+        )
+
+    st.markdown(
+        f'<div class="briefing-stance">'
+        f'<div class="briefing-kicker">Today\'s Posture · {total_tracked} names tracked</div>'
+        f'<div class="briefing-stance-headline">{_escape_dollars(stance)}</div>'
+        f'<div class="briefing-stance-sub">{_escape_dollars(risk_posture)}</div>'
+        f'<div class="briefing-counts">{cells_html}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+PULSE_ORDER = [
+    ("SPY",  "S&P 500",     False),
+    ("QQQ",  "Nasdaq 100",  False),
+    ("VIX",  "Fear gauge",  True),
+    ("WTI",  "Crude oil",   False),
+    ("Gold", "Gold",        False),
+    ("DXY",  "Dollar idx",  False),
+    ("US10Y","10-yr yield", False),
+    ("SOXX", "Semis ETF",   False),
+]
+
+
+def _render_pulse_strip(benchmarks: dict) -> None:
+    cells = ""
+    for key, label, inverse in PULSE_ORDER:
+        b = benchmarks.get(key, {})
+        price = b.get("price")
+        chg = b.get("chg_pct")
+        price_str = f"{price:,.0f}" if (price is not None and price > 1000) else (
+            f"{price:,.2f}" if price is not None else "—"
+        )
+        delta_cls = _briefing_delta_class(chg, inverse=inverse)
+        delta_str = f"{chg:+.2f}%" if chg is not None else "—"
+        cells += (
+            f'<div class="briefing-pulse-cell">'
+            f'<div class="p-label">{key} · {label}</div>'
+            f'<div class="p-price">{price_str}</div>'
+            f'<div class="p-delta {delta_cls}">{delta_str}</div>'
+            '</div>'
+        )
+    st.markdown(f'<div class="briefing-pulse">{cells}</div>', unsafe_allow_html=True)
+
+
+def _render_changes_ribbon(wl_today: dict, wl_yesterday: dict) -> None:
+    if not wl_yesterday:
+        return
+    signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
+    changes = []
+    rationales = {}
+    for tk in sorted(set(wl_today) | set(wl_yesterday)):
+        sig_old = wl_yesterday.get(tk, {}).get("signal", "—")
+        sig_new = wl_today.get(tk, {}).get("signal", "—")
+        if sig_old == sig_new:
+            continue
+        if sig_new == "—":
+            continue  # ticker dropped from watchlist
+        if sig_old == "—":
+            arrow = "★"
+        elif signal_rank.get(sig_new, 0) > signal_rank.get(sig_old, 0):
+            arrow = "↑"
+        else:
+            arrow = "↓"
+        display_tk = TICKER_DISPLAY.get(tk, tk)
+        rationale = wl_today.get(tk, {}).get("signal_rationale", "")
+        changes.append((display_tk, sig_old, sig_new, arrow))
+        if rationale:
+            rationales[display_tk] = _truncate_rationale(rationale)
+    if not changes:
+        return
+
+    def _pill(sig: str) -> str:
+        color = SIGNAL_COLORS.get(sig, "#6b7280")
+        bg = color + "20"
+        return f'<span class="pill" style="background:{bg};color:{color};">{sig}</span>'
+
+    items = []
+    for tk, sig_old, sig_new, arrow in changes:
+        arrow_color = SIGNAL_COLORS.get(sig_new, "#6b7280")
+        items.append(
+            f'<span class="change-item"><b>{tk}</b> '
+            f'{_pill(sig_old)}<span class="arrow" style="color:{arrow_color};">{arrow}</span>{_pill(sig_new)}'
+            '</span>'
+        )
+    st.markdown(
+        f'<div class="briefing-changes">'
+        f'<span class="changes-label">Since yesterday</span>{"".join(items)}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    if rationales:
+        with st.expander("Why the signals moved", expanded=False):
+            for tk, txt in rationales.items():
+                st.markdown(f"**{tk}** — {_escape_dollars(txt)}")
+
+
+def _pick_action_ticker(wl: dict) -> tuple[str, dict] | tuple[None, None]:
+    """Pick the single most actionable name. Priority: BUY > ACCUMULATE > WATCH > HOLD; within tier, highest R:R."""
+    priority = {"BUY": 0, "ACCUMULATE": 1, "WATCH": 2, "HOLD": 3, "CAUTION": 4}
+    candidates = [
+        (tk, d) for tk, d in wl.items()
+        if d.get("signal") in priority
+    ]
+    if not candidates:
+        return None, None
+    candidates.sort(key=lambda x: (
+        priority.get(x[1].get("signal"), 99),
+        -(x[1].get("risk_reward", {}).get("ratio") or 0),
+    ))
+    return candidates[0]
+
+
+def _render_action_callout(wl: dict, events: list) -> None:
+    tk, d = _pick_action_ticker(wl)
+    if not tk:
+        return
+    sig = d.get("signal", "HOLD")
+    color = SIGNAL_COLORS.get(sig, "#6b7280")
+    display_tk = TICKER_DISPLAY.get(tk, tk)
+    cluster = CLUSTER_MAP.get(tk, "")
+    price = d.get("price")
+    ccy = d.get("currency", "USD")
+    chg = d.get("chg_pct")
+    rationale = _truncate_rationale(d.get("signal_rationale", ""))
+    rr = d.get("risk_reward", {}).get("ratio_label", "")
+    rr_line = f"R:R {rr}" if rr else ""
+
+    next_event = "—"
+    for e in events:
+        if tk.replace("_SI", ".SI") in e.get("event", "") or tk in e.get("event", ""):
+            next_event = e.get("event", "")[:60]
+            break
+
+    price_prefix = "S$" if ccy == "SGD" else "$"
+    price_str = f"{price_prefix}{price:,.2f}" if price is not None else "—"
+    delta_color = "#22c55e" if (chg or 0) >= 0 else "#ef4444"
+    delta_str = f"{chg:+.2f}%" if chg is not None else ""
+
+    st.markdown(
+        f'<div class="briefing-section-title">If you only do one thing today</div>'
+        f'<div class="briefing-action" style="border-left-color:{color};">'
+        f'<div class="a-tag">'
+        f'<div>The desk\'s single highest-conviction action</div>'
+        f'<span class="a-pill" style="background:{color}20;color:{color};">{SIGNAL_VERBS.get(sig, sig)}</span>'
+        f'</div>'
+        f'<div>'
+        f'<div class="a-ticker">{display_tk}{" · " + cluster if cluster else ""}</div>'
+        f'<div class="a-headline">{_escape_dollars(rationale[:160])}</div>'
+        f'<div class="a-rationale">{_escape_dollars(rationale[160:480])}</div>'
+        f'</div>'
+        f'<div class="a-r">'
+        f'<div class="a-price">{price_str}</div>'
+        f'<div style="color:{delta_color};margin-top:4px;">{delta_str} today</div>'
+        f'<div style="margin-top:10px;">{rr_line}</div>'
+        f'</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_macro_block(macro_summary: str, geo: dict) -> None:
+    probs = geo.get("probabilities", {}) or {}
+    portfolio_action = geo.get("portfolio_action", "")
+    risks = geo.get("active_risks", []) or []
+
+    prob_colors = {
+        "base": "#3498db",
+        "optimistic": "#22c55e",
+        "pessimistic": "#ef4444",
+        "wildcard": "#f59e0b",
+    }
+    prob_labels = {
+        "base": "Base", "optimistic": "Optimistic",
+        "pessimistic": "Pessimistic", "wildcard": "Wildcard",
+    }
+
+    segs = ""
+    keys = []
+    for k in ["base", "optimistic", "pessimistic", "wildcard"]:
+        v = probs.get(k)
+        if v:
+            segs += (
+                f'<div class="briefing-probs-seg" style="width:{v}%;'
+                f'background:{prob_colors[k]};">{v}%</div>'
+            )
+            keys.append(
+                f'<div><span class="sw" style="background:{prob_colors[k]};"></span>'
+                f'{prob_labels[k]}</div>'
+            )
+
+    risks_html = "".join(
+        f'<li style="margin-bottom:8px;line-height:1.5;font-size:0.86rem;color:#d0d0d0;">'
+        f'{_escape_dollars(r)}</li>'
+        for r in risks[:5]
+    )
+
+    macro_html = f'<p>{_escape_dollars(macro_summary)}</p>' if macro_summary else ""
+    action_html = (
+        f'<div class="macro-action"><b style="color:#d8d8d8;">Portfolio implication.</b> '
+        f'{_escape_dollars(portfolio_action)}</div>' if portfolio_action else ""
+    )
+    probs_html = (
+        f'<div class="briefing-section-title" style="margin-top:6px;">Scenario odds</div>'
+        f'<div class="briefing-probs">{segs}</div>'
+        f'<div class="briefing-probs-key">{"".join(keys)}</div>'
+    ) if segs else ""
+
+    st.markdown(
+        f'<div class="briefing-macro">'
+        f'<div class="briefing-section-title">Macro Note</div>'
+        f'{macro_html}'
+        f'{action_html}'
+        f'{probs_html}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    if risks:
+        st.markdown(
+            f'<div class="briefing-section-title" style="margin-top:18px;">Active Risks</div>'
+            f'<ul style="margin:0;padding-left:18px;">{risks_html}</ul>',
+            unsafe_allow_html=True,
+        )
+
+
+def _render_calendar_block(events: list) -> None:
+    if not events:
+        st.markdown(
+            '<div class="briefing-section-title">The Week Ahead</div>'
+            '<p style="color:#b0b0b0;font-size:0.88rem;">No catalysts logged.</p>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    grouped: dict[str, list] = {}
+    for e in events:
+        d = e.get("date", "—")
+        grouped.setdefault(d, []).append(e)
+
+    from datetime import datetime
+    days_html = ""
+    for d in sorted(grouped.keys()):
+        try:
+            dt = datetime.strptime(d, "%Y-%m-%d")
+            date_label = dt.strftime("%b %d")
+            dow = dt.strftime("%a").upper()
+        except (ValueError, TypeError):
+            date_label = d
+            dow = ""
+        events_html = ""
+        for e in grouped[d]:
+            impact = (e.get("impact") or "LOW").upper()
+            text = _escape_dollars(e.get("event", ""))
+            events_html += (
+                f'<div class="briefing-cal-event">'
+                f'<span class="briefing-cal-impact {impact}">{impact}</span>{text}'
+                f'</div>'
+            )
+        days_html += (
+            f'<div class="briefing-cal-day">'
+            f'<div class="briefing-cal-date">{date_label}<span class="dow">{dow}</span></div>'
+            f'<div>{events_html}</div>'
+            f'</div>'
+        )
+
+    st.markdown(
+        f'<div class="briefing-section-title">The Week Ahead</div>'
+        f'{days_html}',
+        unsafe_allow_html=True,
+    )
+
 # ── Sidebar header ──
 st.sidebar.markdown(
     '<div class="sidebar-header">'
@@ -923,7 +1527,7 @@ st.sidebar.markdown(
 # ── Sidebar navigation ──
 page = st.sidebar.radio(
     "Navigate",
-    ["Today's Snapshot", "Daily Report", "Signal Tracker",
+    ["Briefing", "Daily Report", "Signal Tracker",
      "Pipeline Stats", "Ticker Comparison", "Scenario Log",
      "Report Comparison"],
     label_visibility="collapsed",
@@ -1027,9 +1631,9 @@ if st.sidebar.button("↻ Refresh Data"):
 
 
 # ════════════════════════════════════════════
-# PAGE 0: Today's Snapshot
+# PAGE 0: Briefing
 # ════════════════════════════════════════════
-if page == "Today's Snapshot":
+if page == "Briefing":
     all_reports = load_all_reports()
     if not all_reports:
         st.error("No report files found in market_data/.")
@@ -1039,194 +1643,30 @@ if page == "Today's Snapshot":
     latest_date = sorted_dates[0]
     report = all_reports[latest_date]
     prev_report = all_reports[sorted_dates[1]] if len(sorted_dates) >= 2 else None
-    memory = load_report_memory()
 
-    st.title("Today's Snapshot")
-    st.caption(f"Report: **{latest_date}**")
-
-    # ── Stance + signal count pills ──
     snapshot = report.get("portfolio_snapshot", {})
-    stance = snapshot.get("overall_stance", "")
-    signal_counts = snapshot.get("signal_counts", {})
+    watchlist = report.get("watchlist", {})
+    benchmarks = report.get("benchmarks", {})
+    geo = report.get("geopolitical", {})
+    events = report.get("events_this_week", []) or []
 
-    hcols = st.columns([3, 1, 1, 1, 1, 1])
-    if stance:
-        hcols[0].markdown(f"### {_escape_dollars(stance)}")
-    else:
-        hcols[0].markdown("### —")
-    for i, sig in enumerate(["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]):
-        count = signal_counts.get(sig, 0)
-        color = SIGNAL_COLORS.get(sig, "#6b7280")
-        hcols[i + 1].markdown(
-            f"<div style='text-align:center;padding:4px;border-radius:6px;"
-            f"background-color:{color}20;border:1px solid {color}'>"
-            f"<b style='color:{color}'>{sig}</b><br>"
-            f"<span style='font-size:1.4em;font-weight:bold'>{count}</span>"
-            f"<div style='font-size:0.7em;color:#b0b0b0;margin-top:2px'>"
-            f"{SIGNAL_VERBS[sig]}</div></div>",
-            unsafe_allow_html=True,
-        )
+    st.caption(f"Morning Briefing · Report {latest_date}")
+
+    _render_stance_hero(snapshot, len(watchlist))
+    _render_pulse_strip(benchmarks)
+    _render_changes_ribbon(
+        watchlist,
+        prev_report.get("watchlist", {}) if prev_report else {},
+    )
+    _render_action_callout(watchlist, events)
+
+    macro_col, cal_col = st.columns([3, 2])
+    with macro_col:
+        _render_macro_block(report.get("macro_summary", ""), geo)
+    with cal_col:
+        _render_calendar_block(events)
 
     _render_signal_guide()
-
-    # ── Key benchmarks ──
-    st.divider()
-    benchmarks = report.get("benchmarks", {})
-    SNAPSHOT_BM = [
-        ("SPY",  "S&P 500"),
-        ("VIX",  "Fear gauge"),
-        ("WTI",  "Crude oil"),
-        ("Gold", "Gold"),
-        ("SOXX", "Semis ETF"),
-    ]
-    bm_cols = st.columns(len(SNAPSHOT_BM))
-    for i, (bm_name, bm_label) in enumerate(SNAPSHOT_BM):
-        bm = benchmarks.get(bm_name, {})
-        price = bm.get("price")
-        chg = bm.get("chg_pct")
-        if chg is not None:
-            delta_color = "inverse" if bm_name == "VIX" else "normal"
-            bm_cols[i].metric(
-                bm_name,
-                f"{price:,.2f}" if price is not None else "—",
-                f"{chg:+.2f}%",
-                delta_color=delta_color,
-            )
-        else:
-            bm_cols[i].metric(bm_name, f"{price:,.2f}" if price else "—")
-        bm_cols[i].caption(bm_label)
-
-    # ── Signal changes since yesterday ──
-    st.divider()
-    st.subheader("Signal Changes Since Yesterday")
-
-    if prev_report is None:
-        st.info("Only one report available — no comparison possible.")
-    else:
-        wl_today = report.get("watchlist", {})
-        wl_yesterday = prev_report.get("watchlist", {})
-        signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-        changes = []
-
-        for tk in sorted(set(wl_today) | set(wl_yesterday)):
-            sig_old = wl_yesterday.get(tk, {}).get("signal", "—")
-            sig_new = wl_today.get(tk, {}).get("signal", "—")
-            if sig_old == sig_new:
-                continue
-            r_old = signal_rank.get(sig_old, 0)
-            r_new = signal_rank.get(sig_new, 0)
-            if sig_old == "—":
-                arrow = "★"
-            elif sig_new == "—":
-                continue  # hide removed tickers — watchlist edits, not signal events
-            elif r_new > r_old:
-                arrow = "↑"
-            else:
-                arrow = "↓"
-
-            display_tk = TICKER_DISPLAY.get(tk, tk)
-            rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = _truncate_rationale(rationale)
-            st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
-            st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
-            arrow_color = SIGNAL_COLORS.get(sig_new, "#6b7280")
-
-            changes.append({
-                "ticker": display_tk,
-                "from_sig": sig_old,
-                "to_sig": sig_new,
-                "arrow": arrow,
-                "arrow_color": arrow_color,
-                "rationale": short_rationale,
-                "st_old": st_old,
-                "st_new": st_new,
-            })
-
-        if changes:
-            for c in changes:
-                arrow_html = (
-                    f"<span style='color:{c['arrow_color']};font-weight:700'>"
-                    f"{c['arrow']}</span>"
-                )
-                st.markdown(
-                    f"**{c['ticker']}** {arrow_html} "
-                    f":{c['st_old']}[{c['from_sig']}] → :{c['st_new']}[{c['to_sig']}]",
-                    unsafe_allow_html=True,
-                )
-                if c["rationale"]:
-                    st.caption(_escape_dollars(c["rationale"]))
-        else:
-            st.success("No signal changes since yesterday — steady state.")
-
-    # ── Closest to Entry + Earnings ──
-    st.divider()
-    lo_cols = st.columns(2)
-
-    with lo_cols[0]:
-        st.subheader("Closest to Entry")
-        st.caption("Tickers within 2% of their 50-day average — most likely to trigger soon.")
-        watchlist = report.get("watchlist", {})
-        closest = []
-        for tk, d in watchlist.items():
-            vs50 = d.get("vs_sma50_pct")
-            sig = d.get("signal", "")
-            if vs50 is not None and sig in ("WATCH", "HOLD") and vs50 > -2:
-                closest.append((tk, vs50, sig))
-        closest.sort(key=lambda x: abs(x[1]))
-
-        if closest:
-            for tk, vs50, sig in closest[:5]:
-                display_tk = TICKER_DISPLAY.get(tk, tk)
-                direction = "above" if vs50 > 0 else "below"
-                st_c = SIGNAL_ST_COLORS.get(sig, "gray")
-                st.markdown(
-                    f"**{display_tk}**: {abs(vs50):.1f}% {direction} 50-day avg "
-                    f"— :{st_c}[{sig}]"
-                )
-        else:
-            st.caption("No WATCH/HOLD tickers near SMA50.")
-
-    with lo_cols[1]:
-        st.subheader("Earnings This Week")
-        earnings = report.get("earnings_calendar", [])
-        approaching = [
-            e for e in earnings
-            if isinstance(e.get("days_until"), (int, float)) and e["days_until"] <= 7
-        ]
-        if approaching:
-            for e in approaching:
-                st.markdown(
-                    f"**{e.get('ticker', '?')}**: "
-                    f"{e.get('days_until', '?')} days away"
-                )
-        else:
-            st.caption("No watchlist earnings within 7 days.")
-
-    # ── Active Narratives ──
-    st.divider()
-    narratives = memory.get("active_narratives", [])
-    active_narr = [n for n in narratives if n.get("status") == "active"]
-
-    ncols = st.columns([1, 4])
-    with ncols[0]:
-        st.metric("Active Narratives", len(active_narr))
-    with ncols[1]:
-        if active_narr:
-            top = max(active_narr, key=lambda n: n.get("last_updated", ""))
-            st.markdown(f"**Latest:** {top.get('title', 'N/A')}")
-            summary = top.get("summary", "")
-            clean = _truncate_rationale(summary)
-            if len(clean) > 280:
-                clean = summary[:200] + "…"
-            st.caption(_escape_dollars(clean))
-
-    if len(active_narr) > 1:
-        with st.expander(f"All {len(active_narr)} active narratives"):
-            for n in active_narr:
-                title = n.get("title", "?")
-                started = n.get("started", "?")
-                tickers = ", ".join(n.get("affected_tickers", []))
-                st.markdown(f"- **{title}** (since {started}) — {tickers}")
 
 
 # ════════════════════════════════════════════
