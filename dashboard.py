@@ -175,26 +175,44 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border-bottom: 1.5px solid var(--ink) !important;
 }
 
-/* Top page-nav radio styled as tab strip */
-.topnav-wrap { border-bottom: 1.5px solid var(--ink); margin-bottom: 22px; padding-bottom: 0; }
-.topnav-wrap .stRadio > div {
+/* Top page-nav: the .topnav-wrap div is rendered into its own stMarkdown
+   block as a hidden sibling marker; we use :has() + adjacent-sibling to
+   reach the stRadio that immediately follows it and restyle it as a tab strip. */
+.topnav-wrap { display: none; }
+
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] {
+  border-bottom: 1.5px solid var(--ink);
+  margin-bottom: 22px;
+}
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] > label {
+  display: none !important;
+}
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] {
   flex-direction: row !important;
-  gap: 24px !important;
+  gap: 28px !important;
+  border: none !important;
 }
-.topnav-wrap .stRadio label {
-  padding: 6px 0 !important;
-  cursor: pointer;
-  border-bottom: 1.5px solid transparent;
-  margin-bottom: -1.5px;
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
   color: var(--ink-3) !important;
+  padding: 8px 0 10px !important;
+  margin-bottom: -1.5px !important;
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent !important;
   font-weight: 500;
+  background: transparent !important;
 }
-.topnav-wrap .stRadio label:has(input:checked) {
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label > div:first-child {
+  display: none !important;
+}
+[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
   color: var(--ink) !important;
   font-weight: 600;
-  border-bottom-color: var(--ink);
+  border-bottom-color: var(--ink) !important;
 }
-.topnav-wrap .stRadio [role="radiogroup"] > label > div:first-child { display: none !important; }
 
 /* Dataframes */
 [data-testid="stDataFrame"] {
