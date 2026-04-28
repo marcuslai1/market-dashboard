@@ -21,175 +21,300 @@ RETIRED_TICKERS = {"C6L_SI", "Z74_SI", "XLE", "VUAA_L", "COHR"}
 
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
-# ── Theme CSS: navy-blue dark theme matching PDF report palette ──
+# ── Theme CSS: dark editorial (Newsreader serif + JetBrains Mono + Inter Tight) ──
 st.markdown("""<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ── Global: navy-blue dark theme ── */
-.stApp {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #1a1a2e;
-}
-[data-testid="stSidebar"] {
-    background: #121f3d;
-    border-right: 1px solid #2a3a5c;
+:root {
+  --paper:    #14140F;
+  --paper-2:  #1B1B16;
+  --paper-3:  #25241E;
+  --ink:      #F4EFE2;
+  --ink-2:    #C9C2B2;
+  --ink-3:    #908A7C;
+  --ink-4:    #5E5A50;
+  --rule:        rgba(255, 255, 255, 0.08);
+  --rule-strong: rgba(255, 255, 255, 0.20);
+  --serif: 'Newsreader', Georgia, serif;
+  --sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono:  'JetBrains Mono', ui-monospace, monospace;
 }
 
-/* ── Metric cards: panel treatment ── */
+.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
+.main .block-container { max-width: 1280px; padding-top: 18px; padding-bottom: 80px; }
+[data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
+
+/* Hide default Streamlit chrome */
+#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-family: var(--serif) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--ink) !important;
+  text-transform: none !important;
+}
+h1 { font-size: 2.4rem !important; }
+h2 { font-size: 1.5rem !important; }
+h3 { font-size: 1.15rem !important; color: var(--ink-2) !important; }
+[data-testid="stSubheader"] {
+  font-family: var(--mono) !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: var(--ink-3) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.14em !important;
+}
+p, li, span, div, label { font-family: var(--sans); }
+
+/* Metric cards */
 [data-testid="stMetric"] {
-    background: #16213e;
-    border: 1px solid #2a3a5c;
-    border-radius: 8px;
-    padding: 12px 16px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 12px 14px;
 }
 [data-testid="stMetricValue"] {
-    font-size: 1.35rem !important;
-    font-weight: 700 !important;
+  font-family: var(--serif) !important;
+  font-size: 1.6rem !important;
+  font-weight: 500 !important;
+  color: var(--ink) !important;
 }
 [data-testid="stMetricLabel"] {
-    font-size: 0.7rem !important;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b0b0b0 !important;
+  font-family: var(--mono) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3) !important;
 }
 [data-testid="stMetricDelta"] {
-    font-size: 0.8rem !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
 }
 
-/* ── Typography: tighter, financial ── */
-h1 {
-    font-size: 1.6rem !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.01em;
-    color: #e0e0e0 !important;
-}
-h2, [data-testid="stSubheader"] {
-    font-size: 1.15rem !important;
-    font-weight: 600 !important;
-    color: #e0e0e0 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-h3 {
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    color: #b0b0b0 !important;
-}
+/* Dividers */
+hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 
-/* ── Dividers ── */
-hr {
-    border-color: #2a2a4a !important;
-}
-
-/* ── Expanders ── */
+/* Expanders */
 [data-testid="stExpander"] {
-    background: #16213e;
-    border: 1px solid #2a3a5c;
-    border-radius: 8px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  margin-bottom: 6px;
+}
+[data-testid="stExpander"] summary {
+  font-family: var(--mono) !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em;
+  color: var(--ink-2) !important;
 }
 [data-testid="stExpander"] summary span {
-    font-weight: 600 !important;
-    font-size: 0.9em;
+  font-family: var(--mono) !important;
+  font-weight: 500 !important;
 }
 
-/* ── Selectbox / inputs ── */
-.stSelectbox [data-baseweb="select"] {
-    background-color: #16213e;
-    border-color: #2a3a5c;
-    border-radius: 6px;
-}
-.stSelectbox [data-baseweb="select"]:hover {
-    border-color: #3498db;
-}
-[data-baseweb="popover"] [data-baseweb="menu"] {
-    background-color: #121f3d;
-    border: 1px solid #2a3a5c;
-}
-
-/* ── Buttons ── */
+/* Buttons */
 .stButton button {
-    background-color: #0f3460;
-    color: #e0e0e0;
-    border: 1px solid #2a3a5c;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.85em;
-    transition: background 0.15s, border-color 0.15s;
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
 }
 .stButton button:hover {
-    background-color: #16213e;
-    border-color: #3498db;
-    color: #ffffff;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
 }
 
-/* ── Dataframes ── */
-[data-testid="stDataFrame"] {
-    border: 1px solid #2a3a5c;
-    border-radius: 8px;
-    overflow: hidden;
+/* Selectbox / inputs */
+.stSelectbox [data-baseweb="select"] {
+  background: var(--paper-2);
+  border-color: var(--rule-strong);
+  border-radius: 0;
+  font-family: var(--mono);
+}
+.stSelectbox [data-baseweb="select"]:hover { border-color: var(--ink-3); }
+[data-baseweb="popover"] [data-baseweb="menu"] {
+  background: var(--paper-2);
+  border: 1px solid var(--rule-strong);
 }
 
-/* ── Tabs ── */
+/* Radio (used for top tab nav) */
+.stRadio > div { gap: 0 !important; }
+.stRadio label {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ink-3) !important;
+}
+
+/* Tab nav (the real st.tabs and the masthead-radio styled like one) */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 0;
-    border-bottom: 1px solid #2a3a5c;
+  gap: 22px;
+  border-bottom: 1.5px solid var(--ink);
 }
 .stTabs [data-baseweb="tab"] {
-    color: #b0b0b0;
-    font-size: 0.85em;
-    font-weight: 500;
-    padding: 8px 16px;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3) !important;
+  padding: 6px 0 !important;
 }
 .stTabs [aria-selected="true"] {
-    color: #e0e0e0 !important;
-    font-weight: 600;
-    border-bottom: 2px solid #3498db !important;
+  color: var(--ink) !important;
+  font-weight: 600;
+  border-bottom: 1.5px solid var(--ink) !important;
 }
 
-/* ── Captions ── */
+/* Top page-nav radio styled as tab strip */
+.topnav-wrap { border-bottom: 1.5px solid var(--ink); margin-bottom: 22px; padding-bottom: 0; }
+.topnav-wrap .stRadio > div {
+  flex-direction: row !important;
+  gap: 24px !important;
+}
+.topnav-wrap .stRadio label {
+  padding: 6px 0 !important;
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent;
+  margin-bottom: -1.5px;
+  color: var(--ink-3) !important;
+  font-weight: 500;
+}
+.topnav-wrap .stRadio label:has(input:checked) {
+  color: var(--ink) !important;
+  font-weight: 600;
+  border-bottom-color: var(--ink);
+}
+.topnav-wrap .stRadio [role="radiogroup"] > label > div:first-child { display: none !important; }
+
+/* Dataframes */
+[data-testid="stDataFrame"] {
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  font-family: var(--mono);
+}
+
+/* Captions */
 .stCaption, [data-testid="stCaptionContainer"] {
-    font-size: 0.78rem !important;
-    color: #b0b0b0 !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  color: var(--ink-3) !important;
+  letter-spacing: 0.04em;
 }
 
-/* ── Sidebar header ── */
+/* Code/pre/json */
+pre, code, .stCodeBlock { font-family: var(--mono) !important; }
+
+/* Sidebar header (legacy — only used for the small refresh / status block) */
 .sidebar-header {
-    text-align: center;
-    padding: 16px 8px 12px;
-    border-bottom: 1px solid #2a3a5c;
-    margin-bottom: 12px;
+  padding: 12px 8px 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 12px;
 }
 .sidebar-header h2 {
-    color: #e0e0e0 !important;
-    font-size: 1.1em !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.03em;
-    margin: 0;
-    text-transform: none !important;
+  color: var(--ink) !important;
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em;
+  margin: 0;
+  text-transform: uppercase !important;
 }
 .sidebar-header .subtitle {
-    color: #b0b0b0;
-    font-size: 0.75em;
-    margin-top: 2px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+  text-transform: uppercase;
 }
-
-/* ── Sidebar status badge ── */
 .sidebar-status {
-    background: #16213e;
-    border: 1px solid #2a3a5c;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin: 8px 0;
-    font-size: 0.8em;
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-family: var(--mono);
+  font-size: 11px;
 }
 .sidebar-status .status-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
 }
-.sidebar-status .status-label { color: #b0b0b0; }
-.sidebar-status .status-value { color: #e0e0e0; font-weight: 600; }
+.sidebar-status .status-label { color: var(--ink-3); }
+.sidebar-status .status-value { color: var(--ink); font-weight: 600; }
+
+/* ── Editorial masthead ── */
+.masthead {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: end;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 14px;
+  margin: 4px 0 0;
+}
+.masthead .kicker {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.masthead .title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 2.6rem;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 4px 0 0;
+}
+.masthead .title em { font-style: italic; font-weight: 500; color: var(--ink-2); }
+.masthead .right {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  line-height: 1.55;
+}
+.masthead .right .date {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.masthead-strip {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 0;
+}
+
+/* Section heads (used inside Briefing) */
+.section-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+  margin: 28px 0 14px;
+}
+.section-head h2 { margin: 0; font-size: 1.4rem !important; }
+.section-head .sub {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
+}
 </style>""", unsafe_allow_html=True)
 
 
@@ -915,628 +1040,700 @@ CLUSTER_MAP = {
     "LITE": "AI Optics", "PLTR": "Defense AI", "WRD": "China Tech",
 }
 
-# ── Briefing CSS (scoped to .briefing-* classes) ──
+# ── Editorial CSS classes (briefing-page-only blocks) ──
 st.markdown("""<style>
-.briefing-stance {
-    padding: 24px 0 28px;
-    border-bottom: 1px solid #2a3a5c;
-    margin-bottom: 24px;
+.stance-deck {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  margin: 22px 0 10px;
+  display: flex; align-items: center; gap: 8px;
 }
-.briefing-kicker {
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #7a8aa8;
-    margin-bottom: 8px;
+.stance-deck .dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
 }
-.briefing-stance-headline {
-    font-size: 1.9rem;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #f0f0f0;
-    margin: 0 0 6px;
-    letter-spacing: -0.01em;
+.stance-headline {
+  font-family: var(--serif); font-weight: 500;
+  font-size: 1.9rem; line-height: 1.18; letter-spacing: -0.01em;
+  margin: 0 0 10px; color: var(--ink);
+  max-width: 70ch;
 }
-.briefing-stance-sub {
-    font-size: 0.95rem;
-    color: #b0b0b0;
-    line-height: 1.5;
-    max-width: 840px;
-}
-.briefing-counts {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-    border-top: 1px solid #2a3a5c40;
-    border-bottom: 1px solid #2a3a5c40;
-    margin-top: 18px;
-}
-.briefing-count {
-    padding: 12px 16px;
-    border-right: 1px solid #2a3a5c40;
-    text-align: left;
-}
-.briefing-count:last-child { border-right: none; }
-.briefing-count .count-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-.briefing-count .count-num {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1;
-}
-.briefing-count .count-verb {
-    font-size: 0.7rem;
-    color: #7a8aa8;
-    margin-top: 4px;
-}
-.briefing-count.zero .count-num { color: #4a5878; }
-.briefing-count.zero .count-label { color: #5a6a85; }
-
-.briefing-pulse {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 0;
-    margin: 0 0 24px;
-    border-top: 1px solid #2a3a5c40;
-    border-bottom: 1px solid #2a3a5c40;
-    padding: 14px 0;
-}
-.briefing-pulse-cell {
-    padding: 0 14px;
-    border-right: 1px solid #2a3a5c30;
-    text-align: left;
-}
-.briefing-pulse-cell:last-child { border-right: none; }
-.briefing-pulse-cell .p-label {
-    font-size: 0.66rem;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: #7a8aa8;
-    margin-bottom: 4px;
-}
-.briefing-pulse-cell .p-price {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e0e0e0;
-}
-.briefing-pulse-cell .p-delta {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 0.78rem;
-    margin-top: 2px;
-}
-.p-up { color: #22c55e; }
-.p-down { color: #ef4444; }
-.p-flat { color: #b0b0b0; }
-
-.briefing-changes {
-    background: #16213e80;
-    border: 1px solid #2a3a5c;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin: 0 0 24px;
-    font-size: 0.88rem;
-}
-.briefing-changes .changes-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #7a8aa8;
-    margin-right: 14px;
-    font-weight: 600;
-}
-.briefing-changes .change-item {
-    display: inline-block;
-    margin-right: 22px;
-    color: #d8d8d8;
-}
-.briefing-changes .change-item b { color: #f0f0f0; }
-.briefing-changes .pill {
-    display: inline-block;
-    padding: 1px 7px;
-    border-radius: 3px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    margin: 0 2px;
-    letter-spacing: 0.04em;
-}
-.briefing-changes .arrow { font-weight: 700; margin: 0 4px; }
-
-.briefing-action {
-    border: 1px solid #2a3a5c;
-    background: linear-gradient(180deg, #1f2d4f 0%, #16213e 100%);
-    border-left: 3px solid;
-    border-radius: 6px;
-    padding: 18px 22px;
-    margin-bottom: 28px;
-    display: grid;
-    grid-template-columns: 200px 1fr 200px;
-    gap: 24px;
-    align-items: start;
-}
-.briefing-action .a-tag {
-    font-size: 0.72rem;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: #7a8aa8;
-    line-height: 1.4;
-}
-.briefing-action .a-pill {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-}
-.briefing-action .a-ticker {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #f0f0f0;
-    margin-bottom: 4px;
-}
-.briefing-action .a-headline {
-    font-size: 1.05rem;
-    color: #e0e0e0;
-    line-height: 1.45;
-    margin-bottom: 8px;
-}
-.briefing-action .a-rationale {
-    font-size: 0.88rem;
-    color: #b0b0b0;
-    line-height: 1.55;
-}
-.briefing-action .a-r {
-    text-align: right;
-    font-size: 0.84rem;
-    color: #b0b0b0;
-}
-.briefing-action .a-price {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #f0f0f0;
-    line-height: 1.1;
+.stance-byline {
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3); letter-spacing: 0.06em;
 }
 
-.briefing-section-title {
-    font-size: 0.74rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: #7a8aa8;
-    font-weight: 600;
-    margin: 0 0 10px;
+.count-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--rule-strong);
+  border: 1px solid var(--rule-strong);
+  margin-top: 18px; margin-bottom: 8px;
+}
+.count-cell { background: var(--paper); padding: 14px 10px; text-align: center; }
+.count-cell .clabel {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 4px;
+}
+.count-cell .cnum {
+  font-family: var(--serif); font-size: 1.9rem;
+  font-weight: 500; line-height: 1; color: var(--ink);
+}
+.count-cell.zero .cnum { color: var(--ink-4); }
+.count-cell .cdot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; margin-right: 4px; vertical-align: 1.5px;
 }
 
-.briefing-macro p {
-    color: #d8d8d8;
-    line-height: 1.6;
-    font-size: 0.92rem;
-    margin: 0 0 14px;
+.pulse-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 14px 0;
+  margin: 18px 0 8px;
 }
-.briefing-macro .macro-action {
-    font-size: 0.88rem;
-    color: #b0b0b0;
-    border-left: 2px solid #2a3a5c;
-    padding-left: 12px;
-    margin: 14px 0 18px;
-    line-height: 1.55;
+.pulse-cell {
+  padding: 0 14px; border-right: 1px solid var(--rule);
+}
+.pulse-cell:last-child { border-right: 0; }
+.pulse-cell .plabel {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+}
+.pulse-cell .pprice {
+  font-family: var(--serif); font-size: 1.25rem; font-weight: 500;
+  letter-spacing: -0.01em; margin-top: 2px; color: var(--ink);
+}
+.pulse-cell .pdelta { font-family: var(--mono); font-size: 11px; margin-top: 2px; }
+.up   { color: #22c55e; }
+.down { color: #ef4444; }
+.flat { color: var(--ink-3); }
+
+.changes-ribbon {
+  background: var(--paper-2); border: 1px solid var(--rule);
+  padding: 12px 16px; margin: 12px 0 6px;
+  display: flex; gap: 22px; align-items: center; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 12px;
+}
+.changes-ribbon .clabel {
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600;
 }
 
-.briefing-probs {
-    display: flex;
-    width: 100%;
-    height: 22px;
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 8px;
+.section-head { /* defined globally too — local override allowed if needed */ }
+
+.action-card {
+  background: var(--paper-2); border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--ink);
+  padding: 22px 26px; margin: 8px 0 16px;
+  display: grid; grid-template-columns: 130px 1fr auto; gap: 24px;
+  align-items: start;
 }
-.briefing-probs-seg {
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.action-card .atag {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
+  line-height: 1.4;
 }
-.briefing-probs-key {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    font-size: 0.78rem;
-    color: #b0b0b0;
+.action-card .atag .pill {
+  display: inline-block; font-weight: 600; padding: 3px 9px;
+  border-radius: 3px; margin-top: 8px;
+  background: var(--paper-3); color: var(--ink); font-size: 10px;
+  letter-spacing: 0.04em;
 }
-.briefing-probs-key .sw {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
-    margin-right: 5px;
-    vertical-align: middle;
+.action-card .ticker {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0.04em; color: var(--ink-3);
+}
+.action-card .head {
+  font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
+  margin: 4px 0 8px; color: var(--ink); line-height: 1.3;
+}
+.action-card .plain {
+  color: var(--ink-2); font-size: 14px; line-height: 1.55;
+  max-width: 60ch;
+}
+.action-card .block {
+  margin-top: 10px; font-family: var(--mono); font-size: 11.5px;
+  border-left: 2px solid #f59e0b80; padding-left: 10px; color: #fbb454;
+  line-height: 1.5;
+}
+.action-card .right {
+  font-family: var(--mono); font-size: 11px;
+  text-align: right; color: var(--ink-3); line-height: 1.6;
+}
+.action-card .right .level {
+  font-family: var(--serif); font-size: 1.4rem;
+  color: var(--ink); font-weight: 500; letter-spacing: -0.01em;
 }
 
-.briefing-cal-day {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    gap: 14px;
-    padding: 10px 0;
-    border-bottom: 1px solid #2a3a5c40;
+.tk-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
+  gap: 12px; padding: 14px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono); font-size: 12.5px; align-items: center;
 }
-.briefing-cal-day:last-child { border-bottom: none; }
-.briefing-cal-date {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 0.82rem;
-    color: #d8d8d8;
-    font-weight: 600;
-    line-height: 1.3;
+.tk-row.head {
+  border-bottom: 1.5px solid var(--ink);
+  font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); padding: 8px 12px;
 }
-.briefing-cal-date .dow {
-    display: block;
-    font-size: 0.66rem;
-    color: #7a8aa8;
-    letter-spacing: 0.08em;
-    font-weight: 500;
+.tk-row .name { font-family: var(--sans); color: var(--ink-2); }
+.sig-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px;
 }
-.briefing-cal-event {
-    font-size: 0.86rem;
-    color: #d0d0d0;
-    line-height: 1.45;
-    margin-bottom: 4px;
+.sig-pill::before {
+  content: ""; width: 6px; height: 6px;
+  border-radius: 50%; background: currentColor;
 }
-.briefing-cal-event:last-child { margin-bottom: 0; }
-.briefing-cal-impact {
-    display: inline-block;
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    margin-right: 8px;
-    vertical-align: 1px;
+
+.risk-card {
+  padding: 14px 0; border-bottom: 1px solid var(--rule);
 }
-.briefing-cal-impact.HIGH { background: #ef444430; color: #ff7a7a; }
-.briefing-cal-impact.MEDIUM { background: #f59e0b30; color: #fbb454; }
-.briefing-cal-impact.LOW { background: #2a3a5c; color: #b0b0b0; }
+.risk-card .tag {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: #ef4444; margin-bottom: 4px;
+}
+.risk-card .text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+.cal-day {
+  display: grid; grid-template-columns: 110px 1fr; gap: 24px;
+  padding: 14px 0; border-bottom: 1px solid var(--rule);
+}
+.cal-date {
+  font-family: var(--serif); font-size: 1.1rem; font-weight: 500; color: var(--ink);
+}
+.cal-date .dow {
+  font-family: var(--mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--ink-3); display: block; margin-top: 2px;
+}
+.cal-event {
+  display: grid; grid-template-columns: 60px 1fr;
+  gap: 14px; align-items: baseline; margin-bottom: 8px;
+}
+.cal-impact {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 600; padding: 2px 6px;
+  border-radius: 2px; text-align: center; width: fit-content;
+}
+.cal-impact.HIGH { color: #ef4444; background: rgba(239,68,68,0.16); }
+.cal-impact.MEDIUM { color: #f59e0b; background: rgba(245,158,11,0.18); }
+.cal-impact.LOW { color: var(--ink-3); background: rgba(255,255,255,0.05); }
+.cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+
+.macro-lead {
+  font-family: var(--serif); font-size: 1.2rem; font-weight: 400;
+  line-height: 1.5; color: var(--ink); margin-bottom: 14px;
+  max-width: 70ch;
+}
+.macro-action {
+  font-size: 13.5px; color: var(--ink-2); line-height: 1.6;
+  border-left: 2px solid var(--rule-strong); padding-left: 12px;
+}
+
+.colophon {
+  margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--ink-4);
+}
 </style>""", unsafe_allow_html=True)
 
 
-# ── Briefing helpers ──
+# ── Editorial render functions (Briefing page) ──
 SIGNAL_ORDER = ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]
+WRITEUP_SIGNALS = {"BUY", "ACCUMULATE", "WATCH", "CAUTION"}
+ACTIONABLE_SIGNALS = {"BUY", "ACCUMULATE", "WATCH"}
+
+# Signal palette tints (used by sig_pill_html for backgrounds)
+SIGNAL_TINTS = {
+    "BUY":        "rgba(34,197,94,0.16)",
+    "ACCUMULATE": "rgba(52,152,219,0.18)",
+    "WATCH":      "rgba(245,158,11,0.18)",
+    "HOLD":       "rgba(160,160,160,0.14)",
+    "CAUTION":    "rgba(239,68,68,0.16)",
+}
 
 
-def _briefing_delta_class(chg: float | None, inverse: bool = False) -> str:
-    if chg is None or chg == 0:
-        return "p-flat"
+def _delta_class(chg, inverse=False) -> str:
+    if chg is None or (isinstance(chg, float) and pd.isna(chg)) or chg == 0:
+        return "flat"
     up = chg > 0
     if inverse:
-        return "p-down" if up else "p-up"
-    return "p-up" if up else "p-down"
+        return "down" if up else "up"
+    return "up" if up else "down"
 
 
-def _render_stance_hero(snapshot: dict, total_tracked: int) -> None:
-    stance = snapshot.get("overall_stance", "—")
-    risk_posture = snapshot.get("risk_posture", "")
-    counts = snapshot.get("signal_counts", {})
+def _fmt_num(n, decimals=2) -> str:
+    if n is None or (isinstance(n, float) and pd.isna(n)):
+        return "—"
+    return f"{float(n):,.{decimals}f}"
 
-    cells_html = ""
-    for sig in SIGNAL_ORDER:
-        n = counts.get(sig, 0)
-        color = SIGNAL_COLORS.get(sig, "#6b7280")
-        verb = SIGNAL_VERBS.get(sig, "")
-        cls = "briefing-count zero" if n == 0 else "briefing-count"
-        num_color_style = f"color:{color};" if n > 0 else ""
-        cells_html += (
-            f'<div class="{cls}">'
-            f'<div class="count-label" style="color:{color};">{sig}</div>'
-            f'<div class="count-num" style="{num_color_style}">{n}</div>'
-            f'<div class="count-verb">{verb}</div>'
-            '</div>'
-        )
 
+def _sign(n) -> str:
+    if n is None or (isinstance(n, float) and pd.isna(n)):
+        return ""
+    return "+" if n > 0 else ""
+
+
+def _signal_pill_html(sig: str, small: bool = False) -> str:
+    color = SIGNAL_COLORS.get(sig, "#9F988B")
+    tint = SIGNAL_TINTS.get(sig, "rgba(255,255,255,0.08)")
+    pad = "1px 6px" if small else "3px 8px"
+    fs = "9.5px" if small else "10.5px"
+    return (
+        f'<span class="sig-pill" style="color:{color};background:{tint};'
+        f'padding:{pad};font-size:{fs};">{sig}</span>'
+    )
+
+
+def render_section_head(title: str, sub: str = "") -> None:
     st.markdown(
-        f'<div class="briefing-stance">'
-        f'<div class="briefing-kicker">Today\'s Posture · {total_tracked} names tracked</div>'
-        f'<div class="briefing-stance-headline">{_escape_dollars(stance)}</div>'
-        f'<div class="briefing-stance-sub">{_escape_dollars(risk_posture)}</div>'
-        f'<div class="briefing-counts">{cells_html}</div>'
-        f'</div>',
+        f'<div class="section-head"><h2>{title}</h2>'
+        f'<span class="sub">{sub}</span></div>',
         unsafe_allow_html=True,
     )
+
+
+def render_stance(snapshot: dict, total_tracked: int) -> None:
+    stance = snapshot.get("overall_stance", "—")
+    posture = snapshot.get("risk_posture", "")
+    counts = snapshot.get("signal_counts", {})
+    deck_color = SIGNAL_COLORS.get("CAUTION", "#ef4444")
+    st.markdown(
+        f'<div class="stance-deck" style="color:{deck_color};">'
+        f'<span class="dot" style="background:{deck_color};"></span>'
+        f'<span>Today\'s Posture</span>'
+        f'<span style="color:var(--ink-3);">· {total_tracked} names tracked</span>'
+        f'</div>'
+        f'<h2 class="stance-headline">{_escape_dollars(posture or stance)}</h2>'
+        f'<div class="stance-byline">{_escape_dollars(stance.upper())} · BY THE SIGNAL DESK</div>',
+        unsafe_allow_html=True,
+    )
+    cells = ""
+    for sig in SIGNAL_ORDER:
+        n = counts.get(sig, 0)
+        color = SIGNAL_COLORS.get(sig, "#9F988B")
+        zero_class = "zero" if n == 0 else ""
+        num_color = f"color:{color};" if n > 0 else ""
+        cells += (
+            f'<div class="count-cell {zero_class}">'
+            f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
+            f'<div class="cnum" style="{num_color}">{n}</div></div>'
+        )
+    st.markdown(f'<div class="count-grid">{cells}</div>', unsafe_allow_html=True)
 
 
 PULSE_ORDER = [
-    ("SPY",  "S&P 500",     False),
-    ("QQQ",  "Nasdaq 100",  False),
-    ("VIX",  "Fear gauge",  True),
-    ("WTI",  "Crude oil",   False),
-    ("Gold", "Gold",        False),
-    ("DXY",  "Dollar idx",  False),
-    ("US10Y","10-yr yield", False),
-    ("SOXX", "Semis ETF",   False),
+    ("SPY",   "S&P 500",     False),
+    ("QQQ",   "Nasdaq 100",  False),
+    ("VIX",   "Fear gauge",  True),
+    ("WTI",   "Crude oil",   False),
+    ("Gold",  "Gold",        False),
+    ("DXY",   "Dollar idx",  False),
+    ("US10Y", "10-yr yield", False),
+    ("SOXX",  "Semis ETF",   False),
 ]
 
 
-def _render_pulse_strip(benchmarks: dict) -> None:
+def render_pulse(benchmarks: dict) -> None:
     cells = ""
     for key, label, inverse in PULSE_ORDER:
-        b = benchmarks.get(key, {})
+        b = benchmarks.get(key, {}) or {}
         price = b.get("price")
         chg = b.get("chg_pct")
-        price_str = f"{price:,.0f}" if (price is not None and price > 1000) else (
-            f"{price:,.2f}" if price is not None else "—"
-        )
-        delta_cls = _briefing_delta_class(chg, inverse=inverse)
-        delta_str = f"{chg:+.2f}%" if chg is not None else "—"
+        decimals = 0 if (price is not None and price > 1000) else 2
         cells += (
-            f'<div class="briefing-pulse-cell">'
-            f'<div class="p-label">{key} · {label}</div>'
-            f'<div class="p-price">{price_str}</div>'
-            f'<div class="p-delta {delta_cls}">{delta_str}</div>'
-            '</div>'
+            f'<div class="pulse-cell">'
+            f'<div class="plabel">{key} · {label}</div>'
+            f'<div class="pprice">{_fmt_num(price, decimals)}</div>'
+            f'<div class="pdelta {_delta_class(chg, inverse)}">'
+            f'{_sign(chg)}{_fmt_num(chg, 2)}%</div>'
+            f'</div>'
         )
-    st.markdown(f'<div class="briefing-pulse">{cells}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="pulse-grid">{cells}</div>', unsafe_allow_html=True)
 
 
-def _render_changes_ribbon(wl_today: dict, wl_yesterday: dict) -> None:
-    if not wl_yesterday:
+def render_changes(today_wl: dict, prev_wl: dict) -> None:
+    if not prev_wl:
         return
-    signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-    changes = []
-    rationales = {}
-    for tk in sorted(set(wl_today) | set(wl_yesterday)):
-        sig_old = wl_yesterday.get(tk, {}).get("signal", "—")
-        sig_new = wl_today.get(tk, {}).get("signal", "—")
-        if sig_old == sig_new:
+    rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
+    items = []
+    rationales: dict[str, str] = {}
+    for tk in sorted(set(today_wl) | set(prev_wl)):
+        old = prev_wl.get(tk, {}).get("signal", "—")
+        new = today_wl.get(tk, {}).get("signal", "—")
+        if old == new or new == "—" or old == "—":
             continue
-        if sig_new == "—":
-            continue  # ticker dropped from watchlist
-        if sig_old == "—":
-            arrow = "★"
-        elif signal_rank.get(sig_new, 0) > signal_rank.get(sig_old, 0):
-            arrow = "↑"
-        else:
-            arrow = "↓"
+        direction = "up" if rank.get(new, 0) > rank.get(old, 0) else "down"
+        arrow_color = SIGNAL_COLORS.get(new, "#9F988B")
         display_tk = TICKER_DISPLAY.get(tk, tk)
-        wu = _writeup_for_render(wl_today.get(tk, {}))
-        # Prefer the punchline; fall back to first sentence of what_to_do.
+        items.append(
+            f'<span style="display:inline-flex;align-items:center;gap:8px;">'
+            f'<strong style="color:var(--ink);">{display_tk}</strong>'
+            f'{_signal_pill_html(old, small=True)}'
+            f'<span style="color:{arrow_color};font-weight:700;">'
+            f'{"↑" if direction == "up" else "↓"}</span>'
+            f'{_signal_pill_html(new, small=True)}'
+            f'</span>'
+        )
+        wu = _writeup_for_render(today_wl.get(tk, {}))
         note = wu["headline"] or (wu["what_to_do"] or "").split(". ", 1)[0]
-        changes.append((display_tk, sig_old, sig_new, arrow))
         if note:
             rationales[display_tk] = note
-    if not changes:
+    if not items:
         return
-
-    def _pill(sig: str) -> str:
-        color = SIGNAL_COLORS.get(sig, "#6b7280")
-        bg = color + "20"
-        return f'<span class="pill" style="background:{bg};color:{color};">{sig}</span>'
-
-    items = []
-    for tk, sig_old, sig_new, arrow in changes:
-        arrow_color = SIGNAL_COLORS.get(sig_new, "#6b7280")
-        items.append(
-            f'<span class="change-item"><b>{tk}</b> '
-            f'{_pill(sig_old)}<span class="arrow" style="color:{arrow_color};">{arrow}</span>{_pill(sig_new)}'
-            '</span>'
-        )
-    st.markdown(
-        f'<div class="briefing-changes">'
-        f'<span class="changes-label">Since yesterday</span>{"".join(items)}'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
+    body = '<span class="clabel">Since yesterday</span>' + " ".join(items)
+    st.markdown(f'<div class="changes-ribbon">{body}</div>', unsafe_allow_html=True)
     if rationales:
         with st.expander("Why the signals moved", expanded=False):
             for tk, txt in rationales.items():
                 st.markdown(f"**{tk}** — {_escape_dollars(txt)}")
 
 
-def _pick_action_ticker(wl: dict) -> tuple[str, dict] | tuple[None, None]:
-    """Pick the single most actionable name. Priority: BUY > ACCUMULATE > WATCH > HOLD; within tier, highest R:R."""
-    priority = {"BUY": 0, "ACCUMULATE": 1, "WATCH": 2, "HOLD": 3, "CAUTION": 4}
+def _pick_action_ticker(wl: dict) -> tuple[str | None, dict | None]:
+    """Pick the single most actionable BUY/ACCUMULATE/WATCH name.
+
+    Returns (None, None) when nothing is actionable — caller should skip the callout.
+    """
+    priority = {"BUY": 0, "ACCUMULATE": 1, "WATCH": 2}
     candidates = [
         (tk, d) for tk, d in wl.items()
-        if d.get("signal") in priority
+        if d.get("signal") in priority and tk not in RETIRED_TICKERS
     ]
     if not candidates:
         return None, None
     candidates.sort(key=lambda x: (
         priority.get(x[1].get("signal"), 99),
-        -(x[1].get("risk_reward", {}).get("ratio") or 0),
+        -((x[1].get("risk_reward") or {}).get("ratio") or 0),
     ))
     return candidates[0]
 
 
-def _render_action_callout(wl: dict, events: list) -> None:
+def render_action_card(wl: dict, events: list) -> None:
     tk, d = _pick_action_ticker(wl)
     if not tk:
+        # Nothing actionable today — render nothing per design.
         return
-    sig = d.get("signal", "HOLD")
-    color = SIGNAL_COLORS.get(sig, "#6b7280")
+    sig = d.get("signal", "WATCH")
+    color = SIGNAL_COLORS.get(sig, "#9F988B")
     display_tk = TICKER_DISPLAY.get(tk, tk)
     cluster = CLUSTER_MAP.get(tk, "")
     price = d.get("price")
     ccy = d.get("currency", "USD")
     chg = d.get("chg_pct")
     wu = _writeup_for_render(d)
-    headline = wu["headline"]
+    headline = wu["headline"] or ""
     body = wu["what_to_do"] or ""
     block = wu["entry_block"]
-    rr = d.get("risk_reward", {}).get("ratio_label", "")
-    rr_line = f"R:R {rr}" if rr else ""
+    rr_label = (d.get("risk_reward") or {}).get("ratio_label", "")
 
-    price_prefix = "S$" if ccy == "SGD" else "$"
-    price_str = f"{price_prefix}{price:,.2f}" if price is not None else "—"
-    delta_color = "#22c55e" if (chg or 0) >= 0 else "#ef4444"
-    delta_str = f"{chg:+.2f}%" if chg is not None else ""
+    pfx = "S$" if ccy == "SGD" else "$"
+    price_str = f"{pfx}{_fmt_num(price, 2)}"
+    delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
+    delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
 
     block_html = (
-        f'<div style="margin-top:8px;font-size:0.8rem;color:#fbb454;'
-        f'border-left:2px solid #f59e0b80;padding-left:8px;line-height:1.5;">'
-        f'{_escape_dollars(block)}</div>'
+        f'<div class="block">{_escape_dollars(block)}</div>'
         if block else ""
     )
 
+    render_section_head("If you only do one thing today",
+                        "The desk's single highest-conviction action")
     st.markdown(
-        f'<div class="briefing-section-title">If you only do one thing today</div>'
-        f'<div class="briefing-action" style="border-left-color:{color};">'
-        f'<div class="a-tag">'
-        f'<div>The desk\'s single highest-conviction action</div>'
-        f'<span class="a-pill" style="background:{color}20;color:{color};">{SIGNAL_VERBS.get(sig, sig)}</span>'
+        f'<div class="action-card" style="border-left-color:{color};">'
+        f'<div class="atag">'
+        f'<div>If you only do</div><div>one thing today</div>'
+        f'<span class="pill" style="background:{SIGNAL_TINTS.get(sig, "var(--paper-3)")};color:{color};">'
+        f'{SIGNAL_VERBS.get(sig, sig)}</span>'
         f'</div>'
         f'<div>'
-        f'<div class="a-ticker">{display_tk}{" · " + cluster if cluster else ""}</div>'
-        f'<div class="a-headline">{_escape_dollars(headline)}</div>'
-        f'<div class="a-rationale">{_escape_dollars(body)}</div>'
+        f'<div class="ticker">{display_tk}{" · " + cluster if cluster else ""}</div>'
+        f'<div class="head">{_escape_dollars(headline)}</div>'
+        f'<div class="plain">{_escape_dollars(body)}</div>'
         f'{block_html}'
         f'</div>'
-        f'<div class="a-r">'
-        f'<div class="a-price">{price_str}</div>'
-        f'<div style="color:{delta_color};margin-top:4px;">{delta_str} today</div>'
-        f'<div style="margin-top:10px;">{rr_line}</div>'
+        f'<div class="right">'
+        f'<div>Last</div>'
+        f'<div class="level">{price_str}</div>'
+        f'<div style="margin-top:6px;color:{delta_color};">{delta_str} today</div>'
+        f'<div style="margin-top:8px;">{("R:R " + rr_label) if rr_label else ""}</div>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
 
-def _render_macro_block(macro_summary: str, geo: dict) -> None:
-    probs = geo.get("probabilities", {}) or {}
-    portfolio_action = geo.get("portfolio_action", "")
-    risks = geo.get("active_risks", []) or []
-
-    prob_colors = {
-        "base": "#3498db",
-        "optimistic": "#22c55e",
-        "pessimistic": "#ef4444",
-        "wildcard": "#f59e0b",
-    }
-    prob_labels = {
-        "base": "Base", "optimistic": "Optimistic",
-        "pessimistic": "Pessimistic", "wildcard": "Wildcard",
-    }
-
-    segs = ""
-    keys = []
-    for k in ["base", "optimistic", "pessimistic", "wildcard"]:
-        v = probs.get(k)
-        if v:
-            segs += (
-                f'<div class="briefing-probs-seg" style="width:{v}%;'
-                f'background:{prob_colors[k]};">{v}%</div>'
-            )
-            keys.append(
-                f'<div><span class="sw" style="background:{prob_colors[k]};"></span>'
-                f'{prob_labels[k]}</div>'
-            )
-
-    risks_html = "".join(
-        f'<li style="margin-bottom:8px;line-height:1.5;font-size:0.86rem;color:#d0d0d0;">'
-        f'{_escape_dollars(r)}</li>'
-        for r in risks[:5]
-    )
-
-    macro_html = f'<p>{_escape_dollars(macro_summary)}</p>' if macro_summary else ""
-    action_html = (
-        f'<div class="macro-action"><b style="color:#d8d8d8;">Portfolio implication.</b> '
-        f'{_escape_dollars(portfolio_action)}</div>' if portfolio_action else ""
-    )
-    probs_html = (
-        f'<div class="briefing-section-title" style="margin-top:6px;">Scenario odds</div>'
-        f'<div class="briefing-probs">{segs}</div>'
-        f'<div class="briefing-probs-key">{"".join(keys)}</div>'
-    ) if segs else ""
-
-    st.markdown(
-        f'<div class="briefing-macro">'
-        f'<div class="briefing-section-title">Macro Note</div>'
-        f'{macro_html}'
-        f'{action_html}'
-        f'{probs_html}'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    if risks:
+def render_macro(macro_summary: str, geo: dict) -> None:
+    col1, col2 = st.columns([1.4, 1])
+    with col1:
         st.markdown(
-            f'<div class="briefing-section-title" style="margin-top:18px;">Active Risks</div>'
-            f'<ul style="margin:0;padding-left:18px;">{risks_html}</ul>',
+            '<div class="section-head" style="margin:0 0 12px;border-bottom:0;padding-bottom:0;">'
+            '<h2>The Macro Note</h2>'
+            '<span class="sub">What\'s driving prices</span>'
+            '</div>',
             unsafe_allow_html=True,
         )
+        if macro_summary:
+            st.markdown(
+                f'<p class="macro-lead">{_escape_dollars(macro_summary)}</p>',
+                unsafe_allow_html=True,
+            )
+        if geo.get("portfolio_action"):
+            st.markdown(
+                f'<div class="macro-action">'
+                f'<strong style="color:var(--ink);">Portfolio implication.</strong> '
+                f'{_escape_dollars(geo.get("portfolio_action", ""))}</div>',
+                unsafe_allow_html=True,
+            )
+        probs = geo.get("probabilities") or {}
+        if probs:
+            colors = {
+                "base":        SIGNAL_COLORS["ACCUMULATE"],
+                "optimistic":  SIGNAL_COLORS["BUY"],
+                "pessimistic": SIGNAL_COLORS["CAUTION"],
+                "wildcard":    SIGNAL_COLORS["WATCH"],
+            }
+            labels = {"base": "Base case", "optimistic": "Optimistic",
+                      "pessimistic": "Pessimistic", "wildcard": "Wildcard"}
+            segs, keys = "", ""
+            for k in ["base", "optimistic", "pessimistic", "wildcard"]:
+                v = probs.get(k, 0) or 0
+                if v:
+                    segs += (
+                        f'<div style="width:{v}%;background:{colors[k]};'
+                        f'display:flex;align-items:center;justify-content:center;'
+                        f'color:var(--paper);font-family:var(--mono);'
+                        f'font-size:11px;font-weight:600;">{v}%</div>'
+                    )
+                keys += (
+                    f'<div><span style="display:inline-block;width:8px;height:8px;'
+                    f'background:{colors[k]};margin-right:6px;"></span>'
+                    f'{labels[k]}</div>'
+                )
+            st.markdown(
+                f'<div style="margin-top:18px;">'
+                f'<div style="font-family:var(--mono);font-size:10px;'
+                f'letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);'
+                f'margin-bottom:8px;">Scenario odds</div>'
+                f'<div style="display:flex;height:24px;border:1px solid var(--rule-strong);'
+                f'margin-bottom:8px;">{segs}</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(2,1fr);'
+                f'gap:4px 18px;font-family:var(--mono);font-size:11px;'
+                f'color:var(--ink-3);">{keys}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    with col2:
+        st.markdown(
+            '<div style="font-family:var(--mono);font-size:10px;'
+            'letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);'
+            'margin-bottom:8px;margin-top:6px;">Active risks</div>',
+            unsafe_allow_html=True,
+        )
+        for r in (geo.get("active_risks") or [])[:5]:
+            tag = r.split(":", 1)[0][:24] if ":" in r else "Risk"
+            st.markdown(
+                f'<div class="risk-card">'
+                f'<div class="tag">{_escape_dollars(tag)}</div>'
+                f'<div class="text">{_escape_dollars(r)}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
 
-def _render_calendar_block(events: list) -> None:
+def render_calendar(events: list) -> None:
     if not events:
         st.markdown(
-            '<div class="briefing-section-title">The Week Ahead</div>'
-            '<p style="color:#b0b0b0;font-size:0.88rem;">No catalysts logged.</p>',
+            '<p style="color:var(--ink-3);font-size:13px;">No catalysts logged.</p>',
             unsafe_allow_html=True,
         )
         return
-
     grouped: dict[str, list] = {}
     for e in events:
-        d = e.get("date", "—")
-        grouped.setdefault(d, []).append(e)
-
-    from datetime import datetime
-    days_html = ""
-    for d in sorted(grouped.keys()):
+        grouped.setdefault(e.get("date", "—"), []).append(e)
+    from datetime import datetime as _dt
+    for date_str in sorted(grouped.keys()):
         try:
-            dt = datetime.strptime(d, "%Y-%m-%d")
-            date_label = dt.strftime("%b %d")
-            dow = dt.strftime("%a").upper()
+            d = _dt.strptime(date_str, "%Y-%m-%d")
+            short, dow = d.strftime("%b %d"), d.strftime("%a").upper()
         except (ValueError, TypeError):
-            date_label = d
-            dow = ""
+            short, dow = date_str, ""
         events_html = ""
-        for e in grouped[d]:
+        for e in grouped[date_str]:
             impact = (e.get("impact") or "LOW").upper()
-            text = _escape_dollars(e.get("event", ""))
             events_html += (
-                f'<div class="briefing-cal-event">'
-                f'<span class="briefing-cal-impact {impact}">{impact}</span>{text}'
+                f'<div class="cal-event">'
+                f'<span class="cal-impact {impact}">{impact}</span>'
+                f'<span class="cal-text">{_escape_dollars(e.get("event", ""))}</span>'
                 f'</div>'
             )
-        days_html += (
-            f'<div class="briefing-cal-day">'
-            f'<div class="briefing-cal-date">{date_label}<span class="dow">{dow}</span></div>'
-            f'<div>{events_html}</div>'
-            f'</div>'
+        st.markdown(
+            f'<div class="cal-day">'
+            f'<div class="cal-date">{short}<span class="dow">{dow}</span></div>'
+            f'<div>{events_html}</div></div>',
+            unsafe_allow_html=True,
         )
 
+
+def render_watchlist(watchlist: dict) -> None:
+    """Editorial watchlist with click-to-expand drill-down per ticker.
+
+    HOLD tickers do NOT get an expander (no actionable content).
+    """
+    rank = {"BUY": 0, "ACCUMULATE": 1, "WATCH": 2, "HOLD": 3, "CAUTION": 4}
+    items = sorted(
+        [(tk, d) for tk, d in watchlist.items() if tk not in RETIRED_TICKERS],
+        key=lambda x: (
+            rank.get(x[1].get("signal", "HOLD"), 5),
+            -(x[1].get("1mo_pct") or 0),
+        ),
+    )
     st.markdown(
-        f'<div class="briefing-section-title">The Week Ahead</div>'
-        f'{days_html}',
+        '<div class="tk-row head">'
+        '<div>Ticker</div><div>Name</div><div>Signal</div>'
+        '<div style="text-align:right;">Last · Δ</div>'
+        '<div style="text-align:right;">1mo</div>'
+        '<div style="text-align:right;">vs 50-day</div>'
+        '<div style="text-align:right;">RSI</div>'
+        '<div style="text-align:right;">R:R</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
+    for tk, d in items:
+        sig = d.get("signal", "HOLD")
+        display_tk = TICKER_DISPLAY.get(tk, tk)
+        ccy = d.get("currency", "USD")
+        pfx = "S$" if ccy == "SGD" else "$"
+        price = d.get("price")
+        chg = d.get("chg_pct")
+        m1 = d.get("1mo_pct")
+        vs50 = d.get("vs_sma50_pct")
+        rsi = d.get("rsi_14")
+        rr = (d.get("risk_reward") or {}).get("ratio")
+        st.markdown(
+            f'<div class="tk-row">'
+            f'<div style="font-weight:600;color:var(--ink);">{display_tk}</div>'
+            f'<div class="name">{CLUSTER_MAP.get(tk, "")}</div>'
+            f'<div>{_signal_pill_html(sig)}</div>'
+            f'<div style="text-align:right;">'
+            f'{pfx}{_fmt_num(price, 2)}'
+            f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
+            f'{_sign(chg)}{_fmt_num(chg, 2)}%</div></div>'
+            f'<div class="{_delta_class(m1)}" style="text-align:right;">'
+            f'{_sign(m1)}{_fmt_num(m1, 1)}%</div>'
+            f'<div style="text-align:right;">{_sign(vs50)}{_fmt_num(vs50, 1)}%</div>'
+            f'<div style="text-align:right;">{_fmt_num(rsi, 0)}</div>'
+            f'<div style="text-align:right;">{_fmt_num(rr, 1)}:1</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
-# ── Sidebar header ──
-st.sidebar.markdown(
-    '<div class="sidebar-header">'
-    '<h2>MarketReport</h2>'
-    '<div class="subtitle">Signal Intelligence Dashboard</div>'
-    '</div>',
+        if sig not in WRITEUP_SIGNALS:
+            continue  # HOLD: no expander
+        wu = _writeup_for_render(d)
+        with st.expander(f"  Read the {sig.lower()} call on {display_tk}"):
+            block = wu["entry_block"]
+            if block:
+                st.markdown(
+                    f'<div style="background:rgba(245,158,11,0.16);'
+                    f'color:#fbb454;padding:8px 12px;border-left:3px solid #f59e0b80;'
+                    f'font-family:var(--mono);font-size:11.5px;margin-bottom:12px;">'
+                    f'ENTRY BLOCK · {_escape_dollars(block)}</div>',
+                    unsafe_allow_html=True,
+                )
+            if wu["headline"]:
+                st.markdown(
+                    f'<div style="font-family:var(--serif);font-size:1.15rem;'
+                    f'font-weight:500;color:var(--ink);margin-bottom:8px;'
+                    f'line-height:1.35;">{_escape_dollars(wu["headline"])}</div>',
+                    unsafe_allow_html=True,
+                )
+            if wu["what_to_do"]:
+                st.markdown(
+                    f'<div style="font-family:var(--sans);font-size:14px;'
+                    f'line-height:1.6;color:var(--ink-2);max-width:75ch;">'
+                    f'{_escape_dollars(wu["what_to_do"])}</div>',
+                    unsafe_allow_html=True,
+                )
+            val = d.get("valuation", {}) or {}
+            rr_obj = d.get("risk_reward", {}) or {}
+            metrics = [
+                ("Cluster", CLUSTER_MAP.get(tk, "—")),
+                ("Forward P/E",
+                 f"{_fmt_num(val.get('forward_pe'), 1)}x" if val.get("forward_pe") else "—"),
+                ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
+                ("Revenue growth",
+                 f"{_sign(val.get('revenue_growth_pct'))}{_fmt_num(val.get('revenue_growth_pct'), 1)}%"),
+                ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%"),
+                ("RSI (14d)", _fmt_num(rsi, 0)),
+                ("Risk:Reward", f"{_fmt_num(rr, 1)}:1"),
+                ("Invalidation", _fmt_num(rr_obj.get("invalidation"), 2)),
+            ]
+            cols = st.columns(4)
+            for i, (label, value) in enumerate(metrics):
+                cols[i % 4].markdown(
+                    f'<div style="border-bottom:1px dashed var(--rule);padding:6px 0;">'
+                    f'<div style="font-family:var(--mono);font-size:9.5px;'
+                    f'color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;">'
+                    f'{label}</div>'
+                    f'<div style="font-family:var(--mono);font-size:13px;margin-top:2px;'
+                    f'color:var(--ink);">{value}</div></div>',
+                    unsafe_allow_html=True,
+                )
+# ── Masthead + top tab nav (rendered at top of main area) ──
+_mh_reports = load_all_reports()
+_mh_dates = sorted(_mh_reports.keys()) if _mh_reports else []
+_mh_latest = _mh_dates[-1] if _mh_dates else "—"
+_mh_first = _mh_dates[0] if _mh_dates else None
+_mh_issue = "—"
+if _mh_first:
+    try:
+        _first_d = date.fromisoformat(_mh_first)
+        _last_d = date.fromisoformat(_mh_latest)
+        _mh_issue = f"No. {(_last_d - _first_d).days + 1}"
+    except ValueError:
+        pass
+_mh_market_date = _mh_reports.get(_mh_latest, {}).get("meta", {}).get("market_date", "—")
+try:
+    _long_date = date.fromisoformat(_mh_latest).strftime("%A, %B %d, %Y")
+except ValueError:
+    _long_date = _mh_latest
+
+st.markdown(
+    f'<div class="masthead">'
+    f'<div>'
+    f'<div class="kicker">Morning Briefing · Signal Intelligence Daily</div>'
+    f'<h1 class="title">The <em>Market</em> Report</h1>'
+    f'</div>'
+    f'<div class="right">'
+    f'<div class="date">{_long_date}</div>'
+    f'<div>Singapore · 11:30 SGT · Last close {_mh_market_date}</div>'
+    f'</div>'
+    f'</div>'
+    f'<div class="masthead-strip">'
+    f'<span>Issue {_mh_issue}</span>'
+    f'<span>The Signal Desk</span>'
+    f'<span>Updated 11:30 SGT</span>'
+    f'</div>',
     unsafe_allow_html=True,
 )
 
-# ── Sidebar navigation ──
-page = st.sidebar.radio(
+st.markdown('<div class="topnav-wrap">', unsafe_allow_html=True)
+page = st.radio(
     "Navigate",
     ["Briefing", "Daily Report", "Signal Tracker",
      "Pipeline Stats", "Scenario Log",
      "Report Comparison"],
+    horizontal=True,
     label_visibility="collapsed",
+    key="page_nav",
 )
-
-st.sidebar.divider()
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Mini status summary ──
 _status_reports = load_all_reports()
@@ -1653,23 +1850,44 @@ if page == "Briefing":
     geo = report.get("geopolitical", {})
     events = report.get("events_this_week", []) or []
 
-    st.caption(f"Morning Briefing · Report {latest_date}")
-
-    _render_stance_hero(snapshot, len(watchlist))
-    _render_pulse_strip(benchmarks)
-    _render_changes_ribbon(
-        watchlist,
-        prev_report.get("watchlist", {}) if prev_report else {},
+    sub_brief, sub_watch, sub_cal, sub_macro = st.tabs(
+        ["Briefing", "Watchlist", "Calendar", "Macro"]
     )
-    _render_action_callout(watchlist, events)
 
-    macro_col, cal_col = st.columns([3, 2])
-    with macro_col:
-        _render_macro_block(report.get("macro_summary", ""), geo)
-    with cal_col:
-        _render_calendar_block(events)
+    with sub_brief:
+        render_stance(snapshot, len(watchlist))
+        render_pulse(benchmarks)
+        render_changes(
+            watchlist,
+            prev_report.get("watchlist", {}) if prev_report else {},
+        )
+        render_action_card(watchlist, events)
 
-    _render_signal_guide()
+        macro_col, cal_col = st.columns([3, 2])
+        with macro_col:
+            render_macro(report.get("macro_summary", ""), geo)
+        with cal_col:
+            render_section_head("The Week Ahead", "Catalysts that move signals")
+            render_calendar(events)
+
+        _render_signal_guide()
+
+    with sub_watch:
+        render_section_head(
+            "The Watchlist",
+            f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · "
+            "click an actionable row to expand"
+        )
+        render_pulse(benchmarks)
+        render_watchlist(watchlist)
+
+    with sub_cal:
+        render_section_head("The Week Ahead", "Earnings · macro · Fed")
+        render_calendar(events)
+
+    with sub_macro:
+        render_section_head("The Macro Note", "Geopolitics · rates · cross-asset")
+        render_macro(report.get("macro_summary", ""), geo)
 
 
 # ════════════════════════════════════════════
