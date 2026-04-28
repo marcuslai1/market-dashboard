@@ -68,6 +68,26 @@ h3 { font-size: 1.15rem !important; color: var(--ink-2) !important; }
 }
 p, li, span, div, label { font-family: var(--sans); }
 
+/* Restore Material Symbols font on icon glyphs so dropdown chevrons,
+   expander toggles, etc. don't render their ligature names as raw text
+   ("arrow_drop_down", "expand_more", ...). Must come AFTER the broad
+   span/div override above. */
+[data-testid="stIconMaterial"],
+span.material-icons,
+span.material-icons-outlined,
+span.material-icons-rounded,
+span.material-icons-sharp,
+span.material-symbols-outlined,
+span.material-symbols-rounded,
+span.material-symbols-sharp,
+span[class*="material-symbols"],
+span[class*="material-icons"] {
+  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
+               'Material Icons Rounded', 'Material Icons' !important;
+  font-feature-settings: 'liga' !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 /* Metric cards */
 [data-testid="stMetric"] {
   background: var(--paper-2);
@@ -109,7 +129,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   letter-spacing: 0.06em;
   color: var(--ink-2) !important;
 }
-[data-testid="stExpander"] summary span {
+[data-testid="stExpander"] summary span:not([data-testid="stIconMaterial"]):not([class*="material-"]) {
   font-family: var(--mono) !important;
   font-weight: 500 !important;
 }
