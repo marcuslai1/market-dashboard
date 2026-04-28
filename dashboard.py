@@ -1227,6 +1227,76 @@ st.markdown("""<style>
   border-radius: 50%; background: currentColor;
 }
 
+/* Native <details> drill-down — entire ticker row is the click target */
+details.tk-details { margin: 0; padding: 0; border: 0; background: transparent; }
+details.tk-details > summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
+  gap: 12px; padding: 14px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono); font-size: 12.5px; align-items: center;
+  transition: background 0.12s;
+}
+details.tk-details > summary::-webkit-details-marker { display: none; }
+details.tk-details > summary::marker { content: ""; }
+details.tk-details > summary:hover { background: var(--paper-2); }
+details.tk-details[open] > summary { background: var(--paper-2); border-bottom-color: var(--rule-strong); }
+details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-2); }
+.tk-drilldown {
+  background: var(--paper-2);
+  padding: 18px 22px 22px;
+  border-bottom: 1px solid var(--rule);
+}
+.tk-drilldown .dd-section {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600;
+  margin: 18px 0 8px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+}
+.tk-drilldown .dd-section:first-child { margin-top: 0; }
+.tk-drilldown .dd-line {
+  font-size: 13px; color: var(--ink-2);
+  margin-bottom: 6px; line-height: 1.55;
+}
+.tk-drilldown .dd-metric-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0 18px;
+}
+.tk-drilldown .dd-metric {
+  border-bottom: 1px dashed var(--rule);
+  padding: 6px 0;
+}
+.tk-drilldown .dd-metric .lbl {
+  font-family: var(--mono); font-size: 9.5px;
+  color: var(--ink-3); text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tk-drilldown .dd-metric .val {
+  font-family: var(--mono); font-size: 13px;
+  margin-top: 2px; color: var(--ink);
+}
+.tk-drilldown .dd-entry-block {
+  background: rgba(245,158,11,0.16);
+  color: #fbb454;
+  padding: 8px 12px;
+  border-left: 3px solid #f59e0b80;
+  font-family: var(--mono); font-size: 11.5px;
+  margin-bottom: 12px;
+}
+.tk-drilldown .dd-headline {
+  font-family: var(--serif); font-size: 1.15rem;
+  font-weight: 500; color: var(--ink);
+  margin-bottom: 8px; line-height: 1.35;
+}
+.tk-drilldown .dd-whatdo {
+  font-family: var(--sans); font-size: 14px;
+  line-height: 1.6; color: var(--ink-2);
+  max-width: 75ch; margin-bottom: 14px;
+}
+
 .risk-card {
   padding: 14px 0; border-bottom: 1px solid var(--rule);
 }
@@ -1642,9 +1712,15 @@ def render_watchlist(watchlist: dict) -> None:
         '</div>',
         unsafe_allow_html=True,
     )
-    for tk, d in items:
+    for idx, (tk, d) in enumerate(items):
         sig = d.get("signal", "HOLD")
         display_tk = TICKER_DISPLAY.get(tk, tk)
+        # ── TEST: render the first ticker as a native <details> block where
+        # the entire row is the click target. Other tickers keep the existing
+        # tk-row + st.expander pattern below. ──
+        if idx == 0:
+            st.markdown(_render_ticker_details_html(tk, d), unsafe_allow_html=True)
+            continue
         ccy = d.get("currency", "USD")
         pfx = "S$" if ccy == "SGD" else "$"
         price = d.get("price")
@@ -1726,6 +1802,210 @@ def _drilldown_metrics(items: list[tuple[str, str]]) -> None:
             f'color:var(--ink);">{value}</div></div>',
             unsafe_allow_html=True,
         )
+
+
+def _drilldown_section_html(title: str) -> str:
+    return f'<div class="dd-section">{title}</div>'
+
+
+def _drilldown_metrics_html(items: list[tuple[str, str]]) -> str:
+    visible = [(label, value) for label, value in items if value not in (None, "", "—")]
+    if not visible:
+        return ""
+    cells = "".join(
+        f'<div class="dd-metric"><div class="lbl">{label}</div>'
+        f'<div class="val">{value}</div></div>'
+        for label, value in visible
+    )
+    return f'<div class="dd-metric-grid">{cells}</div>'
+
+
+def _render_drilldown_detail_html(tk: str, d: dict) -> str:
+    """HTML-string version of _render_drilldown_detail — returns one block of HTML
+    suitable for embedding inside a <details> element. No Streamlit calls."""
+    ccy = d.get("currency", "USD")
+    pfx = "S$" if ccy == "SGD" else "$"
+    val = d.get("valuation", {}) or {}
+    rr_obj = d.get("risk_reward", {}) or {}
+    sma50 = d.get("sma50")
+    sma200 = d.get("sma200")
+    sma50_rising = d.get("sma50_rising")
+    sma_status = (
+        "rising" if sma50_rising is True
+        else "declining" if sma50_rising is False
+        else "—"
+    )
+    days_above = d.get("days_above_sma50")
+    rsi = d.get("rsi_14")
+    rsi_zone = d.get("rsi_zone", "")
+    vol_sig = d.get("volume_signal", "")
+    vol_ratio = d.get("vol_ratio")
+    chg5 = d.get("5d_pct")
+    m1 = d.get("1mo_pct")
+    vs50 = d.get("vs_sma50_pct")
+    vs200 = d.get("vs_sma200_pct")
+
+    parts: list[str] = []
+
+    upside_target = rr_obj.get("upside_target")
+    upside_pct = rr_obj.get("upside_pct")
+    upside_reason = rr_obj.get("upside_reason", "")
+    invalidation = rr_obj.get("invalidation")
+    invalidation_reason = rr_obj.get("invalidation_reason", "")
+    inv_pct = rr_obj.get("downside_pct")
+    structural = rr_obj.get("structural_support")
+    struct_pct = rr_obj.get("structural_support_pct")
+    wide_stop = rr_obj.get("wide_stop_rr")
+    rr_label = rr_obj.get("ratio_label", "")
+    rr_quality = rr_obj.get("rr_quality", "")
+
+    has_rr = any(v is not None for v in [upside_target, invalidation, structural, wide_stop])
+    if has_rr:
+        parts.append(_drilldown_section_html("Risk & Reward"))
+        if upside_target is not None:
+            line = f"<strong>Upside target.</strong> {pfx}{_fmt_num(upside_target, 2)}"
+            if upside_pct is not None:
+                line += f" (+{_fmt_num(upside_pct, 1)}%)"
+            if upside_reason:
+                line += f" — {_escape_dollars(upside_reason)}"
+            parts.append(f'<div class="dd-line">{line}</div>')
+        if invalidation is not None:
+            line = f"<strong>Invalidation.</strong> {pfx}{_fmt_num(invalidation, 2)}"
+            if inv_pct is not None:
+                line += f" (-{_fmt_num(inv_pct, 1)}%)"
+            if invalidation_reason:
+                line += f" — {_escape_dollars(invalidation_reason)}"
+            parts.append(f'<div class="dd-line">{line}</div>')
+        rr_metrics = [
+            ("Headline R:R", f"{rr_label} ({rr_quality})" if rr_label else "—"),
+            ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—"),
+            (
+                "Structural support",
+                f"{pfx}{_fmt_num(structural, 2)} (-{_fmt_num(struct_pct, 1)}%)"
+                if structural else "—",
+            ),
+        ]
+        parts.append(_drilldown_metrics_html(rr_metrics))
+
+    parts.append(_drilldown_section_html("Technicals"))
+    tech_metrics = [
+        ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
+        ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
+        ("SMA50",
+         f"{pfx}{_fmt_num(sma50, 2)} ({sma_status})" if sma50 else "—"),
+        ("Days above SMA50", str(days_above) if days_above is not None else "—"),
+        ("RSI (14d)", f"{_fmt_num(rsi, 0)} {rsi_zone}" if rsi else "—"),
+        ("Volume signal",
+         f"{vol_sig} ({_fmt_num(vol_ratio, 2)}x)" if vol_sig else "—"),
+        ("5-day return",
+         f"{_sign(chg5)}{_fmt_num(chg5, 1)}%" if chg5 is not None else "—"),
+        ("1-month return",
+         f"{_sign(m1)}{_fmt_num(m1, 1)}%" if m1 is not None else "—"),
+    ]
+    parts.append(_drilldown_metrics_html(tech_metrics))
+
+    supports = d.get("support_zones") or []
+    resistances = d.get("resistance_zones") or []
+    if supports or resistances:
+        parts.append(_drilldown_section_html("Key Levels"))
+        if supports:
+            parts.append(
+                '<div class="dd-line"><strong>Support:</strong> '
+                + ", ".join(f"{pfx}{_fmt_num(s, 2)}" for s in supports)
+                + '</div>'
+            )
+        if resistances:
+            parts.append(
+                '<div class="dd-line"><strong>Resistance:</strong> '
+                + ", ".join(f"{pfx}{_fmt_num(r, 2)}" for r in resistances)
+                + '</div>'
+            )
+
+    fpe = val.get("forward_pe")
+    peg = val.get("peg_ratio")
+    rev_g = val.get("revenue_growth_pct")
+    cluster_med_pe = val.get("cluster_median_pe")
+    pe_vs_cluster = val.get("pe_vs_cluster_pct")
+    fcf_y = val.get("fcf_yield_pct")
+    div_y = val.get("dividend_yield_pct")
+    pb = val.get("price_to_book")
+    consensus = (val.get("analyst_consensus") or {})
+    rec = consensus.get("recommendation", "")
+    n_analysts = consensus.get("num_analysts")
+    eps_g = consensus.get("earnings_growth_pct")
+
+    val_metrics = [
+        ("Cluster", CLUSTER_MAP.get(tk, "—")),
+        ("Forward P/E", f"{_fmt_num(fpe, 1)}x" if fpe else "—"),
+        ("Cluster median P/E",
+         f"{_fmt_num(cluster_med_pe, 1)}x ({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
+         if cluster_med_pe else "—"),
+        ("PEG", _fmt_num(peg, 2)),
+        ("Revenue growth",
+         f"{_sign(rev_g)}{_fmt_num(rev_g, 1)}%" if rev_g is not None else "—"),
+        ("FCF yield", f"{_sign(fcf_y)}{_fmt_num(fcf_y, 2)}%" if fcf_y is not None else "—"),
+        ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
+        ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),
+        ("Analyst consensus",
+         f"{rec} ({n_analysts})" if rec and n_analysts else (rec or "—")),
+        ("Est. EPS growth",
+         f"{_sign(eps_g)}{_fmt_num(eps_g, 1)}%" if eps_g is not None else "—"),
+    ]
+    parts.append(_drilldown_section_html("Valuation"))
+    parts.append(_drilldown_metrics_html(val_metrics))
+
+    return "".join(parts)
+
+
+def _render_ticker_details_html(tk: str, d: dict) -> str:
+    """Build a complete <details> block: row as summary, writeup+drilldown as body."""
+    sig = d.get("signal", "HOLD")
+    display_tk = TICKER_DISPLAY.get(tk, tk)
+    ccy = d.get("currency", "USD")
+    pfx = "S$" if ccy == "SGD" else "$"
+    price = d.get("price")
+    chg = d.get("chg_pct")
+    m1 = d.get("1mo_pct")
+    vs50 = d.get("vs_sma50_pct")
+    rsi = d.get("rsi_14")
+    rr = (d.get("risk_reward") or {}).get("ratio")
+
+    summary = (
+        '<summary>'
+        f'<div style="font-weight:600;color:var(--ink);">{display_tk}</div>'
+        f'<div class="name">{CLUSTER_MAP.get(tk, "")}</div>'
+        f'<div>{_signal_pill_html(sig)}</div>'
+        f'<div style="text-align:right;">'
+        f'{pfx}{_fmt_num(price, 2)}'
+        f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
+        f'{_sign(chg)}{_fmt_num(chg, 2)}%</div></div>'
+        f'<div class="{_delta_class(m1)}" style="text-align:right;">'
+        f'{_sign(m1)}{_fmt_num(m1, 1)}%</div>'
+        f'<div style="text-align:right;">{_sign(vs50)}{_fmt_num(vs50, 1)}%</div>'
+        f'<div style="text-align:right;">{_fmt_num(rsi, 0)}</div>'
+        f'<div style="text-align:right;">{_fmt_num(rr, 1)}:1</div>'
+        '</summary>'
+    )
+
+    wu = _writeup_for_render(d)
+    body_parts: list[str] = []
+    if wu["entry_block"]:
+        body_parts.append(
+            f'<div class="dd-entry-block">ENTRY BLOCK · '
+            f'{_escape_dollars(wu["entry_block"])}</div>'
+        )
+    if wu["headline"]:
+        body_parts.append(
+            f'<div class="dd-headline">{_escape_dollars(wu["headline"])}</div>'
+        )
+    if wu["what_to_do"]:
+        body_parts.append(
+            f'<div class="dd-whatdo">{_escape_dollars(wu["what_to_do"])}</div>'
+        )
+    body_parts.append(_render_drilldown_detail_html(tk, d))
+    body = f'<div class="tk-drilldown">{"".join(body_parts)}</div>'
+
+    return f'<details class="tk-details">{summary}{body}</details>'
 
 
 def _render_drilldown_detail(tk: str, d: dict) -> None:
