@@ -1651,8 +1651,6 @@ def render_watchlist(watchlist: dict) -> None:
             unsafe_allow_html=True,
         )
 
-        if sig not in WRITEUP_SIGNALS:
-            continue  # HOLD: no expander
         wu = _writeup_for_render(d)
         with st.expander(f"  Read the {sig.lower()} call on {display_tk}"):
             block = wu["entry_block"]
@@ -1674,35 +1672,186 @@ def render_watchlist(watchlist: dict) -> None:
             if wu["what_to_do"]:
                 st.markdown(
                     f'<div style="font-family:var(--sans);font-size:14px;'
-                    f'line-height:1.6;color:var(--ink-2);max-width:75ch;">'
+                    f'line-height:1.6;color:var(--ink-2);max-width:75ch;'
+                    f'margin-bottom:14px;">'
                     f'{_escape_dollars(wu["what_to_do"])}</div>',
                     unsafe_allow_html=True,
                 )
-            val = d.get("valuation", {}) or {}
-            rr_obj = d.get("risk_reward", {}) or {}
-            metrics = [
-                ("Cluster", CLUSTER_MAP.get(tk, "—")),
-                ("Forward P/E",
-                 f"{_fmt_num(val.get('forward_pe'), 1)}x" if val.get("forward_pe") else "—"),
-                ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
-                ("Revenue growth",
-                 f"{_sign(val.get('revenue_growth_pct'))}{_fmt_num(val.get('revenue_growth_pct'), 1)}%"),
-                ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%"),
-                ("RSI (14d)", _fmt_num(rsi, 0)),
-                ("Risk:Reward", f"{_fmt_num(rr, 1)}:1"),
-                ("Invalidation", _fmt_num(rr_obj.get("invalidation"), 2)),
-            ]
-            cols = st.columns(4)
-            for i, (label, value) in enumerate(metrics):
-                cols[i % 4].markdown(
-                    f'<div style="border-bottom:1px dashed var(--rule);padding:6px 0;">'
-                    f'<div style="font-family:var(--mono);font-size:9.5px;'
-                    f'color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;">'
-                    f'{label}</div>'
-                    f'<div style="font-family:var(--mono);font-size:13px;margin-top:2px;'
-                    f'color:var(--ink);">{value}</div></div>',
-                    unsafe_allow_html=True,
-                )
+            _render_drilldown_detail(tk, d)
+
+
+def _drilldown_section(title: str) -> None:
+    st.markdown(
+        f'<div style="font-family:var(--mono);font-size:10px;'
+        f'letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);'
+        f'font-weight:600;margin:18px 0 8px;border-bottom:1px solid var(--rule);'
+        f'padding-bottom:4px;">{title}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _drilldown_metrics(items: list[tuple[str, str]]) -> None:
+    """Render a 4-column metric grid; items is a list of (label, value) pairs."""
+    visible = [(label, value) for label, value in items if value not in (None, "", "—")]
+    if not visible:
+        return
+    cols = st.columns(4)
+    for i, (label, value) in enumerate(visible):
+        cols[i % 4].markdown(
+            f'<div style="border-bottom:1px dashed var(--rule);padding:6px 0;">'
+            f'<div style="font-family:var(--mono);font-size:9.5px;'
+            f'color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em;">'
+            f'{label}</div>'
+            f'<div style="font-family:var(--mono);font-size:13px;margin-top:2px;'
+            f'color:var(--ink);">{value}</div></div>',
+            unsafe_allow_html=True,
+        )
+
+
+def _render_drilldown_detail(tk: str, d: dict) -> None:
+    """Full per-ticker detail: R:R decomposition, technicals, levels, valuation."""
+    ccy = d.get("currency", "USD")
+    pfx = "S$" if ccy == "SGD" else "$"
+    val = d.get("valuation", {}) or {}
+    rr_obj = d.get("risk_reward", {}) or {}
+    sma50 = d.get("sma50")
+    sma200 = d.get("sma200")
+    sma50_rising = d.get("sma50_rising")
+    sma_status = (
+        "rising" if sma50_rising is True
+        else "declining" if sma50_rising is False
+        else "—"
+    )
+    days_above = d.get("days_above_sma50")
+    rsi = d.get("rsi_14")
+    rsi_zone = d.get("rsi_zone", "")
+    vol_sig = d.get("volume_signal", "")
+    vol_ratio = d.get("vol_ratio")
+    chg5 = d.get("5d_pct")
+    m1 = d.get("1mo_pct")
+    vs50 = d.get("vs_sma50_pct")
+    vs200 = d.get("vs_sma200_pct")
+
+    # ── Risk & Reward ──
+    upside_target = rr_obj.get("upside_target")
+    upside_pct = rr_obj.get("upside_pct")
+    upside_reason = rr_obj.get("upside_reason", "")
+    invalidation = rr_obj.get("invalidation")
+    invalidation_reason = rr_obj.get("invalidation_reason", "")
+    inv_pct = rr_obj.get("downside_pct")
+    structural = rr_obj.get("structural_support")
+    struct_pct = rr_obj.get("structural_support_pct")
+    wide_stop = rr_obj.get("wide_stop_rr")
+    rr_label = rr_obj.get("ratio_label", "")
+    rr_quality = rr_obj.get("rr_quality", "")
+
+    has_rr = any(v is not None for v in [upside_target, invalidation, structural, wide_stop])
+    if has_rr:
+        _drilldown_section("Risk & Reward")
+        if upside_target is not None:
+            line = f"<strong>Upside target.</strong> {pfx}{_fmt_num(upside_target, 2)}"
+            if upside_pct is not None:
+                line += f" (+{_fmt_num(upside_pct, 1)}%)"
+            if upside_reason:
+                line += f" — {_escape_dollars(upside_reason)}"
+            st.markdown(
+                f'<div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;'
+                f'line-height:1.55;">{line}</div>',
+                unsafe_allow_html=True,
+            )
+        if invalidation is not None:
+            line = f"<strong>Invalidation.</strong> {pfx}{_fmt_num(invalidation, 2)}"
+            if inv_pct is not None:
+                line += f" (-{_fmt_num(inv_pct, 1)}%)"
+            if invalidation_reason:
+                line += f" — {_escape_dollars(invalidation_reason)}"
+            st.markdown(
+                f'<div style="font-size:13px;color:var(--ink-2);margin-bottom:6px;'
+                f'line-height:1.55;">{line}</div>',
+                unsafe_allow_html=True,
+            )
+        rr_metrics = [
+            ("Headline R:R", f"{rr_label} ({rr_quality})" if rr_label else "—"),
+            ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—"),
+            (
+                "Structural support",
+                f"{pfx}{_fmt_num(structural, 2)} (-{_fmt_num(struct_pct, 1)}%)"
+                if structural else "—",
+            ),
+        ]
+        _drilldown_metrics(rr_metrics)
+
+    # ── Technicals ──
+    _drilldown_section("Technicals")
+    tech_metrics = [
+        ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
+        ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
+        ("SMA50",
+         f"{pfx}{_fmt_num(sma50, 2)} ({sma_status})" if sma50 else "—"),
+        ("Days above SMA50", str(days_above) if days_above is not None else "—"),
+        ("RSI (14d)", f"{_fmt_num(rsi, 0)} {rsi_zone}" if rsi else "—"),
+        ("Volume signal",
+         f"{vol_sig} ({_fmt_num(vol_ratio, 2)}x)" if vol_sig else "—"),
+        ("5-day return",
+         f"{_sign(chg5)}{_fmt_num(chg5, 1)}%" if chg5 is not None else "—"),
+        ("1-month return",
+         f"{_sign(m1)}{_fmt_num(m1, 1)}%" if m1 is not None else "—"),
+    ]
+    _drilldown_metrics(tech_metrics)
+
+    # ── Levels ──
+    supports = d.get("support_zones") or []
+    resistances = d.get("resistance_zones") or []
+    if supports or resistances:
+        _drilldown_section("Key Levels")
+        levels_html = ""
+        if supports:
+            levels_html += (
+                f'<div style="font-size:13px;color:var(--ink-2);margin-bottom:4px;">'
+                f'<strong>Support:</strong> '
+                f'{", ".join(f"{pfx}{_fmt_num(s, 2)}" for s in supports)}</div>'
+            )
+        if resistances:
+            levels_html += (
+                f'<div style="font-size:13px;color:var(--ink-2);">'
+                f'<strong>Resistance:</strong> '
+                f'{", ".join(f"{pfx}{_fmt_num(r, 2)}" for r in resistances)}</div>'
+            )
+        st.markdown(levels_html, unsafe_allow_html=True)
+
+    # ── Valuation ──
+    fpe = val.get("forward_pe")
+    peg = val.get("peg_ratio")
+    rev_g = val.get("revenue_growth_pct")
+    cluster_med_pe = val.get("cluster_median_pe")
+    pe_vs_cluster = val.get("pe_vs_cluster_pct")
+    fcf_y = val.get("fcf_yield_pct")
+    div_y = val.get("dividend_yield_pct")
+    pb = val.get("price_to_book")
+    consensus = (val.get("analyst_consensus") or {})
+    rec = consensus.get("recommendation", "")
+    n_analysts = consensus.get("num_analysts")
+    eps_g = consensus.get("earnings_growth_pct")
+
+    val_metrics = [
+        ("Cluster", CLUSTER_MAP.get(tk, "—")),
+        ("Forward P/E", f"{_fmt_num(fpe, 1)}x" if fpe else "—"),
+        ("Cluster median P/E",
+         f"{_fmt_num(cluster_med_pe, 1)}x ({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
+         if cluster_med_pe else "—"),
+        ("PEG", _fmt_num(peg, 2)),
+        ("Revenue growth",
+         f"{_sign(rev_g)}{_fmt_num(rev_g, 1)}%" if rev_g is not None else "—"),
+        ("FCF yield", f"{_sign(fcf_y)}{_fmt_num(fcf_y, 2)}%" if fcf_y is not None else "—"),
+        ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
+        ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),
+        ("Analyst consensus",
+         f"{rec} ({n_analysts})" if rec and n_analysts else (rec or "—")),
+        ("Est. EPS growth",
+         f"{_sign(eps_g)}{_fmt_num(eps_g, 1)}%" if eps_g is not None else "—"),
+    ]
+    _drilldown_section("Valuation")
+    _drilldown_metrics(val_metrics)
 # ── Masthead + top tab nav (rendered at top of main area) ──
 _mh_reports = load_all_reports()
 _mh_dates = sorted(_mh_reports.keys()) if _mh_reports else []
@@ -1744,7 +1893,7 @@ st.markdown(
 st.markdown('<div class="topnav-wrap">', unsafe_allow_html=True)
 page = st.radio(
     "Navigate",
-    ["Briefing", "Daily Report", "Watchlist", "Signal Tracker",
+    ["Briefing", "Watchlist", "Signal Tracker",
      "Pipeline Stats", "Scenario Log",
      "Report Comparison"],
     horizontal=True,
@@ -1887,7 +2036,7 @@ if page == "Briefing":
 
 
 # ════════════════════════════════════════════
-# PAGE: Watchlist (full drill-down view)
+# PAGE: Watchlist (full drill-down view; covers any past report date)
 # ════════════════════════════════════════════
 elif page == "Watchlist":
     all_reports = load_all_reports()
@@ -1895,562 +2044,19 @@ elif page == "Watchlist":
         st.error("No report files found in market_data/.")
         st.stop()
     sorted_dates = sorted(all_reports.keys(), reverse=True)
-    report = all_reports[sorted_dates[0]]
+    selected_date = st.selectbox(
+        "Report date", sorted_dates, index=0, key="watchlist_date"
+    )
+    report = all_reports[selected_date]
     watchlist = report.get("watchlist", {})
     benchmarks = report.get("benchmarks", {})
 
-    render_section_head(
-        "The Watchlist",
-        f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · "
-        "click an actionable row to expand"
-    )
+    sub_label = f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · click any row to expand"
+    if selected_date != sorted_dates[0]:
+        sub_label += f" · viewing {selected_date}"
+    render_section_head("The Watchlist", sub_label)
     render_pulse(benchmarks)
     render_watchlist(watchlist)
-
-
-# ════════════════════════════════════════════
-# PAGE 1: Daily Report Viewer
-# ════════════════════════════════════════════
-elif page == "Daily Report":
-    st.title("Daily Report")
-    reports = filter_reports(load_all_reports())
-    if not reports:
-        st.error("No report files found for the selected date range.")
-        st.stop()
-
-    dates = sorted(reports.keys(), reverse=True)
-    selected = st.selectbox("Report Date", dates)
-    report = reports[selected]
-    watchlist = report.get("watchlist", {})
-    all_reports = reports
-
-    report_path = DATA_DIR / f"morning_report_{selected}.json"
-    if report_path.exists():
-        st.download_button(
-            label="↓ Download JSON for this day",
-            data=report_path.read_bytes(),
-            file_name=f"morning_report_{selected}.json",
-            mime="application/json",
-        )
-
-    # ── 1. STANCE + SIGNAL COUNTS ──
-    meta = report.get("meta", {})
-    snapshot = report.get("portfolio_snapshot", {})
-    signal_counts = snapshot.get("signal_counts", {})
-
-    stance = snapshot.get("overall_stance", "")
-    if stance:
-        st.markdown(f"### {_escape_dollars(stance)}")
-
-    scols = st.columns(5)
-    for i, sig in enumerate(["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]):
-        count = signal_counts.get(sig, 0)
-        color = SIGNAL_COLORS.get(sig, "#6b7280")
-        scols[i].markdown(
-            f"<div style='text-align:center;padding:6px;border-radius:6px;"
-            f"background-color:{color}20;border:1px solid {color}'>"
-            f"<b style='color:{color}'>{sig}</b><br>"
-            f"<span style='font-size:1.6em;font-weight:bold'>{count}</span></div>",
-            unsafe_allow_html=True,
-        )
-
-    _render_signal_guide()
-
-    # ── 2. ACTION SUMMARY — "What do I do today?" ──
-    st.divider()
-    st.subheader("Action Summary")
-    action = report.get("action_summary", {})
-    category_labels = {
-        "consider_adding": ("Consider Adding", "green"),
-        "accumulate": ("Accumulate", "blue"),
-        "watch_for_entry": ("Watch for Entry", "orange"),
-        "on_deck": ("On Deck — Fundamentally Attractive", "blue"),
-        "caution_trim": ("Caution — Thesis Weakened", "red"),
-        "new_stocks_to_watch": ("New Stocks to Watch", "blue"),
-        "hold_no_action": ("Hold — No Action", "gray"),
-    }
-    any_actions = False
-    for key, (label, color) in category_labels.items():
-        items = action.get(key, [])
-        if not items:
-            continue
-        any_actions = True
-        st.markdown(f"**:{color}[{label}]** ({len(items)})")
-        for item in items:
-            if isinstance(item, dict):
-                ticker = item.get("ticker", "?")
-                note = _escape_dollars(item.get("note", ""))
-                entry = _escape_dollars(item.get("entry_level", ""))
-                line = f"- **{ticker}**: {note}"
-                if entry:
-                    line += f" | *{entry}*"
-            else:
-                line = f"- **{item}**"
-            st.markdown(line)
-    if not any_actions:
-        st.caption("No actionable signals today.")
-
-    # ── 3. SIGNAL CHANGES — "What's different?" ──
-    st.divider()
-    st.subheader("Signal Changes")
-
-    sorted_dates = sorted(all_reports.keys())
-    sel_idx = sorted_dates.index(selected) if selected in sorted_dates else -1
-    prev_date = sorted_dates[sel_idx - 1] if sel_idx > 0 else None
-    prev_report = all_reports.get(prev_date) if prev_date else None
-
-    if prev_report is None:
-        st.caption("No previous report to compare.")
-    else:
-        wl_today = watchlist
-        wl_yesterday = prev_report.get("watchlist", {})
-        signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-        changes = []
-
-        for tk in sorted(set(wl_today) | set(wl_yesterday)):
-            sig_old = wl_yesterday.get(tk, {}).get("signal", "—")
-            sig_new = wl_today.get(tk, {}).get("signal", "—")
-            if sig_old == sig_new:
-                continue
-            r_old = signal_rank.get(sig_old, 0)
-            r_new = signal_rank.get(sig_new, 0)
-            if sig_old == "—":
-                arrow = "+"
-            elif sig_new == "—":
-                continue  # hide removed tickers — watchlist edits, not signal events
-            elif r_new > r_old:
-                arrow = "^"
-            else:
-                arrow = "v"
-            display_tk = TICKER_DISPLAY.get(tk, tk)
-            rationale = wl_today.get(tk, {}).get("signal_rationale", "")
-            short_rationale = _truncate_rationale(rationale)
-            st_old = SIGNAL_ST_COLORS.get(sig_old, "gray")
-            st_new = SIGNAL_ST_COLORS.get(sig_new, "gray")
-            changes.append({
-                "ticker": display_tk, "from_sig": sig_old, "to_sig": sig_new,
-                "arrow": arrow, "rationale": short_rationale,
-                "st_old": st_old, "st_new": st_new,
-            })
-
-        if changes:
-            for c in changes:
-                st.markdown(
-                    f"**{c['ticker']}** {c['arrow']} "
-                    f":{c['st_old']}[{c['from_sig']}] -> :{c['st_new']}[{c['to_sig']}]"
-                )
-                if c["rationale"]:
-                    st.caption(_escape_dollars(c["rationale"]))
-        else:
-            st.success("No signal changes — steady state.")
-
-    # ── 4. WATCHLIST TABLE — scannable grid ──
-    st.divider()
-    st.subheader("Watchlist")
-    st.caption(
-        "Cell colors indicate entry quality: "
-        "green = favourable, orange = caution, red = avoid"
-    )
-    if watchlist:
-        wl_rows = []
-        for tk, d in watchlist.items():
-            sig = d.get("signal", "?")
-            rr = d.get("risk_reward", {})
-            curr = d.get("currency", "USD")
-            pfx = "S$" if curr == "SGD" else "$"
-            rsi_raw = d.get("rsi_14")
-            vs50_raw = d.get("vs_sma50_pct")
-            rr_raw = rr.get("ratio")
-            rr_distorted = rr.get("rr_distorted", False)
-            rr_display = "—"
-            if rr_raw:
-                rr_display = f"{rr_raw:.1f}*" if rr_distorted else f"{rr_raw:.1f}"
-            wl_rows.append({
-                "Ticker": TICKER_DISPLAY.get(tk, tk),
-                "Price": f"{pfx}{d.get('price', 0):,.2f}" if d.get("price") else "—",
-                "Chg%": f"{d.get('chg_pct', 0):+.2f}%" if d.get("chg_pct") is not None else "—",
-                "Signal": sig,
-                "RSI": f"{rsi_raw:.1f}" if rsi_raw else "—",
-                "vs SMA50": f"{vs50_raw:+.1f}%" if vs50_raw is not None else "—",
-                "R:R": rr_display,
-                "_tk_key": tk,
-                "_sig_rank": {"BUY": 1, "ACCUMULATE": 2, "WATCH": 3, "HOLD": 4, "CAUTION": 5}.get(sig, 6),
-                "_rsi_raw": rsi_raw,
-                "_vs50_raw": vs50_raw,
-                "_rr_raw": rr_raw,
-            })
-        wl_df = pd.DataFrame(wl_rows).sort_values("_sig_rank")
-
-        # Color-code the signal column
-        def _signal_color(val):
-            colors = {"BUY": "#22c55e", "ACCUMULATE": "#3498db", "WATCH": "#f59e0b",
-                      "HOLD": "#6b7280", "CAUTION": "#ef4444"}
-            c = colors.get(val, "#6b7280")
-            return f"color: {c}; font-weight: bold"
-
-        # Metric background color-coding
-        def _rsi_bg(row_idx):
-            raw = wl_df.iloc[row_idx]["_rsi_raw"]
-            bg = _metric_bg(raw, _RSI_THRESHOLDS)
-            return f"background-color: {bg}"
-
-        def _vs50_bg(row_idx):
-            raw = wl_df.iloc[row_idx]["_vs50_raw"]
-            bg = _metric_bg(raw, _VS_SMA50_THRESHOLDS)
-            return f"background-color: {bg}"
-
-        def _rr_bg(row_idx):
-            raw = wl_df.iloc[row_idx]["_rr_raw"]
-            bg = _metric_bg(raw, _RR_THRESHOLDS)
-            return f"background-color: {bg}"
-
-        display_df = wl_df.drop(columns=["_tk_key", "_sig_rank", "_rsi_raw", "_vs50_raw", "_rr_raw"])
-
-        def _apply_metric_bg(styler):
-            """Apply muted background colors to RSI, vs SMA50, R:R cells."""
-            rsi_styles = [_metric_bg(v, _RSI_THRESHOLDS) for v in wl_df["_rsi_raw"]]
-            vs50_styles = [_metric_bg(v, _VS_SMA50_THRESHOLDS) for v in wl_df["_vs50_raw"]]
-            rr_styles = [_metric_bg(v, _RR_THRESHOLDS) for v in wl_df["_rr_raw"]]
-
-            bg_df = pd.DataFrame("", index=display_df.index, columns=display_df.columns)
-            for i, idx in enumerate(display_df.index):
-                bg_df.at[idx, "RSI"] = f"background-color: {rsi_styles[i]}"
-                bg_df.at[idx, "vs SMA50"] = f"background-color: {vs50_styles[i]}"
-                bg_df.at[idx, "R:R"] = f"background-color: {rr_styles[i]}"
-            return bg_df
-
-        styled = (
-            display_df.style
-            .map(_signal_color, subset=["Signal"])
-            .apply(lambda _: _apply_metric_bg(None), axis=None)
-        )
-        st.dataframe(styled, hide_index=True, use_container_width=True)
-
-        # Footnote for distorted R:R
-        has_distorted = any(
-            d.get("risk_reward", {}).get("rr_distorted", False)
-            for d in watchlist.values()
-        )
-        if has_distorted:
-            st.caption(
-                "\\* R:R is distorted — invalidation or upside target is too close "
-                "to price for the ratio to be meaningful. See the writeup for context."
-            )
-
-        # Expanders for individual ticker rationales
-        st.caption("Click a ticker below for the full signal rationale.")
-        # Group by signal for cleaner browsing
-        for tk, d in watchlist.items():
-            signal = d.get("signal", "?")
-            rationale = d.get("signal_rationale", "")
-            if not rationale:
-                continue
-            display_tk = TICKER_DISPLAY.get(tk, tk)
-            st_color = SIGNAL_ST_COLORS.get(signal, "gray")
-            curr = d.get("currency", "USD")
-            price = d.get("price")
-            price_str = _price_str(price, curr) if price else ""
-            with st.expander(f"{display_tk} {price_str} — :{st_color}[{signal}]"):
-                rsi_val = d.get("rsi_14")
-                vs50_val = d.get("vs_sma50_pct")
-                entry_block = d.get("entry_block")
-                rr = d.get("risk_reward", {})
-                rr_val = rr.get("ratio")
-                rr_distorted = rr.get("rr_distorted", False)
-
-                rsi_bg = _metric_bg(rsi_val, _RSI_THRESHOLDS)
-                vs50_bg = _metric_bg(vs50_val, _VS_SMA50_THRESHOLDS)
-                rr_bg = _metric_bg(rr_val, _RR_THRESHOLDS)
-
-                rsi_str = f"{rsi_val:.1f}" if rsi_val else "—"
-                vs50_str = f"{vs50_val:+.1f}%" if vs50_val is not None else "—"
-                eb_str = (entry_block[:30] if entry_block else "None")
-                rr_str = "—"
-                if rr_val:
-                    rr_str = f"{rr_val:.1f}*" if rr_distorted else f"{rr_val:.1f}"
-
-                _card = (
-                    '<div style="display:flex;gap:8px;margin-bottom:10px;">'
-                    f'<div style="flex:1;background:{rsi_bg};border:1px solid #2a3a5c;'
-                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
-                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
-                    f'letter-spacing:0.06em;">RSI</div>'
-                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{rsi_str}</div></div>'
-                    f'<div style="flex:1;background:{vs50_bg};border:1px solid #2a3a5c;'
-                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
-                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
-                    f'letter-spacing:0.06em;">vs SMA50</div>'
-                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{vs50_str}</div></div>'
-                    f'<div style="flex:1;background:#16213e;border:1px solid #2a3a5c;'
-                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
-                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
-                    f'letter-spacing:0.06em;">Entry Block</div>'
-                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{eb_str}</div></div>'
-                    f'<div style="flex:1;background:{rr_bg};border:1px solid #2a3a5c;'
-                    f'border-radius:8px;padding:10px 12px;text-align:center;">'
-                    f'<div style="font-size:0.7rem;color:#b0b0b0;text-transform:uppercase;'
-                    f'letter-spacing:0.06em;">R:R</div>'
-                    f'<div style="font-size:1.3rem;font-weight:700;color:#e0e0e0;">{rr_str}</div></div>'
-                    '</div>'
-                )
-                st.markdown(_card, unsafe_allow_html=True)
-                st.markdown(_escape_dollars(rationale))
-
-    # ── 5. BENCHMARKS & MACRO ──
-    st.divider()
-    st.subheader("Market Pulse")
-    macro = report.get("macro_summary", "")
-    if macro:
-        st.write(_escape_dollars(macro))
-
-    benchmarks = report.get("benchmarks", {})
-    if benchmarks:
-        bm_cols = st.columns(min(len(benchmarks), 5))
-        SNAPSHOT_BM = ["SPY", "VIX", "WTI", "Gold", "SOXX", "QQQ", "DXY", "US10Y"]
-        shown = [b for b in SNAPSHOT_BM if b in benchmarks]
-        for i, bm_name in enumerate(shown[:5]):
-            bm = benchmarks[bm_name]
-            price = bm.get("price")
-            chg = bm.get("chg_pct")
-            if chg is not None:
-                delta_color = "inverse" if bm_name == "VIX" else "normal"
-                bm_cols[i % 5].metric(
-                    bm_name,
-                    f"{price:,.2f}" if price is not None else "—",
-                    f"{chg:+.2f}%", delta_color=delta_color,
-                )
-            else:
-                bm_cols[i % 5].metric(bm_name, f"{price:,.2f}" if price else "—")
-
-    comm = report.get("commodities_note", "")
-    if comm:
-        st.caption(f"**Commodities:** {_escape_dollars(comm)}")
-
-    # ── 6. DEEP DIVES (expandable) ──
-    st.divider()
-
-    # Clusters
-    clusters = report.get("clusters", {})
-    if clusters:
-        st.subheader("Cluster Deep Dives")
-        for name, cdata in clusters.items():
-            with st.expander(f"**{name.replace('_', ' ').title()}** — {cdata.get('thesis_status', '')}"):
-                st.write(_escape_dollars(cdata.get("summary", "")))
-                kd = cdata.get("key_development", "")
-                if kd:
-                    st.caption(f"**Key development:** {kd}")
-
-    # Interconnected
-    inter = report.get("interconnected", [])
-    if inter:
-        with st.expander(f"Interconnected Stocks ({len(inter)})"):
-            for item in inter:
-                tk = item.get("ticker", "?")
-                name = item.get("name", "")
-                reason = item.get("reason", "")
-                entry_note = item.get("entry_note", "")
-                price = item.get("price")
-                chg = item.get("chg_pct")
-                curr = item.get("currency", "USD")
-                label = f"**{tk}**"
-                if name:
-                    label += f" ({name})"
-                if price is not None:
-                    label += f" — {_price_str(price, curr)}"
-                if chg is not None:
-                    label += f" ({chg:+.2f}%)"
-                st.markdown(label)
-                if reason:
-                    st.caption(_escape_dollars(reason))
-                if entry_note:
-                    st.caption(f"Entry: {_escape_dollars(entry_note)}")
-
-    # Geopolitical
-    geo = report.get("geopolitical", {})
-    has_geo = geo.get("active_risks") or geo.get("market_impact") or geo.get("scenarios")
-    if has_geo:
-        with st.expander("Geopolitical Scenarios"):
-            risks = geo.get("active_risks", [])
-            if risks:
-                for r in risks:
-                    st.markdown(f"- {_escape_dollars(r)}")
-            impact_text = geo.get("market_impact", "") or geo.get("macro_outlook", "")
-            if impact_text:
-                st.info(_escape_dollars(impact_text))
-            new_since = geo.get("new_since_yesterday", "")
-            if new_since:
-                st.warning(f"**New today:** {_escape_dollars(new_since)}")
-            probs = geo.get("probabilities", {})
-            if probs:
-                prob_cols = st.columns(4)
-                for col, (label, key) in zip(prob_cols, [("Base", "base"), ("Optimistic", "optimistic"),
-                                                          ("Pessimistic", "pessimistic"), ("Wildcard", "wildcard")]):
-                    val = probs.get(key, "?")
-                    col.metric(label, f"{val}%")
-            port_action = geo.get("portfolio_action", "")
-            if port_action:
-                st.success(f"**Action:** {_escape_dollars(port_action)}")
-            scenarios = geo.get("scenarios", {})
-            for sc_name, sc in scenarios.items():
-                prob = sc.get("probability", "?")
-                sc_label = sc_name.replace("_", " ").title()
-                st.markdown(f"**{sc_label}** — {prob}")
-                st.write(_escape_dollars(sc.get("description", "")))
-
-    # Events
-    events = report.get("events_this_week", [])
-    if events:
-        with st.expander(f"Key Events ({len(events)})"):
-            ev_df = pd.DataFrame(events)
-            if "date" in ev_df.columns:
-                ev_df = ev_df.sort_values("date")
-            st.dataframe(ev_df, width="stretch", hide_index=True)
-
-    # Macro Trigger Map
-    trigger_map = report.get("macro_trigger_map", [])
-    # Flatten if double-nested
-    if trigger_map and isinstance(trigger_map[0], list):
-        trigger_map = [item for sublist in trigger_map for item in sublist]
-    if trigger_map:
-        with st.expander(f"Macro Trigger Map ({len(trigger_map)})"):
-            for tm in trigger_map:
-                if not isinstance(tm, dict):
-                    continue
-                event_name = tm.get("event", "")
-                event_date = tm.get("date", "")
-                header = f"**{event_name}**"
-                if event_date:
-                    header += f" ({event_date})"
-                st.markdown(header)
-                bullish = tm.get("bullish_outcome", "")
-                upgrades = tm.get("bullish_upgrades", [])
-                if bullish:
-                    upgrade_str = ", ".join(upgrades) if upgrades else ""
-                    bull_text = f":green[Bullish:] {_escape_dollars(bullish)}"
-                    if upgrade_str:
-                        bull_text += f" -> {upgrade_str}"
-                    st.markdown(bull_text)
-                bearish = tm.get("bearish_outcome", "")
-                impacts = tm.get("bearish_impact", [])
-                if bearish:
-                    impact_str = ", ".join(impacts) if impacts else ""
-                    bear_text = f":red[Bearish:] {_escape_dollars(bearish)}"
-                    if impact_str:
-                        bear_text += f" -> {impact_str}"
-                    st.markdown(bear_text)
-                st.markdown("---")
-
-    # ── Entry Trigger Tracker ──
-    import re as _re
-    on_deck = action.get("on_deck", [])
-    watch_entry = action.get("watch_for_entry", [])
-    trigger_items = on_deck + watch_entry
-    if trigger_items:
-        with st.expander(f"Entry Trigger Tracker ({len(trigger_items)})"):
-            for item in trigger_items:
-                tk = item.get("ticker", "?")
-                note = item.get("note", "")
-                trigger = item.get("trigger", "")
-                text = note or trigger
-                price_match = _re.search(r'\$(\d[\d,.]*)', trigger or note)
-                tk_price = watchlist.get(tk, {}).get("price")
-                distance_pct = None
-                target_price = None
-                if price_match and tk_price:
-                    try:
-                        target_price = float(price_match.group(1).replace(",", ""))
-                        distance_pct = (target_price - tk_price) / tk_price * 100
-                    except (ValueError, ZeroDivisionError):
-                        pass
-                if distance_pct is not None:
-                    abs_d = abs(distance_pct)
-                    if abs_d <= 2:
-                        ind = ":green[within 2%]"
-                    elif abs_d <= 5:
-                        ind = f":orange[{abs_d:.1f}% away]"
-                    else:
-                        ind = f":red[{abs_d:.1f}% away]"
-                    direction = "above" if distance_pct > 0 else "below"
-                    st.markdown(
-                        f"**{tk}** — trigger \\${target_price:,.0f} | "
-                        f"current \\${tk_price:,.2f} ({abs_d:.1f}% {direction}) {ind}"
-                    )
-                else:
-                    st.markdown(f"**{tk}**")
-                if text:
-                    st.caption(_escape_dollars(text))
-
-    # ── Watchlist Bias Over Time ──
-    st.divider()
-    st.subheader("Watchlist Bias Over Time")
-    bias_rows = []
-    for d in sorted(reports.keys()):
-        wl = reports[d].get("watchlist", {})
-        counts = {"BUY": 0, "ACCUMULATE": 0, "WATCH": 0, "HOLD": 0, "CAUTION": 0}
-        for tk_data in wl.values():
-            sig = tk_data.get("signal", "")
-            if sig in counts:
-                counts[sig] += 1
-        counts["date"] = pd.to_datetime(d)
-        bias_rows.append(counts)
-
-    if bias_rows:
-        bias_df = pd.DataFrame(bias_rows)
-        fig_bias = go.Figure()
-        for sig, color in [("BUY", "#22c55e"), ("ACCUMULATE", "#3498db"),
-                           ("WATCH", "#f59e0b"), ("HOLD", "#6b7280"),
-                           ("CAUTION", "#ef4444")]:
-            fig_bias.add_trace(go.Bar(
-                x=bias_df["date"], y=bias_df[sig],
-                name=sig, marker_color=color,
-            ))
-        fig_bias.update_layout(
-            barmode="stack", height=250,
-            yaxis_title="Tickers",
-            margin=dict(l=0, r=0, t=30, b=0),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        )
-        st.plotly_chart(fig_bias, use_container_width=True)
-
-    # ── Benchmark Trends ──
-    st.subheader("Benchmark Trends")
-    all_reports_sorted = sorted(reports.items())
-    bench_series: dict[str, list] = {}
-    bench_dates: list = []
-    for d_str, rpt in all_reports_sorted:
-        bench_dates.append(pd.to_datetime(d_str))
-        for bm_name, bm_data in rpt.get("benchmarks", {}).items():
-            bench_series.setdefault(bm_name, []).append(bm_data.get("price"))
-    default_benchmarks = ["SPY", "VIX", "WTI", "SOXX", "US10Y"]
-    available_bm = [b for b in bench_series if len(bench_series[b]) == len(bench_dates)]
-    show_bm = st.multiselect(
-        "Benchmarks", available_bm,
-        default=[b for b in default_benchmarks if b in available_bm],
-        key="bm_trend",
-    )
-    if show_bm and bench_dates:
-        fig_bm = go.Figure()
-        bm_colors = {"SPY": "#3b82f6", "QQQ": "#8b5cf6", "VIX": "#ef4444",
-                      "WTI": "#f59e0b", "Gold": "#fbbf24", "SOXX": "#22c55e",
-                      "DXY": "#6b7280", "US10Y": "#ec4899"}
-        for bm_name in show_bm:
-            vals = bench_series[bm_name]
-            base = next((v for v in vals if v is not None), None)
-            if base and base != 0:
-                pct_vals = [(v / base - 1) * 100 if v is not None else None for v in vals]
-                fig_bm.add_trace(go.Scatter(
-                    x=bench_dates, y=pct_vals,
-                    mode="lines+markers", name=bm_name,
-                    line=dict(color=bm_colors.get(bm_name, "#6b7280"), width=2),
-                ))
-        fig_bm.add_hline(y=0, line_dash="dot", line_color="#4b5563", line_width=1)
-        fig_bm.update_layout(
-            yaxis_title="% Change from Start",
-            height=350, margin=dict(l=0, r=0, t=30, b=0),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02),
-            hovermode="x unified",
-        )
-        st.plotly_chart(fig_bm, use_container_width=True)
 
 
 # ════════════════════════════════════════════
@@ -2475,6 +2081,35 @@ elif page == "Signal Tracker":
     if not selected_tickers:
         st.info("Select at least one ticker.")
         st.stop()
+
+    signal_map = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
+    filtered = sig_df[sig_df["ticker"].isin(selected_tickers)].copy()
+    filtered["signal_num"] = filtered["signal"].map(signal_map)
+
+    # ── Signal Changes (top — what shifted, when) ──
+    st.subheader("Signal Changes")
+    changes = []
+    for ticker in selected_tickers:
+        tk = filtered[filtered["ticker"] == ticker].sort_values("date")
+        if len(tk) < 2:
+            continue
+        for i in range(1, len(tk)):
+            prev = tk.iloc[i - 1]
+            curr = tk.iloc[i]
+            if prev["signal"] != curr["signal"]:
+                changes.append({
+                    "Date": curr["date"].strftime("%Y-%m-%d"),
+                    "Ticker": ticker,
+                    "From": prev["signal"],
+                    "To": curr["signal"],
+                    "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
+                })
+    if changes:
+        st.dataframe(pd.DataFrame(changes), width="stretch", hide_index=True)
+    else:
+        st.caption("No signal changes detected in the selected tickers/date range.")
+
+    st.divider()
 
     # ── Signal Outcome History (per-ticker episode view) ──
     st.subheader("Signal Outcome History")
@@ -2637,10 +2272,6 @@ elif page == "Signal Tracker":
 
     # ── Signal history heatmap ──
     st.subheader("Signal History")
-    signal_map = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-    filtered = sig_df[sig_df["ticker"].isin(selected_tickers)].copy()
-    filtered["signal_num"] = filtered["signal"].map(signal_map)
-
     pivot = filtered.pivot_table(
         index="ticker", columns="date", values="signal_num", aggfunc="first"
     )
@@ -2669,32 +2300,9 @@ elif page == "Signal Tracker":
         fig.update_layout(height=max(200, 40 * len(selected_tickers)), margin=dict(l=0, r=0, t=30, b=0))
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Signal change log ──
-    st.subheader("Signal Changes")
-    changes = []
-    for ticker in selected_tickers:
-        tk = filtered[filtered["ticker"] == ticker].sort_values("date")
-        if len(tk) < 2:
-            continue
-        for i in range(1, len(tk)):
-            prev = tk.iloc[i - 1]
-            curr = tk.iloc[i]
-            if prev["signal"] != curr["signal"]:
-                changes.append({
-                    "Date": curr["date"].strftime("%Y-%m-%d"),
-                    "Ticker": ticker,
-                    "From": prev["signal"],
-                    "To": curr["signal"],
-                    "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
-                })
-    if changes:
-        st.dataframe(pd.DataFrame(changes), width="stretch", hide_index=True)
-    else:
-        st.caption("No signal changes detected in the selected tickers/date range.")
-
     st.divider()
 
-    # ── Feature 2: Historical Writeup Viewer ──
+    # ── Historical Writeup Viewer ──
     with st.expander("Historical Writeup Viewer", expanded=False):
         st.caption("Read the full signal rationale for a ticker across dates to see how the narrative evolves.")
 
@@ -2821,82 +2429,81 @@ elif page == "Scenario Log":
         st.warning("No scenario data available yet.")
         st.stop()
 
-    # Probability over time chart
-    st.subheader("Probabilities Over Time")
-    scenarios = sc_df["scenario"].unique()
     scenario_colors = {
-        "Base": "blue",
-        "Optimistic": "green",
-        "Pessimistic": "red",
-        "Wildcard": "violet",
+        "Base":        "#3b82f6",
+        "Optimistic":  "#22c55e",
+        "Pessimistic": "#ef4444",
+        "Wildcard":    "#a855f7",
+    }
+    st_color_names = {
+        "Base": "blue", "Optimistic": "green",
+        "Pessimistic": "red", "Wildcard": "violet",
     }
 
+    # ── Compact time-series (small chart) ──
+    st.subheader("Probabilities Over Time")
     fig = go.Figure()
-    for sc_name in scenarios:
+    for sc_name in sc_df["scenario"].unique():
         sc_data = sc_df[sc_df["scenario"] == sc_name].sort_values("date")
         if sc_data["probability_mid"].notna().any():
             fig.add_trace(go.Scatter(
                 x=sc_data["date"], y=sc_data["probability_mid"],
-                mode="lines+markers",
-                name=sc_name,
-                line=dict(color={"Base": "#3b82f6", "Optimistic": "#22c55e",
-                                 "Pessimistic": "#ef4444", "Wildcard": "#a855f7"
-                                 }.get(sc_name, "#6b7280"), width=2),
-                hovertemplate=f"<b>{sc_name}</b><br>"
-                              "%{x|%b %d}: %{customdata}<extra></extra>",
+                mode="lines+markers", name=sc_name,
+                line=dict(color=scenario_colors.get(sc_name, "#6b7280"), width=2),
+                hovertemplate=f"<b>{sc_name}</b><br>%{{x|%b %d}}: %{{customdata}}<extra></extra>",
                 customdata=sc_data["probability_str"],
             ))
-    # Overlay HIGH-impact events as vertical markers
-    event_annotations = []
-    for d_str, rpt in reports.items():
-        events = rpt.get("events_this_week", [])
-        for ev in events:
-            impact = ev.get("impact", "")
-            if impact != "HIGH":
-                continue
-            ev_date = ev.get("date", d_str)
-            ev_text = ev.get("event", "")[:30]
-            try:
-                event_annotations.append((pd.to_datetime(ev_date), ev_text))
-            except Exception:
-                continue  # Skip unparseable dates like "Q2 2026"
-    # Deduplicate by date+text, limit to 5
-    seen = set()
-    unique_events = []
-    for ev_date, ev_text in sorted(event_annotations):
-        key = (ev_date.strftime("%Y-%m-%d"), ev_text)
-        if key not in seen:
-            seen.add(key)
-            unique_events.append((ev_date, ev_text))
-    for ev_date, ev_text in unique_events[:5]:
-        fig.add_vline(
-            x=ev_date, line_dash="dash", line_color="#6b7280", line_width=1,
-        )
-        fig.add_annotation(
-            x=ev_date, y=1.05, yref="paper",
-            text=ev_text, showarrow=False,
-            font=dict(size=9, color="#9ca3af"),
-            textangle=-30,
-        )
-
     fig.update_layout(
-        yaxis_title="Probability %", height=400,
-        margin=dict(l=0, r=0, t=60, b=0),
+        yaxis_title="Probability %", height=240,
+        margin=dict(l=0, r=0, t=20, b=0),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Scenario descriptions by date
-    st.subheader("Scenario Detail by Date")
-    dates = sorted(sc_df["date"].unique(), reverse=True)
-    for d in dates:
-        day_data = sc_df[sc_df["date"] == d]
-        with st.expander(f"**{pd.Timestamp(d).strftime('%Y-%m-%d')}**"):
-            for _, row in day_data.iterrows():
-                color = scenario_colors.get(row["scenario"], "#6b7280")
+    # ── Days when probabilities actually moved ──
+    st.subheader("Days when probabilities moved")
+    st.caption(
+        "By design the prompt carries forward yesterday's odds unless a named event justifies a shift — "
+        "this table shows only the days where Claude actually changed at least one scenario."
+    )
+    move_rows = []
+    for sc_name in sc_df["scenario"].unique():
+        sc_data = sc_df[sc_df["scenario"] == sc_name].sort_values("date")
+        prev_p, prev_d = None, None
+        for _, row in sc_data.iterrows():
+            p = row["probability_mid"]
+            if p is None or pd.isna(p):
+                continue
+            if prev_p is not None and abs(p - prev_p) >= 0.5:
+                move_rows.append({
+                    "Date": pd.Timestamp(row["date"]).strftime("%Y-%m-%d"),
+                    "Scenario": sc_name,
+                    "From": f"{prev_p:.0f}%",
+                    "To": f"{p:.0f}%",
+                    "Δ": f"{p - prev_p:+.0f}",
+                    "New description": row.get("description") or "",
+                })
+            prev_p = p
+            prev_d = row["date"]
+
+    if move_rows:
+        moves_df = pd.DataFrame(move_rows).sort_values("Date", ascending=False).reset_index(drop=True)
+        st.dataframe(moves_df, use_container_width=True, hide_index=True)
+    else:
+        st.caption("No probability shifts in the selected date range.")
+
+    # ── Latest scenario detail (collapsed) ──
+    latest_d = sc_df["date"].max()
+    if pd.notna(latest_d):
+        latest_data = sc_df[sc_df["date"] == latest_d]
+        with st.expander(f"Latest scenarios — {pd.Timestamp(latest_d).strftime('%Y-%m-%d')}", expanded=False):
+            for _, row in latest_data.iterrows():
+                cn = st_color_names.get(row["scenario"], "gray")
                 st.markdown(
-                    f"**:{color}[{row['scenario']}]** — {row['probability_str']}"
+                    f"**:{cn}[{row['scenario']}]** — {row['probability_str']}"
                 )
-                st.caption(row["description"] if row["description"] else "")
+                if row.get("description"):
+                    st.caption(_escape_dollars(row["description"]))
 
 
 # ════════════════════════════════════════════
@@ -2910,6 +2517,8 @@ elif page == "Pipeline Stats":
     if token_df.empty:
         st.warning("No pipeline data available yet.")
         st.stop()
+
+    render_section_head("Cost & Tokens", "API spend and runtime per report")
 
     # ── Cost & timing overview ──
     st.subheader("API Usage Over Time")
@@ -3007,6 +2616,8 @@ elif page == "Pipeline Stats":
     )
     st.plotly_chart(fig_cum, use_container_width=True)
 
+    render_section_head("Pipeline Volume", "Articles ingested and prompt size")
+
     # ── Articles Fed to Prompt ──
     st.subheader("Articles Fed to Prompt")
     ps_df = load_pipeline_stats()
@@ -3092,7 +2703,7 @@ elif page == "Report Comparison":
 
     dates = sorted(reports.keys(), reverse=True)
 
-    # ── Multi-Day Trend Summary ──
+    render_section_head("Multi-Day Trend", "How posture and signals shifted across a window")
     st.subheader("Multi-Day Trend Summary")
     window_options = {3: "3 days", 5: "5 days", 7: "7 days", 14: "14 days", 30: "30 days"}
     window = st.select_slider(
@@ -3211,7 +2822,7 @@ elif page == "Report Comparison":
 
     st.divider()
 
-    # ── Pairwise Comparison ──
+    render_section_head("Pairwise Comparison", "Side-by-side diff between any two dates")
     st.subheader("Pairwise Comparison")
     ccols = st.columns(2)
     with ccols[0]:
