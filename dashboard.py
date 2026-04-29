@@ -422,6 +422,22 @@ def _writeup_for_render(d: dict) -> dict:
     }
 
 
+def _legacy_rationale_from(d: dict) -> str:
+    """Flatten the writeup into one string for legacy views (Historical
+    Writeup Viewer, Compare-dates Rationale column). Concatenates
+    headline + what_to_do for the new schema; falls back to
+    signal_rationale for old reports.
+    """
+    wu = d.get("writeup")
+    if isinstance(wu, dict):
+        h = (wu.get("headline") or "").strip()
+        wt = (wu.get("what_to_do") or "").strip()
+        if h and wt:
+            return f"{h} {wt}"
+        return h or wt
+    return d.get("signal_rationale", "") or ""
+
+
 def _price_str(price, currency: str = "USD") -> str:
     """Format a price with currency-aware prefix, escaped for Streamlit."""
     if price is None:
@@ -668,7 +684,7 @@ def extract_signal_history(reports: dict) -> pd.DataFrame:
                 "price": data.get("price"),
                 "rsi": data.get("rsi_14"),
                 "vs_sma50_pct": data.get("vs_sma50_pct"),
-                "rationale": data.get("signal_rationale", ""),
+                "rationale": _legacy_rationale_from(data),
             })
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
@@ -2336,81 +2352,6 @@ elif page == "Signal Tracker":
         if hold_count > 0:
             st.caption(f"HOLD signals: {hold_count} days across all tickers (not scored — HOLD is non-directional)")
 
-    st.divider()
-
-    # ── Signal history heatmap ──
-    st.subheader("Signal History")
-    pivot = filtered.pivot_table(
-        index="ticker", columns="date", values="signal_num", aggfunc="first"
-    )
-    pivot_labels = filtered.pivot_table(
-        index="ticker", columns="date", values="signal", aggfunc="first"
-    )
-
-    if not pivot.empty:
-        fig = go.Figure(data=go.Heatmap(
-            z=pivot.values,
-            x=[d.strftime("%b %d") for d in pivot.columns],
-            y=pivot.index.tolist(),
-            text=pivot_labels.values,
-            texttemplate="%{text}",
-            colorscale=[
-                [0, "#ef4444"],     # CAUTION (1)
-                [0.25, "#6b7280"],  # HOLD (2)
-                [0.5, "#f59e0b"],   # WATCH (3)
-                [0.75, "#3498db"],  # ACCUMULATE (4)
-                [1, "#22c55e"],     # BUY (5)
-            ],
-            zmin=1, zmax=5,
-            showscale=False,
-            hovertemplate="<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
-        ))
-        fig.update_layout(height=max(200, 40 * len(selected_tickers)), margin=dict(l=0, r=0, t=30, b=0))
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.divider()
-
-    # ── Historical Writeup Viewer ──
-    with st.expander("Historical Writeup Viewer", expanded=False):
-        st.caption("Read the full signal rationale for a ticker across dates to see how the narrative evolves.")
-
-        all_tickers_writeup = sorted(sig_df["ticker"].unique())
-        writeup_ticker = st.selectbox("Ticker", all_tickers_writeup, key="writeup_ticker")
-
-        if writeup_ticker:
-            tk_writeups = sig_df[sig_df["ticker"] == writeup_ticker].sort_values("date", ascending=False)
-            if tk_writeups.empty:
-                st.info("No data for this ticker.")
-            else:
-                prev_signal = None
-                for _, row in tk_writeups.iterrows():
-                    date_label = row["date"].strftime("%Y-%m-%d")
-                    signal = row["signal"]
-                    rationale = row.get("rationale", "") or ""
-                    price = row.get("price")
-                    price_str = f" — ${price:,.2f}" if price is not None else ""
-
-                    signal_changed = prev_signal is not None and signal != prev_signal
-
-                    header = f"**{date_label}** | {signal}{price_str}"
-                    if signal_changed:
-                        header += f"  *(changed from {prev_signal})*"
-
-                    if signal_changed:
-                        st.markdown(
-                            f"<div style='border-left:4px solid #f59e0b;padding-left:12px;"
-                            f"margin-bottom:8px;background-color:#f59e0b10;padding:8px;border-radius:4px'>"
-                            f"{header}<br><span style='font-size:0.9em'>{_escape_dollars(rationale)}</span></div>",
-                            unsafe_allow_html=True,
-                        )
-                    else:
-                        with st.container():
-                            st.markdown(header)
-                            if rationale:
-                                st.caption(_escape_dollars(rationale))
-
-                    prev_signal = signal
-
     # ── Paper Trade Outcomes (from pipeline signal_evaluation_log) ──
     st.divider()
     st.subheader("Paper Trade Outcomes")
@@ -2424,6 +2365,17 @@ elif page == "Signal Tracker":
     if sig_log.empty:
         st.info("No signal log data yet — `signal_log.csv` will appear after the next pipeline run.")
     else:
+        post_cutover_only = st.checkbox(
+            "Post-cutover only (≥ 2026-04-19)",
+            value=True,
+            help="Pre-cutover rows are too sparse to drive behavior. Uncheck to include them.",
+            key="paper_trade_post_cutover",
+        )
+        if post_cutover_only:
+            sig_log = sig_log[sig_log["date"] >= pd.Timestamp("2026-04-19")].copy()
+        if sig_log.empty:
+            st.info("No post-cutover signals logged yet.")
+            st.stop()
         # Summary metrics
         total_rows = len(sig_log)
         by_type = sig_log["entry_type"].value_counts().to_dict()
@@ -2928,7 +2880,7 @@ elif page == "Report Comparison":
                 f"Signal ({date_a})": sig_a,
                 f"Signal ({date_b})": sig_b,
                 "Direction": direction,
-                "Rationale": wl_b.get(tk, {}).get("signal_rationale", "")[:150],
+                "Rationale": _legacy_rationale_from(wl_b.get(tk, {}))[:150],
             })
 
     if sig_changes:
