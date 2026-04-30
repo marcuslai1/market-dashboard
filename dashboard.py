@@ -1979,7 +1979,7 @@ page = st.radio(
     "Navigate",
     ["Briefing", "Watchlist", "Signal Tracker",
      "Pipeline Stats", "Scenario Log",
-     "Report Comparison"],
+     "Report Comparison", "Terminology"],
     horizontal=True,
     label_visibility="collapsed",
     key="page_nav",
@@ -2116,7 +2116,14 @@ if page == "Briefing":
         render_section_head("The Week Ahead", "Catalysts that move signals")
         render_calendar(events)
 
-    _render_signal_guide()
+    st.markdown(
+        '<div style="margin-top:28px;padding:14px 16px;border-top:1px solid var(--rule);'
+        'font-family:var(--mono);font-size:11px;letter-spacing:0.18em;'
+        'text-transform:uppercase;color:var(--ink-3);">'
+        'Methodology &amp; formulas → see the <b style="color:var(--ink);">Terminology</b> tab'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # ════════════════════════════════════════════
@@ -2969,3 +2976,416 @@ elif page == "Report Comparison":
         })
     if metric_rows:
         st.dataframe(pd.DataFrame(metric_rows), width="stretch", hide_index=True)
+
+
+# ════════════════════════════════════════════
+# PAGE 7: Terminology — methodology & formulas reference
+# ════════════════════════════════════════════
+elif page == "Terminology":
+    render_section_head(
+        "Terminology & Methodology",
+        "How every number on this site is computed",
+    )
+
+    st.markdown(
+        '<div style="font-family:var(--sans);color:var(--ink-2);'
+        'font-size:0.95rem;line-height:1.6;max-width:78ch;margin:8px 0 28px;">'
+        "This page documents the formulas behind every signal, score, and chart on the site. "
+        "It is intended for readers who want to audit the method rather than take the output on faith. "
+        "Definitions are stated in plain language first, then with the precise rule the pipeline uses."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ---- The Six Signals ----
+    render_section_head("The Six Signals", "What each label means and when it fires")
+    st.markdown("""
+<style>
+.term-table { width:100%; border-collapse:collapse; font-family:var(--sans);
+  font-size:0.92rem; margin: 6px 0 22px; }
+.term-table th, .term-table td {
+  text-align:left; vertical-align:top; padding:10px 12px;
+  border-bottom:1px solid var(--rule); color:var(--ink-2);
+}
+.term-table th {
+  font-family:var(--mono); font-weight:600; font-size:11px;
+  letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-3);
+  border-bottom:1px solid var(--rule-strong);
+}
+.term-table td b { color: var(--ink); font-weight:600; }
+.term-pill {
+  font-family:var(--mono); font-weight:700; font-size:10px;
+  letter-spacing:0.14em; text-transform:uppercase;
+  padding:3px 8px; border-radius:3px; display:inline-block;
+}
+.term-formula {
+  font-family:var(--mono); font-size:0.88rem; color:var(--ink);
+  background:var(--paper-3); border-left:2px solid var(--rule-strong);
+  padding:10px 14px; margin:10px 0 18px; white-space:pre-wrap;
+  border-radius:0 3px 3px 0;
+}
+.term-prose {
+  font-family:var(--sans); color:var(--ink-2); font-size:0.94rem;
+  line-height:1.65; max-width:78ch; margin:6px 0 14px;
+}
+.term-prose b { color: var(--ink); }
+.term-bullets { font-family:var(--sans); color:var(--ink-2);
+  font-size:0.92rem; line-height:1.7; max-width:78ch;
+  margin: 4px 0 18px; padding-left: 18px; }
+.term-bullets li { margin-bottom: 4px; }
+.term-bullets b { color: var(--ink); }
+</style>
+<table class="term-table">
+<thead><tr><th>Signal</th><th>Meaning</th><th>Trigger</th></tr></thead>
+<tbody>
+<tr>
+  <td><span class="term-pill" style="background:rgba(34,197,94,0.16);color:#22c55e;">● BUY</span></td>
+  <td><b>Enter now.</b> Multiple independent thesis legs, clean technicals near SMA50, RSI neutral, volume confirmed, R:R favourable.</td>
+  <td>All 8 mechanical gates pass <i>and</i> the fragility gate is satisfied (≥2 independent support legs, or a single catalyst with multi-day durability).</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(52,152,219,0.18);color:#3498db;">● ACCUMULATE</span></td>
+  <td><b>Starter position.</b> Mechanically eligible to enter, but not all technical conditions are perfect — start small.</td>
+  <td>All 8 mechanical gates pass and R:R is favourable, but the fragility gate is not satisfied (single-leg thesis, or technicals slightly short of BUY-grade).</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(245,158,11,0.18);color:#f59e0b;">● WATCH</span></td>
+  <td><b>Wait for trigger.</b> Thesis intact, but entry conditions are not present today.</td>
+  <td>One or more mechanical gates fail (e.g. extended above SMA50, RSI overbought, R:R below 1.0). The watch trigger is the named missing condition.</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(160,160,160,0.14);color:#9ca3af;">● HOLD</span></td>
+  <td><b>Wait days.</b> Nothing wrong, nothing interesting. No clear catalyst, mixed technicals, or poor R:R.</td>
+  <td>Default state for a tracked name with no actionable read. Clears when the next setup or catalyst arrives.</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(239,68,68,0.16);color:#ef4444;">● CAUTION</span></td>
+  <td><b>Wait weeks (price wrong).</b> Mechanical block — extended price, broken support, or extreme valuation. Story may still be intact.</td>
+  <td>A mechanical hard block fires (e.g. >5% above SMA50 with RSI &gt; 70, or invalidation level breached). Clears when price resets.</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(185,28,28,0.20);color:#ef4444;">● AVOID</span></td>
+  <td><b>Wait quarters (story broken).</b> A specific, sourced thesis leg has broken — not a price move, a fundamental change.</td>
+  <td>Sourced caution: a named thesis leg (catalyst, moat, demand pull) has been invalidated by an external development. Clears only when the broken leg repairs.</td>
+</tr>
+</tbody>
+</table>
+<div class="term-prose">
+<b>Three-tier wait gradient.</b> HOLD, CAUTION, and AVOID all mean "no entry today,"
+but they sit on a timeline. HOLD clears in days (a setup may form anytime).
+CAUTION needs <i>price</i> to reset — typically weeks. AVOID needs the broken thesis
+leg to <i>repair</i> — quarters or longer. The site's calibration tables score them differently:
+CAUTION is judged by whether you avoided a drawdown; AVOID is judged by whether
+you stayed off the consideration set entirely.
+</div>
+<div class="term-prose">
+<b>Signals are states, not a ladder.</b> A name can move from BUY to CAUTION in a single
+session if news invalidates the thesis. There is no requirement that signals step one
+rung at a time.
+</div>
+""", unsafe_allow_html=True)
+
+    # ---- Risk : Reward ----
+    render_section_head("Risk : Reward (R:R)", "The single most-cited number on this site")
+    st.markdown("""
+<div class="term-prose">
+R:R compares <b>upside to the nearest resistance</b> against <b>downside to the
+invalidation/stop level</b>. An R:R of 2.4 means the position offers 2.4 units of
+potential reward for every 1 unit at risk. It is a <i>shape</i> measure, not a
+probability — a 5:1 R:R that fails 90% of the time is worse than a 1.5:1 that
+works 70% of the time.
+</div>
+<div class="term-formula">headline_rr  =  (nearest_resistance − entry) / (entry − invalidation)
+wide_stop_rr =  (nearest_resistance − entry) / (entry − structural_support)</div>
+<ul class="term-bullets">
+<li><b>entry</b> — current close, or the named trigger price for WATCH setups.</li>
+<li><b>nearest_resistance</b> — the closest overhead supply zone identified from price action (prior swing high, congestion zone, round-number magnet). <i>Not</i> a distant best-case target.</li>
+<li><b>invalidation</b> — the price at which the thesis is mechanically wrong. Typically a recent swing low or the SMA50, whichever the writeup cites.</li>
+<li><b>structural_support</b> — a deeper, more durable level (200-day SMA, prior breakout base, decade-long trendline). Used to compute the wide-stop variant when the trader wants to give the position more room.</li>
+</ul>
+<div class="term-prose">
+<b>Why two R:R numbers?</b> The headline R:R uses the tightest defensible stop —
+it tells you the math at a quick-exit risk profile. The wide-stop R:R uses
+deeper support — it tells you the math if you are willing to sit through more
+volatility. Headline is the default cited on the Briefing; both are shown in
+the Watchlist drill-down.
+</div>
+<div class="term-prose">
+<b>Quality bands</b> — bands are advisory, not absolute. Below 1.0 means you
+are risking more than you stand to gain at the nearest target; above 2.0 means
+the geometry favours the trade.
+</div>
+<table class="term-table">
+<thead><tr><th>Band</th><th>Reading</th></tr></thead>
+<tbody>
+<tr><td><b>R:R ≥ 2.0</b></td><td>Favourable. Geometry alone supports the entry.</td></tr>
+<tr><td><b>1.0 ≤ R:R &lt; 2.0</b></td><td>Mixed. Need a thesis or technical edge to compensate.</td></tr>
+<tr><td><b>R:R &lt; 1.0</b></td><td>Unfavourable. Risk exceeds the nearest reward — generally a WATCH or HOLD.</td></tr>
+</tbody>
+</table>
+<div class="term-prose">
+<b>Caveat — distant-target inflation.</b> When a ticker is below its SMA50 with
+no nearby resistance, the "nearest_resistance" can be the SMA50 itself many
+percent away, producing a flattering R:R. The realistic upside in that case is
+the SMA50 reclaim — not a continuation through it. Read R:R alongside the
+ticker's vs-SMA50 reading.
+</div>
+""", unsafe_allow_html=True)
+
+    # ---- Technicals ----
+    render_section_head("Technical Indicators", "Bucket cutoffs and what they imply")
+    st.markdown("""
+<table class="term-table">
+<thead><tr><th>Metric</th><th>Definition</th><th>Bands</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>RSI (14-day)</b></td>
+  <td>Relative Strength Index. Smoothed ratio of average gains to average losses over the last 14 sessions, scaled 0–100. Measures whether recent buying or selling pressure has been one-sided.</td>
+  <td>&lt;40 oversold · 40–70 neutral · &gt;70 overbought</td>
+</tr>
+<tr>
+  <td><b>vs SMA50</b></td>
+  <td>Percent distance from the 50-day simple moving average — the medium-term trend line. Used as the primary entry-quality gate: closer is cleaner.</td>
+  <td>±2% clean entry · 2–5% above extended · &gt;5% above blocked</td>
+</tr>
+<tr>
+  <td><b>vs SMA200</b></td>
+  <td>Percent distance from the 200-day SMA — the long-term trend line. Used to classify regime: above SMA200 = bull, below = bear.</td>
+  <td>&gt;0% bull regime · &lt;0% bear regime</td>
+</tr>
+<tr>
+  <td><b>SMA50 status</b></td>
+  <td><b>rising</b> if the SMA50 is above its value 5 sessions ago by &gt;0.3%; <b>declining</b> if below by &gt;0.3%; otherwise <b>flat</b>. Paired with "days above" — the count of consecutive sessions price closed above the SMA50.</td>
+  <td>rising / flat / declining</td>
+</tr>
+<tr>
+  <td><b>Volume signal</b></td>
+  <td>Today's volume divided by the 20-day average volume. Confirmation: a breakout on &gt;1.5× volume is more durable than one on &lt;1.0×.</td>
+  <td>&gt;1.5× confirmed · 1.0–1.5× normal · &lt;1.0× weak</td>
+</tr>
+</tbody>
+</table>
+""", unsafe_allow_html=True)
+
+    # ---- Valuation ----
+    render_section_head("Valuation Metrics", "How fundamentals are read into the signal")
+    st.markdown("""
+<table class="term-table">
+<thead><tr><th>Metric</th><th>Definition &amp; use</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>Forward P/E</b></td>
+  <td>Price divided by analyst-consensus next-12-month earnings per share. The site shows the ticker's value alongside its <i>cluster median</i> (e.g. Semis, BigTech, SG Banks) and the percent premium/discount. Premium &gt; 30% with weakening growth is a CAUTION trigger.</td>
+</tr>
+<tr>
+  <td><b>Cluster median</b></td>
+  <td>Median forward P/E across the ticker's cluster peers (see CLUSTER_MAP — e.g. NVDA's cluster is Semis: AMD, INTC, MU, TSM, AVGO, ASML). Smoothes single-name distortions.</td>
+</tr>
+<tr>
+  <td><b>PEG</b></td>
+  <td>Forward P/E divided by expected EPS growth (%). Below 1.0 = growth-adjusted cheap; above 2.0 = expensive even after growth.</td>
+</tr>
+<tr>
+  <td><b>FCF yield</b></td>
+  <td>Trailing free cash flow divided by market cap. The cash-on-cash return if the business stopped reinvesting. Above 5% is generous for a growth name; below 1% is priced for perfection.</td>
+</tr>
+<tr>
+  <td><b>P/B</b></td>
+  <td>Price divided by book value per share. Primarily relevant for SG Banks and capital-heavy businesses.</td>
+</tr>
+<tr>
+  <td><b>Revenue growth</b></td>
+  <td>Most recent reported quarter's revenue vs the same quarter prior year (year-over-year).</td>
+</tr>
+<tr>
+  <td><b>EPS growth estimate</b></td>
+  <td>Analyst consensus next-fiscal-year EPS growth. Pairs with PEG.</td>
+</tr>
+<tr>
+  <td><b>Dividend yield</b></td>
+  <td>Trailing 12-month dividends divided by current price.</td>
+</tr>
+</tbody>
+</table>
+""", unsafe_allow_html=True)
+
+    # ---- Pre-Earnings Band ----
+    render_section_head("Pre-Earnings Band", "Implied price range from prior earnings reactions")
+    st.markdown("""
+<div class="term-prose">
+For names with an upcoming earnings date, the site computes an <b>implied bull/bear
+price band</b> from the ticker's own past earnings reactions. The construction is
+deliberately simple — no implied volatility, no options pricing — just empirical
+priors.
+</div>
+<div class="term-formula">For each of the last N earnings dates:
+  next_day_return = (close_t+1 − close_t) / close_t
+
+avg_up_pct   = mean of positive next_day_returns
+avg_down_pct = mean of negative next_day_returns  (absolute value)
+max_up_pct   = max positive return
+max_down_pct = max negative return  (absolute value)
+
+implied_upper = current_price × (1 + avg_up_pct)
+implied_lower = current_price × (1 − avg_down_pct)</div>
+<ul class="term-bullets">
+<li><b>N priors</b> — number of earnings reports used (typically 4–8). Shown in the drill-down so the reader can judge sample size.</li>
+<li><b>Asymmetric priors</b> — if all past reactions were one direction, the opposite-side average is null. The dashboard handles this by showing only the populated side.</li>
+<li><b>Max bands</b> — shown alongside the average bands as a worst-case reference, not a base case.</li>
+<li><b>Days until</b> — calendar days from today to the earnings date. Bands are most informative within ~10 days of the event.</li>
+</ul>
+<div class="term-prose">
+<b>What this is not.</b> Not an options-implied move, not a directional forecast.
+It is the empirical distribution of the ticker's own past earnings-day moves,
+projected onto today's price. Use it to size risk, not to pick a side.
+</div>
+""", unsafe_allow_html=True)
+
+    # ---- Signal Episodes & Verdicts ----
+    render_section_head("Signal Episodes & Verdicts", "How the calibration table is built")
+    st.markdown("""
+<div class="term-prose">
+The Signal Tracker's outcome history collapses consecutive same-signal rows
+per ticker into <b>episodes</b>. Each episode has an entry price, an exit price,
+a return, and a verdict. The exit rule is the load-bearing detail: signal
+episodes are scored on <b>trade economics</b>, not on signal-window boundaries.
+</div>
+<div class="term-formula">BUY / ACCUMULATE episode:
+  entry  = price on the first BUY/ACCUMULATE day
+  exit   = price on the next CAUTION or AVOID day for that ticker
+           (HOLD and WATCH do NOT close the episode)
+  if no CAUTION/AVOID yet → episode is active, exit = latest close
+
+CAUTION / AVOID episode:
+  entry  = price on the first CAUTION/AVOID day
+  exit   = price on the next BUY/ACCUMULATE for that ticker
+  if no BUY/ACCUMULATE yet → active, exit = latest close
+
+WATCH / HOLD episode:
+  non-actionable. exit = last-day price.
+
+return_pct       = (exit − entry) / entry
+run_during_pct   = (peak intra-episode price − entry) / entry</div>
+<div class="term-prose">
+The exit rule reflects how the signals are meant to be traded:
+"<i>when an ACCUMULATE/BUY changes to another, it doesn't mean I should
+immediately sell — it just means it's no longer suitable to enter.</i>"
+A 1-day ACCUMULATE flipping to HOLD does not return 0%; it stays open
+until a CAUTION or AVOID closes it.
+</div>
+<table class="term-table">
+<thead><tr><th>Verdict</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td><b>✓ profit</b> (BUY/ACCUMULATE)</td><td>return_pct &gt; 0 at exit.</td></tr>
+<tr><td><b>✗ loss</b> (BUY/ACCUMULATE)</td><td>return_pct ≤ 0 at exit.</td></tr>
+<tr><td><b>✓ avoided</b> (CAUTION)</td><td>return_pct &lt; 0 — staying out spared a drawdown.</td></tr>
+<tr><td><b>✗ wrong</b> (CAUTION)</td><td>return_pct ≥ 0 — the name kept working without you.</td></tr>
+<tr><td><b>✓ avoided</b> (AVOID)</td><td>return_pct &lt; 0 — story-broken read paid off.</td></tr>
+<tr><td><b>✗ wrong</b> (AVOID)</td><td>return_pct ≥ 0 (stricter threshold than CAUTION — AVOID intends "off the consideration set entirely").</td></tr>
+<tr><td><b>⚠ missed</b> (WATCH)</td><td>run_during_pct ≥ 5% — there was a real move and the trigger never fired.</td></tr>
+<tr><td><b>— quiet</b> (WATCH)</td><td>run_during_pct &lt; 5% — nothing meaningful happened.</td></tr>
+<tr><td><b>— non-directional</b> (HOLD)</td><td>HOLD is never scored. It is the absence of a call.</td></tr>
+<tr><td><b>⏳ active</b> (any)</td><td>Episode has not yet closed. Verdict prefix; current return shown but not final.</td></tr>
+</tbody>
+</table>
+<div class="term-prose">
+<b>Default filter.</b> The outcome history shows only actionable episodes
+(BUY / ACCUMULATE / CAUTION / AVOID, plus triggered WATCH). HOLD and
+quiet WATCH are toggled off by default.
+</div>
+<div class="term-prose">
+<b>Paper Trade Outcomes — post-cutover only.</b> The pipeline's
+signal_evaluation_log only stabilised on <b>2026-04-19</b> (when the
+catalyst-entry path landed). The table filters to that cutover by default;
+read pre-cutover rows as exploratory. Until ~3 months of post-cutover data
+accumulates, the metrics should be read as directional, not statistical.
+</div>
+""", unsafe_allow_html=True)
+
+    # ---- Aggregate Calibration ----
+    render_section_head("Aggregate Calibration", "Cross-watchlist hit rates")
+    st.markdown("""
+<div class="term-prose">
+The aggregate calibration table reports, per signal type, the share of
+closed episodes that hit "✓" verdicts. It is a measure of <i>directional
+accuracy</i>, not P&amp;L.
+</div>
+<div class="term-formula">win_rate(signal) = count(✓ episodes for signal) / count(closed episodes for signal)
+avg_return(signal) = mean(return_pct over closed episodes for signal)
+avg_run(signal)    = mean(run_during_pct over closed episodes for signal)</div>
+<ul class="term-bullets">
+<li><b>Closed-only.</b> Active episodes are excluded from win-rate denominators — their verdict is not yet known.</li>
+<li><b>Per-signal, not per-day.</b> A 30-day BUY counts once, not 30 times. This avoids inflating the denominator with persistent calls.</li>
+<li><b>HOLD is never counted.</b> HOLD is non-directional — including it would dilute every metric toward 50/50.</li>
+</ul>
+""", unsafe_allow_html=True)
+
+    # ---- Macro Scenarios ----
+    render_section_head("Macro Scenarios & Odds", "What the probability bar represents")
+    st.markdown("""
+<div class="term-prose">
+The macro section assigns probabilities to a small set of named scenarios
+(typically 3–4: e.g. <i>Soft landing</i>, <i>Stagflation</i>, <i>Hard
+landing</i>, <i>Reacceleration</i>). The probabilities are a subjective
+read of available evidence, <b>not</b> a market-implied or model-derived
+distribution.
+</div>
+<ul class="term-bullets">
+<li><b>Sum to 100%.</b> The set is exhaustive and mutually exclusive on any given day.</li>
+<li><b>"Days when probabilities moved"</b> — the Scenario Log filters out flat-line days where the prior day's odds were carried forward unchanged. Only days with a delta in any scenario appear in that table.</li>
+<li><b>Carry-forward is the default.</b> Most days the macro picture does not change; the pipeline carries yesterday's odds rather than re-fitting noise.</li>
+</ul>
+""", unsafe_allow_html=True)
+
+    # ---- Entry Block & Catalyst Path ----
+    render_section_head("Entry Block & Catalyst Path", "When mechanical rules are softened")
+    st.markdown("""
+<div class="term-prose">
+<b>Entry block</b> is an advisory flag the writeup may set when a name's
+mechanicals (price, RSI) make entry imprudent <i>even though the signal
+is BUY or ACCUMULATE</i>. It is the writeup's judgment, not a hard gate —
+the raw signal remains pure technicals; entry_block is the contextual
+caveat layered on top.
+</div>
+<div class="term-prose">
+<b>Catalyst entry path.</b> A specific exception to the &gt;5%-above-SMA50
+extension block: when a verified catalyst (named, sourced, with a known
+trigger date) is in play and the trend is durable, the pipeline allows
+entry despite extension. This path is paper-trade-only until at least
+two months and five completed entries have accumulated to validate the
+loosening. Episodes opened via this path are tagged in the Paper Trade
+Outcomes table.
+</div>
+""", unsafe_allow_html=True)
+
+    # ---- Pulse Strip ----
+    render_section_head("Pulse Strip", "How the 8 benchmarks are formatted")
+    st.markdown("""
+<div class="term-prose">
+The pulse strip on the Briefing and Watchlist pages shows 8 benchmarks:
+<b>SPY · QQQ · VIX · WTI · Gold · DXY · US10Y · SOXX</b>. Each cell shows
+the latest level and the day's percent change. Color is computed from
+the change sign — except <b>VIX</b>, which is inverted (VIX up = red,
+VIX down = green) since rising volatility is the risk-off direction.
+</div>
+<ul class="term-bullets">
+<li><b>4-digit prices</b> (e.g. SPY at 5,800) are shown with 0 decimals for readability.</li>
+<li><b>Sub-1000 prices</b> are shown with 2 decimals.</li>
+<li><b>VIX</b> is the CBOE Volatility Index — 30-day implied vol on S&amp;P 500 options.</li>
+<li><b>WTI</b> is West Texas Intermediate front-month crude in USD/bbl.</li>
+<li><b>DXY</b> is the U.S. Dollar Index against a basket of major currencies.</li>
+<li><b>US10Y</b> is the 10-year U.S. Treasury yield, in percent.</li>
+</ul>
+""", unsafe_allow_html=True)
+
+    # ---- Limitations ----
+    render_section_head("Limitations", "What this site does not do")
+    st.markdown("""
+<ul class="term-bullets">
+<li><b>Not personalized advice.</b> Signals are computed on a fixed watchlist and assume no view of the reader's existing positions, risk tolerance, or tax situation.</li>
+<li><b>Not a backtest.</b> The calibration tables are forward-only — they evaluate signals as they were issued in real time, with no look-ahead. Sample sizes are small until ~3 months of post-cutover data accrue.</li>
+<li><b>Not high-frequency.</b> Reports are produced once per session (pre-open SGT). Intraday moves are not reflected until the next run.</li>
+<li><b>R:R is geometry, not probability.</b> A high R:R does not mean a trade is likely to work — it means the math is favourable <i>if</i> it does.</li>
+<li><b>Macro odds are subjective.</b> The scenario probabilities are a structured read of evidence, not a market-implied distribution.</li>
+</ul>
+""", unsafe_allow_html=True)
