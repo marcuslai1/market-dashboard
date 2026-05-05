@@ -1,7 +1,50 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-05-04",
+  "_last_updated": "2026-05-05",
   "rolling_summaries": [
+    {
+      "date": "2026-05-05",
+      "themes": [
+        "Oil Escalation",
+        "Semiconductor Downgrades",
+        "BigTech Signal Shift"
+      ],
+      "signals_snapshot": {
+        "BUY": [],
+        "WATCH": [],
+        "HOLD": [
+          "O39_SI",
+          "U11_SI",
+          "MSFT"
+        ],
+        "CAUTION": [
+          "D05_SI",
+          "NVDA",
+          "AMD",
+          "INTC",
+          "ASML",
+          "MU",
+          "TSM",
+          "AMZN",
+          "GOOG",
+          "AVGO",
+          "LITE",
+          "PLTR",
+          "WRD"
+        ]
+      },
+      "key_prices": {
+        "SPY": 718.01,
+        "WTI": 104.26,
+        "VIX": 18.29,
+        "Gold": 4551.0
+      },
+      "interconnected_suggested": [
+        "TSM",
+        "AVGO"
+      ],
+      "one_liner": "WTI +2.4% to $104.26 on Hormuz missiles; SPY -0.3%, SOXX -0.6%. ASML downgraded to CAUTION, MSFT upgraded to HOLD."
+    },
     {
       "date": "2026-05-04",
       "themes": [
@@ -278,51 +321,6 @@
         "AVGO"
       ],
       "one_liner": "SPY +0.62%, SOXX +2.81% on AMD ATH. Ceasefire expires today; Hormuz reopening credibility binary. BigTech earnings 4/30 critical capex validator."
-    },
-    {
-      "date": "2026-04-24",
-      "themes": [
-        "Software sector selloff (IBM, ServiceNow earnings) triggers broad tech weakness",
-        "WTI surge to $96.59 (+2.16%) on Iran Hormuz tensions; ceasefire expires 4/27",
-        "BigTech earnings validator (AMZN/GOOG/MSFT 4/30) critical for $1.7T capex thesis amid duration headwinds",
-        "Mid-cap foundry bifurcation accelerates (SOXX +0.94%); mega-cap CAUTION persists on US10Y 4.32%",
-        "TurboQuant algorithm displacement risk remains latent day 26; Q1 earnings week critical validator"
-      ],
-      "signals_snapshot": {
-        "BUY": [],
-        "WATCH": [
-          "O39_SI",
-          "ASML",
-          "WRD"
-        ],
-        "HOLD": [
-          "AMD",
-          "INTC",
-          "MU",
-          "AMZN",
-          "AVGO"
-        ],
-        "CAUTION": [
-          "U11_SI",
-          "NVDA",
-          "TSM",
-          "GOOG",
-          "MSFT",
-          "LITE",
-          "PLTR"
-        ]
-      },
-      "key_prices": {
-        "SPY": 708.45,
-        "WTI": 96.59,
-        "VIX": 19.31,
-        "Gold": 4695.6
-      },
-      "interconnected_suggested": [
-        "ASML",
-        "AVGO"
-      ],
-      "one_liner": "Software rout triggers sector rebalance; WTI +2.2% on Hormuz risk. SOXX holds mid-cap isolation. BigTech earnings 4/30 capex validator critical."
     }
   ],
   "active_narratives": [
@@ -342,19 +340,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "WTI 109.40 (+10.1% from 99.33 on 4/29). US-Iran blockade escalation; Middle East airspace closures compound logistics. Analysts maintain $100-135/bbl range credible."
-        },
-        {
           "date": "2026-05-01",
           "note": "WTI 105.09 (-4.31 from 109.40, -3.9%). Oil eases but tensions persist; analysts raise Brent risk to $150-200. Strait may reopen but system 'broken'. Day 11 premium."
         },
         {
           "date": "2026-05-04",
           "note": "WTI 101.81 (-3.28 from 105.09). Trump: US to 'guide' ships through Hormuz, signaling naval escort; supply fears ease but analysts warn of $160 risk. Day 12."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "WTI 104.26 (+2.45 from 101.81). Fresh missile activity; Hormuz crisis deepens with UAE detection. US Central Command denial of warship strike. Day 13."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "sp500_technical_breakdown",
@@ -401,19 +399,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "SOXX 449.99 (+1.41% from 438.71). WTI 109.40 (+10.1%) logistics cost transmission escalates for ASML/TSM supply chain margin pressure. NVDA/AMD/INTC CAUTION sustained."
-        },
-        {
           "date": "2026-05-01",
           "note": "SOXX 461.44 (+11.45 from 449.99, +2.5%). Mega-caps NVDA/AMD/INTC still CAUTION; mid-cap foundry drives gain. Bifurcation deepens."
         },
         {
           "date": "2026-05-04",
           "note": "SOXX 465.75 (+4.31). ASML remains WATCH; MU downgraded to CAUTION, leaving ASML as sole semis name with workable R:R. Bifurcation intensifies."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "SOXX 462.06 (-3.69). ASML downgraded to CAUTION; no remaining WATCH semis names. Bifurcation uniform CAUTION across mega-caps."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "fed_rate_pivot",
@@ -430,19 +428,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "US10Y 4.42% (+0.07 from 4.35%). Fed rate cut pushed to late 2026 on war-related inflation risks. WTI 109.40 (+10.1%) validates sticky inflation narrative structural."
-        },
-        {
           "date": "2026-05-01",
           "note": "US10Y 4.39% (-0.03 from 4.42%). Slight yield dip; Fed cut delay to late 2026 still priced. Oil easing may reduce inflation pressure."
         },
         {
           "date": "2026-05-04",
           "note": "US10Y 4.38% (-1bp). Fed holds rates steady, cites inflation uncertainty. No change in cut timeline."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "US10Y 4.45% (+7bp). Yields rise on oil spike reinforcing sticky inflation fears; Fed cut timeline late 2026."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -462,19 +460,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "Day 44 NIM compression. US10Y 4.42% (+0.07 from 4.35%), DXY 98.98 (+0.45) re-escalate US rate premium. Dual reset conditions (US10Y<4.20% + STI>5000) inflection window closing."
-        },
-        {
           "date": "2026-05-01",
           "note": "US10Y 4.39% (-0.03), DXY 98.21 (-0.77). Rate differential narrows but still above 4.20% reset. Day 45 NIM compression."
         },
         {
           "date": "2026-05-04",
           "note": "US10Y 4.38% (-1bp), still above 4.20% reset. DXY 98.19 (-0.02). Day 47 NIM compression. No resolution."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "US10Y 4.45% (+7bp), DXY 98.48 (+0.29). Day 48 NIM compression. No relief; reset conditions unmet."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "hyperscaler_capex_sustainability_debate",
@@ -496,19 +494,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "BigTech earnings split: GOOG + vs AMZN/MSFT/META slump. MSFT disclosed OpenAI 45% of Azure backlog; capex moderation conviction validated. US10Y 4.42% duration pressure re-escalated."
-        },
-        {
           "date": "2026-05-01",
           "note": "GOOG surges post-earnings but MSFT/AMZN diverge. AI capex bubble debate intensifies. US10Y 4.39% (-0.03)."
         },
         {
           "date": "2026-05-04",
           "note": "Hyperscalers plan $630B 2026 CapEx. MSFT Azure revenue +40% offsets OpenAI concentration risk. Capex debate re-intensifies with bullish AI demand. MSFT upgraded to WATCH."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "MSFT upgraded to HOLD. Hyperscaler backlogs show growing AI demand. AMZN/GOOG remain CAUTION. Capex debate bullish bias emerges."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -523,19 +521,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "PLTR CAUTION sustained. No contract validation catalyst. Geopolitical escalation (WTI 109.40) may support defense spending conviction but no direct news."
-        },
-        {
           "date": "2026-05-01",
           "note": "No material change."
         },
         {
           "date": "2026-05-04",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "mid_cap_foundry_vs_mega_cap_duration",
@@ -558,19 +556,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "SOXX 449.99 (+1.41% recovery). WTI 109.40 logistics margin pressure on ASML/MU supply chains. US10Y 4.42% maintains mega-cap duration headwind structural."
-        },
-        {
           "date": "2026-05-01",
           "note": "SOXX 461.44 (+11.45). Mid-cap foundry strength sustains; ASML/MU resilient. US10Y 4.39% (-0.03) slightly eases duration pressure."
         },
         {
           "date": "2026-05-04",
           "note": "SOXX 465.75 (+4.31). MU downgraded to CAUTION; mid-cap foundry leadership narrows to ASML. US10Y 4.38% (-1bp) eases duration slightly."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "ASML downgraded to CAUTION; mid-cap foundry leadership collapses. SOXX 462.06 (-3.69). US10Y 4.45%."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "us_china_semiconductor_supply_chain",
@@ -591,19 +589,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "WTI 109.40 (+10.1%) logistics cost inflation intensifies; tanker/airfreight reroutes impact ASML/MU. Foundry demand resilience offset by macro margin pressure. No onshoring change."
-        },
-        {
           "date": "2026-05-01",
           "note": "No material change."
         },
         {
           "date": "2026-05-04",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "US escalates trade disputes with China/EU through tariffs and sanctions. Supply chain reshaping risk intensifies."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -620,19 +618,19 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "No material change."
-        },
-        {
           "date": "2026-05-01",
           "note": "China factory activity expands second month (PMI), despite Iran war shocks. No material change to semis exposure."
         },
         {
           "date": "2026-05-04",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "ecb_monetary_policy_divergence",
@@ -649,19 +647,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "DXY 98.98 (+0.45 from 98.53). US rate premium widening; Fed cut delayed to late 2026 & US10Y 4.42%. EUR weakness risk elevated."
-        },
-        {
           "date": "2026-05-01",
           "note": "DXY 98.21 (-0.77). Narrowing US rate premium eases EUR pressure slightly. ECB divergence unchanged."
         },
         {
           "date": "2026-05-04",
           "note": "ECB holds rates, DXY 98.19 (-0.02). No material divergence shift."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "DXY 98.48 (+0.29). US10Y 4.45% widens rate premium on oil spike. ECB divergence unchanged."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "gold_data_conflict",
@@ -739,19 +737,19 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "WTI 109.40 (+10.1% from 99.33 on 4/29). US-Iran blockade escalation; Middle East airspace closures compound supply chain logistics. Day 10 geopolitical premium, reopening timeline weeks+."
-        },
-        {
           "date": "2026-05-01",
           "note": "WTI 105.09 (-4.31 from 109.40, -3.9%). Tensions escalate but price eases; headlines cite $150-200 Brent risk. Logistics disruption continues. Day 11."
         },
         {
           "date": "2026-05-04",
           "note": "WTI 101.81 (-3.28 from 105.09). Trump says US to 'guide' ships through Hormuz, signaling naval escort, easing block tension. $160 risk cited. Day 12."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "WTI 104.26 (+2.45). UAE detects missiles from Iran; missile activity deepens crisis. US Central Command denies warship strike report. Day 13."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -770,23 +768,106 @@
       },
       "updates": [
         {
-          "date": "2026-04-30",
-          "note": "MSFT disclosed OpenAI 45% Azure backlog; OpenAI revenue miss validates demand destruction thesis. MSFT earnings part of BigTech split, confirms capex moderation conviction. US10Y 4.42%."
-        },
-        {
           "date": "2026-05-01",
           "note": "MSFT upgraded to WATCH (from CAUTION). Azure OpenAI dependency concern persists. US10Y 4.39% (-0.03)."
         },
         {
           "date": "2026-05-04",
           "note": "MSFT upgraded to WATCH. Azure jumps 40% (AI demand holds). New: OpenAI shakes up partnership, capping revenue (CNBC). Dependency risk evolves from concentration to structure."
+        },
+        {
+          "date": "2026-05-05",
+          "note": "MSFT upgraded to HOLD. Azure AI surge; OpenAI deal moat shifts to data. Dependency risk structural, not concentration."
         }
       ],
-      "last_updated": "2026-05-04"
+      "last_updated": "2026-05-05"
+    },
+    {
+      "id": "intel_18a_node_production",
+      "title": "Intel 18A Node High-Volume Production Milestone",
+      "started": "2026-05-05",
+      "status": "active",
+      "summary": "Intel achieves high-volume production on its 18A node, ending a five-year marathon and reclaiming silicon leadership. Market awaits re-rating of INTC (currently CAUTION).",
+      "affected_tickers": [
+        "INTC",
+        "ASML",
+        "NVDA",
+        "AMD"
+      ],
+      "thesis": "18A milestone validates Intel's foundry roadmap and CHIPS Act investment, potentially shifting competitive landscape against TSMC. However, INTC remains CAUTION until market reprices foundry competitiveness and demand visibility.",
+      "key_levels": {},
+      "updates": [
+        {
+          "date": "2026-05-05",
+          "note": "Intel 18A node hits high-volume production per FinancialContent. INTC still CAUTION; market reaction awaited."
+        }
+      ],
+      "last_updated": "2026-05-05"
     }
   ],
   "lessons_learned": [],
   "news_digest": [
+    {
+      "date": "2026-05-05",
+      "topics": [
+        {
+          "topic": "Iran-Hormuz Oil Crisis Escalation",
+          "summary": "WTI surged 2.3% to $104.26 after UAE detected missiles from Iran, deepening Hormuz crisis. US Central Command denied warship strike. Logistics advisories warn of severe supply chain disruption.",
+          "tickers": [
+            "O39_SI",
+            "ASML",
+            "TSM",
+            "LITE"
+          ]
+        },
+        {
+          "topic": "US-China-EU Trade Escalation",
+          "summary": "U.S. escalates trade disputes with China and EU through new tariffs and sanctions, intensifying tech trade war. Semiconductor supply chain reshaping risk rises.",
+          "tickers": [
+            "ASML",
+            "INTC",
+            "MU",
+            "NVDA",
+            "AMD"
+          ]
+        },
+        {
+          "topic": "Microsoft Azure AI Surge & OpenAI Partnership Shift",
+          "summary": "Azure AI surge as OpenAI deal changes moat from models to data; Microsoft upgraded to HOLD. Revenue cap risk from partnership shift monitored.",
+          "tickers": [
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "Semiconductor Supply Strain & Intel 18A Breakthrough",
+          "summary": "Semiconductor supply chains under strain as Nvidia shifts demand. Intel 18A node achieves high-volume production, ending five-year marathon. INTC remains CAUTION.",
+          "tickers": [
+            "NVDA",
+            "AMD",
+            "INTC",
+            "ASML",
+            "MU"
+          ]
+        },
+        {
+          "topic": "AI Infrastructure Demand Growing",
+          "summary": "Hyperscaler backlogs show growing demand for AI infrastructure, reinforcing record $630B 2026 capex. Capex debate sees bullish bias despite caution on mega-caps.",
+          "tickers": [
+            "AMZN",
+            "GOOG",
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "Market Reaction: Oil Spike Weighs on Stocks",
+          "summary": "S&P 500 eased 0.3% to 718.01 as oil spike and Hormuz crisis elevated caution. Truce prospects dimmed. VIX at 18.29.",
+          "tickers": [
+            "SPY",
+            "QQQ"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-05-04",
       "topics": [
@@ -890,76 +971,6 @@
           "tickers": [
             "ASML",
             "TSM"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-04-30",
-      "topics": [
-        {
-          "topic": "Oil Hormuz Crisis",
-          "summary": "WTI surged 10.1% to $109.40 after US-Iran diplomacy collapsed and White House planned extended blockade of Iranian ports. Middle East airspace closures compound logistics disruption; analysts maintain $100-135/bbl credible range. Escalated from prior 108.67 on renewed blockade/sanctions.",
-          "tickers": [
-            "WTI",
-            "O39_SI",
-            "XOM",
-            "CVX",
-            "ASML",
-            "TSM",
-            "LITE"
-          ]
-        },
-        {
-          "topic": "BigTech Earnings Split & Capex Moderation",
-          "summary": "April 30 earnings split: GOOG rose on TPU v7 and Meta deal, while MSFT slumped after disclosing OpenAI represents 45% of Azure cloud backlog. AMZN and META also down. Capex moderation thesis validated as hyperscaler guidance resets. Fed cut delayed to late 2026.",
-          "tickers": [
-            "GOOG",
-            "MSFT",
-            "AMZN",
-            "META",
-            "NVDA"
-          ]
-        },
-        {
-          "topic": "Fed Rate Delay & Sticky Inflation",
-          "summary": "Federal Reserve pushed rate cut timeline to late 2026 citing geopolitical inflation risks; US10Y jumped 0.07 to 4.42%. Oil shock (WTI +10.1%) re-validates sticky inflation narrative, keeping hawkish pressure on rates. New development: explicit delay to late 2026.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Semiconductor Bifurcation & AI Chip Shortages",
-          "summary": "SOXX recovered +1.41% to 449.99, but mega-cap NVDA/AMD/INTC remain under caution. Mid-cap foundry (ASML, TSM, MU) hold structurally despite oil logistics margin pressure. Nvidia shift and AI chip shortages threaten gadget prices. Escalated oil transmission to supply chains.",
-          "tickers": [
-            "NVDA",
-            "ASML",
-            "TSM",
-            "MU",
-            "AMD",
-            "INTC",
-            "SOXX"
-          ]
-        },
-        {
-          "topic": "Microsoft-OpenAI Dependency & Azure Risk",
-          "summary": "Microsoft disclosed OpenAI makes up 45% of Azure cloud backlog, exposing revenue concentration risk. OpenAI revenue miss (WSJ) pressures cloud AI ROI and capex conviction. Bill Ackman commented on OpenAI and tech stocks.",
-          "tickers": [
-            "MSFT",
-            "GOOG",
-            "AMZN",
-            "NVDA"
-          ]
-        },
-        {
-          "topic": "Singapore Banking NIM Pressure",
-          "summary": "US10Y 4.42% and DXY 98.98 widen rate differential; Singapore banks NIM compression enters day 44. Dual reset conditions (US10Y<4.20% and STI>5000) window closing as rates remain elevated.",
-          "tickers": [
-            "D05_SI",
-            "O39_SI",
-            "U11_SI"
           ]
         }
       ]
