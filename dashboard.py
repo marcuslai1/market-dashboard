@@ -383,7 +383,8 @@ def _truncate_rationale(text: str) -> str:
 
 
 def _writeup_for_render(d: dict) -> dict:
-    """Return {headline, what_to_do, entry_block} from new schema, or shim from legacy.
+    """Return {headline, prior_period_delta_narrative, what_to_do, entry_block} from
+    new schema, or shim from legacy.
 
     For old reports that only have signal_rationale: headline = first sentence,
     what_to_do = remaining sentences (or None for HOLD / CAUTION-technical), and
@@ -393,12 +394,13 @@ def _writeup_for_render(d: dict) -> dict:
     if isinstance(wu, dict):
         return {
             "headline": wu.get("headline") or "",
+            "prior_period_delta_narrative": wu.get("prior_period_delta_narrative"),
             "what_to_do": wu.get("what_to_do"),
             "entry_block": wu.get("entry_block") or d.get("entry_block"),
         }
     rat = (d.get("signal_rationale") or "").strip()
     if not rat:
-        return {"headline": "", "what_to_do": None, "entry_block": d.get("entry_block")}
+        return {"headline": "", "prior_period_delta_narrative": None, "what_to_do": None, "entry_block": d.get("entry_block")}
     # Split first sentence as headline, rest as what_to_do.
     headline = rat
     rest = ""
@@ -417,6 +419,7 @@ def _writeup_for_render(d: dict) -> dict:
         rest = ""
     return {
         "headline": headline,
+        "prior_period_delta_narrative": None,
         "what_to_do": rest or None,
         "entry_block": d.get("entry_block"),
     }
@@ -425,16 +428,16 @@ def _writeup_for_render(d: dict) -> dict:
 def _legacy_rationale_from(d: dict) -> str:
     """Flatten the writeup into one string for legacy views (Historical
     Writeup Viewer, Compare-dates Rationale column). Concatenates
-    headline + what_to_do for the new schema; falls back to
-    signal_rationale for old reports.
+    headline + prior_period_delta_narrative + what_to_do for the new schema;
+    falls back to signal_rationale for old reports.
     """
     wu = d.get("writeup")
     if isinstance(wu, dict):
         h = (wu.get("headline") or "").strip()
+        delta = (wu.get("prior_period_delta_narrative") or "").strip()
         wt = (wu.get("what_to_do") or "").strip()
-        if h and wt:
-            return f"{h} {wt}"
-        return h or wt
+        pieces = [p for p in (h, delta, wt) if p]
+        return " ".join(pieces)
     return d.get("signal_rationale", "") or ""
 
 
@@ -485,7 +488,8 @@ def load_pipeline_stats() -> pd.DataFrame:
     df = pd.read_csv(csv_path)
     extra_cols = ["yfinance_articles", "yfinance_chars", "tavily_articles",
                   "tavily_chars", "system_prompt_chars", "watchlist_data_chars",
-                  "memory_chars", "total_prompt_chars"]
+                  "memory_chars", "total_prompt_chars", "computed_cost_usd",
+                  "cache_hit_tokens", "cache_miss_tokens"]
     # Ensure all expected columns exist (fill missing with NaN)
     for c in extra_cols:
         if c not in df.columns:
@@ -1815,7 +1819,90 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
         ]
         parts.append(_drilldown_metrics_html(rr_metrics))
 
+    band = d.get("pre_earnings_band") or {}
+    if band:
+        days_until = band.get("days_until")
+        earn_date = band.get("earnings_date") or "—"
+        temporal_phrase = band.get("temporal_phrase") or ""
+        n_priors = band.get("n_priors")
+        avg_up = band.get("avg_up_pct")
+        avg_dn = band.get("avg_down_pct")
+        max_up = band.get("max_up_pct")
+        max_dn = band.get("max_down_pct")
+        impl_up = band.get("implied_upper")
+        impl_lo = band.get("implied_lower")
+        archetype = band.get("setup_archetype")
+        rationale = band.get("setup_rationale") or ""
+        archetype_pretty = {
+            "priced_for_perfection": "Priced for perfection",
+            "low_bar_underdog": "Low bar / underdog",
+            "neutral": "Neutral",
+        }.get(archetype, archetype or "—")
+        archetype_color = {
+            "priced_for_perfection": "#ef4444",
+            "low_bar_underdog": "#22c55e",
+            "neutral": "#9ca3af",
+        }.get(archetype, "#9ca3af")
+        section_label = f"Earnings setup — {temporal_phrase}" if temporal_phrase else "Earnings setup"
+        parts.append(_drilldown_section_html(section_label))
+        if archetype:
+            parts.append(
+                f'<div class="dd-line">'
+                f'<strong style="color:{archetype_color};">{archetype_pretty}</strong>'
+                f' — {_escape_dollars(rationale)}'
+                f'</div>'
+            )
+        # Implied bull / bear from prior-print averages.
+        if avg_up is not None and impl_up is not None:
+            parts.append(
+                f'<div class="dd-line">'
+                f'<strong>Bull case.</strong> {pfx}{_fmt_num(impl_up, 2)} '
+                f'({_sign(avg_up)}{_fmt_num(avg_up, 1)}% avg of {n_priors} priors)'
+                f'</div>'
+            )
+        if avg_dn is not None and impl_lo is not None:
+            parts.append(
+                f'<div class="dd-line">'
+                f'<strong>Bear case.</strong> {pfx}{_fmt_num(impl_lo, 2)} '
+                f'({_fmt_num(avg_dn, 1)}% avg of {n_priors} priors)'
+                f'</div>'
+            )
+        if avg_up is None and avg_dn is not None:
+            parts.append(
+                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
+                f'All {n_priors} priors moved down — no symmetric bull-side reference.'
+                f'</div>'
+            )
+        if avg_dn is None and avg_up is not None:
+            parts.append(
+                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
+                f'All {n_priors} priors moved up — no symmetric bear-side reference.'
+                f'</div>'
+            )
+        band_metrics = [
+            ("Earnings date", earn_date),
+            ("Days until", str(days_until) if days_until is not None else "—"),
+            (
+                "Avg up move",
+                f"{_sign(avg_up)}{_fmt_num(avg_up, 1)}%" if avg_up is not None else "—",
+            ),
+            (
+                "Avg down move",
+                f"{_fmt_num(avg_dn, 1)}%" if avg_dn is not None else "—",
+            ),
+            (
+                "Max up move",
+                f"{_sign(max_up)}{_fmt_num(max_up, 1)}%" if max_up is not None else "—",
+            ),
+            (
+                "Max down move",
+                f"{_fmt_num(max_dn, 1)}%" if max_dn is not None else "—",
+            ),
+        ]
+        parts.append(_drilldown_metrics_html(band_metrics))
+
     parts.append(_drilldown_section_html("Technicals"))
+    drawdown_3mo = d.get("drawdown_3mo_pct")
     tech_metrics = [
         ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
         ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
@@ -1829,6 +1916,8 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
          f"{_sign(chg5)}{_fmt_num(chg5, 1)}%" if chg5 is not None else "—"),
         ("1-month return",
          f"{_sign(m1)}{_fmt_num(m1, 1)}%" if m1 is not None else "—"),
+        ("3mo drawdown",
+         f"{_fmt_num(drawdown_3mo, 1)}%" if drawdown_3mo is not None else "—"),
     ]
     parts.append(_drilldown_metrics_html(tech_metrics))
 
@@ -1925,6 +2014,11 @@ def _render_ticker_details_html(tk: str, d: dict) -> str:
     if wu["headline"]:
         body_parts.append(
             f'<div class="dd-headline">{_escape_dollars(wu["headline"])}</div>'
+        )
+    delta = wu.get("prior_period_delta_narrative")
+    if delta:
+        body_parts.append(
+            f'<div class="dd-whatdo" style="opacity:0.85;font-style:italic;">{_escape_dollars(delta)}</div>'
         )
     if wu["what_to_do"]:
         body_parts.append(
@@ -2580,68 +2674,163 @@ elif page == "Pipeline Stats":
     cols[2].metric("Avg Gen Time", f"{token_df['generation_time_seconds'].mean():.0f}s")
     cols[3].metric("Model", token_df["model_used"].iloc[-1] if len(token_df) else "—")
 
-    # ── Estimated Cost ──
-    st.subheader("Estimated API Cost")
-    # Per-million-token rates (USD) — hardcoded, Anthropic pricing as of 2025
-    COST_RATES = {
-        "sonnet": {"input": 3.0, "output": 15.0},
-        "opus": {"input": 15.0, "output": 75.0},
-        "haiku": {"input": 0.25, "output": 1.25},
-    }
+    # ── API Cost (authoritative — read from pipeline_stats.computed_cost_usd) ──
+    # Pre-2026-05-05 rows used Sonnet+Haiku rates and overstate spend by ~10x.
+    # Post-cutover rows are cache-aware DeepSeek v4 Pro. We render both ranges
+    # so the step-change is visible rather than silently averaging across them.
+    st.subheader("API Cost")
+    ps_for_cost = load_pipeline_stats()
+    cost_df = ps_for_cost.dropna(subset=["computed_cost_usd"]).sort_values("date").copy()
+    if cost_df.empty:
+        st.info("No cost data available — pipeline_stats.computed_cost_usd is empty.")
+    else:
+        cost_df["cost_usd"] = cost_df["computed_cost_usd"].astype(float)
+        cost_df["cumulative_cost"] = cost_df["cost_usd"].cumsum()
+        cost_df["cost_7d_avg"] = cost_df["cost_usd"].rolling(7, min_periods=1).mean()
 
-    def _estimate_cost(row):
-        model = (row.get("model_used") or "").lower()
-        rate = COST_RATES.get("sonnet")  # default
-        for key in COST_RATES:
-            if key in model:
-                rate = COST_RATES[key]
-                break
-        tokens = row.get("token_count", 0) or 0
-        # Approximate 70/30 input/output split (pipeline sends large prompts)
-        input_tokens = tokens * 0.7
-        output_tokens = tokens * 0.3
-        return (input_tokens * rate["input"] + output_tokens * rate["output"]) / 1_000_000
+        cutover = pd.Timestamp("2026-05-05")
+        post = cost_df[cost_df["date"] >= cutover]
+        pre = cost_df[cost_df["date"] < cutover]
 
-    cost_df = token_df.copy()
-    cost_df["cost_usd"] = cost_df.apply(_estimate_cost, axis=1)
-    cost_df["cumulative_cost"] = cost_df["cost_usd"].cumsum()
-    cost_df["cost_7d_avg"] = cost_df["cost_usd"].rolling(7, min_periods=1).mean()
+        cost_cols = st.columns(4)
+        cost_cols[0].metric(
+            "Total (post-cutover)",
+            f"${post['cost_usd'].sum():.2f}" if not post.empty else "—",
+        )
+        cost_cols[1].metric(
+            "Avg / run (post)",
+            f"${post['cost_usd'].mean():.4f}" if not post.empty else "—",
+        )
+        cost_cols[2].metric(
+            "Latest run",
+            f"${cost_df['cost_usd'].iloc[-1]:.4f}",
+        )
+        cost_cols[3].metric(
+            "Pre-cutover total",
+            f"${pre['cost_usd'].sum():.2f}" if not pre.empty else "—",
+            help="Sonnet+Haiku pricing constants — overstated ~10x. Kept for history.",
+        )
 
-    cost_cols = st.columns(3)
-    cost_cols[0].metric("Total Cost", f"${cost_df['cost_usd'].sum():.2f}")
-    cost_cols[1].metric("Avg Cost/Report", f"${cost_df['cost_usd'].mean():.2f}")
-    latest_cost = cost_df["cost_usd"].iloc[-1] if len(cost_df) else 0
-    cost_cols[2].metric("Latest Report", f"${latest_cost:.2f}")
+        st.caption(
+            "Pre-2026-05-05 rows used Sonnet+Haiku rates (overstated ~10x). "
+            "Post-cutover rows reflect cache-aware DeepSeek v4 Pro spend "
+            "($0.27 input miss / $0.07 input hit / $1.10 output per MTok)."
+        )
 
-    fig_cost = go.Figure()
-    fig_cost.add_trace(go.Bar(
-        x=cost_df["date"], y=cost_df["cost_usd"],
-        name="Per Report", marker_color="#3b82f6", opacity=0.6,
-    ))
-    fig_cost.add_trace(go.Scatter(
-        x=cost_df["date"], y=cost_df["cost_7d_avg"],
-        mode="lines", name="7d Avg",
-        line=dict(color="#f59e0b", width=2),
-    ))
-    fig_cost.update_layout(
-        yaxis_title="Cost (USD)", height=250,
-        margin=dict(l=0, r=0, t=30, b=0),
+        fig_cost = go.Figure()
+        if not pre.empty:
+            fig_cost.add_trace(go.Bar(
+                x=pre["date"], y=pre["cost_usd"],
+                name="Pre-cutover (Sonnet+Haiku)",
+                marker_color="#6b7280", opacity=0.5,
+            ))
+        if not post.empty:
+            fig_cost.add_trace(go.Bar(
+                x=post["date"], y=post["cost_usd"],
+                name="Post-cutover (DeepSeek)",
+                marker_color="#3b82f6", opacity=0.85,
+            ))
+        fig_cost.add_trace(go.Scatter(
+            x=cost_df["date"], y=cost_df["cost_7d_avg"],
+            mode="lines", name="7d avg",
+            line=dict(color="#f59e0b", width=2),
+        ))
+        fig_cost.add_vline(
+            x=cutover, line=dict(color="#ef4444", dash="dash", width=1),
+            annotation_text="DeepSeek cutover",
+            annotation_position="top right",
+        )
+        fig_cost.update_layout(
+            yaxis_title="Cost (USD)", height=260,
+            margin=dict(l=0, r=0, t=30, b=0),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        )
+        st.plotly_chart(fig_cost, use_container_width=True)
+
+        # Cumulative cost
+        fig_cum = go.Figure()
+        fig_cum.add_trace(go.Scatter(
+            x=cost_df["date"], y=cost_df["cumulative_cost"],
+            mode="lines+markers", name="Cumulative",
+            line=dict(color="#22c55e", width=2),
+            fill="tozeroy", fillcolor="rgba(34,197,94,0.1)",
+        ))
+        fig_cum.update_layout(
+            yaxis_title="Cumulative Cost (USD)", height=200,
+            margin=dict(l=0, r=0, t=30, b=0),
+        )
+        st.plotly_chart(fig_cum, use_container_width=True)
+
+    # ── Prompt Cache Telemetry ──
+    st.subheader("Prompt Cache")
+    cache_df = ps_for_cost.copy()
+    has_cache_data = (
+        "cache_hit_tokens" in cache_df.columns
+        and "cache_miss_tokens" in cache_df.columns
+        and ((cache_df["cache_hit_tokens"].fillna(0)
+              + cache_df["cache_miss_tokens"].fillna(0)) > 0).any()
     )
-    st.plotly_chart(fig_cost, use_container_width=True)
+    if not has_cache_data:
+        st.info(
+            "Cache telemetry will appear after the next pipeline run. "
+            "DeepSeek's automatic prefix cache is read from `response.usage` "
+            "and stored in `pipeline_stats.cache_hit_tokens` / `cache_miss_tokens`."
+        )
+    else:
+        cdf = cache_df.dropna(
+            subset=["cache_hit_tokens", "cache_miss_tokens"], how="all"
+        ).copy()
+        cdf["cache_hit_tokens"] = cdf["cache_hit_tokens"].fillna(0)
+        cdf["cache_miss_tokens"] = cdf["cache_miss_tokens"].fillna(0)
+        cdf["total_input"] = cdf["cache_hit_tokens"] + cdf["cache_miss_tokens"]
+        cdf = cdf[cdf["total_input"] > 0].sort_values("date")
+        cdf["hit_ratio"] = cdf["cache_hit_tokens"] / cdf["total_input"]
+        # Savings: hit tokens cost $0.07/MTok instead of $0.27/MTok — $0.20/MTok saved.
+        cdf["savings_usd"] = cdf["cache_hit_tokens"] * (0.27 - 0.07) / 1_000_000
 
-    # Cumulative cost
-    fig_cum = go.Figure()
-    fig_cum.add_trace(go.Scatter(
-        x=cost_df["date"], y=cost_df["cumulative_cost"],
-        mode="lines+markers", name="Cumulative",
-        line=dict(color="#22c55e", width=2),
-        fill="tozeroy", fillcolor="rgba(34,197,94,0.1)",
-    ))
-    fig_cum.update_layout(
-        yaxis_title="Cumulative Cost (USD)", height=200,
-        margin=dict(l=0, r=0, t=30, b=0),
-    )
-    st.plotly_chart(fig_cum, use_container_width=True)
+        latest = cdf.iloc[-1]
+        avg_ratio = cdf["hit_ratio"].mean()
+        total_savings = cdf["savings_usd"].sum()
+
+        cc_cols = st.columns(4)
+        cc_cols[0].metric("Latest hit ratio", f"{latest['hit_ratio']:.1%}")
+        cc_cols[1].metric("Avg hit ratio", f"{avg_ratio:.1%}")
+        cc_cols[2].metric(
+            "Latest hit tokens",
+            f"{int(latest['cache_hit_tokens']):,}",
+            help="Cached input tokens billed at $0.07/MTok instead of $0.27/MTok.",
+        )
+        cc_cols[3].metric(
+            "Cumulative savings",
+            f"${total_savings:.4f}",
+            help="Versus billing all input as cache miss ($0.27/MTok).",
+        )
+
+        fig_cache = go.Figure()
+        fig_cache.add_trace(go.Bar(
+            x=cdf["date"], y=cdf["cache_hit_tokens"],
+            name="Cache hit", marker_color="#22c55e",
+        ))
+        fig_cache.add_trace(go.Bar(
+            x=cdf["date"], y=cdf["cache_miss_tokens"],
+            name="Cache miss", marker_color="#ef4444",
+        ))
+        fig_cache.update_layout(
+            barmode="stack",
+            yaxis_title="Input tokens",
+            height=240,
+            margin=dict(l=0, r=0, t=30, b=0),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        )
+        st.plotly_chart(fig_cache, use_container_width=True)
+
+        st.caption(
+            "If hit ratio sits near 0%, the user prompt's first dynamic block "
+            "is breaking the prefix immediately — reorder static blocks "
+            "(catalysts JSON, portfolio_count_directive, field-contracts, "
+            "crisis_block) above the data_json block to extend the cacheable "
+            "prefix. Savings figures assume a flat $0.20/MTok delta."
+        )
 
     render_section_head("Pipeline Volume", "Articles ingested and prompt size")
 
