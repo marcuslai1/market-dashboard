@@ -2955,7 +2955,8 @@ elif page == "Pipeline Stats":
         cost_df["cumulative_cost"] = cost_df["cost_usd"].cumsum()
         cost_df["cost_7d_avg"] = cost_df["cost_usd"].rolling(7, min_periods=1).mean()
 
-        cutover = pd.Timestamp("2026-05-05")
+        cutover_str = "2026-05-05"
+        cutover = pd.Timestamp(cutover_str)
         post = cost_df[cost_df["date"] >= cutover]
         pre = cost_df[cost_df["date"] < cutover]
 
@@ -3002,8 +3003,12 @@ elif page == "Pipeline Stats":
             mode="lines", name="7d avg",
             line=dict(color="#f59e0b", width=2),
         ))
+        # Plotly's add_vline annotation midpoint does sum(X)/len(X) which
+        # blows up on pd.Timestamp; pass the date as a millisecond epoch
+        # so the math works. The visual is identical.
+        cutover_ms = int(cutover.timestamp() * 1000)
         fig_cost.add_vline(
-            x=cutover, line=dict(color="#ef4444", dash="dash", width=1),
+            x=cutover_ms, line=dict(color="#ef4444", dash="dash", width=1),
             annotation_text="DeepSeek cutover",
             annotation_position="top right",
         )
