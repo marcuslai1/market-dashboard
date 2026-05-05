@@ -1674,6 +1674,124 @@ def render_macro(macro_summary: str, geo: dict) -> None:
             )
 
 
+def render_catalyst_playbook(trigger_map: list) -> None:
+    """Render `macro_trigger_map` — bull/bear playbook per upcoming macro event.
+
+    Each entry has {event, date, bullish_outcome, bullish_upgrades[],
+    bearish_outcome, bearish_impact[]}. Renders nothing when the list is
+    empty. Defensive against the legacy nested-array shape (the pipeline
+    flattens, but old reports may still carry [[…]] structure).
+    """
+    if not trigger_map:
+        return
+    # Defensive flatten in case an old report carries the pre-fix nested shape.
+    if all(isinstance(x, list) for x in trigger_map):
+        trigger_map = [item for sub in trigger_map for item in sub]
+    render_section_head(
+        "Catalyst Playbook",
+        "How signals shift on each upcoming binary",
+    )
+    bull_color = SIGNAL_COLORS["BUY"]
+    bear_color = SIGNAL_COLORS["CAUTION"]
+    for ev in trigger_map:
+        if not isinstance(ev, dict):
+            continue
+        name = ev.get("event", "—")
+        when = ev.get("date", "")
+        bull = ev.get("bullish_outcome") or ""
+        bear = ev.get("bearish_outcome") or ""
+        ups = ev.get("bullish_upgrades") or []
+        impacts = ev.get("bearish_impact") or []
+
+        ups_html = "".join(
+            f'<li style="margin-bottom:3px;">{_escape_dollars(u)}</li>'
+            for u in ups
+        )
+        impacts_html = "".join(
+            f'<li style="margin-bottom:3px;">{_escape_dollars(i)}</li>'
+            for i in impacts
+        )
+        st.markdown(
+            f'<div style="border:1px solid var(--rule);background:var(--paper-2);'
+            f'padding:14px 18px 12px;margin-bottom:12px;">'
+            f'<div style="display:flex;justify-content:space-between;'
+            f'align-items:baseline;border-bottom:1px solid var(--rule);'
+            f'padding-bottom:8px;margin-bottom:10px;">'
+            f'<span style="font-family:var(--serif);font-size:1.1rem;'
+            f'font-weight:500;color:var(--ink);">{_escape_dollars(name)}</span>'
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.10em;text-transform:uppercase;color:var(--ink-3);">'
+            f'{when}</span></div>'
+            f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">'
+            f'<div>'
+            f'<div style="font-family:var(--mono);font-size:10px;'
+            f'letter-spacing:0.14em;text-transform:uppercase;color:{bull_color};'
+            f'font-weight:600;margin-bottom:4px;">▲ Bullish path</div>'
+            f'<div style="color:var(--ink-2);font-size:13px;line-height:1.5;'
+            f'margin-bottom:8px;">{_escape_dollars(bull)}</div>'
+            f'<ul style="margin:0;padding-left:18px;font-family:var(--mono);'
+            f'font-size:11.5px;color:var(--ink-2);line-height:1.5;">{ups_html}</ul>'
+            f'</div>'
+            f'<div>'
+            f'<div style="font-family:var(--mono);font-size:10px;'
+            f'letter-spacing:0.14em;text-transform:uppercase;color:{bear_color};'
+            f'font-weight:600;margin-bottom:4px;">▼ Bearish path</div>'
+            f'<div style="color:var(--ink-2);font-size:13px;line-height:1.5;'
+            f'margin-bottom:8px;">{_escape_dollars(bear)}</div>'
+            f'<ul style="margin:0;padding-left:18px;font-family:var(--mono);'
+            f'font-size:11.5px;color:var(--ink-2);line-height:1.5;">{impacts_html}</ul>'
+            f'</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def render_contrarian_candidates(contrarians: list) -> None:
+    """Render `contrarian_candidates` (RSI < 38 oversold names with thesis).
+
+    The pipeline emits these only when at least one watchlist or near-watchlist
+    name is genuinely oversold and has a coherent recovery thesis. Empty most
+    days; when it fires, surface it prominently so the contrarian setup isn't
+    lost in the wall of CAUTION.
+    """
+    if not contrarians:
+        return
+    render_section_head(
+        "Contrarian Candidates",
+        "Oversold names with a setup, not just a falling knife",
+    )
+    for c in contrarians:
+        if not isinstance(c, dict):
+            continue
+        ticker = c.get("ticker", "—")
+        display = TICKER_DISPLAY.get(ticker, ticker)
+        rsi = c.get("rsi")
+        rsi_str = f"RSI {_fmt_num(rsi, 0)}" if rsi is not None else ""
+        thesis = c.get("thesis") or c.get("rationale") or ""
+        trigger = c.get("trigger") or c.get("entry_trigger") or ""
+        st.markdown(
+            f'<div style="border-left:3px solid #22c55e;background:var(--paper-2);'
+            f'padding:12px 16px;margin-bottom:10px;">'
+            f'<div style="display:flex;justify-content:space-between;'
+            f'align-items:baseline;margin-bottom:6px;">'
+            f'<span style="font-family:var(--mono);font-weight:600;'
+            f'color:var(--ink);font-size:13px;">{display}</span>'
+            f'<span style="font-family:var(--mono);font-size:11px;'
+            f'color:var(--ink-3);">{rsi_str}</span>'
+            f'</div>'
+            f'<div style="color:var(--ink-2);font-size:13px;line-height:1.55;">'
+            f'{_escape_dollars(thesis)}</div>'
+            + (
+                f'<div style="margin-top:6px;font-family:var(--mono);font-size:11px;'
+                f'color:#22c55e;">Trigger · {_escape_dollars(trigger)}</div>'
+                if trigger else ""
+            )
+            + '</div>',
+            unsafe_allow_html=True,
+        )
+
+
 def render_calendar(events: list) -> None:
     if not events:
         st.markdown(
@@ -1779,6 +1897,99 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
 
     parts: list[str] = []
 
+    # ── Status strip (caution_source + momentum_warn) ──
+    # Compact, visible without expanding any section. Shown only when there's
+    # something worth flagging — silent on clean BUY/HOLD with no advisories.
+    caution_source = d.get("caution_source")
+    momentum_warn = d.get("momentum_warn")
+    momentum_reasons = d.get("momentum_warn_reasons") or []
+    signal = d.get("signal", "")
+    cs_labels = {
+        "hard_block": ("Mechanical hard block", "#ef4444"),
+        "claude_override": ("Judgment override", "#f59e0b"),
+        "base_scorer": ("Soft caution (base scorer)", "#f59e0b"),
+        "rr_gate_fail": ("R:R gate failed", "#ef4444"),
+        "catalyst_override": ("Catalyst override", "#3498db"),
+    }
+    status_chips: list[str] = []
+    if caution_source and signal in {"CAUTION", "AVOID"}:
+        label, color = cs_labels.get(
+            caution_source, (caution_source, "#9ca3af")
+        )
+        status_chips.append(
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.10em;text-transform:uppercase;'
+            f'background:rgba(255,255,255,0.05);color:{color};'
+            f'padding:3px 8px;border-radius:3px;">'
+            f'{label} · {caution_source}</span>'
+        )
+    if momentum_warn:
+        reason_str = "; ".join(momentum_reasons) if momentum_reasons else "tape diverging"
+        status_chips.append(
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
+            f'color:#fbb454;padding:3px 8px;border-radius:3px;">'
+            f'momentum_warn · {_escape_dollars(reason_str)}</span>'
+        )
+    if status_chips:
+        parts.append(
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
+            + "".join(status_chips) + '</div>'
+        )
+
+    # ── Catalyst block (paper-trade entry path) ──
+    catalyst = d.get("catalyst") or {}
+    if catalyst:
+        c_rr = d.get("catalyst_rr") or {}
+        c_tier = d.get("catalyst_position_tier") or {}
+        c_type = catalyst.get("type") or catalyst.get("catalyst_type") or ""
+        c_headline = catalyst.get("headline") or catalyst.get("description") or ""
+        c_source = catalyst.get("source") or ""
+        c_url = catalyst.get("url") or ""
+        c_date = catalyst.get("date") or catalyst.get("event_date") or ""
+        c_pre_price = catalyst.get("pre_catalyst_close")
+        c_rr_ratio = c_rr.get("ratio") or c_rr.get("ratio_raw")
+        c_rr_inv = c_rr.get("invalidation")
+        c_tier_name = c_tier.get("tier") or ""
+        c_max_size = c_tier.get("max_size_pct")
+
+        parts.append(_drilldown_section_html("Catalyst entry path · paper trade only"))
+        if c_headline:
+            head_html = (
+                f'<div class="dd-line"><strong>{_escape_dollars(c_type) or "Catalyst"}.</strong> '
+                f'{_escape_dollars(c_headline)}'
+            )
+            if c_source:
+                head_html += f' <span style="color:var(--ink-3);">— {_escape_dollars(c_source)}</span>'
+            if c_url:
+                head_html += (
+                    f' <a href="{c_url}" target="_blank" '
+                    f'style="color:var(--ink-3);font-family:var(--mono);'
+                    f'font-size:11px;">[link]</a>'
+                )
+            head_html += '</div>'
+            parts.append(head_html)
+        cat_metrics = [
+            ("Catalyst date", c_date or "—"),
+            (
+                "Catalyst R:R",
+                f"{_fmt_num(c_rr_ratio, 2)}:1" if c_rr_ratio else "—",
+            ),
+            (
+                "Gap-fill invalidation",
+                f"{pfx}{_fmt_num(c_rr_inv, 2)}" if c_rr_inv else (
+                    f"{pfx}{_fmt_num(c_pre_price, 2)}" if c_pre_price else "—"
+                ),
+            ),
+            (
+                "Position tier",
+                f"{c_tier_name} ({_fmt_num(c_max_size, 0)}% max)"
+                if c_tier_name and c_max_size is not None
+                else (c_tier_name or "—"),
+            ),
+        ]
+        parts.append(_drilldown_metrics_html(cat_metrics))
+
     upside_target = rr_obj.get("upside_target")
     upside_pct = rr_obj.get("upside_pct")
     upside_reason = rr_obj.get("upside_reason", "")
@@ -1818,6 +2029,58 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
             ),
         ]
         parts.append(_drilldown_metrics_html(rr_metrics))
+
+    # ── ACCUMULATE Gates ──
+    # The 6 mechanical gates the pipeline pre-computes for every ticker.
+    # Always rendered so readers can see why a name does or doesn't qualify.
+    gates = d.get("accumulate_gates") or {}
+    if gates:
+        gate_labels = {
+            "g1_signal_eligible": "Signal eligible",
+            "g2_rr_above_2": "R:R ≥ 2.0",
+            "g3_rr_observed": "R:R observed",
+            "g5_no_earnings_5d": "No earnings ≤7d",
+            "g6_vix_ok": "VIX < 30",
+            "g8_rr_robust": "R:R robust",
+        }
+        all_pass = gates.get("all_mechanical_pass")
+        chip_html_list: list[str] = []
+        for gkey, glabel in gate_labels.items():
+            gate_val = gates.get(gkey)
+            if gate_val is True:
+                bg, fg, mark = "rgba(34,197,94,0.18)", "#22c55e", "✓"
+            elif gate_val is False:
+                bg, fg, mark = "rgba(239,68,68,0.18)", "#ef4444", "✗"
+            else:
+                bg, fg, mark = "rgba(255,255,255,0.05)", "var(--ink-3)", "—"
+            chip_html_list.append(
+                f'<span style="display:inline-flex;align-items:center;gap:5px;'
+                f'background:{bg};color:{fg};padding:4px 9px;border-radius:3px;'
+                f'font-family:var(--mono);font-size:11px;font-weight:600;'
+                f'letter-spacing:0.04em;">'
+                f'<span style="font-size:13px;">{mark}</span>{glabel}</span>'
+            )
+        summary_color = (
+            "#22c55e" if all_pass is True
+            else "#ef4444" if all_pass is False
+            else "var(--ink-3)"
+        )
+        summary_text = (
+            "All mechanical gates pass — Claude judgment determines ACCUMULATE"
+            if all_pass is True
+            else "One or more mechanical gates fail — ACCUMULATE blocked"
+            if all_pass is False
+            else "Gate status unknown"
+        )
+        parts.append(_drilldown_section_html("ACCUMULATE gates"))
+        parts.append(
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
+            + "".join(chip_html_list) + '</div>'
+        )
+        parts.append(
+            f'<div class="dd-line" style="color:{summary_color};font-size:12.5px;">'
+            f'{summary_text}</div>'
+        )
 
     band = d.get("pre_earnings_band") or {}
     if band:
@@ -2194,6 +2457,8 @@ if page == "Briefing":
     benchmarks = report.get("benchmarks", {})
     geo = report.get("geopolitical", {})
     events = report.get("events_this_week", []) or []
+    trigger_map = report.get("macro_trigger_map", []) or []
+    contrarians = report.get("contrarian_candidates", []) or []
 
     render_stance(snapshot, len(watchlist))
     render_pulse(benchmarks)
@@ -2202,6 +2467,8 @@ if page == "Briefing":
         prev_report.get("watchlist", {}) if prev_report else {},
     )
     render_action_card(watchlist, events)
+    render_catalyst_playbook(trigger_map)
+    render_contrarian_candidates(contrarians)
 
     macro_col, cal_col = st.columns([3, 2])
     with macro_col:
@@ -3398,14 +3665,48 @@ ticker's vs-SMA50 reading.
 </table>
 """, unsafe_allow_html=True)
 
-    # ---- Pre-Earnings Band ----
-    render_section_head("Pre-Earnings Band", "Implied price range from prior earnings reactions")
+    # ---- Earnings Setup (Band + Archetype) ----
+    render_section_head("Earnings Setup", "Band and archetype framing for upcoming prints")
     st.markdown("""
 <div class="term-prose">
-For names with an upcoming earnings date, the site computes an <b>implied bull/bear
-price band</b> from the ticker's own past earnings reactions. The construction is
-deliberately simple — no implied volatility, no options pricing — just empirical
-priors.
+Earnings reactions are <b>not binary events</b>. The market reacts to the gap
+between actuals + guidance and the bar already set by valuation, positioning,
+and recent price. The dashboard exposes this in two layers: (1) an implied
+<b>price band</b> from the ticker's own past earnings reactions, and (2) a
+mechanical <b>setup archetype</b> that names what kind of bar the print is
+clearing.
+</div>
+<table class="term-table">
+<thead><tr><th>Archetype</th><th>Trigger</th><th>What "good news" must look like</th></tr></thead>
+<tbody>
+<tr>
+  <td><span class="term-pill" style="background:rgba(239,68,68,0.18);color:#ef4444;">Priced for perfection</span></td>
+  <td><b>vs_sma50 &gt; +15% AND RSI ≥ 70</b> — extended <i>and</i> overbought.</td>
+  <td>A beat alone may not satisfy the bar — guidance must accelerate (raised guide, new contract tier, margin expansion). A "merely good" print is the most likely path to a sell-the-news pullback.</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(34,197,94,0.18);color:#22c55e;">Low bar / underdog</span></td>
+  <td><b>drawdown_3mo ≤ -15%</b> — beaten down off the 3-month peak.</td>
+  <td>"Less bad" results — in-line guidance, stable margins, even a small miss with a constructive forward — can spark a relief rally. Sentiment is washed out.</td>
+</tr>
+<tr>
+  <td><span class="term-pill" style="background:rgba(160,160,160,0.14);color:#9ca3af;">Neutral</span></td>
+  <td>Neither extreme.</td>
+  <td>Standard expectations game. Reaction depends on the magnitude of the surprise and the guidance delta. The bar is neither stretched nor depressed.</td>
+</tr>
+</tbody>
+</table>
+<div class="term-prose">
+The <b>AND</b> in priced-for-perfection is deliberate. A stock can be +15%
+above its SMA50 from a single gap-up weeks ago (not parabolic) or have RSI
+above 70 from a slow grind (not extended). The intersection isolates names
+that are <i>both</i> stretched and momentum-crowded — the setup where a
+beat tends not to clear the bar. Forward P/E was deliberately dropped from
+the rule because yfinance's coverage is patchy across the watchlist; a rule
+that fires on only some tickers is worse than none.
+</div>
+<div class="term-prose">
+The implied <b>price band</b> sits alongside the archetype:
 </div>
 <div class="term-formula">For each of the last N earnings dates:
   next_day_return = (close_t+1 − close_t) / close_t
@@ -3427,6 +3728,14 @@ implied_lower = current_price × (1 − avg_down_pct)</div>
 <b>What this is not.</b> Not an options-implied move, not a directional forecast.
 It is the empirical distribution of the ticker's own past earnings-day moves,
 projected onto today's price. Use it to size risk, not to pick a side.
+</div>
+<div class="term-prose">
+<b>Why "binary event" is banned.</b> The pipeline's writeup prompt forbids
+the phrases "binary event," "coin flip," "binary catalyst," and "either way"
+when a ticker has a pre-earnings band. Earnings reactions are price-vs-bar,
+not 50/50 gambles — the archetype names which bar matters and the band
+quantifies the typical move size. If you see a writeup still using
+"binary" framing on a tagged ticker, that's a validator miss worth flagging.
 </div>
 """, unsafe_allow_html=True)
 
