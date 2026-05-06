@@ -1688,8 +1688,8 @@ def render_catalyst_playbook(trigger_map: list) -> None:
     if all(isinstance(x, list) for x in trigger_map):
         trigger_map = [item for sub in trigger_map for item in sub]
     render_section_head(
-        "Catalyst Playbook",
-        "How signals shift on each upcoming binary",
+        "Macro Trigger Map",
+        "How signals shift on each upcoming high-impact event",
     )
     bull_color = SIGNAL_COLORS["BUY"]
     bear_color = SIGNAL_COLORS["CAUTION"]
