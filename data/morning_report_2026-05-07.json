@@ -2,7 +2,7 @@
   "meta": {
     "report_date": "2026-05-07",
     "market_date": "2026-05-06",
-    "generated_at": "2026-05-07T12:34:30.028967",
+    "generated_at": "2026-05-07T15:22:01.445825",
     "timezone": "SGT"
   },
   "benchmarks": {
@@ -63,8 +63,8 @@
       "1mo_pct": 45.75
     }
   },
-  "macro_summary": "The S&P 500 climbed 1.02% to a fresh record 733.83 on Wednesday as Iran-Hormuz de-escalation and AMD's blowout Q1 earnings ignited a broad rally. WTI settled at $95.72 (source conflict noted — fast_info prev close $100.53 vs history $95.08), easing inflation fears ahead of today's FOMC decision. The VIX slipped to 17.39, and the US10Y fell 5 basis points to 4.36%, reinforcing risk-on sentiment.",
-  "commodities_note": "WTI data shows a price source conflict — the intraday snapshot flagged a 5.5% divergence between fast_info ($100.53) and history ($95.08); the official settlement near $95.72 reflects de-escalation. Gold rose 1.12% to $4,705.50 as real yields dipped. The US10Y declined 5 bp to 4.36%, moving closer to the 4.20% NIM-reset threshold for Singapore banks.",
+  "macro_summary": "US equities set new highs Wednesday as SPY added 1.02% to 733.83 and QQQ gained 1.24% to 695.77, extending the record rally. Hormuz de‑escalation pushed WTI down another 4.9% over the week to $95.72, while SOXX surged 2.39% to an all‑time high 506.87 on AMD’s blowout Q1. New US tariffs on Chinese chips announced — rates unknown, effective June 2027 — add long‑dated supply‑chain uncertainty. Markets eye the FOMC rate decision later today for any shift in the pause narrative.",
+  "commodities_note": "WTI rose 0.7% to $95.72, but the 5‑day decline of 8.9% reflects deepening Hormuz de-escalation. WTI price sources diverge by 5.5%; using the 5‑day decline as the reliable trend indicator. Gold added 1.1% to $4,705.50; US10Y eased 6bp to 4.36%, and the VIX again ticked lower to 17.39.",
   "watchlist": {
     "D05_SI": {
       "price": 58.96,
@@ -142,7 +142,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -170,9 +170,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Hard-blocked to CAUTION — RSI 71 and volume evaporates.",
-        "prior_period_delta_narrative": "RSI 69.7→70.7, extension 4.2%→4.4%, close $58.82→$58.96 on vol ratio 0.38.",
-        "what_to_do": "Hard-blocked on RSI 71 and 4.4% above its 50-day. Reassess if RSI cools below 65 and price reclaims $56.49 (50-day) with volume, or after the next MAS review (October 2026) when US10Y sustainably breaks 4.20% — the NIM-relief catalyst per DBS IR.",
+        "headline": "Hard‑blocked to CAUTION — RSI 71, momentum fading on low volume.",
+        "prior_period_delta_narrative": "RSI 69.7→70.7, close S$58.82→S$58.96, extension 4.2%→4.4%.",
+        "what_to_do": "No entry above S$56.49. A pullback to S$56.38–57.50 would offer a better risk/reward; reassess after OCBC’s May 8 print for a sector NIM‑relief signal.",
         "entry_block": "BLOCKED: RSI 71 (>65 hard block)."
       }
     },
@@ -252,7 +252,7 @@
         "g1_signal_eligible": true,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": false,
+        "g5_no_earnings_7d": false,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -295,9 +295,9 @@
       "writeup_tier": "full",
       "signal": "HOLD",
       "writeup": {
-        "headline": "OCBC reports tomorrow — results are the next signal.",
-        "prior_period_delta_narrative": "RSI 59.5→60.4, extension 3.6%→3.6%, close $21.99→$22.03; R:R 0.7:1→0.6:1.",
-        "what_to_do": "OCBC reports tomorrow (per pre_earnings_band.temporal_phrase). Bull mechanism: NIM stabilises above 4.20% with sequential growth confirms NIM-trough thesis (per OCBC IR). Bear mechanism: NIM drops >5bp QoQ signals dual-channel compression intact. 4 priors avg +4.2% vs -1.0% — bull case to ~$22.96, bear case to ~$21.81. No entry pre-print; reassess at the print.",
+        "headline": "Earnings tomorrow — wait for the print before any entry.",
+        "prior_period_delta_narrative": "RSI 59.5→60.4, extension 3.6%→3.6%, R:R 0.7→0.6.",
+        "what_to_do": "OCBC reports tomorrow (May 8). Bull case: NIM stabilises above 4.20% on HSBC Indonesia integration; bear case: NIM compression intensifies. 4‑prior avg ±4.2% up, −1.0% down — bull case ~S$22.96, bear case ~S$21.81. No entry ahead of the print; reassess post‑results.",
         "entry_block": null
       }
     },
@@ -382,7 +382,7 @@
         "g1_signal_eligible": true,
         "g2_rr_above_2": true,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": false,
+        "g5_no_earnings_7d": false,
         "g6_vix_ok": true,
         "g8_rr_robust": true,
         "all_mechanical_pass": false,
@@ -422,9 +422,9 @@
       "writeup_tier": "full",
       "signal": "HOLD",
       "writeup": {
-        "headline": "UOB reports today — no entry before results.",
-        "prior_period_delta_narrative": "RSI 57.4→55.5, extension 1.4%→1.2%, close $36.60→$36.54; R:R 4.1:1→5.0:1 (tight invalidation).",
-        "what_to_do": "UOB reports today (after close). Headline R:R 5.0:1 uses a 1.2% stop (50-day), but the tight invalidation makes it fragile — normal volatility can trigger a stop before the thesis is tested. Wide-stop R:R to structural support at $35.46 is 2.0:1. All 4 priors moved down (avg -2.4%), so no symmetric upside prior; the bear-case structural support is the primary reference. No entry pre-print.",
+        "headline": "UOB reports today — neutral setup ahead of the binary.",
+        "prior_period_delta_narrative": "RSI 57.4→55.5, close S$36.60→S$36.54.",
+        "what_to_do": "UOB reports today (after close). Bull case: NIM stabilising, wealth‑fee recovery; bear case: further NIM drop, asset‑quality deterioration. All 4 priors moved down avg −2.4%; no symmetric upside prior. No entry pre‑print; reassess at the open tomorrow.",
         "entry_block": null
       }
     },
@@ -505,7 +505,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -546,9 +546,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Downgraded to CAUTION — hard-blocked on +10.7% extension after 5.3% surge.",
-        "prior_period_delta_narrative": "RSI 50.8→60.8, extension 4.8%→10.7%, close $196.50→$207.83.",
-        "what_to_do": "Hard-blocked at +10.7% above its 50-day (vs $187.72). The $500M Corning photonics deal (per Yahoo Finance, May 6) reinforces AI infrastructure demand, but price has already covered the gap. Entry requires a pullback to at least $195 (near the prior resistance-turned-support) with above-average volume, or after the May 21 earnings if the print resets the stock to the 50-day.",
+        "headline": "Downgraded to CAUTION — Monday’s +5.3% push to 10.7% extension blocks entry.",
+        "prior_period_delta_narrative": "RSI 50.8→60.8, extension 4.8%→10.7%, R:R 1.7:1→0.2:1.",
+        "what_to_do": "The $500M Corning fiber‑optic deal reinforces AI‑datacenter capex, but at +10.7% above SMA50 and RSI 61 entry is blocked. Wait for pullback into the $177–188 zone (SMA50‑adjacent). Key catalyst: NVDA Q1 FY2027 report May 21; pre‑earnings band implies bull case ~$213, bear ~$204.",
         "entry_block": "BLOCKED: +10.7% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=20 (<30), 10.7% (>=10% ceiling for trend exception)."
       }
     },
@@ -629,7 +629,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -653,16 +653,16 @@
         }
       },
       "regime_change_review_needed": {
-        "reason": "new stub written (+18.6% close-to-close)",
+        "reason": "existing step_function_catalyst (active=False)",
         "gap_pct": 18.61,
         "stub_path": "C:\\Users\\laize\\Desktop\\MarketReport\\thesis_overrides.json"
       },
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +71.6% above 50-day; post-earnings euphoria is fully priced.",
+        "headline": "Hard‑blocked to CAUTION — +71.6% extension with RSI 81, no edge for entry.",
         "prior_period_delta_narrative": "RSI 72.5→81.2, extension 47.2%→71.6%, close $355.26→$421.39.",
-        "what_to_do": "Q1 beat drove a +18.6% gap, but the stock is now 71.6% above the 50-day with RSI 81 — extreme. The Meta $100B+ MI450 framework (per AMD IR, Feb 24) is a bull catalyst, but entry requires a meaningful pullback toward $300 (closer to the 50-day at $245.53) and RSI cooling below 60. RCP review pending: +18.6% gap on May 6 per thesis_overrides.json stub.",
+        "what_to_do": "Post‑earnings blowout pushed AMD into extreme overbought territory. The Meta MI450 framework deal (first shipments H2 2026) remains a valid catalyst, but at +71.6% above SMA50 the risk/reward is not investable. No entry until a pullback to the $245.53 SMA50 retest zone, which would require a crash‑like move. Reassess after Q2 guidance update (H2 2026 ramp clarity) expected by early Q2 2026.",
         "entry_block": "BLOCKED: +71.6% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -742,7 +742,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -768,9 +768,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +90.7% — 18A hopes priced in, no external customers.",
+        "headline": "90.7% above SMA50; 14A Tesla deal is the only anchor — no entry.",
         "prior_period_delta_narrative": "RSI 84.5→85.9, extension 86.7%→90.7%, close $108.15→$113.01.",
-        "what_to_do": "18A has no external customer wins, and 14A Tesla commitment is on the next node. Stock up 90.7% from its 50-day — entry only on a pullback to $70-80 (near the 200-day at $41.40) or if a named 18A foundry design win is announced.",
+        "what_to_do": "Intel’s 14A node won Tesla as a customer, but 18A still has no external wins — the foundry thesis is one‑legged. The +90.7% extension above SMA50 makes this a momentum name, not an investment. Wait for pullback into the $59.27 SMA50 retest; catalyst: next external 18A customer win (earliest H2 2026) or Intel Q2 guidance that quantifies 14A revenue.",
         "entry_block": "BLOCKED: +90.7% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -851,7 +851,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -877,9 +877,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Downgraded to CAUTION — hard-blocked on +10.6% extension with flat SMA50.",
-        "prior_period_delta_narrative": "RSI 53.2→62.0, extension 3.3%→10.6%, close $1,442.92→$1,544.74.",
-        "what_to_do": "The 6.2% surge was driven by AI demand tailwinds but the MATCH Act legislative risk (per Simply Wall St, May 7) dampens the export thesis. Hard-blocked at +10.6% above a flat SMA50. Reassess on a pullback to $1,400 (prior support) with volume, or after the next earnings clarify China revenue exposure.",
+        "headline": "Downgraded to CAUTION — gap +6.2% breaks the SMA50 reclaim, entry now extended.",
+        "prior_period_delta_narrative": "RSI 53.2→62.0, close $1,442.92→$1,544.74, R:R 1.0:1→0.5:1.",
+        "what_to_do": "Wednesday’s +6.2% gap on MATCH Act fears and AI demand optimism leaves ASML 10.6% above a flat SMA50 — the structural driver is intact but the entry zone is gone. Wait for pullback to $1,372–1,397 (support zone/SMA50 retest). Key catalyst: High‑NA EUV ramp (Intel 14A, H2 2026) and any MATCH Act legislative progress.",
         "entry_block": "BLOCKED: +10.6% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=2 (<30), sma50 not rising, 10.6% (>=10% ceiling for trend exception)."
       }
     },
@@ -961,7 +961,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -987,9 +987,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +52.2% — Micron's CEO projects 40% price increases, but the stock is ahead of itself.",
+        "headline": "Extreme extension at 52.2% above SMA50; memory cycle is priced in.",
         "prior_period_delta_narrative": "RSI 81.8→83.5, extension 47.9%→52.2%, close $640.20→$666.59.",
-        "what_to_do": "Micron's CEO projects 40% memory price increase — a bullish call from a seller. The 6600 ION SSD launch (per Simply Wall St, May 7) reinforces HBM demand, but the stock is 52.2% above the 50-day. No entry until a pullback to ~$440 (50-day) and RSI below 70.",
+        "what_to_do": "The 245TB SSD launch and AI‑driven memory tightness are powerful, but Micron is +52.2% above its SMA50 — the trade has run. No entry until a pullback to the $284.57–$437.91 SMA200–SMA50 retest zone, which would require a deep correction. Reassess after the Q3 FY2026 earnings (Jun 25) for guidance on HBM bit‑shipment growth.",
         "entry_block": "BLOCKED: +52.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1069,7 +1069,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1095,9 +1095,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Hard-blocked on +16.0% extension and RSI 69; fundamentally attractive on_deck.",
+        "headline": "Hard‑blocked to CAUTION — +16% extension, RSI 69, no entry room.",
         "prior_period_delta_narrative": "RSI 60.0→68.9, extension 9.2%→16.0%, close $394.41→$419.50.",
-        "what_to_do": "Hard-blocked at +16.0% above SMA50 and RSI 69. CoWoS capacity expansion and 5% price hikes support the thesis, but entry requires RSI to cool below 65 and price to retest the $360-390 support zone. On_deck: PEG 1.25 and 35% revenue growth warrant patience; catalyst is May 13 earnings or CoWoS capacity update.",
+        "what_to_do": "Apple’s chip diversification chatter is a headwind, but the CoWoS bottleneck and AI demand keep TSM structurally attractive. At +16% above SMA50 with RSI 69, entry is blocked. Wait for pullback to the $361.78–$331 SMA50–SMA200 retest zone. Catalyst: Q2 2026 guidance (July) or any NVDA Blackwell Ultra supply‑chain confirmation.",
         "entry_block": "BLOCKED: +16.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=21 (<30), 16.0% (>=10% ceiling for trend exception), RSI 69 (>=65)."
       }
     },
@@ -1175,7 +1175,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": false,
+        "g5_no_earnings_7d": false,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1216,9 +1216,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension, but earnings in 6 days — wait for the print.",
+        "headline": "Hard‑blocked to CAUTION — 23.8% above SMA50, earnings in 6 days.",
         "prior_period_delta_narrative": "RSI 64.5→58.7, extension 30.1%→23.8%, close $225.53→$216.87.",
-        "what_to_do": "Hard-blocked at +23.8% above SMA50. Reports in 6 days (per pre_earnings_band.temporal_phrase). Set up as priced_for_perfection (+23.8% extension) — a beat alone won't keep the stock up; guidance must accelerate. 4 priors avg +11.9% up, -2.2% down; bull case to ~$243, bear case to ~$212. No entry before the print.",
+        "what_to_do": "TSEM reports in 6 days (May 13). Setup archetype: priced_for_perfection (+23.8% above SMA50). Bull mechanism: Q2 guide >$850M revenue signals continued AI packaging momentum. Bear mechanism: CoWoS expansion capex miss slows capacity rollout. 4 priors avg +11.9% up, -2.2% down; bull case ~$243, bear case ~$212. No entry at 23.8% extension; pullback to $153–184 support zone required. Reassess post‑earnings.",
         "entry_block": "BLOCKED: +23.8% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1297,7 +1297,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1323,9 +1323,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +52.3% — SK Hynix pricing in 80%+ MoM, no margin of safety.",
+        "headline": "52.3% above SMA50 — memory rally ran too far; wait for reset.",
         "prior_period_delta_narrative": "RSI 83.5→83.8, extension 53.4%→52.3%, close ₩1,599,000→₩1,608,000.",
-        "what_to_do": "SK Hynix is up 81.5% in a month on memory tightness, but the stock is 52.3% above its 50-day. HBM3E leadership is intact, yet no entry until a pullback to ~₩1,055,865 (50-day) and RSI below 70.",
+        "what_to_do": "SK Hynix remains the HBM3E/HBM4 leader, but +52.3% above SMA50 and RSI 84 make fresh entry impossible. Wait for a pullback to the ₩1,055,865 SMA50 retest zone. Catalyst: NVDA Blackwell Ultra Q2/Q3 ramp updates or Samsung’s HBM3E qualification news (potential competitive shift).",
         "entry_block": "BLOCKED: +52.3% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1401,7 +1401,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": false,
+        "g5_no_earnings_7d": false,
         "g6_vix_ok": true,
         "g8_rr_robust": true,
         "all_mechanical_pass": false,
@@ -1442,9 +1442,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension, reports tomorrow — bar is high.",
+        "headline": "Hard‑blocked, earnings tomorrow — priced for perfection at +45.5%.",
         "prior_period_delta_narrative": "RSI 66.8→71.6, extension 35.9%→45.5%, close $127.89→$137.98.",
-        "what_to_do": "CoreWeave reports tomorrow (per pre_earnings_band.temporal_phrase). Priced_for_perfection at +45.5% above SMA50 — guidance must exceed expectations. 4 priors avg +4.0% up, -16.5% down; bull case to ~$143, bear case to ~$115. No entry before the print.",
+        "what_to_do": "CRWV reports tomorrow (May 8). Setup archetype: priced_for_perfection (+45.5% above SMA50). Bull mechanism: Q1 revenue >$420M and guidance raise confirm hyperscaler capacity demand. Bear mechanism: weaker‑than‑expected AI GPU utilisation commentary triggers a sell‑off. 4 priors avg +4.0% up, −16.5% down; bull case ~$143, bear case ~$115. No entry at these levels; reassess post‑print.",
         "entry_block": "BLOCKED: +45.5% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1524,7 +1524,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1550,9 +1550,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +20.2% — AWS capex story priced to perfection.",
-        "prior_period_delta_narrative": "RSI 80.5→81.1, extension 20.3%→20.2%, close $273.55→$274.99.",
-        "what_to_do": "Amazon's $200B AI capex and supply-chain services launch (per Simply Wall St, May 7) are bullish, but the stock is 20.2% above its 50-day with RSI 81. No entry until a pullback to the $230-240 zone (50-day at $228.73) and RSI below 65.",
+        "headline": "Massive extension at +20.2% above SMA50; logistics move is interesting but no entry.",
+        "prior_period_delta_narrative": "RSI 80.5→81.1, close $273.55→$274.99.",
+        "what_to_do": "Amazon’s new supply‑chain services offering adds a revenue layer, but the stock is +20.2% above SMA50 with RSI 81 — extreme overbought. Wait for a pullback to the $225–228 support zone (SMA50/SMA200 confluence). Catalyst: Q2 AWS re‑acceleration data or Prime Day preview (mid‑2026) that confirms e‑commerce momentum.",
         "entry_block": "BLOCKED: +20.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1633,7 +1633,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1659,9 +1659,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +24.0% — TPU dominance story is fully priced.",
+        "headline": "Hard‑blocked at +24% extension; TPU v7 win is priced in.",
         "prior_period_delta_narrative": "RSI 80.3→82.8, extension 21.3%→24.0%, close $384.27→$395.14.",
-        "what_to_do": "Google's Q1 blockbuster and TPU v7 ramp are strong, but the stock is 24.0% above its 50-day with RSI 83. No entry until a pullback to ~$360 (near the 50-day at $318.62) or after earnings when the valuation resets.",
+        "what_to_do": "Google’s TPU v7 dominance (Meta deal) and strong Q1 earnings are genuine tailwinds, but the stock is +24% above SMA50 with RSI 83. No entry until a pullback to the $319.32–$284.02 SMA50–SMA200 retest zone. Catalyst: Q2 2026 Google Cloud revenue growth data (July) or Meta/Apple TPU purchase commitments.",
         "entry_block": "BLOCKED: +24.0% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -1744,7 +1744,7 @@
         "g1_signal_eligible": true,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1772,8 +1772,8 @@
       "writeup_tier": "full",
       "signal": "HOLD",
       "writeup": {
-        "headline": "MSFT holds near the 50-day, but R:R is poor at 0.5:1.",
-        "prior_period_delta_narrative": "RSI 52.6→54.1, extension 3.6%→4.2%, close $411.38→$413.96; R:R 0.8:1→0.5:1.",
+        "headline": "OpenAI concentration risk keeps MSFT on HOLD — no entry trigger.",
+        "prior_period_delta_narrative": "RSI 52.6→54.1, extension 3.6%→4.2%.",
         "what_to_do": null,
         "entry_block": null
       }
@@ -1854,7 +1854,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1880,9 +1880,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Hard-blocked on +19.9% extension and RSI 68; custom ASIC thesis intact.",
+        "headline": "Hard‑blocked — 19.9% above SMA50, RSI 68, no entry.",
         "prior_period_delta_narrative": "RSI 69.3→68.0, extension 21.1%→19.9%, close $427.36→$425.44.",
-        "what_to_do": "Hard-blocked at +19.9% above 50-day and RSI 68. Broadcom's custom AI chips (Google TPU, Meta) underpin the thesis, but entry requires RSI below 65 and price to retest the $400 level with volume. Reassess after the June 4 earnings or a pullback to $370 (200-day at $341).",
+        "what_to_do": "Broadcom’s custom ASIC ramp (Google TPU, Meta) remains a multi‑year thesis, but +19.9% above SMA50 and RSI 68 block entry. Wait for pullback to the $354.85 SMA50 retest. Catalyst: Q2 FY2026 earnings (Jun 4) — could reveal next Google TPU v7 order magnitude.",
         "entry_block": "BLOCKED: +19.9% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=22 (<30), 19.9% (>=10% ceiling for trend exception), RSI 68 (>=65)."
       }
     },
@@ -1961,7 +1961,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -1987,9 +1987,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +21.0% — NVDA photonics catalyst fully priced.",
+        "headline": "NVDA photonics deal is intact, but 21% extension keeps entry blocked.",
         "prior_period_delta_narrative": "RSI 64.8→58.8, extension 28.3%→21.0%, close $994.56→$944.28.",
-        "what_to_do": "Lumentum's pullback after earnings miss (per Barrons, May 6) cooled RSI to 58.8, but the stock remains 21.0% above its 50-day. The NVDA $2B partnership is intact, but entry requires a further pullback to $800-850 (support zones) or a catalyst that resets the extension.",
+        "what_to_do": "Lumentum earnings pause and Coherent’s inline report cooled the photonics rally, but +21% above SMA50 still puts entry out of reach. Wait for pullback to the $800.56 support level; reassess after NVDA Blackwell Ultra ramp commentary (Q2‑Q3 2026) or next photonics sector catalyst (ECOC 2026).",
         "entry_block": "BLOCKED: +21.0% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -2067,7 +2067,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -2093,9 +2093,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +40.8% — slow compounder, fast price.",
+        "headline": "Hard‑blocked — 40.8% above SMA50; defense 5G deal is context, not entry.",
         "prior_period_delta_narrative": "RSI 81.4→77.3, extension 45.0%→40.8%, close $13.42→$13.19.",
-        "what_to_do": "Nokia's lock on Spectrum-X and 5G military wins lifted the stock 40.8% above its 50-day. As a slow compounder, this extension is unsustainable. No entry until a pullback to ~$10 (50-day at $9.37) and a confirmed design win with a named hyperscaler.",
+        "what_to_do": "Nokia’s Lockheed Martin 5G win is a positive, but at +40.8% above SMA50 with RSI 77, entry is blocked. Wait for pullback to the $9.79 support zone. Catalyst: future Spectrum‑X or 800G optical transceiver design wins from hyperscalers (expected H2 2026).",
         "entry_block": "BLOCKED: +40.8% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -2171,7 +2171,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": false,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -2197,9 +2197,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Extreme extension at +55.6% — Oracle deal euphoria overextended.",
+        "headline": "Extreme +55.6% above SMA50; Oracle deal is a catalyst for a pullback, not entry.",
         "prior_period_delta_narrative": "RSI 78.0→72.6, extension 63.1%→55.6%, close $295.25→$285.47.",
-        "what_to_do": "Bloom Energy's Oracle Project Jupiter and raised guidance (per Simply Wall St, May 6) are solid, but the stock is 55.6% above its 50-day and RSI is 73. Entry only on a pullback to the $200-216 support zone or after the next quarter when revenue ramp is confirmed.",
+        "what_to_do": "Bloom Energy’s Q1 beat and raised guidance confirm the AI power thesis, but +55.6% above SMA50 is a momentum extreme — no fresh money should enter here. Wait for pullback to the $216.04 support (nearest). Catalyst: next data‑center power deal announcement (Equinix/AWS expansion expected H2 2026) or Q2 earnings.",
         "entry_block": "BLOCKED: +55.6% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration."
       }
     },
@@ -2281,7 +2281,7 @@
         "g1_signal_eligible": true,
         "g2_rr_above_2": true,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": true,
+        "g5_no_earnings_7d": true,
         "g6_vix_ok": true,
         "g8_rr_robust": false,
         "all_mechanical_pass": false,
@@ -2309,9 +2309,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "CAUTION on 66x forward P/E — defense AI momentum, but valuation gates entry.",
-        "prior_period_delta_narrative": "RSI 42.9→41.2, extension -6.6%→-8.1%, close $135.91→$133.79.",
-        "what_to_do": "PLTR's 145% Rule of 40 score (per Benzinga, May 7) and defense contracts are impressive, but 66x forward P/E with only a 2.1:1 R:R (wide‑stop 1.48:1) keeps it on CAUTION. Reassess if price pulls back to $128.51 support with volume, or after Army/Navy IDIQ ceilings convert to firm orders.",
+        "headline": "CAUTION on 66x P/E — Rule of 40 is impressive but valuation premium needs growth delivery.",
+        "prior_period_delta_narrative": "RSI 42.9→41.2, close $135.91→$133.79.",
+        "what_to_do": "Palantir’s Rule of 40 score of 145% and defense AI contracts are a compelling narrative, but 66x forward P/E demands flawless execution. A pullback to the $128.51 support zone would offer a better entry. Catalyst: Q2 defense contract wins (IDIQ task orders) or next Army program expansion by mid‑2026.",
         "entry_block": "CAUTION: forward P/E of 66x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline."
       }
     },
@@ -2381,7 +2381,7 @@
         "g1_signal_eligible": false,
         "g2_rr_above_2": false,
         "g3_rr_observed": true,
-        "g5_no_earnings_5d": false,
+        "g5_no_earnings_7d": false,
         "g6_vix_ok": true,
         "g8_rr_robust": true,
         "all_mechanical_pass": false,
@@ -2407,9 +2407,9 @@
       "writeup_tier": "full",
       "signal": "CAUTION",
       "writeup": {
-        "headline": "Downgraded to CAUTION — hard-blocked on +5.2% extension after 26 days above SMA50.",
-        "prior_period_delta_narrative": "RSI 48.7→50.1, extension 4.2%→5.2%, close $7.63→$7.71; R:R 2.2:1→1.6:1.",
-        "what_to_do": "Hard-blocked at +5.2% above the 50-day. WeRide's ADR delisting risk and pre-profit status keep it fragile. Reassess on a pullback to $7.33 (50-day) with volume, or after the May 13 earnings if the print resets the stock.",
+        "headline": "Downgraded to CAUTION — extension +5.2% blocks entry despite intact thesis.",
+        "prior_period_delta_narrative": "RSI 48.7→50.1, extension 4.2%→5.2%.",
+        "what_to_do": "WeRide’s autonomous driving partnership pipeline (Uber, Grab) is intact, but +5.2% above SMA50 triggers the hard block. Wait for pullback to $7.33–7.47 (SMA50/support). Catalyst: earnings May 13 could provide commercial‑traction data.",
         "entry_block": "BLOCKED: +5.2% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=26 (<30)."
       }
     }
@@ -2421,9 +2421,9 @@
         "O39.SI",
         "U11.SI"
       ],
-      "summary": "Singapore banks await UOB (today) and OCBC (tomorrow) earnings. NIM compression headwind persists with US10Y at 4.36%, still above the 4.20% threshold. OCBC's HSBC Indonesia acquisition (per Private Banker International, May 5) adds wealth scale but doesn't solve the margin problem.",
-      "thesis_status": "Structurally impaired — awaiting earnings catalysts",
-      "key_development": "UOB reports today; OCBC reports tomorrow — both prints are critical to gauge whether NIMs are stabilising below 4.20% US10Y."
+      "summary": "Banks remain in a holding pattern with US10Y at 4.36% — still above the 4.20% NIM‑relief threshold. DBS is hard‑blocked on RSI; UOB (earnings today) and OCBC (tomorrow) are the immediate catalysts that will dictate near‑term sentiment.",
+      "thesis_status": "Structurally impaired — dual NIM compression persists, awaiting catalysts.",
+      "key_development": "OCBC’s May 8 print will test whether HSBC Indonesia integration can offset rate headwinds."
     },
     "semiconductors": {
       "tickers": [
@@ -2439,9 +2439,9 @@
         "000660.KS",
         "CRWV"
       ],
-      "summary": "SOXX surged 2.39% to a record 506.87, but the rally has driven 7 of 11 watchlist members into hard-blocked CAUTION territory on extreme extension. AMD's earnings beat and NVDA's Corning deal drove momentum, yet no ticker offers a clean entry window. TSM is the sole on_deck candidate with PEG 1.25 and 35% revenue growth, but it's still 16% above its 50-day.",
-      "thesis_status": "Structurally bullish, tactically overextended",
-      "key_development": "AMD's Q1 beat and NVDA's $500M Corning deal extended semis to levels where every entry requires a 10-20% pullback; CoWoS capacity remains the structural bottleneck."
+      "summary": "SOXX at a fresh all‑time high, but 18 of 21 watchlist semis are on CAUTION — the rally has moved into extreme overbought territory. AMD’s blowout Q1 ignited the latest leg, but NVDA, MU, TSM, and others are now 10‑70% above their moving averages; only TSEM (earnings May 13) and CRWV (tomorrow) offer near‑term binary events that could reset levels.",
+      "thesis_status": "Structurally bullish, tactically extended — no fresh entries.",
+      "key_development": "US‑China chip tariffs (2027 implementation) add long‑dated uncertainty but do not alter the current AI‑demand trajectory."
     },
     "big_tech": {
       "tickers": [
@@ -2450,56 +2450,39 @@
         "MSFT",
         "PLTR"
       ],
-      "summary": "BigTech cluster is split: MSFT holds near its 50-day without a block, while AMZN and GOOG are CAUTION at extreme extension. PLTR's 66x P/E keeps it on the sidelines. The AI capex story is validated, but price has run too far ahead of near-term entry triggers.",
-      "thesis_status": "Bullish capex trajectory, but valuation gaps widening",
-      "key_development": "MSFT is the only BigTech name without an extension block; the others need a 15-25% correction before entry windows reopen."
+      "summary": "Amazon and Google are severely extended (+20‑24% above SMA50) while Microsoft remains range‑bound near its SMA50 with an OpenAI overhang. Palantir’s premium valuation keeps it on CAUTION; no BigTech name offers a near‑term entry.",
+      "thesis_status": "Structurally bullish but technically overextended — wait for pullbacks.",
+      "key_development": "Amazon Supply Chain Services launch could be a long‑term margin driver, but is not enough to offset the extreme extension."
     }
   },
   "interconnected": [
     {
       "ticker": "COHR",
       "name": "Coherent",
-      "reason": "NVDA $2B photonics partner — mirrors LITE, direct read-through from NVDA's AI optics buildout.",
-      "entry_note": "Add to watchlist if LITE's earnings composure pulls COHR down 8-10% from current levels.",
+      "reason": "NVDA $2B photonics investment (alongside LITE) — mirrored AI‑optics demand.",
+      "entry_note": "Add to watchlist if LITE earnings recovery confirms AI‑optics momentum; COHR recent in‑line print did not stop the Lumentum‑led rally, so wait for better correlation breakdown.",
       "price": 344.67,
       "currency": "USD",
       "chg_pct": 3.46
     },
     {
-      "ticker": "GLW",
-      "name": "Corning",
-      "reason": "NVDA $500M AI infrastructure deal — fiber optics plants supply data center interconnects; benefits from AI capex cycle.",
-      "entry_note": "Add to watchlist if Corning pulls back 5-7% and NVDA holds above $195.",
-      "price": 181.57,
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "reason": "AMD MI450 GPU framework deal could accelerate Meta’s AI infrastructure spend.",
+      "entry_note": "Consider if AMD MI450 shipment news in H2 2026 signals Meta capex upside beyond $70B.",
+      "price": 612.88,
       "currency": "USD",
-      "chg_pct": 9.8
-    },
-    {
-      "ticker": "ARM",
-      "name": "Arm Holdings",
-      "reason": "Earnings mover late; AI chip design licensing — correlated with semis rally; watch for read-through on NVDA's Blackwell ramp.",
-      "entry_note": "Revisit after ARM's next earnings for confirmation of AI licensing revenue acceleration above 30%.",
-      "price": 237.3,
-      "currency": "USD",
-      "chg_pct": 4.89
+      "chg_pct": 1.65
     }
   ],
   "geopolitical": {
     "active_risks": [
-      "Iran-Hormuz oil crisis de-escalating: Trump announces pause, diplomatic push; WTI down from $105 spike to $95.72, but supply risk persists.",
-      "MATCH Act export controls: proposed US legislation would restrict ASML DUV/EUV exports to China — pending committee action per Simply Wall St, May 7.",
-      "US-China chip tariffs: new 0% tariffs on Chinese chips effective 2027, on top of existing 50% (Tom's Hardware, May 7); near-term impact limited.",
-      "Fed rate pause: FOMC decision today; no change expected, but hawkish rhetoric could delay semis recovery."
+      "Iran‑US Hormuz de‑escalation holds — WTI down 8.9% on week, supply‑disruption premium fading.",
+      "US announces new tariffs on Chinese chips and electronics, effective 2027 — delayed implementation adds supply‑chain uncertainty.",
+      "FOMC rate decision today — markets price no change, but hawkish hold could reverse recent tech easing.",
+      "MAS S$NEER appreciation still in effect (next decision Oct 2026) — SGD strong, compressing bank NIMs."
     ],
-    "market_impact": "Oil easing from Hormuz de-escalation lifted broad indices to new highs. Singapore banks (DBS, OCBC, UOB) remain under NIM pressure as US10Y stays above 4.20%. Semis surged but are universally extended — entry windows are closed across NVDA, AMD, MU, and ASML.",
-    "new_since_yesterday": "Trump administration announces Hormuz pause and new chip tariffs (delayed to 2027), per Tom's Hardware; WTI settled lower despite source conflict.",
-    "probabilities": {
-      "base": 55,
-      "optimistic": 20,
-      "pessimistic": 15,
-      "wildcard": 10
-    },
-    "portfolio_action": "No new entries into extended semis; wait for post-FOMC pullbacks to rebuild support-tested positions in TSM (on_deck) and MSFT."
+    "market_impact": "Oil’s retreat has removed the immediate margin‑compression threat, fueling the SPY and SOXX rally. The new China chip tariffs are a 2027 issue, but they reinforce the structural decoupling narrative that benefits INTC and TSMC’s on‑shoring. The FOMC today could inject volatility if the Fed signals a later‑than‑expected pause."
   },
   "events_this_week": [
     {
@@ -2557,177 +2540,156 @@
       "CAUTION": 18,
       "HOLD": 3
     },
-    "overall_stance": "Defensive — no entries, watch for pullbacks",
-    "risk_posture": "Eighteen of 21 names are hard-blocked on extreme extension; the only three holds are awaiting earnings. The semis rally has fully priced near-term catalysts, leaving no entry windows. FOMC today and multiple earnings this week keep risk elevated."
+    "overall_stance": "Defensive — extreme extension blocks fresh entry across all clusters.",
+    "risk_posture": "Eighteen of 21 names are hard‑blocked on technical extension — no ACCUMULATE or BUY signals, no end in sight for the cash‑only posture."
   },
   "action_summary": {
     "consider_adding": [],
     "accumulate": [],
     "watch_for_entry": [],
     "regime_change_pending": [],
-    "on_deck": [
-      {
-        "ticker": "TSM",
-        "on_watchlist": true,
-        "note": "PEG 1.25, 35% revenue growth, CoWoS monopoly — fundamentals are compelling. Still hard-blocked at +16.0% above SMA50. Trigger: RSI below 65 and price reclaiming $390 with volume.",
-        "entry_level": "Only after RSI <65 and price >$390 with volume; stop below $360."
-      }
-    ],
+    "on_deck": [],
     "avoid": [
       {
         "ticker": "D05_SI",
         "on_watchlist": true,
-        "note": "Avoid for now. RSI 71 and 4.4% extension block entry; reassess if RSI cools below 65 and price reclaims 50-day at $56.49, or after MAS review (Oct 2026)."
+        "note": "Avoid for now. RSI 71 hard block; no entry until pullback to S$56.38–57.50. Reassess after OCBC earnings for NIM clarity."
       },
       {
         "ticker": "NVDA",
         "on_watchlist": true,
-        "note": "Avoid for now. Hard-blocked at +10.7% above SMA50. Reassess on a pullback to $195 with above-average volume."
+        "note": "Avoid for now. Extension 10.7% blocks entry. Reassess on pullback to $177–188 or post‑May‑21 earnings if RSI resets."
       },
       {
         "ticker": "AMD",
         "on_watchlist": true,
-        "note": "Avoid for now. Extreme extension +71.6% and RSI 81. RCP review pending: +18.6% gap on May 6; no entry until pullback to at least $300."
+        "note": "Avoid for now. +71.6% extreme extension. No entry until pullback to SMA50 retest near $245 — a crash‑like move required."
       },
       {
         "ticker": "INTC",
         "on_watchlist": true,
-        "note": "Avoid for now. +90.7% above 50-day with no external 18A customers. Reassess on a pullback to $70-80 or a foundry design win."
+        "note": "Avoid for now. 90.7% above SMA50 — the foundry thesis can’t be bought at these levels. Wait for pullback to $59.27."
       },
       {
         "ticker": "ASML",
         "on_watchlist": true,
-        "note": "Avoid for now. Hard-blocked at +10.6% extension and MATCH Act risk. Reassess on pullback to $1,400 with volume."
+        "note": "Avoid for now. Gap to 10.6% extension breaks the recent setup. Wait for pullback to $1,372–1,397."
       },
       {
         "ticker": "MU",
         "on_watchlist": true,
-        "note": "Avoid for now. +52.2% above 50-day, RSI 84. Reassess on pullback to ~$440 and RSI below 70."
+        "note": "Avoid for now. 52.2% extension — memory cycle is stretched. Reassess on pullback toward SMA200 near $284.57."
+      },
+      {
+        "ticker": "TSM",
+        "on_watchlist": true,
+        "note": "Avoid for now. +16% above SMA50, RSI 69. Wait for pullback to $361–331 and Q2 guidance update."
       },
       {
         "ticker": "TSEM",
         "on_watchlist": true,
-        "note": "Avoid for now. Extreme extension +23.8%; earnings in 6 days priced_for_perfection. Reassess after the print."
+        "note": "Avoid for now. +23.8% extension, earnings May 13. No entry until pullback to $153–184 support or after earnings binary reset."
       },
       {
         "ticker": "000660_KS",
         "on_watchlist": true,
-        "note": "Avoid for now. +52.3% above 50-day, RSI 84. Reassess on pullback to ₩1,055,865 and RSI below 70."
+        "note": "Avoid for now. 52.3% above SMA50. Wait for pullback toward SMA50 (₩1,055,865) and watch Samsung HBM qualification."
       },
       {
         "ticker": "CRWV",
         "on_watchlist": true,
-        "note": "Avoid for now. Extreme extension +45.5%; earnings tomorrow priced_for_perfection. No entry before print."
+        "note": "Avoid for now. Priced for perfection, earnings tomorrow. No entry until post‑print re‑evaluation."
       },
       {
         "ticker": "AMZN",
         "on_watchlist": true,
-        "note": "Avoid for now. +20.2% above 50-day, RSI 81. Reassess on pullback to $230-240 and RSI below 65."
+        "note": "Avoid for now. +20.2% extension, RSI 81. Wait for pullback to $225–228 SMA50/SMA200 confluence."
       },
       {
         "ticker": "GOOG",
         "on_watchlist": true,
-        "note": "Avoid for now. +24.0% above 50-day, RSI 83. Reassess on pullback to ~$360 or after earnings."
+        "note": "Avoid for now. +24% extension with RSI 83. Reassess on pullback to $319–284 SMA50–SMA200 retest."
       },
       {
         "ticker": "AVGO",
         "on_watchlist": true,
-        "note": "Avoid for now. +19.9% above 50-day and RSI 68. Reassess on pullback to $400 with volume or after June 4 earnings."
+        "note": "Avoid for now. 19.9% above SMA50, RSI 68. Wait for pullback to $354.85 or Q2 earnings catalyst Jun 4."
       },
       {
         "ticker": "LITE",
         "on_watchlist": true,
-        "note": "Avoid for now. +21.0% above 50-day, despite RSI cooling. Reassess on pullback to $800-850."
+        "note": "Avoid for now. 21% above SMA50 — photonics story is intact but price is too rich. Wait for pullback to $800.56."
       },
       {
         "ticker": "NOK",
         "on_watchlist": true,
-        "note": "Avoid for now. +40.8% above 50-day, unsustainable for a slow compounder. Reassess on pullback to ~$10."
+        "note": "Avoid for now. 40.8% above SMA50 with RSI 77. Wait for pullback to $9.79 support."
       },
       {
         "ticker": "BE",
         "on_watchlist": true,
-        "note": "Avoid for now. +55.6% above 50-day, RSI 73. Reassess on pullback to $200-216 support zone."
+        "note": "Avoid for now. 55.6% above SMA50 — extremely extended. Wait for pullback to $216."
       },
       {
         "ticker": "PLTR",
         "on_watchlist": true,
-        "note": "Avoid for now. 66x forward P/E with wide-stop R:R 1.48:1. Reassess on pullback to $128.51 support with volume."
+        "note": "Avoid for now. 66x forward P/E — valuation premium demands growth delivery. Reassess on pullback to $128.51."
       },
       {
         "ticker": "WRD",
         "on_watchlist": true,
-        "note": "Avoid for now. Hard-blocked at +5.2% above 50-day. Reassess on pullback to $7.33 with volume or after May 13 earnings."
+        "note": "Avoid for now. +5.2% extension hard block; wait for pullback to $7.33–7.47. Earnings May 13."
       }
     ],
     "hold_no_action": [
       {
         "ticker": "O39_SI",
         "on_watchlist": true,
-        "note": "Holds until post-earnings reassessment tomorrow."
+        "note": "HOLD. Earnings tomorrow — no pre‑entry. Reassess post‑print for NIM stabilisation signal."
       },
       {
         "ticker": "U11_SI",
         "on_watchlist": true,
-        "note": "Holds until post-earnings reassessment after today's after-close release."
+        "note": "HOLD. Earnings tonight — wait for results before any entry."
       },
       {
         "ticker": "MSFT",
         "on_watchlist": true,
-        "note": "Holds near 50-day with poor R:R — upgrades to WATCH above $422.72 with volume."
+        "note": "HOLD. No near‑term catalyst; OpenAI concentration risk persists. Reassess on break above $422.72 or pullback to $397."
       }
     ],
     "new_stocks_to_watch": [
       {
-        "ticker": "COHR",
-        "on_watchlist": false,
-        "note": "NVDA $2B photonics partner — add to watchlist if LITE's earnings composure pulls COHR down 8-10% from current levels.",
-        "entry_level": "Monitor for 8-10% pullback; specific level will be set after COHR closes post-LITE comp."
-      },
-      {
-        "ticker": "GLW",
-        "on_watchlist": false,
-        "note": "NVDA $500M AI infrastructure deal — add to watchlist if Corning pulls back 5-7% and NVDA holds above $195.",
-        "entry_level": "Watch for a 5-7% dip; specific entry zone to be determined after the pullback."
-      },
-      {
-        "ticker": "ARM",
-        "on_watchlist": false,
-        "note": "AI chip design licensing — revisit after ARM's next earnings for confirmation of AI licensing revenue acceleration above 30%.",
-        "entry_level": null
+        "name": "COHR",
+        "note": "NVDA $2B photonics mirror play. Add to watchlist if LITE earnings recovery signals sector strength or on pullback to $X."
       }
-    ],
-    "caution": []
+    ]
   },
   "macro_trigger_map": [
     {
-      "event": "FOMC Rate Decision",
+      "event": "FOMC Rate Decision (May 7)",
       "date": "2026-05-07",
-      "bullish_outcome": "Dovish hold or explicit rate-cut signal pushes US10Y below 4.20%, easing NIM pressure for Singapore banks.",
+      "bullish_outcome": "Dovish hold or signal of easing later in 2026; US10Y drops below 4.20%.",
       "bullish_upgrades": [
-        "O39.SI → WATCH candidate (NIM relief + semis multiple expansion)",
-        "U11.SI → WATCH candidate (earnings could validate NIM trough)",
-        "D05.SI → HOLD (if RSI cools and US10Y <4.20%)"
+        "OCBC → WATCH candidate (NIM relief + lower USD funding costs)"
       ],
-      "bearish_outcome": "Hawkish hold reinforces rate-pause narrative, keeping US10Y elevated and extending NIM compression.",
+      "bearish_outcome": "Hawkish hold; US10Y spikes above 4.50%.",
       "bearish_impact": [
-        "D05.SI → remains CAUTION (extension block reasserts on rate selloff)",
-        "O39.SI → HOLD (NIM recovery delayed)",
-        "U11.SI → HOLD (no catalyst for upgrade)"
+        "All CAUTION semis remain blocked",
+        "Singapore banks → deeper CAUTION (rate pressure intensifies)"
       ]
     },
     {
-      "event": "Non-Farm Payrolls (April)",
-      "date": "2026-05-08",
-      "bullish_outcome": "Soft payrolls (<150k) boost rate-cut hopes, lowering real yields and lifting tech multiples.",
+      "event": "CPI Report (May 12)",
+      "date": "2026-05-12",
+      "bullish_outcome": "Core CPI <0.2% MoM, reinforcing inflation easing.",
       "bullish_upgrades": [
-        "NVDA → WATCH candidate (yield-sensitive growth re-rating)",
-        "TSM → WATCH (extension block could ease with lower yields)"
+        "ASML, TSM → WATCH candidates (lower yields reduce DCF risk)"
       ],
-      "bearish_outcome": "Strong payrolls (>250k) keep the Fed hawkish, extending semis extension blocks.",
+      "bearish_outcome": "CPI surprises >0.4% MoM, reigniting rate-hike fears.",
       "bearish_impact": [
-        "NVDA → remains CAUTION (extension block reasserts on rate selloff)",
-        "TSM → remains CAUTION (hard block holds)"
+        "CRWV → AVOID (debt stress)",
+        "PLTR → AVOID (multiple compression)"
       ]
     }
   ]
