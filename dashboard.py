@@ -1682,7 +1682,7 @@ def render_action_summary(action_summary: dict) -> None:
     )
 
 
-def render_macro(macro_summary: str, geo: dict) -> None:
+def render_macro(macro_summary: str, geo: dict, commodities_note: str = "") -> None:
     col1, col2 = st.columns([1.4, 1])
     with col1:
         st.markdown(
@@ -1695,6 +1695,14 @@ def render_macro(macro_summary: str, geo: dict) -> None:
         if macro_summary:
             st.markdown(
                 f'<p class="macro-lead">{_escape_dollars(macro_summary)}</p>',
+                unsafe_allow_html=True,
+            )
+        if commodities_note:
+            st.markdown(
+                f'<div style="margin-top:8px;font-family:var(--mono);font-size:11.5px;'
+                f'color:var(--ink-3);line-height:1.5;padding:8px 0 4px;'
+                f'border-top:1px solid var(--rule);">'
+                f'{_escape_dollars(commodities_note)}</div>',
                 unsafe_allow_html=True,
             )
         if geo.get("portfolio_action"):
@@ -1885,29 +1893,95 @@ def render_calendar(events: list) -> None:
             unsafe_allow_html=True,
         )
         return
-    grouped: dict[str, list] = {}
-    for e in events:
-        grouped.setdefault(e.get("date", "—"), []).append(e)
+
+    this_week = [e for e in events if (e.get("type") or "this_week") != "forward_catalyst"]
+    forward = [e for e in events if (e.get("type") or "") == "forward_catalyst"]
+
     from datetime import datetime as _dt
-    for date_str in sorted(grouped.keys()):
-        try:
-            d = _dt.strptime(date_str, "%Y-%m-%d")
-            short, dow = d.strftime("%b %d"), d.strftime("%a").upper()
-        except (ValueError, TypeError):
-            short, dow = date_str, ""
-        events_html = ""
-        for e in grouped[date_str]:
-            impact = (e.get("impact") or "LOW").upper()
-            events_html += (
-                f'<div class="cal-event">'
-                f'<span class="cal-impact {impact}">{impact}</span>'
-                f'<span class="cal-text">{_escape_dollars(e.get("event", ""))}</span>'
-                f'</div>'
+
+    def _render_group(group: list, muted: bool = False) -> None:
+        grouped: dict[str, list] = {}
+        for e in group:
+            grouped.setdefault(e.get("date", "—"), []).append(e)
+        style = "opacity:0.72;" if muted else ""
+        for date_str in sorted(grouped.keys()):
+            try:
+                d = _dt.strptime(date_str, "%Y-%m-%d")
+                short, dow = d.strftime("%b %d"), d.strftime("%a").upper()
+            except (ValueError, TypeError):
+                short, dow = date_str, ""
+            events_html = ""
+            for e in grouped[date_str]:
+                impact = (e.get("impact") or "LOW").upper()
+                events_html += (
+                    f'<div class="cal-event" style="{style}">'
+                    f'<span class="cal-impact {impact}">{impact}</span>'
+                    f'<span class="cal-text">{_escape_dollars(e.get("event", ""))}</span>'
+                    f'</div>'
+                )
+            st.markdown(
+                f'<div class="cal-day">'
+                f'<div class="cal-date">{short}<span class="dow">{dow}</span></div>'
+                f'<div>{events_html}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+    _render_group(this_week)
+
+    if forward:
+        st.markdown(
+            '<div style="border-top:1px solid var(--rule);margin:10px 0 8px;'
+            'font-family:var(--mono);font-size:10px;letter-spacing:0.12em;'
+            'text-transform:uppercase;color:var(--ink-3);padding-top:8px;">'
+            'Forward Catalysts</div>',
+            unsafe_allow_html=True,
+        )
+        _render_group(forward, muted=True)
+
+
+def render_interconnected(stocks: list) -> None:
+    """Render `interconnected` — model-selected read-through tickers outside the watchlist."""
+    if not stocks:
+        return
+    render_section_head(
+        "Interconnected Names",
+        "Read-throughs outside the watchlist — not buy signals",
+    )
+    for s in stocks:
+        if not isinstance(s, dict):
+            continue
+        ticker = (s.get("ticker") or "—").upper()
+        display = TICKER_DISPLAY.get(ticker, ticker)
+        name = s.get("name", "")
+        reason = s.get("reason") or ""
+        entry_note = s.get("entry_note") or ""
+        price = s.get("price")
+        chg = s.get("chg_pct")
+        price_str = ""
+        if price is not None:
+            chg_color = "#22c55e" if (chg or 0) >= 0 else "#ef4444"
+            chg_str = f'<span style="color:{chg_color};margin-left:6px;">{_sign(chg)}{abs(chg or 0):.1f}%</span>' if chg is not None else ""
+            price_str = (
+                f'<span style="font-family:var(--mono);font-size:11px;color:var(--ink-3);">'
+                f'{_fmt_num(price, 2)}{chg_str}</span>'
             )
         st.markdown(
-            f'<div class="cal-day">'
-            f'<div class="cal-date">{short}<span class="dow">{dow}</span></div>'
-            f'<div>{events_html}</div></div>',
+            f'<div style="border-left:3px solid var(--ink-4);background:var(--paper-2);'
+            f'padding:12px 16px;margin-bottom:10px;">'
+            f'<div style="display:flex;justify-content:space-between;'
+            f'align-items:baseline;margin-bottom:5px;">'
+            f'<span style="font-family:var(--mono);font-weight:600;'
+            f'color:var(--ink);font-size:13px;">{display}'
+            + (f' <span style="color:var(--ink-3);font-weight:400;font-size:11px;">{_escape_dollars(name)}</span>' if name and name != display else "")
+            + f'</span>{price_str}</div>'
+            f'<div style="color:var(--ink-2);font-size:13px;line-height:1.55;">'
+            f'{_escape_dollars(reason)}</div>'
+            + (
+                f'<div style="margin-top:6px;font-family:var(--mono);font-size:11px;'
+                f'color:var(--ink-3);">Entry note · {_escape_dollars(entry_note)}</div>'
+                if entry_note else ""
+            )
+            + '</div>',
             unsafe_allow_html=True,
         )
 
@@ -2668,6 +2742,7 @@ if page == "Briefing":
     events = report.get("events_this_week", []) or []
     trigger_map = report.get("macro_trigger_map", []) or []
     contrarians = report.get("contrarian_candidates", []) or []
+    interconnected = report.get("interconnected", []) or []
 
     render_stance(snapshot, len(watchlist))
 
@@ -2698,10 +2773,11 @@ if page == "Briefing":
     render_action_summary(action_summary)
     render_catalyst_playbook(trigger_map)
     render_contrarian_candidates(contrarians)
+    render_interconnected(interconnected)
 
     macro_col, cal_col = st.columns([3, 2])
     with macro_col:
-        render_macro(report.get("macro_summary", ""), geo)
+        render_macro(report.get("macro_summary", ""), geo, report.get("commodities_note", ""))
     with cal_col:
         render_section_head("The Week Ahead", "Catalysts that move signals")
         render_calendar(events)
