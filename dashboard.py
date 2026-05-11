@@ -1596,6 +1596,92 @@ def render_action_card(wl: dict, events: list) -> None:
     )
 
 
+def render_action_summary(action_summary: dict) -> None:
+    """Full action bucket digest — all 7 buckets in compact rows below the action card."""
+    if not action_summary:
+        return
+
+    BUCKET_ORDER = [
+        ("consider_adding",       "Consider Adding",        SIGNAL_COLORS["BUY"]),
+        ("accumulate",            "Accumulate",             SIGNAL_COLORS["ACCUMULATE"]),
+        ("watch_for_entry",       "Watch for Entry",        SIGNAL_COLORS["WATCH"]),
+        ("regime_change_pending", "Regime Change Pending",  "#f59e0b"),
+        ("on_deck",               "On Deck",                "#9ca3af"),
+        ("avoid",                 "Avoid",                  SIGNAL_COLORS["AVOID"]),
+        ("hold_no_action",        "Hold / No Action",       SIGNAL_COLORS["HOLD"]),
+    ]
+    new_names = action_summary.get("new_stocks_to_watch") or []
+    any_entries = any(action_summary.get(k) for k, _, _ in BUCKET_ORDER) or new_names
+    if not any_entries:
+        return
+
+    render_section_head("Action Summary", "All signals by bucket — full breakdown")
+
+    html_parts: list[str] = []
+    for key, label, color in BUCKET_ORDER:
+        entries = action_summary.get(key) or []
+        if not entries:
+            continue
+        html_parts.append(
+            f'<div style="margin-bottom:20px;">'
+            f'<div style="font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;'
+            f'text-transform:uppercase;color:{color};margin-bottom:8px;'
+            f'padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);">'
+            f'{label} <span style="color:var(--ink-3);">({len(entries)})</span></div>'
+        )
+        for entry in entries:
+            tk = entry.get("ticker", "")
+            note = entry.get("note", "")
+            entry_level = entry.get("entry_level")
+            display_tk = TICKER_DISPLAY.get(tk, tk)
+            level_html = (
+                f'<span style="color:var(--ink-3);font-family:var(--mono);font-size:11px;'
+                f'margin-left:10px;flex-shrink:0;">@ {_escape_dollars(str(entry_level))}</span>'
+                if entry_level is not None else ""
+            )
+            html_parts.append(
+                f'<div style="display:flex;gap:10px;align-items:baseline;'
+                f'padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);">'
+                f'<span style="font-family:var(--mono);font-size:11.5px;font-weight:600;'
+                f'color:{color};min-width:80px;flex-shrink:0;">{display_tk}</span>'
+                f'<span style="font-size:13.5px;color:var(--ink-2);line-height:1.45;flex:1;">'
+                f'{_escape_dollars(note)}</span>'
+                f'{level_html}'
+                f'</div>'
+            )
+        html_parts.append('</div>')
+
+    if new_names:
+        html_parts.append(
+            '<div style="margin-bottom:20px;">'
+            '<div style="font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;'
+            'text-transform:uppercase;color:#9ca3af;margin-bottom:8px;'
+            'padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);">'
+            f'Names to Watch <span style="color:var(--ink-3);">({len(new_names)})</span></div>'
+        )
+        for entry in new_names:
+            nm = entry.get("name", "")
+            note = entry.get("note", "")
+            html_parts.append(
+                f'<div style="display:flex;gap:10px;align-items:baseline;'
+                f'padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);">'
+                f'<span style="font-family:var(--mono);font-size:11.5px;font-weight:600;'
+                f'color:#9ca3af;min-width:80px;flex-shrink:0;">{_escape_dollars(nm)}</span>'
+                f'<span style="font-size:13.5px;color:var(--ink-2);line-height:1.45;flex:1;">'
+                f'{_escape_dollars(note)}</span>'
+                f'</div>'
+            )
+        html_parts.append('</div>')
+
+    st.markdown(
+        '<div style="background:var(--paper-2);border:1px solid var(--rule);'
+        'border-radius:4px;padding:20px 24px;margin-top:8px;">'
+        + "".join(html_parts)
+        + '</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_macro(macro_summary: str, geo: dict) -> None:
     col1, col2 = st.columns([1.4, 1])
     with col1:
@@ -1910,9 +1996,12 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
         "base_scorer": ("Soft caution (base scorer)", "#f59e0b"),
         "rr_gate_fail": ("R:R gate failed", "#ef4444"),
         "catalyst_override": ("Catalyst override", "#3498db"),
+        "rcp_terminal": ("RCP terminal", "#ef4444"),
+        "fragility_single_leg": ("Fragility gate — single leg", "#f59e0b"),
+        "avoid_source_missing": ("AVOID unsourced", "#f59e0b"),
     }
     status_chips: list[str] = []
-    if caution_source and signal in {"CAUTION", "AVOID"}:
+    if caution_source and signal not in {"BUY", "HOLD"}:
         label, color = cs_labels.get(
             caution_source, (caution_source, "#9ca3af")
         )
@@ -1936,6 +2025,60 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
             + "".join(status_chips) + '</div>'
         )
+
+    # ── RCP state ──
+    rcp = d.get("rcp_state")
+    if rcp:
+        rcp_phase = rcp.get("current_phase", "")
+        rcp_sessions = rcp.get("sessions_since_gap")
+        rcp_terminal_outcome = rcp.get("terminal_outcome", "")
+        rcp_path_a = rcp.get("path_a_level")
+        rcp_path_b = rcp.get("path_b_level")
+        _TERMINAL_PHASES = {"failed", "expired", "invalidated"}
+        _rcp_phase_colors = {
+            "gap_day": "#ef4444",
+            "cooling_off": "#f59e0b",
+            "graduation_watch": "#3b82f6",
+            "path_a_confirmed": "#22c55e",
+            "path_b_confirmed": "#22c55e",
+            "failed": "#6b7280",
+            "expired": "#6b7280",
+            "invalidated": "#6b7280",
+        }
+        rcp_color = _rcp_phase_colors.get(rcp_phase, "#9ca3af")
+        rcp_phase_label = rcp_phase.replace("_", " ").title()
+        sessions_note = (
+            f"  ·  {rcp_sessions} sessions since gap" if rcp_sessions is not None else ""
+        )
+        parts.append(_drilldown_section_html("Regime Change Pending"))
+        parts.append(
+            f'<div class="dd-line">'
+            f'<span style="font-family:var(--mono);font-size:11px;letter-spacing:0.10em;'
+            f'text-transform:uppercase;background:rgba(255,255,255,0.05);color:{rcp_color};'
+            f'padding:3px 8px;border-radius:3px;font-weight:600;">{rcp_phase_label}</span>'
+            f'<span style="color:var(--ink-3);font-size:12px;">{sessions_note}</span>'
+            f'</div>'
+        )
+        if rcp_phase not in _TERMINAL_PHASES:
+            _rcp_metrics: list[tuple[str, str]] = []
+            if rcp_path_a is not None:
+                _rcp_metrics.append(("Path A graduation", f"{pfx}{_fmt_num(rcp_path_a, 2)}"))
+            if rcp_path_b is not None:
+                _rcp_metrics.append(("Path B graduation", f"{pfx}{_fmt_num(rcp_path_b, 2)}"))
+            if rcp_sessions is not None:
+                _rcp_metrics.append(("Sessions remaining", str(max(0, 60 - rcp_sessions))))
+            if _rcp_metrics:
+                parts.append(_drilldown_metrics_html(_rcp_metrics))
+        else:
+            if rcp_terminal_outcome:
+                parts.append(
+                    f'<div class="dd-line" style="color:var(--ink-3);font-style:italic;">'
+                    f'{_escape_dollars(rcp_terminal_outcome)}</div>'
+                )
+            parts.append(
+                f'<div class="dd-line" style="color:#6b7280;font-size:12px;">'
+                f'New step-function catalyst required before re-entry.</div>'
+            )
 
     # ── Catalyst block (paper-trade entry path) ──
     catalyst = d.get("catalyst") or {}
@@ -2039,7 +2182,7 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
             "g1_signal_eligible": "Signal eligible",
             "g2_rr_above_2": "R:R ≥ 2.0",
             "g3_rr_observed": "R:R observed",
-            "g5_no_earnings_5d": "No earnings ≤7d",
+            "g5_no_earnings_7d": "No earnings ≤7d",
             "g6_vix_ok": "VIX < 30",
             "g8_rr_robust": "R:R robust",
         }
@@ -2233,6 +2376,72 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
     ]
     parts.append(_drilldown_section_html("Valuation"))
     parts.append(_drilldown_metrics_html(val_metrics))
+
+    # ── Thesis pillars (support_legs) ──
+    support_legs = d.get("support_legs")
+    if support_legs is not None:
+        is_fragility = d.get("caution_source") == "fragility_single_leg"
+        parts.append(_drilldown_section_html("Thesis pillars"))
+        if is_fragility:
+            parts.append(
+                '<div class="dd-line" style="color:#f59e0b;font-size:12.5px;">'
+                'Single-leg fragility gate triggered — signal capped to WATCH.</div>'
+            )
+        leg_color = "#ef4444" if is_fragility else "#22c55e"
+        for _leg in (support_legs or []):
+            parts.append(
+                f'<div class="dd-line" style="display:flex;align-items:baseline;gap:8px;">'
+                f'<span style="color:{leg_color};font-size:14px;flex-shrink:0;">·</span>'
+                f'<span>{_escape_dollars(str(_leg))}</span>'
+                f'</div>'
+            )
+
+    # ── Avoid source citation ──
+    avoid_source = d.get("avoid_source")
+    if avoid_source and isinstance(avoid_source, dict):
+        _av_pub = avoid_source.get("publication", "")
+        _av_frag = avoid_source.get("headline_fragment", "")
+        _av_date = avoid_source.get("date", "")
+        _av_url = avoid_source.get("url", "")
+        if _av_pub or _av_frag:
+            parts.append(_drilldown_section_html("Avoid source"))
+            _cite_parts: list[str] = []
+            if _av_pub:
+                _cite_parts.append(f'<strong>{_escape_dollars(_av_pub)}</strong>')
+            if _av_frag:
+                _cite_parts.append(f'"{_escape_dollars(_av_frag)}"')
+            if _av_date:
+                _cite_parts.append(
+                    f'<span style="color:var(--ink-3);">{_escape_dollars(_av_date)}</span>'
+                )
+            _cite_html = " · ".join(_cite_parts)
+            if _av_url:
+                _cite_html += (
+                    f' <a href="{_av_url}" target="_blank" '
+                    f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
+                )
+            parts.append(f'<div class="dd-line">{_cite_html}</div>')
+
+    # ── Earnings results in news ──
+    ern = d.get("earnings_results_in_news")
+    if ern and isinstance(ern, dict):
+        _ern_headline = ern.get("headline", "")
+        _ern_source = ern.get("source", "")
+        _ern_url = ern.get("url", "")
+        if _ern_headline:
+            parts.append(_drilldown_section_html("Earnings result"))
+            _ern_html = f'<div class="dd-line">"{_escape_dollars(_ern_headline)}"'
+            if _ern_source:
+                _ern_html += (
+                    f' <span style="color:var(--ink-3);">— {_escape_dollars(_ern_source)}</span>'
+                )
+            if _ern_url:
+                _ern_html += (
+                    f' <a href="{_ern_url}" target="_blank" '
+                    f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
+                )
+            _ern_html += '</div>'
+            parts.append(_ern_html)
 
     return "".join(parts)
 
@@ -2461,12 +2670,32 @@ if page == "Briefing":
     contrarians = report.get("contrarian_candidates", []) or []
 
     render_stance(snapshot, len(watchlist))
+
+    # Crisis flag — heuristic scan for "crisis dislocation" in writeup text
+    _crisis_markers = {"crisis dislocation", "crisis-dislocation", "crisis_dislocation"}
+    _crisis_detected = any(
+        any(m in str((wl_entry.get("writeup") or {})).lower() for m in _crisis_markers)
+        for wl_entry in watchlist.values()
+    )
+    if _crisis_detected:
+        st.markdown(
+            '<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);'
+            'border-radius:4px;padding:12px 18px;margin-bottom:16px;'
+            'font-family:var(--mono);font-size:12px;letter-spacing:0.07em;color:#ef4444;">'
+            'CRISIS DISLOCATION FLAG ACTIVE — elevated signal noise. '
+            'Treat all AVOID/CAUTION signals as provisional.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
     render_pulse(benchmarks)
     render_changes(
         watchlist,
         prev_report.get("watchlist", {}) if prev_report else {},
     )
     render_action_card(watchlist, events)
+    action_summary = report.get("action_summary", {})
+    render_action_summary(action_summary)
     render_catalyst_playbook(trigger_map)
     render_contrarian_candidates(contrarians)
 
