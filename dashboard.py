@@ -917,6 +917,7 @@ SIGNAL_COLORS = {
     "WATCH": "#f59e0b",
     "HOLD": "#6b7280",
     "CAUTION": "#ef4444",
+    "AVOID": "#b91c1c",
 }
 
 # Streamlit markdown only supports named colors (:red[text], :green[text], etc.)
