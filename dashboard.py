@@ -1094,9 +1094,11 @@ TICKER_DISPLAY = {
 CLUSTER_MAP = {
     "NVDA": "Semis", "AMD": "Semis", "INTC": "Semis", "MU": "Semis",
     "TSM": "Semis", "AVGO": "Semis", "ASML": "Semis",
+    "TSEM": "Semis", "000660_KS": "Semis",
     "AMZN": "BigTech", "GOOG": "BigTech", "MSFT": "BigTech",
     "D05_SI": "SG Banks", "O39_SI": "SG Banks", "U11_SI": "SG Banks",
     "LITE": "AI Optics", "PLTR": "Defense AI", "WRD": "China Tech",
+    "CRWV": "Neocloud", "NOK": "AI Networking", "BE": "Clean Energy",
 }
 
 # ── Editorial CSS classes (briefing-page-only blocks) ──
@@ -2743,7 +2745,6 @@ if page == "Briefing":
     events = report.get("events_this_week", []) or []
     trigger_map = report.get("macro_trigger_map", []) or []
     contrarians = report.get("contrarian_candidates", []) or []
-    interconnected = report.get("interconnected", []) or []
 
     render_stance(snapshot, len(watchlist))
 
@@ -2770,11 +2771,8 @@ if page == "Briefing":
         prev_report.get("watchlist", {}) if prev_report else {},
     )
     render_action_card(watchlist, events)
-    action_summary = report.get("action_summary", {})
-    render_action_summary(action_summary)
     render_catalyst_playbook(trigger_map)
     render_contrarian_candidates(contrarians)
-    render_interconnected(interconnected)
 
     macro_col, cal_col = st.columns([3, 2])
     with macro_col:
