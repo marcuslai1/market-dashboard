@@ -1,7 +1,58 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-05-22",
+  "_last_updated": "2026-05-25",
   "rolling_summaries": [
+    {
+      "date": "2026-05-25",
+      "themes": [
+        "Semiconductor divergence",
+        "Oil Hormuz tensions",
+        "Fed inflation fears",
+        "US-China trade aftermath"
+      ],
+      "signals_snapshot": {
+        "BUY": [],
+        "WATCH": [
+          "CRWV",
+          "WRD"
+        ],
+        "HOLD": [
+          "CBRS",
+          "MSFT"
+        ],
+        "CAUTION": [
+          "D05_SI",
+          "O39_SI",
+          "U11_SI",
+          "NVDA",
+          "AMD",
+          "INTC",
+          "ASML",
+          "MU",
+          "TSM",
+          "TSEM",
+          "000660_KS",
+          "AMZN",
+          "GOOG",
+          "AVGO",
+          "LITE",
+          "NOK",
+          "BE",
+          "PLTR"
+        ]
+      },
+      "key_prices": {
+        "SPY": 745.64,
+        "WTI": 96.6,
+        "VIX": 16.7,
+        "Gold": 4523.2
+      },
+      "interconnected_suggested": [
+        "TSM",
+        "AVGO"
+      ],
+      "one_liner": "SPY +0.2% to 745.64; SOXX +2.4% on AMD $10B Taiwan AI investment; NVDA -2.2%; oil off 1.9% to 96.60; 10Y 4.56%."
+    },
     {
       "date": "2026-05-22",
       "themes": [
@@ -317,57 +368,6 @@
         "AVGO"
       ],
       "one_liner": "SPY -1.1% to 739, WTI $105.42 on Hormuz escalation; Trump-Xi summit no chip deal, SOXX -3.9% to 508.52. Hawkish yields 4.59%."
-    },
-    {
-      "date": "2026-05-16",
-      "themes": [
-        "Oil escalates on Hormuz attacks",
-        "MSFT surges on Ackman stake",
-        "Semis sell off after no US-China deal",
-        "Fed behind curve fears push yields higher"
-      ],
-      "signals_snapshot": {
-        "BUY": [],
-        "WATCH": [
-          "WRD"
-        ],
-        "HOLD": [
-          "CBRS",
-          "MSFT"
-        ],
-        "CAUTION": [
-          "D05_SI",
-          "O39_SI",
-          "U11_SI",
-          "NVDA",
-          "AMD",
-          "INTC",
-          "ASML",
-          "MU",
-          "TSM",
-          "TSEM",
-          "000660_KS",
-          "CRWV",
-          "AMZN",
-          "GOOG",
-          "AVGO",
-          "LITE",
-          "NOK",
-          "BE",
-          "PLTR"
-        ]
-      },
-      "key_prices": {
-        "SPY": 741.84,
-        "WTI": 101.16,
-        "VIX": 18.15,
-        "Gold": 4561.2
-      },
-      "interconnected_suggested": [
-        "TSM",
-        "AVGO"
-      ],
-      "one_liner": "SPY -0.78% to 741.84; Oil surges to $101.16 as Hormuz escalates; MSFT +4.24% on Ackman; semis -2.6% after no trade deal."
     }
   ],
   "active_narratives": [
@@ -446,10 +446,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-05-16",
-          "note": "SOXX 516.58 (-13.45, -2.6%). Semis sell off after Trump-Xi no-deal and TSM share sale; broad caution persists."
-        },
-        {
           "date": "2026-05-17",
           "note": "SOXX 508.52 (-8.06 from 516.58). Semis sell-off continues after summit failure; all CAUTION, divergence muted."
         },
@@ -472,9 +468,13 @@
         {
           "date": "2026-05-22",
           "note": "SOXX 524.71 (+4.40 from 520.31). AMD announces $10B Taiwan investment; internal divergence extreme per cluster summary. No change to CAUTION."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "SOXX 537.33 (+12.62 from 524.71, +2.4%). AMD +3.3% on $10B Taiwan AI investment; NVDA -2.2% drags mega-cap. All semis CAUTION, divergence remains extreme."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "fed_rate_pivot",
@@ -490,10 +490,6 @@
       "thesis": "If inflation remains sticky, Fed may pause/skip rate cuts, pressuring tech (rates-sensitive) and favoring duration. DXY at 98.9 suggests US dollar strength on hawkish pivot; monitor Fed communications and next CPI print.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "US10Y 4.60% (+0.14), DXY 99.29 (+0.12). Bond market sees Fed behind curve; Schmid says inflation top risk. Warsh transition hawkish."
-        },
         {
           "date": "2026-05-17",
           "note": "US10Y 4.59% (-1bp from 4.60%). DXY 99.27 (-0.02). No new Fed guidance; hawkish Warsh narrative intact."
@@ -517,9 +513,13 @@
         {
           "date": "2026-05-22",
           "note": "US10Y 4.59% (+2bp from 4.57%). FOMC minutes show majority back rate hikes if Hormuz inflation persists; no rate cuts expected."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "US10Y 4.56% (-3bp from 4.59%). War-driven inflation seen in Fed's preferred gauge; consumer long-term inflation expectations lose faith. No rate guidance change."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -538,10 +538,6 @@
         "US10Y_reset": 4.2
       },
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "US10Y 4.60% (+0.14), still above 4.20% reset. No relief day 58."
-        },
         {
           "date": "2026-05-17",
           "note": "US10Y 4.59% (-1bp) still above 4.20% key. No relief day 59."
@@ -565,9 +561,13 @@
         {
           "date": "2026-05-22",
           "note": "US10Y 4.59% still above 4.20% reset. No relief day 64."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "US10Y 4.56% still above 4.20% reset. Singapore Q1 GDP growth 6% y/y above estimate. No relief day 65."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "hyperscaler_capex_sustainability_debate",
@@ -588,10 +588,6 @@
         "datacenter_capex_2030_target": "1.7T"
       },
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "MSFT surged 4.24% after Ackman stake and Azure AI momentum; AMZN/GOOG still CAUTION. No new capex guidance."
-        },
         {
           "date": "2026-05-17",
           "note": "MSFT→CAUTION from HOLD (gave back some Ackman gains). AMZN, GOOG remain CAUTION. No new capex guidance."
@@ -615,9 +611,13 @@
         {
           "date": "2026-05-22",
           "note": "NVDA expanding infra partnerships; no new hyperscaler capex guidance. AMZN/GOOG CAUTION."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "No new hyperscaler capex guidance. SpaceX S-1 reveals AI infrastructure economics; European AI stocks +100% YTD rally continues."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -667,10 +667,6 @@
       },
       "updates": [
         {
-          "date": "2026-05-16",
-          "note": "SOXX 516.58 (-13.45, -2.6%), all semis CAUTION, divergence remains muted."
-        },
-        {
           "date": "2026-05-17",
           "note": "No material change; all semis CAUTION, divergence muted."
         },
@@ -693,9 +689,13 @@
         {
           "date": "2026-05-22",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "SOXX 537.33 (+2.4%) on AMD $10B Taiwan investment; NVDA -2.2% drags mega-cap. All semis CAUTION, divergence remains extreme."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "us_china_semiconductor_supply_chain",
@@ -715,10 +715,6 @@
         "ASML_2030_revenue": "71B"
       },
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "Trump-Xi summit no deal; US clears Nvidia H200 sales; managed tariff cuts considered. Supply chain uncertainty persists."
-        },
         {
           "date": "2026-05-17",
           "note": "Chip export controls not major topic in China talks per US trade rep; supply chain uncertainty persists. No new tariff measures."
@@ -742,9 +738,13 @@
         {
           "date": "2026-05-22",
           "note": "EU agrees tariff deal with US; semiconductor export controls unchanged. Supply chain uncertainty eases further."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "Aftermath of Trump-Xi summit: US and China announcements compared; China retaliatory tariffs cost US ag $15B. No new semiconductor export control changes."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -760,10 +760,6 @@
       "thesis": "China stimulus supporting manufacturing PMI provides isolated bright spot countering US tariff escalation narrative. However, fundamental decoupling thesis from US-China tech restrictions suggests stimulus efficacy limited to non-semiconductor export categories. Semiconductor supply chain reshaping (onshoring to US, Japan, South Korea) structurally offsetting China stimulus benefit. Watch for quarterly export data to confirm whether stimulus counters tariff impact or merely softens blow.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "No material change."
-        },
         {
           "date": "2026-05-17",
           "note": "No material change."
@@ -787,9 +783,13 @@
         {
           "date": "2026-05-22",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "ecb_monetary_policy_divergence",
@@ -805,10 +805,6 @@
         "DXY_strength": 99.61
       },
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "No material change."
-        },
         {
           "date": "2026-05-17",
           "note": "No material change."
@@ -832,9 +828,13 @@
         {
           "date": "2026-05-22",
           "note": "Euro zone economic activity contracts at fastest pace in >2 years; growth set to slow in 2026 due to Middle East conflict. ECB divergence pressure intensifies."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "ECB accused of being 'hell-bent' on rate hikes despite recession risks. Divergence with Fed hawkish pause persists."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "gold_data_conflict",
@@ -912,10 +912,6 @@
       },
       "updates": [
         {
-          "date": "2026-05-16",
-          "note": "WTI 101.16 (+0.21 from 100.95). Fresh ship seizures and drone tanker damage escalate; closes off highs. No resolution day 26."
-        },
-        {
           "date": "2026-05-17",
           "note": "WTI 105.42 (+4.26 from 101.16). Hormuz ship seizures intensify; Trump rejects Iran proposal. No resolution day 27."
         },
@@ -938,9 +934,13 @@
         {
           "date": "2026-05-22",
           "note": "WTI 98.51 (-1.02 from 99.53). Reuters reports complications to US-Iran peace; FAO warns Hormuz closure could trigger agrifood shock. No resolution day 32."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "WTI 96.60 (-1.91 from 98.51). Impasse on Hormuz reopening, mixed signals; oil price jump faded. No resolution day 33."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -958,10 +958,6 @@
         "MSFT_azure_openai_concentration": "45%"
       },
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "MSFT +4.24% on Ackman stake; no change to OpenAI dependency thesis."
-        },
         {
           "date": "2026-05-17",
           "note": "MSFT gave back some Ackman-fueled gains; still CAUTION. No change to OpenAI dependency thesis."
@@ -985,9 +981,13 @@
         {
           "date": "2026-05-22",
           "note": "No material change."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "intel_18a_node_production",
@@ -1004,10 +1004,6 @@
       "thesis": "18A milestone validates Intel's foundry roadmap and CHIPS Act investment, potentially shifting competitive landscape against TSMC. However, INTC remains CAUTION until market reprices foundry competitiveness and demand visibility.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "No material change."
-        },
         {
           "date": "2026-05-17",
           "note": "No material change."
@@ -1031,9 +1027,13 @@
         {
           "date": "2026-05-22",
           "note": "SpaceX IPO filing reveals no finalized terafab deal with Tesla, Intel; previously rumored customer momentum dissipates. INTC CAUTION unchanged."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     },
     {
       "id": "fed_chair_warsh_transition",
@@ -1049,10 +1049,6 @@
       "thesis": "Warsh, known hawk, may push for tighter policy amid sticky inflation, extending rate pause and pressuring growth stocks. Market repricing likely as new communication style emerges.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-05-16",
-          "note": "Bond market sees Fed behind curve; Schmid calls inflation top risk. US10Y 4.60% (+0.14), DXY 99.29 (+0.12)."
-        },
         {
           "date": "2026-05-17",
           "note": "US10Y 4.59% (-1bp); yields surged earlier on inflation concerns. Bond market sees Fed behind curve."
@@ -1076,92 +1072,151 @@
         {
           "date": "2026-05-22",
           "note": "FOMC minutes show majority back rate hikes if inflation persists; US10Y 4.59% (+2bp). Warsh's hawkish stance reinforced."
+        },
+        {
+          "date": "2026-05-25",
+          "note": "US10Y 4.56% (-3bp from 4.59%). No new Fed/Warsh guidance."
         }
       ],
-      "last_updated": "2026-05-22"
+      "last_updated": "2026-05-25"
     }
   ],
   "lessons_learned": [
     {
-      "lesson": "MU CAUTION preceded a >+5% rally in 8/8 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +38.3%",
+      "lesson": "000660_KS CAUTION preceded a >+5% rally in 3/3 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +15.8%",
+      "tickers_involved": [
+        "000660_KS"
+      ],
+      "computed_on": "2026-05-25"
+    },
+    {
+      "lesson": "TSEM CAUTION preceded a >+5% rally in 3/3 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +20.9%",
+      "tickers_involved": [
+        "TSEM"
+      ],
+      "computed_on": "2026-05-25"
+    },
+    {
+      "lesson": "MU CAUTION preceded a >+5% rally in 9/9 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +35.6%",
       "tickers_involved": [
         "MU"
       ],
-      "computed_on": "2026-05-22"
+      "computed_on": "2026-05-25"
     },
     {
-      "lesson": "INTC CAUTION preceded a >+5% rally in 9/9 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +31.2%",
-      "tickers_involved": [
-        "INTC"
-      ],
-      "computed_on": "2026-05-22"
-    },
-    {
-      "lesson": "AMD CAUTION preceded a >+5% rally in 8/8 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +27.9%",
+      "lesson": "AMD CAUTION preceded a >+5% rally in 9/9 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +25.5%",
       "tickers_involved": [
         "AMD"
       ],
-      "computed_on": "2026-05-22"
+      "computed_on": "2026-05-25"
     },
     {
-      "lesson": "ASML CAUTION preceded a >+5% rally in 3/4 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +7.7%",
+      "lesson": "INTC CAUTION preceded a >+5% rally in 9/10 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +28.6%",
       "tickers_involved": [
-        "ASML"
+        "INTC"
       ],
-      "computed_on": "2026-05-22"
+      "computed_on": "2026-05-25"
     },
     {
-      "lesson": "LITE CAUTION preceded a >+5% rally in 10/14 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +7.9%",
-      "tickers_involved": [
-        "LITE"
-      ],
-      "computed_on": "2026-05-22"
-    },
-    {
-      "lesson": "GOOG CAUTION preceded a >+5% rally in 8/12 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +10.6%",
-      "tickers_involved": [
-        "GOOG"
-      ],
-      "computed_on": "2026-05-22"
-    },
-    {
-      "lesson": "U11_SI ACCUMULATE lost >-2% in 10d in 2/3 cases (last 60d) — calibration warning: setup has been underperforming",
-      "evidence": "avg 10d return after ACCUMULATE signal: -3.2%",
-      "tickers_involved": [
-        "U11_SI"
-      ],
-      "computed_on": "2026-05-22"
-    },
-    {
-      "lesson": "NVDA CAUTION preceded a >+5% rally in 7/11 cases (last 60d) — calibration warning: caution stance may be too defensive",
-      "evidence": "avg 10d return after CAUTION signal: +7.2%",
+      "lesson": "NVDA CAUTION preceded a >+5% rally in 8/12 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +7.1%",
       "tickers_involved": [
         "NVDA"
       ],
-      "computed_on": "2026-05-22"
+      "computed_on": "2026-05-25"
     },
     {
-      "lesson": "CAUTION avoidance rate (last 60d): 31/134 (23%) saw >-2% decline in 10d; 62/134 (46%) rallied >+5%",
-      "evidence": "n=134 backfilled 10d signals",
-      "tickers_involved": [],
-      "computed_on": "2026-05-22"
-    },
-    {
-      "lesson": "PLTR CAUTION preceded a >-2% drawdown in 9/10 cases (last 60d)",
-      "evidence": "avg 10d return after CAUTION signal: -5.2%",
+      "lesson": "LITE CAUTION preceded a >+5% rally in 10/15 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +7.5%",
       "tickers_involved": [
-        "PLTR"
+        "LITE"
       ],
-      "computed_on": "2026-05-22"
+      "computed_on": "2026-05-25"
+    },
+    {
+      "lesson": "GOOG CAUTION preceded a >+5% rally in 8/13 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +9.6%",
+      "tickers_involved": [
+        "GOOG"
+      ],
+      "computed_on": "2026-05-25"
+    },
+    {
+      "lesson": "ASML CAUTION preceded a >+5% rally in 3/5 cases (last 60d) — calibration warning: caution stance may be too defensive",
+      "evidence": "avg 10d return after CAUTION signal: +6.8%",
+      "tickers_involved": [
+        "ASML"
+      ],
+      "computed_on": "2026-05-25"
+    },
+    {
+      "lesson": "U11_SI ACCUMULATE lost >-2% in 10d in 2/4 cases (last 60d) — calibration warning: setup has been underperforming",
+      "evidence": "avg 10d return after ACCUMULATE signal: -1.5%",
+      "tickers_involved": [
+        "U11_SI"
+      ],
+      "computed_on": "2026-05-25"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-05-25",
+      "topics": [
+        {
+          "topic": "Oil/Hormuz tensions",
+          "summary": "Oil prices jump intraday on impasse over reopening the Strait of Hormuz, but settle lower at $96.60 (-1.9% daily). Maritime cyber threats and AIS-assisted collisions add shipping risk; WTI down 11.1% on the week amid mixed US-Iran signals.",
+          "tickers": []
+        },
+        {
+          "topic": "Fed/inflation fears",
+          "summary": "War-driven inflation pushes Fed's favored gauge higher; consumers lose faith in long-term prices. US inflation hits three-year high, pressuring silver (762 Moz deficit). Treasury yields resume climb on inflation risks; US10Y 4.56%.",
+          "tickers": [
+            "SPY",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "US-China trade aftermath",
+          "summary": "Post-Trump-Xi summit fallout: China retaliatory tariffs cost US ag exporters $15B. CEOs from Tesla to Visa seek relief on Trump's China trip. US manufacturing activity rises to four-year high in May.",
+          "tickers": [
+            "ASML",
+            "TSM",
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Semiconductor/AI investment wave",
+          "summary": "AMD announces >$10B Taiwan AI investment (+3.3%). ASML partners with Tata to boost Indian chip manufacturing. European AI stocks up >100% YTD in blockbuster rally. SpaceX S-1 reveals real AI infrastructure economics.",
+          "tickers": [
+            "AMD",
+            "NVDA",
+            "ASML",
+            "TSM"
+          ]
+        },
+        {
+          "topic": "ECB rate hike push",
+          "summary": "ECB criticized as 'hell-bent' on rate hikes despite recession risks and eurozone contraction, widening divergence with Fed's hawkish pause stance.",
+          "tickers": [
+            "DXY"
+          ]
+        },
+        {
+          "topic": "Singapore economy strength",
+          "summary": "Singapore Q1 GDP grows 6% y/y, above advance estimate, signaling strong economy. Bank stocks remain CAUTION on overbought RSI and thin volume.",
+          "tickers": [
+            "D05_SI",
+            "O39_SI",
+            "U11_SI"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-05-22",
       "topics": [
@@ -1264,57 +1319,6 @@
           "tickers": [
             "ASML",
             "AVGO",
-            "NVDA"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-05-20",
-      "topics": [
-        {
-          "topic": "Iran-Hormuz Oil Crisis Escalation",
-          "summary": "Oil prices swung >3% on fears of new US-Iran combat; US sanctions 19 vessels. WTI settled $103.81 flat, but tensions escalate after Trump postponed strike yesterday.",
-          "tickers": [
-            "WTI",
-            "NVDA",
-            "AMZN",
-            "MSFT"
-          ]
-        },
-        {
-          "topic": "Treasury Yield Surge & Fed Rate Hike Bets",
-          "summary": "10Y 4.67%, 30Y >5.14% as inflation fears mount. Warsh inherits tough economy; analyst stuns with rate hike forecast. Continued bond selloff.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "US-China Trade Stalls",
-          "summary": "Trump-Xi summit yields narrow harvest; tariff-cut progress stalls. China-Russia economic ties deepen. Stephen Moore warns on chip sales control.",
-          "tickers": [
-            "ASML",
-            "TSM",
-            "NVDA"
-          ]
-        },
-        {
-          "topic": "AI Compute & Capex Developments",
-          "summary": "OpenAI launches Guaranteed Capacity for compute, likely boosting Azure. Zyphra raises $500M to compete with Nvidia. AI capex debate continues without roadmap.",
-          "tickers": [
-            "MSFT",
-            "NVDA",
-            "AMZN"
-          ]
-        },
-        {
-          "topic": "Semiconductor Landscape",
-          "summary": "New Microsoft Surface uses Intel and Qualcomm processors, signaling foundry momentum. ASML EUV high-NA lithography orders via China demand. Semis remain CAUTION.",
-          "tickers": [
-            "INTC",
-            "ASML",
             "NVDA"
           ]
         }
