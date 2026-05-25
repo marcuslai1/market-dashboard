@@ -1098,7 +1098,13 @@ CLUSTER_MAP = {
     "AMZN": "BigTech", "GOOG": "BigTech", "MSFT": "BigTech",
     "D05_SI": "SG Banks", "O39_SI": "SG Banks", "U11_SI": "SG Banks",
     "LITE": "AI Optics", "PLTR": "Defense AI", "WRD": "China Tech",
-    "CRWV": "Neocloud", "NOK": "AI Networking", "BE": "Clean Energy",
+    "CRWV": "Neocloud", "NOK": "AI Networking",
+    "BE": "AI Power Infrastructure",
+    "IFX_DE": "AI Power Infrastructure",
+    "AIXA_DE": "AI Power Infrastructure",
+    "2308_TW": "AI Power Infrastructure",
+    "CBRS": "AI Inference",
+    "SITM": "AI Timing",
 }
 
 # ── Editorial CSS classes (briefing-page-only blocks) ──
