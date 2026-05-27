@@ -16,346 +16,24 @@ from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
 DATA_DIR = Path(__file__).parent / "data"
+ASSETS_DIR = Path(__file__).parent / "assets"
+
+# Single source of truth for signal palette + ticker metadata.
+# Mirror to app.jsx/data.js manually if you change anything (no build step).
+_CATALOG = json.loads((ASSETS_DIR / "catalog.json").read_text(encoding="utf-8"))
 
 # Tickers removed from the watchlist — filter from all dashboard views.
 # Historical data is preserved in the raw JSONs/SQLite if needed.
-RETIRED_TICKERS = {"C6L_SI", "Z74_SI", "XLE", "VUAA_L", "COHR"}
+RETIRED_TICKERS = set(_CATALOG["tickers"]["retired"])
 
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
 # ── Theme CSS: dark editorial (Newsreader serif + JetBrains Mono + Inter Tight) ──
-st.markdown("""<style>
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+# Stylesheet lives at assets/theme.css; injected once at startup. Edit the file
+# (not this module) to change visuals.
+_THEME_CSS = (Path(__file__).parent / "assets" / "theme.css").read_text(encoding="utf-8")
+st.markdown(f"<style>{_THEME_CSS}</style>", unsafe_allow_html=True)
 
-:root {
-  --paper:    #14140F;
-  --paper-2:  #1B1B16;
-  --paper-3:  #25241E;
-  --ink:      #F4EFE2;
-  --ink-2:    #C9C2B2;
-  --ink-3:    #908A7C;
-  --ink-4:    #5E5A50;
-  --rule:        rgba(255, 255, 255, 0.08);
-  --rule-strong: rgba(255, 255, 255, 0.20);
-  --serif: 'Newsreader', Georgia, serif;
-  --sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
-  --mono:  'JetBrains Mono', ui-monospace, monospace;
-}
-
-.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
-.main .block-container { max-width: 1280px; padding-top: 18px; padding-bottom: 80px; }
-[data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
-
-/* Hide default Streamlit chrome */
-#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
-
-/* Typography */
-h1, h2, h3, h4 {
-  font-family: var(--serif) !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.01em !important;
-  color: var(--ink) !important;
-  text-transform: none !important;
-}
-h1 { font-size: 2.4rem !important; }
-h2 { font-size: 1.5rem !important; }
-h3 { font-size: 1.15rem !important; color: var(--ink-2) !important; }
-[data-testid="stSubheader"] {
-  font-family: var(--mono) !important;
-  font-size: 0.78rem !important;
-  font-weight: 600 !important;
-  color: var(--ink-3) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.14em !important;
-}
-p, li, span, div, label { font-family: var(--sans); }
-
-/* Restore Material Symbols font on icon glyphs so dropdown chevrons,
-   expander toggles, etc. don't render their ligature names as raw text
-   ("arrow_drop_down", "expand_more", ...). Must come AFTER the broad
-   span/div override above. */
-[data-testid="stIconMaterial"],
-span.material-icons,
-span.material-icons-outlined,
-span.material-icons-rounded,
-span.material-icons-sharp,
-span.material-symbols-outlined,
-span.material-symbols-rounded,
-span.material-symbols-sharp,
-span[class*="material-symbols"],
-span[class*="material-icons"] {
-  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
-               'Material Icons Rounded', 'Material Icons' !important;
-  font-feature-settings: 'liga' !important;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* Metric cards */
-[data-testid="stMetric"] {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  padding: 12px 14px;
-}
-[data-testid="stMetricValue"] {
-  font-family: var(--serif) !important;
-  font-size: 1.6rem !important;
-  font-weight: 500 !important;
-  color: var(--ink) !important;
-}
-[data-testid="stMetricLabel"] {
-  font-family: var(--mono) !important;
-  font-size: 10px !important;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3) !important;
-}
-[data-testid="stMetricDelta"] {
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-}
-
-/* Dividers */
-hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
-
-/* Expanders */
-[data-testid="stExpander"] {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  margin-bottom: 6px;
-}
-[data-testid="stExpander"] summary {
-  font-family: var(--mono) !important;
-  font-size: 11.5px !important;
-  letter-spacing: 0.06em;
-  color: var(--ink-2) !important;
-}
-[data-testid="stExpander"] summary span:not([data-testid="stIconMaterial"]):not([class*="material-"]) {
-  font-family: var(--mono) !important;
-  font-weight: 500 !important;
-}
-
-/* Buttons */
-.stButton button {
-  background: var(--paper-2);
-  color: var(--ink);
-  border: 1px solid var(--rule-strong);
-  border-radius: 0;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  transition: background 0.15s, border-color 0.15s;
-}
-.stButton button:hover {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
-}
-
-/* Selectbox / inputs */
-.stSelectbox [data-baseweb="select"] {
-  background: var(--paper-2);
-  border-color: var(--rule-strong);
-  border-radius: 0;
-  font-family: var(--mono);
-}
-.stSelectbox [data-baseweb="select"]:hover { border-color: var(--ink-3); }
-[data-baseweb="popover"] [data-baseweb="menu"] {
-  background: var(--paper-2);
-  border: 1px solid var(--rule-strong);
-}
-
-/* Radio (used for top tab nav) */
-.stRadio > div { gap: 0 !important; }
-.stRadio label {
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  text-transform: uppercase;
-  letter-spacing: 0.10em;
-  color: var(--ink-3) !important;
-}
-
-/* Tab nav (the real st.tabs and the masthead-radio styled like one) */
-.stTabs [data-baseweb="tab-list"] {
-  gap: 22px;
-  border-bottom: 1.5px solid var(--ink);
-}
-.stTabs [data-baseweb="tab"] {
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3) !important;
-  padding: 6px 0 !important;
-}
-.stTabs [aria-selected="true"] {
-  color: var(--ink) !important;
-  font-weight: 600;
-  border-bottom: 1.5px solid var(--ink) !important;
-}
-
-/* Top page-nav: the .topnav-wrap div is rendered into its own stMarkdown
-   block as a hidden sibling marker; we use :has() + adjacent-sibling to
-   reach the stRadio that immediately follows it and restyle it as a tab strip. */
-.topnav-wrap { display: none; }
-
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] {
-  border-bottom: 1.5px solid var(--ink);
-  margin-bottom: 22px;
-}
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] > label {
-  display: none !important;
-}
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] {
-  flex-direction: row !important;
-  gap: 28px !important;
-  border: none !important;
-}
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label {
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase;
-  color: var(--ink-3) !important;
-  padding: 8px 0 10px !important;
-  margin-bottom: -1.5px !important;
-  cursor: pointer;
-  border-bottom: 1.5px solid transparent !important;
-  font-weight: 500;
-  background: transparent !important;
-}
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label > div:first-child {
-  display: none !important;
-}
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
-  color: var(--ink) !important;
-  font-weight: 600;
-  border-bottom-color: var(--ink) !important;
-}
-
-/* Dataframes */
-[data-testid="stDataFrame"] {
-  border: 1px solid var(--rule-strong);
-  border-radius: 0;
-  font-family: var(--mono);
-}
-
-/* Captions */
-.stCaption, [data-testid="stCaptionContainer"] {
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  color: var(--ink-3) !important;
-  letter-spacing: 0.04em;
-}
-
-/* Code/pre/json */
-pre, code, .stCodeBlock { font-family: var(--mono) !important; }
-
-/* Sidebar header (legacy — only used for the small refresh / status block) */
-.sidebar-header {
-  padding: 12px 8px 10px;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 12px;
-}
-.sidebar-header h2 {
-  color: var(--ink) !important;
-  font-family: var(--mono) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.14em;
-  margin: 0;
-  text-transform: uppercase !important;
-}
-.sidebar-header .subtitle {
-  color: var(--ink-3);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
-  text-transform: uppercase;
-}
-.sidebar-status {
-  background: var(--paper-3);
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  padding: 10px 12px;
-  margin: 8px 0;
-  font-family: var(--mono);
-  font-size: 11px;
-}
-.sidebar-status .status-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 0;
-}
-.sidebar-status .status-label { color: var(--ink-3); }
-.sidebar-status .status-value { color: var(--ink); font-weight: 600; }
-
-/* ── Editorial masthead ── */
-.masthead {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: end;
-  border-bottom: 1.5px solid var(--ink);
-  padding-bottom: 14px;
-  margin: 4px 0 0;
-}
-.masthead .kicker {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.masthead .title {
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: 2.6rem;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  margin: 4px 0 0;
-}
-.masthead .title em { font-style: italic; font-weight: 500; color: var(--ink-2); }
-.masthead .right {
-  text-align: right;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-3);
-  line-height: 1.55;
-}
-.masthead .right .date {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--ink);
-  font-weight: 500;
-}
-.masthead-strip {
-  display: flex; justify-content: space-between;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  padding: 8px 0 12px;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 0;
-}
-
-/* Section heads (used inside Briefing) */
-.section-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 8px;
-  margin: 28px 0 14px;
-}
-.section-head h2 { margin: 0; font-size: 1.4rem !important; }
-.section-head .sub {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
-}
-</style>""", unsafe_allow_html=True)
 
 
 def _escape_dollars(text: str) -> str:
@@ -828,7 +506,7 @@ def compute_signal_accuracy(
     # Deduplicate: only keep the FIRST day of each consecutive signal streak
     actionable = actionable.sort_values(["ticker", "date"])
     keep = []
-    for ticker, grp in actionable.groupby("ticker"):
+    for _ticker, grp in actionable.groupby("ticker"):
         prev_signal = None
         for idx, row in grp.iterrows():
             if row["signal"] != prev_signal:
@@ -913,37 +591,18 @@ def compute_signal_accuracy(
     return df
 
 
-SIGNAL_COLORS = {
-    "BUY": "#22c55e",
-    "ACCUMULATE": "#3498db",
-    "WATCH": "#f59e0b",
-    "HOLD": "#6b7280",
-    "CAUTION": "#ef4444",
-    "AVOID": "#b91c1c",
-}
+SIGNAL_COLORS = _CATALOG["signals"]["colors"]
 
 # Streamlit markdown only supports named colors (:red[text], :green[text], etc.)
-SIGNAL_ST_COLORS = {
-    "BUY": "green",
-    "ACCUMULATE": "blue",
-    "WATCH": "orange",
-    "HOLD": "gray",
-    "CAUTION": "red",
-}
+SIGNAL_ST_COLORS = _CATALOG["signals"]["st_colors"]
 
-SIGNAL_VERBS = {
-    "BUY": "Enter now",
-    "ACCUMULATE": "Add on strength",
-    "WATCH": "Wait for trigger",
-    "HOLD": "Maintain",
-    "CAUTION": "Trim / avoid",
-}
+SIGNAL_VERBS = _CATALOG["signals"]["verbs"]
 
 
 def _render_signal_guide() -> None:
     """Render the collapsible Signal Guide panel."""
     with st.expander("Signal Guide", expanded=False):
-        guide_html = f"""
+        guide_html = """
 <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-bottom:12px;">
 <thead>
 <tr style="border-bottom:1px solid #2a3a5c;">
@@ -1087,315 +746,18 @@ _RR_THRESHOLDS: list[tuple[object, str]] = [
 
 
 # Reverse ticker_to_key: restore dots/hyphens/carets for display
-TICKER_DISPLAY = {
-    "D05_SI": "D05.SI", "O39_SI": "O39.SI", "U11_SI": "U11.SI",
-    "DX_Y_NYB": "DX-Y.NYB", "CL_F": "CL=F", "GC_F": "GC=F",
-    "VIX": "^VIX", "TNX": "^TNX",
-}
+TICKER_DISPLAY = _CATALOG["tickers"]["display"]
 
-CLUSTER_MAP = {
-    "NVDA": "Semis", "AMD": "Semis", "INTC": "Semis", "MU": "Semis",
-    "TSM": "Semis", "AVGO": "Semis", "ASML": "Semis",
-    "TSEM": "Semis", "000660_KS": "Semis",
-    "AMZN": "BigTech", "GOOG": "BigTech", "MSFT": "BigTech",
-    "D05_SI": "SG Banks", "O39_SI": "SG Banks", "U11_SI": "SG Banks",
-    "LITE": "AI Optics", "PLTR": "Defense AI", "WRD": "China Tech",
-    "CRWV": "Neocloud", "NOK": "AI Networking",
-    "BE": "AI Power Infrastructure",
-    "IFX_DE": "AI Power Infrastructure",
-    "AIXA_DE": "AI Power Infrastructure",
-    "2308_TW": "AI Power Infrastructure",
-    "CBRS": "AI Inference",
-    "SITM": "AI Timing",
-}
-
-# ── Editorial CSS classes (briefing-page-only blocks) ──
-st.markdown("""<style>
-.stance-deck {
-  font-family: var(--mono); font-size: 11px;
-  letter-spacing: 0.2em; text-transform: uppercase;
-  margin: 22px 0 10px;
-  display: flex; align-items: center; gap: 8px;
-}
-.stance-deck .dot {
-  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
-}
-.stance-headline {
-  font-family: var(--serif); font-weight: 500;
-  font-size: 1.9rem; line-height: 1.18; letter-spacing: -0.01em;
-  margin: 0 0 10px; color: var(--ink);
-  max-width: 70ch;
-}
-.stance-byline {
-  font-family: var(--mono); font-size: 10.5px;
-  color: var(--ink-3); letter-spacing: 0.06em;
-}
-
-.count-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
-  background: var(--rule-strong);
-  border: 1px solid var(--rule-strong);
-  margin-top: 18px; margin-bottom: 8px;
-}
-.count-cell { background: var(--paper); padding: 14px 10px; text-align: center; }
-.count-cell .clabel {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  color: var(--ink-3); margin-bottom: 4px;
-}
-.count-cell .cnum {
-  font-family: var(--serif); font-size: 1.9rem;
-  font-weight: 500; line-height: 1; color: var(--ink);
-}
-.count-cell.zero .cnum { color: var(--ink-4); }
-.count-cell .cdot {
-  width: 7px; height: 7px; border-radius: 50%;
-  display: inline-block; margin-right: 4px; vertical-align: 1.5px;
-}
-
-.pulse-grid {
-  display: grid; grid-template-columns: repeat(8, 1fr);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 14px 0;
-  margin: 18px 0 8px;
-}
-.pulse-cell {
-  padding: 0 14px; border-right: 1px solid var(--rule);
-}
-.pulse-cell:last-child { border-right: 0; }
-.pulse-cell .plabel {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
-}
-.pulse-cell .pprice {
-  font-family: var(--serif); font-size: 1.25rem; font-weight: 500;
-  letter-spacing: -0.01em; margin-top: 2px; color: var(--ink);
-}
-.pulse-cell .pdelta { font-family: var(--mono); font-size: 11px; margin-top: 2px; }
-.up   { color: #22c55e; }
-.down { color: #ef4444; }
-.flat { color: var(--ink-3); }
-
-.changes-ribbon {
-  background: var(--paper-2); border: 1px solid var(--rule);
-  padding: 12px 16px; margin: 12px 0 6px;
-  display: flex; gap: 22px; align-items: center; flex-wrap: wrap;
-  font-family: var(--mono); font-size: 12px;
-}
-.changes-ribbon .clabel {
-  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 600;
-}
-
-.section-head { /* defined globally too — local override allowed if needed */ }
-
-.action-card {
-  background: var(--paper-2); border: 1px solid var(--rule-strong);
-  border-left: 3px solid var(--ink);
-  padding: 22px 26px; margin: 8px 0 16px;
-  display: grid; grid-template-columns: 130px 1fr auto; gap: 24px;
-  align-items: start;
-}
-.action-card .atag {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
-  line-height: 1.4;
-}
-.action-card .atag .pill {
-  display: inline-block; font-weight: 600; padding: 3px 9px;
-  border-radius: 3px; margin-top: 8px;
-  background: var(--paper-3); color: var(--ink); font-size: 10px;
-  letter-spacing: 0.04em;
-}
-.action-card .ticker {
-  font-family: var(--mono); font-size: 12.5px; font-weight: 600;
-  letter-spacing: 0.04em; color: var(--ink-3);
-}
-.action-card .head {
-  font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
-  margin: 4px 0 8px; color: var(--ink); line-height: 1.3;
-}
-.action-card .plain {
-  color: var(--ink-2); font-size: 14px; line-height: 1.55;
-  max-width: 60ch;
-}
-.action-card .block {
-  margin-top: 10px; font-family: var(--mono); font-size: 11.5px;
-  border-left: 2px solid #f59e0b80; padding-left: 10px; color: #fbb454;
-  line-height: 1.5;
-}
-.action-card .right {
-  font-family: var(--mono); font-size: 11px;
-  text-align: right; color: var(--ink-3); line-height: 1.6;
-}
-.action-card .right .level {
-  font-family: var(--serif); font-size: 1.4rem;
-  color: var(--ink); font-weight: 500; letter-spacing: -0.01em;
-}
-
-.tk-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
-  gap: 12px; padding: 14px 12px;
-  border-bottom: 1px solid var(--rule);
-  font-family: var(--mono); font-size: 12.5px; align-items: center;
-}
-.tk-row.head {
-  border-bottom: 1.5px solid var(--ink);
-  font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-3); padding: 8px 12px;
-}
-.tk-row .name { font-family: var(--sans); color: var(--ink-2); }
-.sig-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 10px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 3px 8px; border-radius: 3px;
-}
-.sig-pill::before {
-  content: ""; width: 6px; height: 6px;
-  border-radius: 50%; background: currentColor;
-}
-
-/* Native <details> drill-down — entire ticker row is the click target */
-details.tk-details { margin: 0; padding: 0; border: 0; background: transparent; }
-details.tk-details > summary {
-  list-style: none;
-  cursor: pointer;
-  display: grid;
-  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
-  gap: 12px; padding: 14px 12px;
-  border-bottom: 1px solid var(--rule);
-  font-family: var(--mono); font-size: 12.5px; align-items: center;
-  transition: background 0.12s;
-}
-details.tk-details > summary::-webkit-details-marker { display: none; }
-details.tk-details > summary::marker { content: ""; }
-details.tk-details > summary:hover { background: var(--paper-2); }
-details.tk-details[open] > summary { background: var(--paper-2); border-bottom-color: var(--rule-strong); }
-details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-2); }
-.tk-drilldown {
-  background: var(--paper-2);
-  padding: 18px 22px 22px;
-  border-bottom: 1px solid var(--rule);
-}
-.tk-drilldown .dd-section {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 600;
-  margin: 18px 0 8px; padding-bottom: 4px;
-  border-bottom: 1px solid var(--rule);
-}
-.tk-drilldown .dd-section:first-child { margin-top: 0; }
-.tk-drilldown .dd-line {
-  font-size: 13px; color: var(--ink-2);
-  margin-bottom: 6px; line-height: 1.55;
-}
-.tk-drilldown .dd-metric-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 0 18px;
-}
-.tk-drilldown .dd-metric {
-  border-bottom: 1px dashed var(--rule);
-  padding: 6px 0;
-}
-.tk-drilldown .dd-metric .lbl {
-  font-family: var(--mono); font-size: 9.5px;
-  color: var(--ink-3); text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.tk-drilldown .dd-metric .val {
-  font-family: var(--mono); font-size: 13px;
-  margin-top: 2px; color: var(--ink);
-}
-.tk-drilldown .dd-entry-block {
-  background: rgba(245,158,11,0.16);
-  color: #fbb454;
-  padding: 8px 12px;
-  border-left: 3px solid #f59e0b80;
-  font-family: var(--mono); font-size: 11.5px;
-  margin-bottom: 12px;
-}
-.tk-drilldown .dd-headline {
-  font-family: var(--serif); font-size: 1.15rem;
-  font-weight: 500; color: var(--ink);
-  margin-bottom: 8px; line-height: 1.35;
-}
-.tk-drilldown .dd-whatdo {
-  font-family: var(--sans); font-size: 14px;
-  line-height: 1.6; color: var(--ink-2);
-  max-width: 75ch; margin-bottom: 14px;
-}
-
-.risk-card {
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
-}
-.risk-card .tag {
-  font-family: var(--mono); font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.12em;
-  color: #ef4444; margin-bottom: 4px;
-}
-.risk-card .text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
-
-.cal-day {
-  display: grid; grid-template-columns: 110px 1fr; gap: 24px;
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
-}
-.cal-date {
-  font-family: var(--serif); font-size: 1.1rem; font-weight: 500; color: var(--ink);
-}
-.cal-date .dow {
-  font-family: var(--mono); font-size: 10px;
-  text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--ink-3); display: block; margin-top: 2px;
-}
-.cal-event {
-  display: grid; grid-template-columns: 60px 1fr;
-  gap: 14px; align-items: baseline; margin-bottom: 8px;
-}
-.cal-impact {
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
-  text-transform: uppercase; font-weight: 600; padding: 2px 6px;
-  border-radius: 2px; text-align: center; width: fit-content;
-}
-.cal-impact.HIGH { color: #ef4444; background: rgba(239,68,68,0.16); }
-.cal-impact.MEDIUM { color: #f59e0b; background: rgba(245,158,11,0.18); }
-.cal-impact.LOW { color: var(--ink-3); background: rgba(255,255,255,0.05); }
-.cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
-
-.macro-lead {
-  font-family: var(--serif); font-size: 1.2rem; font-weight: 400;
-  line-height: 1.5; color: var(--ink); margin-bottom: 14px;
-  max-width: 70ch;
-}
-.macro-action {
-  font-size: 13.5px; color: var(--ink-2); line-height: 1.6;
-  border-left: 2px solid var(--rule-strong); padding-left: 12px;
-}
-
-.colophon {
-  margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
-  display: flex; justify-content: space-between;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.10em;
-  text-transform: uppercase; color: var(--ink-4);
-}
-</style>""", unsafe_allow_html=True)
-
+CLUSTER_MAP = _CATALOG["tickers"]["cluster"]
 
 # ── Editorial render functions (Briefing page) ──
-SIGNAL_ORDER = ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"]
-WRITEUP_SIGNALS = {"BUY", "ACCUMULATE", "WATCH", "CAUTION"}
-ACTIONABLE_SIGNALS = {"BUY", "ACCUMULATE", "WATCH"}
+# (Editorial CSS classes now live in assets/theme.css alongside the base theme.)
+SIGNAL_ORDER = _CATALOG["signals"]["order"]
+WRITEUP_SIGNALS = set(_CATALOG["signals"]["writeup"])
+ACTIONABLE_SIGNALS = set(_CATALOG["signals"]["actionable"])
 
 # Signal palette tints (used by sig_pill_html for backgrounds)
-SIGNAL_TINTS = {
-    "BUY":        "rgba(34,197,94,0.16)",
-    "ACCUMULATE": "rgba(52,152,219,0.18)",
-    "WATCH":      "rgba(245,158,11,0.18)",
-    "HOLD":       "rgba(160,160,160,0.14)",
-    "CAUTION":    "rgba(239,68,68,0.16)",
-}
+SIGNAL_TINTS = _CATALOG["signals"]["tints"]
 
 
 def _delta_class(chg, inverse=False) -> str:
@@ -2079,7 +1441,6 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
     val = d.get("valuation", {}) or {}
     rr_obj = d.get("risk_reward", {}) or {}
     sma50 = d.get("sma50")
-    sma200 = d.get("sma200")
     sma50_rising = d.get("sma50_rising")
     sma_status = (
         "rising" if sma50_rising is True
@@ -2191,8 +1552,8 @@ def _render_drilldown_detail_html(tk: str, d: dict) -> str:
                     f'{_escape_dollars(rcp_terminal_outcome)}</div>'
                 )
             parts.append(
-                f'<div class="dd-line" style="color:#6b7280;font-size:12px;">'
-                f'New step-function catalyst required before re-entry.</div>'
+                '<div class="dd-line" style="color:#6b7280;font-size:12px;">'
+                'New step-function catalyst required before re-entry.</div>'
             )
 
     # ── Catalyst block (paper-trade entry path) ──
@@ -2802,7 +2163,7 @@ if page == "Briefing":
     # Crisis flag — heuristic scan for "crisis dislocation" in writeup text
     _crisis_markers = {"crisis dislocation", "crisis-dislocation", "crisis_dislocation"}
     _crisis_detected = any(
-        any(m in str((wl_entry.get("writeup") or {})).lower() for m in _crisis_markers)
+        any(m in str(wl_entry.get("writeup") or {}).lower() for m in _crisis_markers)
         for wl_entry in watchlist.values()
     )
     if _crisis_detected:
@@ -3007,7 +2368,7 @@ elif page == "Signal Tracker":
                     "Signal", "Entry date", "Exit date", "Signal days",
                     "Entry", "Exit/Now", "Return", "Peak run", "Verdict",
                 ]
-                st.dataframe(display_df, use_container_width=True, hide_index=True)
+                st.dataframe(display_df, width="stretch", hide_index=True)
 
     st.divider()
 
@@ -3148,7 +2509,7 @@ elif page == "Signal Tracker":
             bd_df = pd.DataFrame(breakdown_rows).sort_values(
                 ["Entry Type", "Signal"]
             ).reset_index(drop=True)
-            st.dataframe(bd_df, use_container_width=True, hide_index=True)
+            st.dataframe(bd_df, width="stretch", hide_index=True)
 
         # Open positions — logged but still within the 20-session window
         open_rows = sig_log[sig_log["price_after_20d"].isna()].copy()
@@ -3163,7 +2524,7 @@ elif page == "Signal Tracker":
                     lambda t: TICKER_DISPLAY.get(t, t)
                 )
                 open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
-                st.dataframe(open_display, use_container_width=True, hide_index=True)
+                st.dataframe(open_display, width="stretch", hide_index=True)
 
 
 # ════════════════════════════════════════════
@@ -3207,7 +2568,7 @@ elif page == "Scenario Log":
         margin=dict(l=0, r=0, t=20, b=0),
         legend=dict(orientation="h", yanchor="bottom", y=1.02),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # ── Days when probabilities actually moved ──
     st.subheader("Days when probabilities moved")
@@ -3237,7 +2598,7 @@ elif page == "Scenario Log":
 
     if move_rows:
         moves_df = pd.DataFrame(move_rows).sort_values("Date", ascending=False).reset_index(drop=True)
-        st.dataframe(moves_df, use_container_width=True, hide_index=True)
+        st.dataframe(moves_df, width="stretch", hide_index=True)
     else:
         st.caption("No probability shifts in the selected date range.")
 
@@ -3280,7 +2641,7 @@ elif page == "Pipeline Stats":
         yaxis_title="Token Count", height=300,
         margin=dict(l=0, r=0, t=30, b=0),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Generation time
     fig2 = go.Figure()
@@ -3293,7 +2654,7 @@ elif page == "Pipeline Stats":
         yaxis_title="Seconds", height=250,
         margin=dict(l=0, r=0, t=30, b=0),
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch")
 
     # Summary stats
     cols = st.columns(4)
@@ -3378,7 +2739,7 @@ elif page == "Pipeline Stats":
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_cost, use_container_width=True)
+        st.plotly_chart(fig_cost, width="stretch")
 
         # Cumulative cost
         fig_cum = go.Figure()
@@ -3392,7 +2753,7 @@ elif page == "Pipeline Stats":
             yaxis_title="Cumulative Cost (USD)", height=200,
             margin=dict(l=0, r=0, t=30, b=0),
         )
-        st.plotly_chart(fig_cum, use_container_width=True)
+        st.plotly_chart(fig_cum, width="stretch")
 
     # ── Prompt Cache Telemetry ──
     st.subheader("Prompt Cache")
@@ -3455,7 +2816,7 @@ elif page == "Pipeline Stats":
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_cache, use_container_width=True)
+        st.plotly_chart(fig_cache, width="stretch")
 
         st.caption(
             "If hit ratio sits near 0%, the user prompt's first dynamic block "
@@ -3499,7 +2860,7 @@ elif page == "Pipeline Stats":
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_art, use_container_width=True)
+        st.plotly_chart(fig_art, width="stretch")
 
         # ── Prompt Size Breakdown ──
         has_breakdown = ps_df["total_prompt_chars"].notna().any()
@@ -3537,7 +2898,7 @@ elif page == "Pipeline Stats":
                     margin=dict(l=0, r=0, t=30, b=0),
                     legend=dict(orientation="h", yanchor="bottom", y=1.02),
                 )
-                st.plotly_chart(fig_pb, use_container_width=True)
+                st.plotly_chart(fig_pb, width="stretch")
 
 
 # ════════════════════════════════════════════

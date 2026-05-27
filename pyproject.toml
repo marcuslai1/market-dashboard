@@ -1,0 +1,39 @@
+[project]
+name = "market-dashboard"
+version = "0.1.0"
+description = "MarketReport editorial dashboard (Streamlit + static React)."
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["data", "__pycache__"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",    # line length (handled by formatter)
+    "E731",    # lambda assignment (used heavily for threshold tables)
+    "SIM108",  # ternary vs if/else — readability call
+    "B008",    # function call in default arg — common Streamlit pattern
+    "RUF001",  # ambiguous unicode — editorial copy uses em-dash and minus sign
+    "RUF002",  # ambiguous unicode in docstrings — same
+    "C408",    # unnecessary dict() call — plotly layout uses dict(l=0, r=0, ...)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"dashboard.py" = ["E402"]  # top-level st.set_page_config must precede imports of theme
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
