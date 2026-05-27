@@ -113,24 +113,85 @@ function Stance() {
   );
 }
 
-/* ───────────────────────── Pulse strip ───────────────────────── */
-function Pulse() {
-  const order = ["SPY", "QQQ", "VIX", "WTI", "Gold", "DXY", "US10Y", "SOXX"];
+/* ───────────────────────── Tape (Pulse replacement) ───────────────────────── */
+function Tape() {
+  const toneOrder = ["SPY", "QQQ", "VIX", "WTI", "Gold", "DXY", "US10Y", "SOXX"];
+  const heroNames = { SPY: "S&P 500", QQQ: "NASDAQ 100" };
+  const chipOrder = ["VIX", "WTI", "Gold", "DXY", "US10Y", "SOXX"];
+
+  // Cap day-move at ±2.5% for the tone-bar fill.
+  // Minimum visible fill: any non-zero move shows at least 7% of segment height.
+  const toneFill = (b) => {
+    if (b == null || b.chg == null || b.chg === 0) return 0;
+    let f = Math.max(-1, Math.min(1, b.chg / 2.5));
+    if (b.inverse) f = -f;
+    if (f !== 0 && Math.abs(f) < 0.07) f = f < 0 ? -0.07 : 0.07;
+    return f;
+  };
+
   return (
-    <section className="pulse">
-      {order.map(k => {
-        const b = R.benchmarks[k];
-        const inverse = !!b.inverse;
-        return (
-          <div key={k} className="pulse-cell">
-            <div className="label">{k} · {b.unit}</div>
-            <div className="price">{fmt(b.price, b.price > 1000 ? 0 : 2)}</div>
-            <div className={"delta " + deltaClass(b.chg, inverse)}>
-              {sign(b.chg)}{fmt(b.chg, 2)}%
+    <section className="tape">
+      {/* Layer 1 — Tone bar */}
+      <div className="tape-tone">
+        <span className="tape-tone-axis" aria-hidden="true"></span>
+        {toneOrder.map(k => {
+          const b = R.benchmarks[k];
+          const f = toneFill(b);
+          const pct = Math.abs(f) * 50;
+          const up = f > 0;
+          const dir = up ? "up" : (f < 0 ? "down" : "flat");
+          return (
+            <div key={k} className="tape-tone-seg">
+              <div className="tape-tone-label">{k}</div>
+              <div className="tape-tone-cell">
+                <span
+                  className={`tape-tone-fill ${dir}`}
+                  style={f === 0
+                    ? { height: 0 }
+                    : up
+                      ? { height: `${pct}%`, bottom: "50%" }
+                      : { height: `${pct}%`, top: "50%" }}
+                ></span>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Layer 2 — Hero pair */}
+      <div className="tape-hero">
+        {["SPY", "QQQ"].map(k => {
+          const b = R.benchmarks[k];
+          return (
+            <div key={k} className="tape-hero-cell">
+              <div className="tape-hero-label">{heroNames[k]}</div>
+              <div className="tape-hero-num">
+                <div className="tape-hero-price">{fmt(b.price, b.price > 1000 ? 0 : 2)}</div>
+                <div className={"delta tape-hero-delta " + deltaClass(b.chg, !!b.inverse)}>
+                  {sign(b.chg)}{fmt(b.chg, 2)}%
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Layer 3 — Chip row */}
+      <div className="tape-chips">
+        {chipOrder.map(k => {
+          const b = R.benchmarks[k];
+          const inverse = !!b.inverse;
+          return (
+            <div key={k} className="tape-chip">
+              <div className="tape-chip-label">{k}</div>
+              <div className="tape-chip-price">{fmt(b.price, b.price > 1000 ? 0 : 2)}</div>
+              <div className={"delta tape-chip-delta " + deltaClass(b.chg, inverse)}>
+                {sign(b.chg)}{fmt(b.chg, 2)}%
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -524,7 +585,7 @@ function App() {
       {tab === "Briefing" && (
         <React.Fragment>
           <Stance />
-          <Pulse />
+          <Tape />
           <Changes />
           <section className="section">
             <div className="section-head">
@@ -540,7 +601,7 @@ function App() {
 
       {tab === "Watchlist" && (
         <React.Fragment>
-          <Pulse />
+          <Tape />
           <Watchlist jargon={tweaks.jargon} />
         </React.Fragment>
       )}
@@ -554,7 +615,7 @@ function App() {
 
       {tab === "Macro" && (
         <React.Fragment>
-          <Pulse />
+          <Tape />
           <Macro />
         </React.Fragment>
       )}
