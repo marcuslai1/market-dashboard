@@ -5,12 +5,14 @@ Run with: streamlit run dashboard.py
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+
+from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
 DATA_DIR = Path(__file__).parent / "data"
@@ -1477,6 +1479,36 @@ PULSE_ORDER = [
 ]
 
 
+def _render_live_caption(live: dict, enabled: bool) -> None:
+    """Tiny one-line caption above the pulse strip showing live-quote status."""
+    if not enabled:
+        st.markdown(
+            '<div style="font-family:var(--mono);font-size:10.5px;'
+            'letter-spacing:0.08em;color:var(--ink-4);text-transform:uppercase;'
+            'margin:6px 0 8px;">Snapshot · report-date values</div>',
+            unsafe_allow_html=True,
+        )
+        return
+    meta = (live or {}).get("__meta__", {})
+    n_ok = max(0, meta.get("n_ok", 0) - 1)  # exclude __meta__ from count
+    n_total = meta.get("n_total", 0)
+    fetched = meta.get("fetched_at", "")
+    try:
+        ts = datetime.fromisoformat(fetched.replace("Z", "+00:00"))
+        when = ts.astimezone().strftime("%H:%M")
+    except (ValueError, AttributeError):
+        when = "—"
+    dot = "#22c55e" if n_ok else "#ef4444"
+    label = f"LIVE · {when} · {n_ok}/{n_total} quotes" if n_ok else "LIVE · FETCH FAILED — showing snapshot"
+    st.markdown(
+        f'<div style="font-family:var(--mono);font-size:10.5px;'
+        f'letter-spacing:0.08em;color:var(--ink-3);text-transform:uppercase;'
+        f'margin:6px 0 8px;">'
+        f'<span style="color:{dot};">●</span> {label}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_pulse(benchmarks: dict) -> None:
     cells = ""
     for key, label, inverse in PULSE_ORDER:
@@ -2725,6 +2757,15 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
+st.sidebar.divider()
+LIVE_PRICES = st.sidebar.toggle(
+    "Live prices (Yahoo)",
+    value=True,
+    help="When on, benchmarks and watchlist Last/Δ show live Yahoo quotes "
+         "(60s cache). Snapshot fields like RSI / 1mo / SMA stay frozen at the "
+         "report date. Historical reports are never overlaid.",
+)
+
 if st.sidebar.button("↻ Refresh Data"):
     st.cache_data.clear()
     st.rerun()
@@ -2743,6 +2784,10 @@ if page == "Briefing":
     latest_date = sorted_dates[0]
     report = all_reports[latest_date]
     prev_report = all_reports[sorted_dates[1]] if len(sorted_dates) >= 2 else None
+
+    _live = fetch_live_quotes() if LIVE_PRICES else {}
+    if _live:
+        report = overlay_live(report, _live)
 
     snapshot = report.get("portfolio_snapshot", {})
     watchlist = report.get("watchlist", {})
@@ -2771,6 +2816,7 @@ if page == "Briefing":
             unsafe_allow_html=True,
         )
 
+    _render_live_caption(_live, LIVE_PRICES)
     render_pulse(benchmarks)
     render_changes(
         watchlist,
@@ -2810,6 +2856,10 @@ elif page == "Watchlist":
         "Report date", sorted_dates, index=0, key="watchlist_date"
     )
     report = all_reports[selected_date]
+    _is_latest = selected_date == sorted_dates[0]
+    _live = fetch_live_quotes() if (LIVE_PRICES and _is_latest) else {}
+    if _live:
+        report = overlay_live(report, _live)
     watchlist = report.get("watchlist", {})
     benchmarks = report.get("benchmarks", {})
 
@@ -2817,6 +2867,7 @@ elif page == "Watchlist":
     if selected_date != sorted_dates[0]:
         sub_label += f" · viewing {selected_date}"
     render_section_head("The Watchlist", sub_label)
+    _render_live_caption(_live, LIVE_PRICES and _is_latest)
     render_pulse(benchmarks)
     render_watchlist(watchlist)
 
