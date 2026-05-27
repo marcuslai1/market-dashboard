@@ -77,7 +77,8 @@ html, body {
 /* ── Shared primitives ──────────────────────────────────────── */
 /* Eyebrow — small-caps mono labels */
 .kicker, .masthead-meta, .stance-byline, .count-cell .label,
-.pulse-cell .label, .section-sub, .action-tag, .wl-filters,
+.tape-tone-label, .tape-hero-label, .tape-chip-label,
+.section-sub, .action-tag, .wl-filters,
 .wl thead th, .wl-detail h4, .metric-grid .m-label, .risk-list .tag,
 .cal-date .dow, .cal-impact, .colophon, .changes-ribbon .label {
   font-family: var(--mono);
@@ -240,37 +241,144 @@ html, body {
   vertical-align: 1.5px;
 }
 
-/* ── Market pulse strip ───────────────────────────────────── */
-.pulse {
+/* ── Market tape (3-layer pulse) ────────────────────────────── */
+.tape {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Layer 1 — Tone bar */
+.tape-tone {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 0;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--rule);
 }
-.pulse-cell {
-  padding: 0 14px;
+.tape-tone-axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  height: 1px;
+  background: var(--ink-3);
+  pointer-events: none;
+  z-index: 2;
+}
+.tape-tone-seg {
   border-right: 1px solid var(--rule);
+  padding: 0 6px;
+  position: relative;
 }
-.pulse-cell:last-child { border-right: 0; }
-.pulse-cell:first-child { padding-left: 0; }
-.pulse-cell .label {
+.tape-tone-seg:last-child { border-right: 0; }
+.tape-tone-label {
   font-size: var(--fs-eyebrow);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  margin-bottom: 2px;
 }
-.pulse-cell .price {
+.tape-tone-cell {
+  position: relative;
+  height: 32px;
+  z-index: 1;
+}
+.tape-tone-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: block;
+}
+.tape-tone-fill.up   { background: var(--buy); }
+.tape-tone-fill.down { background: var(--caution); }
+.tape-tone-fill.flat { background: transparent; }
+
+/* Layer-to-layer rule between tone bar and hero */
+.tape-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+.tape-hero-cell {
+  padding: 12px 16px;
+  border-right: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tape-hero-cell:last-child { border-right: 0; }
+.tape-hero-cell:first-child { padding-left: 0; }
+.tape-hero-cell:last-child  { padding-right: 0; }
+.tape-hero-label {
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.12em;
+  margin-bottom: 0;
+}
+.tape-hero-num {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.tape-hero-price {
   font-family: var(--serif);
-  font-size: var(--fs-lede);
+  font-size: 26px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  margin-top: 2px;
+  line-height: 1.1;
 }
-.pulse-cell .delta {
+.tape-hero-delta {
   font-family: var(--mono);
-  font-size: var(--fs-meta);
+  font-size: 12px;
   font-weight: 500;
-  margin-top: 2px;
+  margin-top: 4px;
 }
+
+/* Layer 3 — Chip row */
+.tape-chips {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.tape-chip {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-right: 1px solid var(--rule);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tape-chip:last-child { border-right: 0; }
+.tape-chip:first-child { padding-left: 0; }
+.tape-chip:last-child  { padding-right: 0; }
+.tape-chip-label {
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.1em;
+  flex: 0 0 auto;
+}
+.tape-chip-price {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  flex: 1 1 auto;
+  text-align: right;
+}
+.tape-chip-delta {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
 .delta.up { color: var(--buy); }
 .delta.down { color: var(--caution); }
 .delta.flat { color: var(--ink-3); }
@@ -778,8 +886,9 @@ html, body {
   .shell { padding: 20px 22px 60px; }
   .masthead-title { font-size: var(--fs-h2); }
   .stance, .two-col { grid-template-columns: 1fr; gap: 24px; }
-  .pulse { grid-template-columns: repeat(4, 1fr); }
-  .pulse-cell { padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+  .tape-tone { grid-template-columns: repeat(8, 1fr); }
+  .tape-chips { grid-template-columns: repeat(3, 1fr); row-gap: 4px; }
+  .tape-chip { padding: 0 8px; }
   .wl thead th:nth-child(n+5):nth-child(-n+8),
   .wl tbody td:nth-child(n+5):nth-child(-n+8) { display: none; }
   .wl-detail-grid { grid-template-columns: 1fr; }
