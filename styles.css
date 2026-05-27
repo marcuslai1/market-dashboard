@@ -28,6 +28,15 @@
   --hold-tint:       oklch(0.55 0.02 80  / 0.10);
   --caution-tint:    oklch(0.58 0.18 27  / 0.10);
 
+  --fs-eyebrow: 10px;
+  --fs-meta:    11px;
+  --fs-body-sm: 13px;
+  --fs-body:    14px;
+  --fs-lede:    22px;
+  --fs-h3:      24px;
+  --fs-h2:      38px;
+  --fs-h1:      56px;
+
   --serif: 'Newsreader', Georgia, serif;
   --sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
   --mono:  'JetBrains Mono', ui-monospace, monospace;
@@ -59,10 +68,35 @@ html, body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: var(--fs-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01", "tnum", "cv11";
+}
+
+/* ── Shared primitives ──────────────────────────────────────── */
+/* Eyebrow — small-caps mono labels */
+.kicker, .masthead-meta, .stance-byline, .count-cell .label,
+.pulse-cell .label, .section-sub, .action-tag, .wl-filters,
+.wl thead th, .wl-detail h4, .metric-grid .m-label, .risk-list .tag,
+.cal-date .dow, .cal-impact, .colophon, .changes-ribbon .label {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Editorial 1.4fr/1fr grid */
+.stance, .two-col, .wl-detail-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+}
+
+/* Rule-row — flex baseline split with bottom rule */
+.masthead-meta, .section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule);
 }
 
 /* ── Layout shell ───────────────────────────────────────────── */
@@ -82,17 +116,14 @@ html, body {
   gap: 24px;
 }
 .masthead-l .kicker {
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   margin-bottom: 6px;
 }
 .masthead-title {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: 56px;
+  font-size: var(--fs-h1);
   line-height: 0.95;
   letter-spacing: -0.02em;
   margin: 0;
@@ -101,7 +132,7 @@ html, body {
 .masthead-r {
   text-align: right;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-body-sm);
   color: var(--ink-3);
   line-height: 1.55;
 }
@@ -112,16 +143,9 @@ html, body {
   font-weight: 500;
 }
 .masthead-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   padding: 10px 0 24px;
-  border-bottom: 1px solid var(--rule);
 }
 .masthead-meta .vol-no { letter-spacing: 0.14em; }
 .masthead-meta .nav-tabs {
@@ -148,15 +172,13 @@ html, body {
 /* ── Stance hero ──────────────────────────────────────────── */
 .stance {
   padding: 32px 0 28px;
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
   gap: 56px;
   align-items: start;
   border-bottom: 1px solid var(--rule);
 }
 .stance-deck {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--caution);
@@ -175,7 +197,7 @@ html, body {
 .stance-headline {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 38px;
+  font-size: var(--fs-h2);
   line-height: 1.12;
   letter-spacing: -0.012em;
   margin: 0 0 18px;
@@ -183,9 +205,7 @@ html, body {
   text-wrap: pretty;
 }
 .stance-byline {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-3);
+  font-size: var(--fs-meta);
   letter-spacing: 0.06em;
 }
 .stance-counts {
@@ -201,11 +221,8 @@ html, body {
   text-align: center;
 }
 .count-cell .label {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   margin-bottom: 4px;
 }
 .count-cell .num {
@@ -238,22 +255,19 @@ html, body {
 .pulse-cell:last-child { border-right: 0; }
 .pulse-cell:first-child { padding-left: 0; }
 .pulse-cell .label {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
 }
 .pulse-cell .price {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: var(--fs-lede);
   font-weight: 500;
   letter-spacing: -0.01em;
   margin-top: 2px;
 }
 .pulse-cell .delta {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   font-weight: 500;
   margin-top: 2px;
 }
@@ -266,26 +280,19 @@ html, body {
   padding: 36px 0 0;
 }
 .section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
   margin-bottom: 18px;
-  border-bottom: 1px solid var(--rule);
   padding-bottom: 10px;
 }
 .section-title {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: 24px;
+  font-size: var(--fs-h3);
   letter-spacing: -0.01em;
   margin: 0;
 }
 .section-sub {
-  font-family: var(--mono);
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: var(--fs-meta);
   letter-spacing: 0.1em;
-  color: var(--ink-3);
 }
 
 /* ── Action callout (today's instructions) ───────────────── */
@@ -303,11 +310,8 @@ html, body {
 .action-card.caution{ border-left: 4px solid var(--caution); }
 .action-card.buy    { border-left: 4px solid var(--buy); }
 .action-tag {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   width: 110px;
 }
 .action-tag .pill {
@@ -318,31 +322,31 @@ html, body {
   margin-top: 4px;
   background: var(--paper-3);
   color: var(--ink);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
 }
 .action-body .ticker {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 .action-body .head {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: var(--fs-lede);
   font-weight: 500;
   margin: 4px 0 6px;
   letter-spacing: -0.005em;
 }
 .action-body .plain {
   color: var(--ink-2);
-  font-size: 14.5px;
+  font-size: var(--fs-body);
   max-width: 60ch;
   text-wrap: pretty;
 }
 .action-r {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   text-align: right;
   color: var(--ink-3);
   line-height: 1.5;
@@ -361,11 +365,8 @@ html, body {
   gap: 16px;
   align-items: center;
   margin-bottom: 8px;
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
 }
 .wl-chip {
   cursor: pointer;
@@ -387,11 +388,8 @@ html, body {
   margin-top: 6px;
 }
 .wl thead th {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   text-align: left;
   font-weight: 500;
   padding: 8px 12px;
@@ -415,19 +413,19 @@ html, body {
 .wl tbody td.t-tk {
   font-family: var(--mono);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   letter-spacing: 0.02em;
 }
 .wl tbody td.t-name {
   color: var(--ink-2);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
 }
 .wl tbody td.t-sig .sig-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-eyebrow);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -446,15 +444,24 @@ html, body {
 .sig-HOLD       { color: var(--hold);       background: var(--hold-tint); }
 .sig-CAUTION    { color: var(--caution);    background: var(--caution-tint); }
 
+/* Inline-style migration — changes ribbon sig-pills */
+.changes-ribbon .sig-pill { padding: 1px 6px; font-size: var(--fs-eyebrow); }
+
 .t-prev {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   color: var(--ink-3);
   letter-spacing: 0.04em;
 }
 .t-prev .arr { color: var(--ink-2); margin: 0 4px; }
 
-.t-num { font-family: var(--mono); font-size: 13px; }
+.t-num { font-family: var(--mono); font-size: var(--fs-body-sm); }
+
+/* Inline-style migration — watchlist row sub-cells */
+.wl tbody td .delta { font-size: var(--fs-eyebrow); }
+.wl tbody td.num .delta { font-family: var(--mono); font-size: var(--fs-body-sm); }
+.wl tbody td.next-event-cell { color: var(--ink-3); font-size: var(--fs-body-sm); }
+.wl tbody td.wl-detail-cell { padding: 0; }
 
 /* Mini gauge — vs SMA50 */
 .gauge {
@@ -488,7 +495,7 @@ html, body {
 }
 .gauge-num {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   margin-left: 8px;
   vertical-align: middle;
   font-variant-numeric: tabular-nums;
@@ -521,16 +528,11 @@ html, body {
   padding: 22px 24px 28px;
 }
 .wl-detail-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
   gap: 32px;
 }
 .wl-detail h4 {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
   margin: 0 0 8px;
   font-weight: 600;
 }
@@ -543,11 +545,15 @@ html, body {
   text-wrap: pretty;
 }
 .wl-detail .tech-txt {
-  font-size: 13.5px;
+  font-size: var(--fs-body-sm);
   color: var(--ink-2);
   line-height: 1.55;
 }
-.wl-detail .tech-txt.hidden { display: none; }
+.wl-detail .plain-body {
+  font-size: var(--fs-body);
+  color: var(--ink-2);
+  line-height: 1.55;
+}
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -562,17 +568,15 @@ html, body {
   padding-bottom: 6px;
 }
 .metric-grid .m-label {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.06em;
-  color: var(--ink-3);
 }
 .metric-grid .m-val {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   font-variant-numeric: tabular-nums;
 }
+.metric-grid .m-val--sm { font-size: var(--fs-meta); }
 .detail-block {
   padding: 12px 0;
   border-top: 1px solid var(--rule);
@@ -584,7 +588,7 @@ html, body {
 }
 .block-list li {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--fs-meta);
   color: var(--caution);
   background: var(--caution-tint);
   padding: 6px 10px;
@@ -594,15 +598,13 @@ html, body {
 
 /* ── Two column narrative section ─────────────────────────── */
 .two-col {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
   gap: 56px;
   padding: 36px 0 24px;
   border-bottom: 1px solid var(--rule);
 }
 .lede {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: var(--fs-lede);
   line-height: 1.45;
   font-weight: 400;
   color: var(--ink);
@@ -610,7 +612,7 @@ html, body {
   text-wrap: pretty;
 }
 .body-copy {
-  font-size: 14.5px;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--ink-2);
   text-wrap: pretty;
@@ -624,16 +626,14 @@ html, body {
 }
 .risk-list li:last-child { border-bottom: 0; }
 .risk-list .tag {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.12em;
   color: var(--caution);
   font-weight: 600;
   margin-bottom: 4px;
 }
 .risk-list .text {
-  font-size: 13.5px;
+  font-size: var(--fs-body-sm);
   color: var(--ink-2);
   line-height: 1.55;
 }
@@ -653,7 +653,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-meta);
   font-weight: 600;
   color: var(--paper);
 }
@@ -662,7 +662,7 @@ html, body {
   grid-template-columns: repeat(2, 1fr);
   gap: 4px 18px;
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--fs-eyebrow);
   color: var(--ink-3);
 }
 .probs-key .sw {
@@ -692,11 +692,8 @@ html, body {
   letter-spacing: -0.005em;
 }
 .cal-date .dow {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.12em;
-  color: var(--ink-3);
   display: block;
   margin-top: 2px;
   font-weight: 500;
@@ -710,15 +707,13 @@ html, body {
 }
 .cal-tk {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-body-sm);
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 .cal-impact {
-  font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.14em;
-  text-transform: uppercase;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 2px;
@@ -728,7 +723,7 @@ html, body {
 .cal-impact.HIGH   { color: var(--caution); background: var(--caution-tint); }
 .cal-impact.MEDIUM { color: var(--watch);   background: var(--watch-tint); }
 .cal-text {
-  font-size: 13.5px;
+  font-size: var(--fs-body-sm);
   color: var(--ink-2);
   line-height: 1.5;
   text-wrap: pretty;
@@ -739,9 +734,7 @@ html, body {
   margin-top: 56px;
   padding-top: 20px;
   border-top: 1px solid var(--rule);
-  font-family: var(--mono);
-  font-size: 10.5px;
-  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.1em;
   color: var(--ink-4);
   display: flex;
@@ -757,36 +750,33 @@ html, body {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   margin-top: 16px;
-  font-size: 13px;
+  font-size: var(--fs-body-sm);
   flex-wrap: wrap;
 }
 .changes-ribbon .label {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.14em;
-  color: var(--ink-3);
 }
 .change-item {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-body-sm);
 }
 .change-item .arr { color: var(--caution); font-weight: 700; }
 .change-item .arr.up { color: var(--buy); }
 .change-note {
   color: var(--ink-3);
   font-family: var(--sans);
-  font-size: 12.5px;
+  font-size: var(--fs-body-sm);
   margin-left: 4px;
 }
 
 /* Responsive — single column */
 @media (max-width: 980px) {
   .shell { padding: 20px 22px 60px; }
-  .masthead-title { font-size: 38px; }
+  .masthead-title { font-size: var(--fs-h2); }
   .stance, .two-col { grid-template-columns: 1fr; gap: 24px; }
   .pulse { grid-template-columns: repeat(4, 1fr); }
   .pulse-cell { padding: 8px 10px; border-bottom: 1px solid var(--rule); }

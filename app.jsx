@@ -146,9 +146,9 @@ function Changes() {
         return (
           <span key={c.ticker} className="change-item">
             <strong>{c.ticker}</strong>
-            <span className={`sig-pill sig-${c.from}`} style={{ padding: "1px 6px", fontSize: 9.5 }}>{c.from}</span>
+            <span className={`sig-pill sig-${c.from}`}>{c.from}</span>
             <span className={`arr ${c.direction}`}>{arr}</span>
-            <span className={`sig-pill sig-${c.to}`} style={{ padding: "1px 6px", fontSize: 9.5 }}>{c.to}</span>
+            <span className={`sig-pill sig-${c.to}`}>{c.to}</span>
             <span className="change-note">— {c.note}</span>
           </span>
         );
@@ -247,23 +247,23 @@ function WatchlistRow({ t, expanded, onToggle, jargon }) {
         </td>
         <td className="num t-num">
           {t.ccy === "SGD" ? "S$" : "$"}{fmt(t.price, 2)}
-          <div className={`delta ${deltaClass(t.chg)}`} style={{ fontSize: 10.5 }}>
+          <div className={`delta ${deltaClass(t.chg)}`}>
             {sign(t.chg)}{fmt(t.chg, 2)}%
           </div>
         </td>
         <td className="num">
-          <span className={`delta ${deltaClass(t.m1)}`} style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
+          <span className={`delta ${deltaClass(t.m1)}`}>
             {sign(t.m1)}{fmt(t.m1, 1)}%
           </span>
         </td>
         <td><GaugeSMA value={t.vs_sma50} /></td>
         <td><RsiBar value={t.rsi} /></td>
         <td className="num t-num">{t.rr == null ? "—" : `${fmt(t.rr, 1)}:1`}</td>
-        <td style={{ color: "var(--ink-3)", fontSize: 12 }}>{t.next_event}</td>
+        <td className="next-event-cell">{t.next_event}</td>
       </tr>
       {expanded && (
         <tr className="expanded">
-          <td colSpan="9" style={{ padding: 0 }}>
+          <td colSpan="9" className="wl-detail-cell">
             <div className="wl-detail">
               <div className="wl-detail-grid">
                 <div>
@@ -271,7 +271,7 @@ function WatchlistRow({ t, expanded, onToggle, jargon }) {
                   <div className="plain-txt">{t.headline}</div>
                   <div style={{ marginTop: 16 }}>
                     <h4>What to do</h4>
-                    <div style={{ fontSize: 14.5, color: "var(--ink-2)", lineHeight: 1.55 }}>{t.plain}</div>
+                    <div className="plain-body">{t.plain}</div>
                   </div>
                   {t.block && (
                     <div className="detail-block">
@@ -298,7 +298,7 @@ function WatchlistRow({ t, expanded, onToggle, jargon }) {
                     <div className="m-row"><span className="m-label">vs 50-day avg</span><span className="m-val">{sign(t.vs_sma50)}{fmt(t.vs_sma50, 1)}%</span></div>
                     <div className="m-row"><span className="m-label">RSI (14d)</span><span className="m-val">{fmt(t.rsi, 0)}</span></div>
                     <div className="m-row"><span className="m-label">Risk:Reward</span><span className="m-val">{fmt(t.rr, 1)}:1</span></div>
-                    <div className="m-row"><span className="m-label">Next event</span><span className="m-val" style={{ fontSize: 11 }}>{t.next_event}</span></div>
+                    <div className="m-row"><span className="m-label">Next event</span><span className="m-val m-val--sm">{t.next_event}</span></div>
                   </div>
                 </div>
               </div>
