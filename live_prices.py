@@ -11,41 +11,21 @@ falls back to the report-snapshot values.
 """
 from __future__ import annotations
 
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from pathlib import Path
 
 import streamlit as st
 
-
 # ── Yahoo symbol map ───────────────────────────────────────────────────
+# Loaded from assets/catalog.json so dashboard.py and this module stay in sync.
 # Benchmarks: spot index / front-month futures where Yahoo has no spot.
 # Watchlist: report-key (underscore-encoded) → Yahoo symbol (dot-encoded).
-TICKER_TO_YAHOO: dict[str, str] = {
-    # Benchmarks
-    "SPY":   "SPY",
-    "QQQ":   "QQQ",
-    "DXY":   "DX-Y.NYB",
-    "WTI":   "CL=F",
-    "Gold":  "GC=F",
-    "VIX":   "^VIX",
-    "US10Y": "^TNX",
-    "SOXX":  "SOXX",
-    # Watchlist — US
-    "NVDA":  "NVDA", "AMD": "AMD", "INTC": "INTC", "MU": "MU",
-    "TSM":   "TSM",  "TSEM": "TSEM", "AVGO": "AVGO", "ASML": "ASML",
-    "AMZN":  "AMZN", "GOOG": "GOOG", "MSFT": "MSFT",
-    "LITE":  "LITE", "NOK":  "NOK",  "BE":   "BE",
-    "PLTR":  "PLTR", "WRD":  "WRD",  "SITM": "SITM",
-    "CRWV":  "CRWV", "CBRS": "CBRS",
-    # Watchlist — non-US (suffix-based)
-    "D05_SI":    "D05.SI",
-    "O39_SI":    "O39.SI",
-    "U11_SI":    "U11.SI",
-    "IFX_DE":    "IFX.DE",
-    "AIXA_DE":   "AIXA.DE",
-    "2308_TW":   "2308.TW",
-    "000660_KS": "000660.KS",
-}
+_CATALOG_PATH = Path(__file__).parent / "assets" / "catalog.json"
+TICKER_TO_YAHOO: dict[str, str] = json.loads(
+    _CATALOG_PATH.read_text(encoding="utf-8")
+)["tickers"]["yahoo"]
 
 
 def _fetch_one(yahoo_sym: str) -> dict | None:

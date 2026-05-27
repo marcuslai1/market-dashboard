@@ -1,0 +1,116 @@
+{
+  "_comment": "Single source of truth for signals + tickers. Loaded by dashboard.py and live_prices.py. Mirror to app.jsx/data.js manually for now (no build step).",
+  "signals": {
+    "order": ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"],
+    "writeup": ["BUY", "ACCUMULATE", "WATCH", "CAUTION"],
+    "actionable": ["BUY", "ACCUMULATE", "WATCH"],
+    "colors": {
+      "BUY":        "#22c55e",
+      "ACCUMULATE": "#3498db",
+      "WATCH":      "#f59e0b",
+      "HOLD":       "#6b7280",
+      "CAUTION":    "#ef4444",
+      "AVOID":      "#b91c1c"
+    },
+    "tints": {
+      "BUY":        "rgba(34,197,94,0.16)",
+      "ACCUMULATE": "rgba(52,152,219,0.18)",
+      "WATCH":      "rgba(245,158,11,0.18)",
+      "HOLD":       "rgba(160,160,160,0.14)",
+      "CAUTION":    "rgba(239,68,68,0.16)"
+    },
+    "st_colors": {
+      "BUY": "green",
+      "ACCUMULATE": "blue",
+      "WATCH": "orange",
+      "HOLD": "gray",
+      "CAUTION": "red"
+    },
+    "verbs": {
+      "BUY":        "Enter now",
+      "ACCUMULATE": "Add on strength",
+      "WATCH":      "Wait for trigger",
+      "HOLD":       "Maintain",
+      "CAUTION":    "Trim / avoid"
+    }
+  },
+  "tickers": {
+    "display": {
+      "D05_SI":   "D05.SI",
+      "O39_SI":   "O39.SI",
+      "U11_SI":   "U11.SI",
+      "DX_Y_NYB": "DX-Y.NYB",
+      "CL_F":     "CL=F",
+      "GC_F":     "GC=F",
+      "VIX":      "^VIX",
+      "TNX":      "^TNX"
+    },
+    "yahoo": {
+      "SPY":   "SPY",
+      "QQQ":   "QQQ",
+      "DXY":   "DX-Y.NYB",
+      "WTI":   "CL=F",
+      "Gold":  "GC=F",
+      "VIX":   "^VIX",
+      "US10Y": "^TNX",
+      "SOXX":  "SOXX",
+
+      "NVDA":  "NVDA",
+      "AMD":   "AMD",
+      "INTC":  "INTC",
+      "MU":    "MU",
+      "TSM":   "TSM",
+      "TSEM":  "TSEM",
+      "AVGO":  "AVGO",
+      "ASML":  "ASML",
+      "AMZN":  "AMZN",
+      "GOOG":  "GOOG",
+      "MSFT":  "MSFT",
+      "LITE":  "LITE",
+      "NOK":   "NOK",
+      "BE":    "BE",
+      "PLTR":  "PLTR",
+      "WRD":   "WRD",
+      "SITM":  "SITM",
+      "CRWV":  "CRWV",
+      "CBRS":  "CBRS",
+
+      "D05_SI":    "D05.SI",
+      "O39_SI":    "O39.SI",
+      "U11_SI":    "U11.SI",
+      "IFX_DE":    "IFX.DE",
+      "AIXA_DE":   "AIXA.DE",
+      "2308_TW":   "2308.TW",
+      "000660_KS": "000660.KS"
+    },
+    "cluster": {
+      "NVDA":      "Semis",
+      "AMD":       "Semis",
+      "INTC":      "Semis",
+      "MU":        "Semis",
+      "TSM":       "Semis",
+      "AVGO":      "Semis",
+      "ASML":      "Semis",
+      "TSEM":      "Semis",
+      "000660_KS": "Semis",
+      "AMZN":      "BigTech",
+      "GOOG":      "BigTech",
+      "MSFT":      "BigTech",
+      "D05_SI":    "SG Banks",
+      "O39_SI":    "SG Banks",
+      "U11_SI":    "SG Banks",
+      "LITE":      "AI Optics",
+      "PLTR":      "Defense AI",
+      "WRD":       "China Tech",
+      "CRWV":      "Neocloud",
+      "NOK":       "AI Networking",
+      "BE":        "AI Power Infrastructure",
+      "IFX_DE":    "AI Power Infrastructure",
+      "AIXA_DE":   "AI Power Infrastructure",
+      "2308_TW":   "AI Power Infrastructure",
+      "CBRS":      "AI Inference",
+      "SITM":      "AI Timing"
+    },
+    "retired": ["C6L_SI", "Z74_SI", "XLE", "VUAA_L", "COHR"]
+  }
+}
