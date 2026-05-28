@@ -2,7 +2,7 @@
   "meta": {
     "report_date": "2026-05-28",
     "market_date": "2026-05-27",
-    "generated_at": "2026-05-28T00:30:43.202983",
+    "generated_at": "2026-05-28T10:43:06.737123",
     "timezone": "SGT"
   },
   "benchmarks": {
@@ -914,7 +914,7 @@
         }
       },
       "regime_change_review_needed": {
-        "reason": "new stub written (+22.0% close-to-close)",
+        "reason": "existing step_function_catalyst (active=False)",
         "gap_pct": 21.95,
         "stub_path": "C:\\Users\\laize\\Desktop\\MarketReport\\thesis_overrides.json"
       },
@@ -2639,7 +2639,7 @@
         }
       },
       "regime_change_review_needed": {
-        "reason": "new stub written (+10.0% close-to-close)",
+        "reason": "existing step_function_catalyst (active=False)",
         "gap_pct": 10.04,
         "stub_path": "C:\\Users\\laize\\Desktop\\MarketReport\\thesis_overrides.json"
       },
@@ -3070,38 +3070,38 @@
       "name": "Cadence Design Systems",
       "reason": "US EDA software export restrictions to China directly affect ASML's China DUV customer base and INTC's foundry competitor dynamics.",
       "entry_note": "Add to watchlist if ASML's High‑NA EUV orders are cut on China restrictions, triggering a <15% pullback.",
-      "price": 372.93,
+      "price": 374.05,
       "currency": "USD",
-      "chg_pct": -2.5
+      "chg_pct": -2.21
     },
     {
       "ticker": "005930.KS",
       "name": "Samsung Electronics",
       "reason": "Third HBM supplier; its qualification status with NVDA determines whether the HBM duopoly (SK Hynix/MU) tightens or breaks.",
       "entry_note": "Revisit after MU's June 25 earnings for HBM3E market‑share commentary; a Samsung qualification win could rebalance supply.",
-      "price": 307000.0,
+      "price": 301000.0,
       "currency": "KRW",
-      "chg_pct": 2.68,
-      "price_usd": 204.97,
-      "fx_rate": "1 KRW = 0.000668 USD"
+      "chg_pct": -2.67,
+      "price_usd": 199.84,
+      "fx_rate": "1 KRW = 0.000664 USD"
     },
     {
       "ticker": "QCOM",
       "name": "Qualcomm",
       "reason": "Snapdragon AI edge chips for on‑device inference — a direct read‑through to the AI compute buildout beyond data‑center GPUs.",
       "entry_note": "Add to watchlist if Cramer comments on edge AI catalysts following TSMC's price hike, and QCOM pulls back 8‑10% from current levels.",
-      "price": 230.23,
+      "price": 233.4,
       "currency": "USD",
-      "chg_pct": -7.37
+      "chg_pct": -6.1
     },
     {
       "ticker": "COHR",
       "name": "Coherent Corp.",
       "reason": "NVDA $2B photonics investment alongside LITE — COHR's 6‑inch InP yield challenges contrast with LITE's Greensboro fab buildout.",
       "entry_note": "Monitor after LITE's next earnings for optical interconnect commentary; COHR becomes interesting on a pullback to 50‑day SMA.",
-      "price": 384.15,
+      "price": 380.18,
       "currency": "USD",
-      "chg_pct": 0.67
+      "chg_pct": -0.37
     }
   ],
   "geopolitical": {
@@ -3443,10 +3443,10 @@
       },
       "CAUTION": {
         "count": 445,
-        "n_matured_10d": 201,
-        "avg_return_10d": 7.4,
-        "win_rate_pct": 57.7,
-        "loss_rate_pct": 23.9
+        "n_matured_10d": 206,
+        "avg_return_10d": 7.43,
+        "win_rate_pct": 58.3,
+        "loss_rate_pct": 23.3
       },
       "HOLD": {
         "count": 82,
@@ -3473,10 +3473,10 @@
       },
       "extension": {
         "count": 259,
-        "n_matured_10d": 110,
-        "avg_return_10d": 10.79,
-        "rally_rate_5pct": 58.2,
-        "drawdown_rate_neg2pct": 20.0
+        "n_matured_10d": 112,
+        "avg_return_10d": 10.93,
+        "rally_rate_5pct": 58.9,
+        "drawdown_rate_neg2pct": 19.6
       },
       "hard_other": {
         "count": 5,
@@ -3494,10 +3494,10 @@
       },
       "rsi_overbought": {
         "count": 98,
-        "n_matured_10d": 56,
-        "avg_return_10d": 3.7,
-        "rally_rate_5pct": 30.4,
-        "drawdown_rate_neg2pct": 25.0
+        "n_matured_10d": 59,
+        "avg_return_10d": 3.63,
+        "rally_rate_5pct": 28.8,
+        "drawdown_rate_neg2pct": 23.7
       },
       "unclassified": {
         "count": 20,
@@ -3515,6 +3515,14 @@
       }
     },
     "lessons": [
+      {
+        "lesson": "000660_KS CAUTION preceded a >+5% rally in 6/6 cases (last 60d) — calibration warning: caution stance may be too defensive",
+        "evidence": "avg 10d return after CAUTION signal: +15.2%",
+        "tickers_involved": [
+          "000660_KS"
+        ],
+        "computed_on": "2026-05-28"
+      },
       {
         "lesson": "TSEM CAUTION preceded a >+5% rally in 6/6 cases (last 60d) — calibration warning: caution stance may be too defensive",
         "evidence": "avg 10d return after CAUTION signal: +26.2%",
@@ -3536,14 +3544,6 @@
         "evidence": "avg 10d return after CAUTION signal: +21.9%",
         "tickers_involved": [
           "AMD"
-        ],
-        "computed_on": "2026-05-28"
-      },
-      {
-        "lesson": "000660_KS CAUTION preceded a >+5% rally in 4/4 cases (last 60d) — calibration warning: caution stance may be too defensive",
-        "evidence": "avg 10d return after CAUTION signal: +13.6%",
-        "tickers_involved": [
-          "000660_KS"
         ],
         "computed_on": "2026-05-28"
       },
