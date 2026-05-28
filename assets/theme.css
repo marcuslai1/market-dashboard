@@ -268,24 +268,24 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border-bottom: 1.5px solid var(--ink) !important;
 }
 
-/* Top page-nav: the .topnav-wrap div is rendered into its own stMarkdown
-   block as a hidden sibling marker; we use :has() + adjacent-sibling to
-   reach the stRadio that immediately follows it and restyle it as a tab strip. */
+/* Top page-nav: scoped via the st-key-page_nav class Streamlit generates
+   from st.radio(key="page_nav"). The .topnav-wrap marker is kept (hidden)
+   purely as a documentation anchor in masthead.py. */
 .topnav-wrap { display: none; }
 
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] {
+.st-key-page_nav {
   border-bottom: 1.5px solid var(--ink);
   margin-bottom: 22px;
 }
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] > label {
+.st-key-page_nav .stRadio > label {
   display: none !important;
 }
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] {
+.st-key-page_nav [role="radiogroup"] {
   flex-direction: row !important;
   gap: 28px !important;
   border: none !important;
 }
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label {
+.st-key-page_nav [role="radiogroup"] > label {
   font-family: var(--mono) !important;
   font-size: 11px !important;
   letter-spacing: 0.12em !important;
@@ -298,10 +298,12 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   font-weight: 500;
   background: transparent !important;
 }
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label > div:first-child {
+/* Hide the native radio circle (BaseWeb's wrapper div) and the input itself */
+.st-key-page_nav [role="radiogroup"] > label > div:first-child,
+.st-key-page_nav [role="radiogroup"] > label > input[type="radio"] {
   display: none !important;
 }
-[data-testid="stMarkdown"]:has(.topnav-wrap) + [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+.st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
   color: var(--ink) !important;
   font-weight: 600;
   border-bottom-color: var(--ink) !important;
