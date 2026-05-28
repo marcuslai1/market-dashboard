@@ -218,31 +218,58 @@ function Changes() {
   );
 }
 
-/* ───────────────────────── Action card ───────────────────────── */
-function ActionCallout() {
-  // Pick the single most actionable name — first WATCH on the list
+/* ───────────────────────── Verdict (Briefing hero) ───────────────────────── */
+function Verdict() {
+  const total = Object.values(R.signal_counts).reduce((a, b) => a + b, 0);
+  // Same selection as the retired ActionCallout: first WATCH, else first ticker.
   const w = R.watchlist.find(t => t.signal === "WATCH") || R.watchlist[0];
   return (
-    <div className={"action-card " + w.signal.toLowerCase()}>
-      <div className="action-tag">
-        <div>If you only do</div>
-        <div>one thing today</div>
-        <div className="pill">{SIGNAL_VERB[w.signal]}</div>
-      </div>
-      <div className="action-body">
-        <div className="ticker">{w.display} · {w.name}</div>
-        <div className="head">{w.headline}</div>
-        <div className="plain">{w.plain}</div>
-      </div>
-      <div className="action-r">
-        <div>Last</div>
-        <div className="level">{w.ccy === "SGD" ? "S$" : "$"}{fmt(w.price, 2)}</div>
-        <div style={{ marginTop: 8, color: deltaClass(w.chg) === "up" ? "var(--buy)" : "var(--caution)" }}>
-          {sign(w.chg)}{fmt(w.chg, 2)}% today
+    <section className="verdict">
+      <div className="verdict-l">
+        <div className="stance-deck">
+          <span>Today's Posture</span>
+          <span style={{ color: "var(--ink-3)" }}>· {total} names tracked</span>
         </div>
-        <div style={{ marginTop: 8 }}>{w.next_event}</div>
+        <h2 className="verdict-headline">{R.stance_plain}</h2>
+        <div className="stance-byline">
+          {R.stance.toUpperCase()} · By the signal desk
+        </div>
+        <div className="verdict-sep" aria-hidden="true"></div>
+        <div className="verdict-action">
+          <div className="verdict-action-eyebrow">
+            <div>If you only do</div>
+            <div>one thing —</div>
+          </div>
+          <div className="verdict-action-body">
+            <div className="ticker">{w.display} · {w.name}</div>
+            <div className="head">{w.headline}</div>
+            <div className="plain">{w.plain}</div>
+          </div>
+          <div className="verdict-action-price">
+            <div className="verdict-action-last">Last</div>
+            <div className="level">{w.ccy === "SGD" ? "S$" : "$"}{fmt(w.price, 2)}</div>
+            <span className={`sig-pill sig-${w.signal}`}>{SIGNAL_VERB[w.signal]}</span>
+          </div>
+        </div>
       </div>
-    </div>
+      <div className="verdict-r">
+        <div className="stance-counts">
+          {SIGNAL_ORDER.map(sig => {
+            const n = R.signal_counts[sig] || 0;
+            const cssVar = `var(--${sig.toLowerCase()})`;
+            return (
+              <div key={sig} className={"count-cell " + (n === 0 ? "has-zero" : "")}>
+                <div className="label">
+                  <span className="dot" style={{ background: cssVar }}></span>
+                  {sig}
+                </div>
+                <div className="num" style={n > 0 ? { color: cssVar } : null}>{n}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -584,16 +611,9 @@ function App() {
 
       {tab === "Briefing" && (
         <React.Fragment>
-          <Stance />
+          <Verdict />
           <Tape />
           <Changes />
-          <section className="section">
-            <div className="section-head">
-              <h3 className="section-title">If you only do one thing today</h3>
-              <div className="section-sub">The desk's single highest-conviction action</div>
-            </div>
-            <ActionCallout />
-          </section>
           <Macro />
           <Calendar />
         </React.Fragment>
