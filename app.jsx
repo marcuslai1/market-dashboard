@@ -557,6 +557,97 @@ function Calendar() {
   );
 }
 
+/* ───────────────────────── Context (Briefing: Macro + Calendar merged) ───────────────────────── */
+function Context() {
+  const probs = R.geopolitical.probabilities;
+  const probColors = {
+    base: "var(--accumulate)",
+    optimistic: "var(--buy)",
+    pessimistic: "var(--caution)",
+    wildcard: "var(--watch)",
+  };
+  const probLabels = {
+    base: "Base case",
+    optimistic: "Optimistic",
+    pessimistic: "Pessimistic",
+    wildcard: "Wildcard",
+  };
+  const grouped = useMemo(() => {
+    const m = {};
+    R.events.forEach(e => { (m[e.date] = m[e.date] || []).push(e); });
+    return Object.entries(m).sort(([a], [b]) => a.localeCompare(b)).slice(0, 5);
+  }, []);
+  return (
+    <section className="context">
+      <div className="section-head">
+        <h3 className="section-title">The Context</h3>
+        <div className="section-sub">The argument and the catalysts</div>
+      </div>
+      <div className="context-grid">
+        <div className="context-l">
+          <div className="section-sub" style={{ marginBottom: 6 }}>The Macro Note</div>
+          <p className="lede">{R.macro_summary}</p>
+          <div className="body-copy">
+            <p><strong>Portfolio implication.</strong> {R.geopolitical.portfolio_action}</p>
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <div className="section-sub" style={{ marginBottom: 8 }}>Scenario odds</div>
+            <div className="probs">
+              <div className="probs-bar">
+                {["base", "optimistic", "pessimistic", "wildcard"].map(k => (
+                  <div key={k} className="probs-seg" style={{ width: probs[k] + "%", background: probColors[k] }}>
+                    {probs[k]}%
+                  </div>
+                ))}
+              </div>
+              <div className="probs-key">
+                {["base", "optimistic", "pessimistic", "wildcard"].map(k => (
+                  <div key={k}>
+                    <span className="sw" style={{ background: probColors[k] }}></span>
+                    {probLabels[k]}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="context-r">
+          <div className="section-sub" style={{ marginBottom: 8 }}>Active risks</div>
+          <ul className="risk-list">
+            {R.geopolitical.active_risks.map((r, i) => (
+              <li key={i}>
+                <div className="tag">{r.tag}</div>
+                <div className="text">{r.text}</div>
+              </li>
+            ))}
+          </ul>
+          <div className="context-r-rule" aria-hidden="true"></div>
+          <div className="section-sub" style={{ marginBottom: 8 }}>Upcoming</div>
+          <div className="context-cal">
+            {grouped.map(([date, events]) => (
+              <div key={date} className="context-cal-day">
+                <div className="context-cal-date">
+                  {fmtDate(date)}
+                  <span className="dow">{dayName(date)}</span>
+                </div>
+                <div className="cal-events">
+                  {events.map((e, i) => (
+                    <div key={i} className="cal-event">
+                      <span className="cal-tk">{e.ticker}</span>
+                      <span className={`cal-impact ${e.impact}`}>{e.impact}</span>
+                      <span className="cal-text">{e.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ───────────────────────── Tweaks panel ───────────────────────── */
 function Tweaks({ tweaks, setTweak }) {
   return (
@@ -614,8 +705,7 @@ function App() {
           <Verdict />
           <Tape />
           <Changes />
-          <Macro />
-          <Calendar />
+          <Context />
         </React.Fragment>
       )}
 
