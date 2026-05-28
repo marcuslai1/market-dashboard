@@ -45,35 +45,22 @@ const fmtDate = (iso) => {
 
 /* ───────────────────────── Masthead ───────────────────────── */
 function Masthead({ tab, setTab, reportDate }) {
-  const long = new Date(reportDate + "T00:00:00").toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  const shortDate = new Date(reportDate + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "short", month: "short", day: "numeric", year: "numeric",
   });
   return (
-    <header>
-      <div className="masthead">
-        <div className="masthead-l">
-          <div className="kicker">Morning Briefing · Volume IV · No. 117</div>
-          <h1 className="masthead-title">
-            The <em>Market</em> Report
-          </h1>
-        </div>
-        <div className="masthead-r">
-          <div className="date">{long}</div>
-          <div>Singapore · 11:30 SGT · Last close {R.meta.market_date}</div>
-        </div>
-      </div>
-      <div className="masthead-meta">
-        <div className="vol-no">Signal Intelligence · Daily</div>
-        <div className="nav-tabs">
-          {["Briefing", "Watchlist", "Calendar", "Macro"].map(n => (
-            <button
-              key={n}
-              className={"nav-tab " + (tab === n ? "active" : "")}
-              onClick={() => setTab(n)}
-            >{n}</button>
-          ))}
-        </div>
-        <div>Updated 11:30 SGT</div>
+    <header className="masthead">
+      <span className="brand-mark" aria-hidden="true"></span>
+      <span className="brand-wordmark">MarketReport</span>
+      <span className="brand-date"><span className="brand-sep">·</span> {shortDate}</span>
+      <div className="nav-tabs">
+        {["Briefing", "Watchlist", "Calendar", "Macro"].map(n => (
+          <button
+            key={n}
+            className={"nav-tab " + (tab === n ? "active" : "")}
+            onClick={() => setTab(n)}
+          >{n}</button>
+        ))}
       </div>
     </header>
   );
