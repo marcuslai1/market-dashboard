@@ -405,8 +405,8 @@ distribution.
 </ul>
 """, unsafe_allow_html=True)
 
-    # ---- Entry Block & Catalyst Path ----
-    render_section_head("Entry Block & Catalyst Path", "When mechanical rules are softened")
+    # ---- Entry Block & Catalyst Context ----
+    render_section_head("Entry Block & Catalyst Context", "Advisory caveats layered on the signal")
     st.markdown("""
 <div class="term-prose">
 <b>Entry block</b> is an advisory flag the writeup may set when a name's
@@ -416,13 +416,22 @@ the raw signal remains pure technicals; entry_block is the contextual
 caveat layered on top.
 </div>
 <div class="term-prose">
-<b>Catalyst entry path.</b> A specific exception to the &gt;5%-above-SMA50
-extension block: when a verified catalyst (named, sourced, with a known
-trigger date) is in play and the trend is durable, the pipeline allows
-entry despite extension. This path is paper-trade-only until at least
-two months and five completed entries have accumulated to validate the
-loosening. Episodes opened via this path are tagged in the Paper Trade
-Outcomes table.
+<b>Catalyst context.</b> When an extended name (&gt;5% above SMA50) has a
+verified Tier-1 catalyst (earnings beat + guidance raise, or a named
+contract with a dollar value; narrowness test: specific event,
+quantifiable impact, specific date), the pipeline surfaces it as
+<i>writeup context only</i>. It explains why the name is interesting and
+what would have to happen — a consolidation that resets the extension, or
+a second independent thesis leg — before it becomes actionable.
+</div>
+<div class="term-prose">
+This used to be a "catalyst entry path" that relaxed the extension block
+(letting an extended name reach ACCUMULATE). That was removed on
+<b>2026-05-30</b>: it never actually triggered an entry in production (its
+gap-fill stop put R:R below the entry threshold), and its only effect would
+have been to act on the most-extended names — which the benchmark-relative
+calibration shows underperform. A detected catalyst no longer changes the
+signal; the name stays CAUTION on its extension.
 </div>
 """, unsafe_allow_html=True)
 
