@@ -148,23 +148,36 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                 'New step-function catalyst required before re-entry.</div>'
             )
 
-    # ── Catalyst block (paper-trade entry path) ──
+    # ── Catalyst block ──
+    # As of 2026-05-30 the catalyst path is narrative-only: the pipeline
+    # emits facts (catalyst_event/source/date) with narrative_only=True and
+    # no longer produces catalyst_rr / position_tier / extension relaxation.
+    # Legacy reports (pre-2026-05-30) carry the old entry-path shape; this
+    # block renders both — R:R / tier / paper-trade framing appear only when
+    # the legacy fields are actually present.
     catalyst = d.get("catalyst") or {}
     if catalyst:
-        c_rr = d.get("catalyst_rr") or {}
-        c_tier = d.get("catalyst_position_tier") or {}
+        narrative_only = bool(catalyst.get("narrative_only"))
+        c_rr = d.get("catalyst_rr") or catalyst.get("catalyst_rr") or {}
+        c_tier = d.get("catalyst_position_tier") or catalyst.get("catalyst_position_tier") or {}
         c_type = catalyst.get("type") or catalyst.get("catalyst_type") or ""
-        c_headline = catalyst.get("headline") or catalyst.get("description") or ""
-        c_source = catalyst.get("source") or ""
+        c_headline = (catalyst.get("catalyst_event") or catalyst.get("headline")
+                      or catalyst.get("description") or "")
+        c_source = catalyst.get("catalyst_source") or catalyst.get("source") or ""
         c_url = catalyst.get("url") or ""
-        c_date = catalyst.get("date") or catalyst.get("event_date") or ""
+        c_date = (catalyst.get("catalyst_date") or catalyst.get("date")
+                  or catalyst.get("event_date") or "")
         c_pre_price = catalyst.get("pre_catalyst_close")
         c_rr_ratio = c_rr.get("ratio") or c_rr.get("ratio_raw")
         c_rr_inv = c_rr.get("invalidation")
         c_tier_name = c_tier.get("tier") or ""
         c_max_size = c_tier.get("max_size_pct")
+        is_entry_path = bool(c_rr_ratio or c_tier_name)
 
-        parts.append(_drilldown_section_html("Catalyst entry path · paper trade only"))
+        title = ("Catalyst context · narrative only"
+                 if narrative_only or not is_entry_path
+                 else "Catalyst entry path · paper trade only")
+        parts.append(_drilldown_section_html(title))
         if c_headline:
             head_html = (
                 f'<div class="dd-line"><strong>{_escape_dollars(c_type) or "Catalyst"}.</strong> '
@@ -180,25 +193,20 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                 )
             head_html += '</div>'
             parts.append(head_html)
-        cat_metrics = [
-            ("Catalyst date", c_date or "—"),
-            (
-                "Catalyst R:R",
-                f"{_fmt_num(c_rr_ratio, 2)}:1" if c_rr_ratio else "—",
-            ),
-            (
-                "Gap-fill invalidation",
-                f"{pfx}{_fmt_num(c_rr_inv, 2)}" if c_rr_inv else (
-                    f"{pfx}{_fmt_num(c_pre_price, 2)}" if c_pre_price else "—"
-                ),
-            ),
-            (
-                "Position tier",
-                f"{c_tier_name} ({_fmt_num(c_max_size, 0)}% max)"
-                if c_tier_name and c_max_size is not None
-                else (c_tier_name or "—"),
-            ),
-        ]
+        cat_metrics = [("Catalyst date", c_date or "—")]
+        # Entry-path numerics are legacy-only; show them solely when present.
+        if is_entry_path:
+            cat_metrics += [
+                ("Catalyst R:R", f"{_fmt_num(c_rr_ratio, 2)}:1" if c_rr_ratio else "—"),
+                ("Gap-fill invalidation",
+                 f"{pfx}{_fmt_num(c_rr_inv, 2)}" if c_rr_inv else (
+                     f"{pfx}{_fmt_num(c_pre_price, 2)}" if c_pre_price else "—")),
+                ("Position tier",
+                 f"{c_tier_name} ({_fmt_num(c_max_size, 0)}% max)"
+                 if c_tier_name and c_max_size is not None else (c_tier_name or "—")),
+            ]
+        else:
+            cat_metrics.append(("Signal impact", "Context only — does not change the signal"))
         parts.append(_drilldown_metrics_html(cat_metrics))
 
     upside_target = rr_obj.get("upside_target")
