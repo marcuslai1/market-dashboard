@@ -521,11 +521,12 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
         # Summary metrics
         total_rows = len(sig_log)
         by_type = sig_log["entry_type"].value_counts().to_dict()
-        summary_cols = st.columns(4)
+        # "Catalyst Entries" KPI removed 2026-05-30 — the catalyst entry_type is
+        # retired (path is narrative-only; no new catalyst rows are produced).
+        summary_cols = st.columns(3)
         summary_cols[0].metric("Total Signals Logged", total_rows)
-        summary_cols[1].metric("Catalyst Entries", by_type.get("catalyst", 0))
-        summary_cols[2].metric("Standard Entries", by_type.get("standard", 0))
-        summary_cols[3].metric("Monitor (non-entry)", by_type.get("monitor", 0))
+        summary_cols[1].metric("Standard Entries", by_type.get("standard", 0))
+        summary_cols[2].metric("Monitor (non-entry)", by_type.get("monitor", 0))
 
         # Hit-rate on invalidation vs upside target (rows with final outcomes)
         finalised = sig_log.dropna(subset=["price_after_20d"])
