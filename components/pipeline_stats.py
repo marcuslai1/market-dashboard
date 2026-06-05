@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from lib.cards import render_section_head
+from lib.charts import PLOTLY_CONFIG, style_fig
 from lib.data_loader import load_pipeline_stats, load_token_usage
 
 
@@ -35,7 +36,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         yaxis_title="Token Count", height=300,
         margin=dict(l=0, r=0, t=30, b=0),
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
 
     # Generation time
     fig2 = go.Figure()
@@ -48,7 +49,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         yaxis_title="Seconds", height=250,
         margin=dict(l=0, r=0, t=30, b=0),
     )
-    st.plotly_chart(fig2, width="stretch")
+    st.plotly_chart(style_fig(fig2), use_container_width=True, config=PLOTLY_CONFIG)
 
     # Summary stats
     cols = st.columns(4)
@@ -98,7 +99,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         st.caption(
             "Pre-2026-05-05 rows used Sonnet+Haiku rates (overstated ~10x). "
             "Post-cutover rows reflect cache-aware DeepSeek v4 Pro spend "
-            "($0.27 input miss / $0.07 input hit / $1.10 output per MTok)."
+            "(&#36;0.27 input miss / &#36;0.07 input hit / &#36;1.10 output per MTok)."
         )
 
         fig_cost = go.Figure()
@@ -133,7 +134,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_cost, width="stretch")
+        st.plotly_chart(style_fig(fig_cost), use_container_width=True, config=PLOTLY_CONFIG)
 
         # Cumulative cost
         fig_cum = go.Figure()
@@ -147,7 +148,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             yaxis_title="Cumulative Cost (USD)", height=200,
             margin=dict(l=0, r=0, t=30, b=0),
         )
-        st.plotly_chart(fig_cum, width="stretch")
+        st.plotly_chart(style_fig(fig_cum), use_container_width=True, config=PLOTLY_CONFIG)
 
     # ── Prompt Cache Telemetry ──
     st.subheader("Prompt Cache")
@@ -186,7 +187,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         cc_cols[2].metric(
             "Latest hit tokens",
             f"{int(latest['cache_hit_tokens']):,}",
-            help="Cached input tokens billed at $0.07/MTok instead of $0.27/MTok.",
+            help="Cached input tokens billed at &#36;0.07/MTok instead of &#36;0.27/MTok.",
         )
         cc_cols[3].metric(
             "Cumulative savings",
@@ -210,14 +211,14 @@ def render_pipeline_stats_page(reports: dict) -> None:
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_cache, width="stretch")
+        st.plotly_chart(style_fig(fig_cache), use_container_width=True, config=PLOTLY_CONFIG)
 
         st.caption(
             "If hit ratio sits near 0%, the user prompt's first dynamic block "
             "is breaking the prefix immediately — reorder static blocks "
             "(catalysts JSON, portfolio_count_directive, field-contracts, "
             "crisis_block) above the data_json block to extend the cacheable "
-            "prefix. Savings figures assume a flat $0.20/MTok delta."
+            "prefix. Savings figures assume a flat &#36;0.20/MTok delta."
         )
 
     render_section_head("Pipeline Volume", "Articles ingested and prompt size")
@@ -254,7 +255,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
-        st.plotly_chart(fig_art, width="stretch")
+        st.plotly_chart(style_fig(fig_art), use_container_width=True, config=PLOTLY_CONFIG)
 
         # ── Prompt Size Breakdown ──
         has_breakdown = ps_df["total_prompt_chars"].notna().any()
@@ -292,4 +293,4 @@ def render_pipeline_stats_page(reports: dict) -> None:
                     margin=dict(l=0, r=0, t=30, b=0),
                     legend=dict(orientation="h", yanchor="bottom", y=1.02),
                 )
-                st.plotly_chart(fig_pb, width="stretch")
+                st.plotly_chart(style_fig(fig_pb), use_container_width=True, config=PLOTLY_CONFIG)

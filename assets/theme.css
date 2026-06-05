@@ -646,12 +646,17 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 }
 
 .risk-card {
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
+  padding: 12px 0 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  /* Severity rail — a clean 3px left border (coloured below) reads as an
+     intentional accent, unlike the old absolutely-positioned ::before dot
+     which looked like a stray caret beside the text. */
+  border-left: 3px solid var(--ink-4);
 }
 .risk-card .tag {
   font-family: var(--mono); font-size: 10px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.12em;
-  color: #ef4444; margin-bottom: 4px;
+  color: var(--ink-3); margin-bottom: 4px;
 }
 .risk-card .text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
 
@@ -732,8 +737,11 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 }
 
 /* Cards inside the wrapper shouldn't add their own bottom margin —
-   the grid's row-gap handles spacing. */
-.lane-wrapper > .card { margin-bottom: 0; }
+   the grid's row-gap handles spacing. `align-self: start` stops a shorter
+   card from stretching to match the tallest card in its row, which is what
+   left an empty band of whitespace below the Signal Distribution counts and
+   below the Active Risks list. */
+.lane-wrapper > .card { margin-bottom: 0; align-self: start; }
 
 /* ── Signal color tokens (mirrored from assets/catalog.json) ──── */
 :root {
@@ -823,22 +831,13 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   35%      { background-color: var(--caution-tint); }
 }
 
-/* ── Risk severity dots (§2.5) ───────────────────────────────── */
-.risk-card { position: relative; }
-.risk-card[data-severity]::before {
-  content: "";
-  position: absolute;
-  left: -1px;
-  top: 50%;
-  width: 4px;
-  height: 18px;
-  transform: translateY(-50%);
-  background: var(--ink-3);
-  border-radius: 2px;
-}
-.risk-card[data-severity="HIGH"]::before { background: var(--caution); }
-.risk-card[data-severity="MED"]::before  { background: var(--watch); }
-.risk-card[data-severity="LOW"]::before  { background: var(--ink-3); }
+/* ── Risk severity rail + tag colour (§2.5) ──────────────────── */
+.risk-card[data-severity="HIGH"] { border-left-color: var(--caution); }
+.risk-card[data-severity="MED"]  { border-left-color: var(--watch); }
+.risk-card[data-severity="LOW"]  { border-left-color: var(--ink-4); }
+.risk-card[data-severity="HIGH"] .tag { color: var(--caution); }
+.risk-card[data-severity="MED"]  .tag { color: var(--watch); }
+.risk-card[data-severity="LOW"]  .tag { color: var(--ink-3); }
 
 /* Severity-pulse keyframes: registered here so they're available the moment
    Python decides to bind them. The animation-applying selector is injected

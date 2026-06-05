@@ -74,8 +74,10 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "") -
             'margin-bottom:8px;">Scenario odds</div>'
             '<div style="display:flex;height:24px;border:1px solid var(--rule-strong);'
             f'margin-bottom:8px;">{segs}</div>'
-            '<div style="display:grid;grid-template-columns:repeat(2,1fr);'
-            'gap:4px 18px;font-family:var(--mono);font-size:11px;'
+            # Flex row (not a 2x2 grid) so the legend reads left-to-right in the
+            # same order as the bar segments above it.
+            '<div style="display:flex;flex-wrap:wrap;'
+            'gap:6px 20px;font-family:var(--mono);font-size:11px;'
             f'color:var(--ink-3);">{keys}</div>'
             '</div>'
         )
@@ -120,7 +122,10 @@ def risks_card_html(geo: dict) -> str:
         else:
             text = r
             sev = _infer_severity(r)
-        tag = text.split(":", 1)[0][:24] if ":" in text else "Risk"
+        # Prefer a real "Category: …" prefix as the tag; otherwise fall back to
+        # the severity itself (HIGH/MED/LOW) rather than a redundant "Risk"
+        # label on every row. The tag colour is keyed off data-severity in CSS.
+        tag = text.split(":", 1)[0][:24] if ":" in text else sev
         body += (
             f'<div class="risk-card" data-severity="{sev}">'
             f'<div class="tag">{_escape_dollars(tag)}</div>'

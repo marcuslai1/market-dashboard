@@ -276,11 +276,16 @@ if page == "Briefing":
     render_catalyst_playbook(trigger_map)
     render_contrarian_candidates(contrarians)
 
+    # Context band: Macro note (lede) + Active Risks (ledger) on row 1, then the
+    # Week-Ahead calendar as a full-width strip on row 2. Placing the catalyst
+    # list in its own strip (rather than stacking it under Risks in the right
+    # column) keeps the row heights balanced and removes the tall empty void
+    # that used to sit beside the short Macro note.
     band_html = (
         '<div class="lane-wrapper">'
         + macro_card_html(report.get("macro_summary", ""), geo, report.get("commodities_note", ""))
         + risks_card_html(geo)
-        + calendar_card_html(events)
+        + calendar_card_html(events, lane="strip")
         + '</div>'
     )
     st.markdown(band_html, unsafe_allow_html=True)
