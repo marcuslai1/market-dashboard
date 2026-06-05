@@ -11,6 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from lib.charts import PLOTLY_CONFIG, style_fig
 from lib.formatters import _escape_dollars
 
 _SCENARIO_NORMALIZE = {
@@ -147,7 +148,7 @@ def render_scenario_log_page(reports: dict) -> None:
         margin=dict(l=0, r=0, t=20, b=0),
         legend=dict(orientation="h", yanchor="bottom", y=1.02),
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
 
     # ── Days when probabilities actually moved ──
     st.subheader("Days when probabilities moved")

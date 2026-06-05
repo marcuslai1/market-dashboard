@@ -1,0 +1,11 @@
+# Streamlit base theme — keeps native BaseWeb widgets (selectbox, multiselect,
+# slider, date_input, dataframe) on the same ink-on-dark broadsheet palette as
+# assets/theme.css. Without this, Streamlit defaults to its light base and those
+# widgets render as bright white boxes / red pills that clash with the page.
+# Token values mirror the :root palette in assets/theme.css.
+[theme]
+base = "dark"
+primaryColor = "#f59e0b"              # WATCH amber — accent for selected radios, slider, multiselect tags
+backgroundColor = "#14140F"          # --paper
+secondaryBackgroundColor = "#1B1B16" # --paper-2 (sidebar, dataframe header, widget fills)
+textColor = "#F4EFE2"                # --ink

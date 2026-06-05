@@ -60,11 +60,16 @@ def _group_html(group: list, muted: bool = False) -> str:
     return out
 
 
-def calendar_card_html(events: list) -> str:
-    """Return the Week-Ahead card markup (ledger lane).
+def calendar_card_html(events: list, lane: str = "ledger") -> str:
+    """Return the Week-Ahead card markup.
 
     Body contains the day-grouped this-week events plus a Forward Catalysts
     sub-section below a hairline divider. Empty input → empty-state body.
+
+    ``lane`` controls grid placement inside a ``.lane-wrapper``. The Briefing
+    band passes ``"strip"`` so the (often long) catalyst list spans full width
+    below the Macro/Risks row instead of stacking in the right column and
+    leaving a tall empty void beside the short Macro note.
     """
     if not events:
         body = '<p style="color:var(--ink-3);font-size:13px;">No catalysts logged.</p>'
@@ -72,7 +77,7 @@ def calendar_card_html(events: list) -> str:
             eyebrow="THE WEEK AHEAD",
             headline="Catalysts that move signals",
             body_html=body,
-            lane="ledger",
+            lane=lane,
         )
 
     this_week = [e for e in events if (e.get("type") or "this_week") != "forward_catalyst"]
@@ -93,7 +98,7 @@ def calendar_card_html(events: list) -> str:
         eyebrow="THE WEEK AHEAD",
         headline="Catalysts that move signals",
         body_html=body,
-        lane="ledger",
+        lane=lane,
     )
 
 

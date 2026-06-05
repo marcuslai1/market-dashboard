@@ -10,8 +10,15 @@ import pandas as pd
 
 
 def _escape_dollars(text: str) -> str:
-    """Escape $ signs so Streamlit doesn't render them as LaTeX."""
-    return text.replace("$", "\\$") if text else text
+    """Neutralize ``$`` so Streamlit never renders it as LaTeX math.
+
+    Uses the HTML numeric entity ``&#36;`` rather than a markdown backslash
+    escape (``\\$``). The backslash form only works in pure-markdown text —
+    inside the raw HTML we inject via ``unsafe_allow_html`` the markdown
+    processor is bypassed, so ``\\$`` leaks the literal backslash to the page.
+    ``&#36;`` renders as ``$`` in *both* contexts and is never parsed as math.
+    """
+    return text.replace("$", "&#36;") if text else text
 
 
 def _truncate_rationale(text: str) -> str:
@@ -39,7 +46,7 @@ def _price_str(price, currency: str = "USD") -> str:
     """Format a price with currency-aware prefix, escaped for Streamlit."""
     if price is None:
         return "—"
-    pfx = "S\\$" if currency == "SGD" else "\\$"
+    pfx = "S&#36;" if currency == "SGD" else "&#36;"
     return f"{pfx}{price:,.2f}"
 
 
