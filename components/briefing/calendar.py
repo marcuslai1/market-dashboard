@@ -34,11 +34,23 @@ def _group_html(group: list, muted: bool = False) -> str:
         events_html = ""
         for e in grouped[date_str]:
             impact = (e.get("impact") or "LOW").upper()
+            tickers = e.get("tickers_affected") or []
+            ticker_html = ""
+            if tickers:
+                tags = "".join(
+                    f'<span style="font-family:var(--mono);font-size:10px;'
+                    f'background:var(--surface-2,#1e1e2e);border-radius:3px;'
+                    f'padding:1px 5px;margin-right:3px;color:var(--ink-2);">'
+                    f'{t}</span>'
+                    for t in tickers[:5]
+                )
+                ticker_html = f'<div style="margin-top:3px;{style}">{tags}</div>'
             events_html += (
                 f'<div class="cal-event" style="{style}">'
                 f'<span class="cal-impact {impact}">{impact}</span>'
                 f'<span class="cal-text">{_escape_dollars(e.get("event", ""))}</span>'
                 f'</div>'
+                f'{ticker_html}'
             )
         out += (
             f'<div class="cal-day">'
