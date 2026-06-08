@@ -81,7 +81,7 @@ def render_terminology_page() -> None:
 </tr>
 <tr>
   <td><span class="term-pill" style="background:rgba(160,160,160,0.14);color:#9ca3af;">● HOLD</span></td>
-  <td><b>Wait days.</b> Nothing wrong, nothing interesting. No clear catalyst, mixed technicals, or poor R:R.</td>
+  <td><b>Wait days.</b> Nothing wrong, nothing actionable today. No clear catalyst, mixed technicals, or poor R:R.</td>
   <td>Default state for a tracked name with no actionable read. Clears when the next setup or catalyst arrives.</td>
 </tr>
 <tr>
@@ -108,6 +108,17 @@ you stayed off the consideration set entirely.
 <b>Signals are states, not a ladder.</b> A name can move from BUY to CAUTION in a single
 session if news invalidates the thesis. There is no requirement that signals step one
 rung at a time.
+</div>
+<div class="term-prose">
+<b>Writeup depth scales with the decision.</b> The actionable signals — BUY and
+ACCUMULATE — carry the fullest writeups: entry zone, invalidation, R:R math and
+sizing. WATCH and AVOID get a focused note (the missing trigger, or the broken
+thesis leg plus its source). HOLD and CAUTION carry a shorter <i>standing-context</i>
+note — the thesis being tracked, why it is not actionable right now, and the
+specific level or event that would change the call. It is deliberately briefer
+than an actionable writeup, but no longer blank. A name with nothing live to
+track — no thesis, no news, and far from any actionable level — may show no note
+at all; that silence is intentional, not an omission.
 </div>
 """, unsafe_allow_html=True)
 
