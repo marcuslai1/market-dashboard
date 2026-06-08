@@ -306,7 +306,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 .st-key-page_nav [role="radiogroup"] {
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  gap: 22px !important;
+  gap: 12px !important;
   border: none !important;
   border-bottom: 1.5px solid var(--ink) !important;
   overflow-x: auto;
@@ -319,7 +319,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   white-space: nowrap;
   font-family: var(--mono) !important;
   font-size: 11px !important;
-  letter-spacing: 0.12em !important;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase;
   color: var(--ink-3) !important;
   padding: 9px 0 11px !important;
@@ -346,14 +346,40 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border-bottom-color: #f59e0b !important;   /* amber accent = "you are here" */
 }
 
+/* —— Folio index —— amber section numerals (01–07) injected via ::before so the
+   Python st.radio labels stay plain strings. Each numeral sits as a small raised
+   superscript before its label, reading like a newspaper contents page. Dim when
+   idle, full amber on the active section. */
+.st-key-page_nav [role="radiogroup"] > label::before {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #f59e0b;
+  opacity: 0.5;
+  margin-right: 6px;
+  vertical-align: 3px;            /* raise the numeral like a section folio */
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.st-key-page_nav [role="radiogroup"] > label:nth-child(1)::before { content: "01"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(2)::before { content: "02"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(3)::before { content: "03"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(4)::before { content: "04"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(5)::before { content: "05"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(6)::before { content: "06"; }
+.st-key-page_nav [role="radiogroup"] > label:nth-child(7)::before { content: "07"; }
+.st-key-page_nav [role="radiogroup"] > label:hover::before { opacity: 0.85; }
+.st-key-page_nav [role="radiogroup"] > label:has(input:checked)::before { opacity: 1; }
+
 /* Narrow viewports: tighten the strip so more tabs fit before it scrolls, and
    fade the right edge to hint that the off-screen tabs are reachable by scroll. */
 @media (max-width: 820px) {
-  .st-key-page_nav [role="radiogroup"] { gap: 18px !important; }
+  .st-key-page_nav [role="radiogroup"] { gap: 13px !important; }
   .st-key-page_nav [role="radiogroup"] > label {
     font-size: 10.5px !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.06em !important;
   }
+  .st-key-page_nav [role="radiogroup"] > label::before { margin-right: 5px; }
   .st-key-page_nav::after {
     content: "";
     position: absolute;
