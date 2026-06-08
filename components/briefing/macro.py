@@ -14,12 +14,100 @@ from __future__ import annotations
 
 import streamlit as st
 
+from datetime import datetime as _dt
+
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS
 from lib.formatters import _escape_dollars
 
+# Core-5 rate-relevant prints, fixed display order. Other FRED series
+# (real 10Y, breakevens, HY OAS) are intentionally omitted from this strip.
+_PRINT_ORDER = [
+    "CPI (YoY)",
+    "Core PCE (YoY)",
+    "Unemployment",
+    "Nonfarm payrolls",
+    "Fed funds (eff.)",
+]
 
-def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "") -> str:
+
+def _fmt_value(label: str, d: dict) -> str:
+    v = d.get("value")
+    if v is None:
+        return "n/a"
+    if label == "Nonfarm payrolls":
+        sign = "+" if v >= 0 else ""
+        return f"{sign}{v:g}k"
+    return f"{v:g}%"
+
+
+def _fmt_delta(label: str, d: dict) -> str:
+    chg = d.get("chg")
+    if not isinstance(chg, (int, float)) or chg == 0:
+        return "—"
+    arrow = "▲" if chg > 0 else "▼"
+    unit = "k" if label == "Nonfarm payrolls" else ""
+    return f"{arrow}{abs(chg):g}{unit}"
+
+
+def _fmt_freshness(d: dict) -> str:
+    asof = d.get("asof", "")
+    month = ""
+    if asof:
+        try:
+            month = _dt.strptime(asof, "%Y-%m-%d").strftime("%b")
+        except (ValueError, TypeError):
+            month = asof
+    age = d.get("age_days")
+    age_s = f"{age}d" if isinstance(age, int) else ""
+    stale = " · STALE" if d.get("is_stale") else ""
+    bits = " · ".join(b for b in [month, age_s] if b)
+    return f"{bits}{stale}"
+
+
+def macro_prints_html(indicators: dict) -> str:
+    """Return a compact FRED Core-5 prints table (or "" when no data).
+
+    Valence-neutral (no green/red) — the strip reports figures, it does not
+    editorialize direction as good/bad. Renders nothing when the block is empty
+    (FRED key unset, or pre-FRED reports), so old reports stay clean.
+    """
+    indicators = indicators or {}
+    rows = ""
+    any_row = False
+    for label in _PRINT_ORDER:
+        d = indicators.get(label)
+        if not isinstance(d, dict):
+            continue
+        any_row = True
+        has_val = d.get("value") is not None
+        val = _escape_dollars(_fmt_value(label, d))
+        delta = _fmt_delta(label, d) if has_val else ""
+        fresh = _escape_dollars(_fmt_freshness(d)) if has_val else "unavailable"
+        rows += (
+            '<div style="display:flex;justify-content:space-between;'
+            'align-items:baseline;gap:8px;padding:3px 0;font-family:var(--mono);'
+            'font-size:11px;color:var(--ink-2);">'
+            f'<span style="color:var(--ink-3);min-width:96px;">{label}</span>'
+            f'<span style="color:var(--ink);font-weight:600;">{val}</span>'
+            f'<span style="color:var(--ink-3);min-width:42px;text-align:right;">{delta}</span>'
+            f'<span style="color:var(--ink-3);flex:1;text-align:right;">{fresh}</span>'
+            '</div>'
+        )
+    if not any_row:
+        return ""
+    return (
+        '<div style="margin-top:14px;padding-top:8px;'
+        'border-top:1px solid var(--rule);">'
+        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;'
+        'text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;">'
+        'Macro prints · FRED · latest available, not live</div>'
+        f'{rows}</div>'
+    )
+
+
+def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
+                    macro_indicators: dict = None) -> str:
     """Return the Macro Note card markup (lede lane).
 
     Body contains: lede paragraph, optional commodities note rule, optional
@@ -35,6 +123,7 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "") -
             'border-top:1px solid var(--rule);">'
             f'{_escape_dollars(commodities_note)}</div>'
         )
+    body += macro_prints_html(macro_indicators or {})
     if geo.get("portfolio_action"):
         body += (
             '<div class="macro-action">'
@@ -143,7 +232,8 @@ def risks_card_html(geo: dict) -> str:
     )
 
 
-def render_macro(macro_summary: str, geo: dict, commodities_note: str = "") -> None:
+def render_macro(macro_summary: str, geo: dict, commodities_note: str = "",
+                 macro_indicators: dict = None) -> None:
     """Thin wrapper that emits both Macro Note + Risks cards sequentially.
 
     Used by ``render_briefing`` and any caller that doesn't compose the
@@ -151,7 +241,7 @@ def render_macro(macro_summary: str, geo: dict, commodities_note: str = "") -> N
     outside a ``.lane-wrapper`` parent.
     """
     st.markdown(
-        macro_card_html(macro_summary, geo, commodities_note),
+        macro_card_html(macro_summary, geo, commodities_note, macro_indicators),
         unsafe_allow_html=True,
     )
     st.markdown(risks_card_html(geo), unsafe_allow_html=True)

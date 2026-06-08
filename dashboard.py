@@ -301,7 +301,9 @@ if page == "Briefing":
     # that used to sit beside the short Macro note.
     band_html = (
         '<div class="lane-wrapper">'
-        + macro_card_html(report.get("macro_summary", ""), geo, report.get("commodities_note", ""))
+        + macro_card_html(report.get("macro_summary", ""), geo,
+                          report.get("commodities_note", ""),
+                          report.get("macro_indicators", {}))
         + risks_card_html(geo)
         + calendar_card_html(events, lane="strip")
         + '</div>'
