@@ -249,6 +249,24 @@ if page == "Briefing":
     # the lede (stance deck) and ledger (signal counts) as grid children.
     st.markdown(stance_band_html(snapshot, len(watchlist)), unsafe_allow_html=True)
 
+    # ACCUMULATE paper-phase status — one measured line (replaces the old
+    # per-ticker "PAPER TRADE" labels; the [paper] tag rides in what_to_do).
+    # Present only on days carrying ≥1 ACCUMULATE; sourced from the pipeline's
+    # gate readout, so it never drifts from the Measurement Gate.
+    _aps = report.get("accumulate_paper_status")
+    if isinstance(_aps, dict) and _aps.get("line"):
+        _grad = _aps.get("graduated")
+        _col = "#22c55e" if _grad else "#f59e0b"
+        st.markdown(
+            f'<div style="background:rgba(245,158,11,0.08);'
+            f'border:1px solid {_col}55;border-left:3px solid {_col};'
+            'border-radius:4px;padding:9px 14px;margin-bottom:14px;'
+            'font-family:var(--mono);font-size:11.5px;letter-spacing:0.04em;'
+            f'color:var(--ink-2);">{"✅" if _grad else "🧪"} '
+            f'{_aps["line"]}</div>',
+            unsafe_allow_html=True,
+        )
+
     # Crisis flag — heuristic scan for "crisis dislocation" in writeup text
     _crisis_markers = {"crisis dislocation", "crisis-dislocation", "crisis_dislocation"}
     _crisis_detected = any(
