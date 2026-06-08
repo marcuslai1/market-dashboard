@@ -9,9 +9,10 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from lib.catalog import RETIRED_TICKERS, TICKER_DISPLAY
+from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS, TICKER_DISPLAY
 from lib.data_loader import load_signal_log
 from lib.formatters import _legacy_rationale_from
+from lib.pills import _signal_pill_html
 
 
 def _classify_episode_verdict(signal: str, ret: float | None,
@@ -284,229 +285,307 @@ def compute_signal_accuracy(
     return df
 
 
+# ── Performance-ledger HTML helpers (Signal Tracker redesign) ──
+
+def _rate_color(rate: float | None) -> str:
+    """Win/avoid-rate → traffic-light colour. Higher is always better here."""
+    if rate is None:
+        return "var(--ink-3)"
+    if rate >= 55:
+        return "#22c55e"
+    if rate < 45:
+        return "#ef4444"
+    return "var(--ink-2)"
+
+
+def _ret_color(v: float | None) -> str:
+    if v is None or pd.isna(v) or v == 0:
+        return "var(--ink-3)"
+    return "#22c55e" if v > 0 else "#ef4444"
+
+
+def _calibration_band_html(acc_df: pd.DataFrame) -> str:
+    """The hero strip: one calibration cell per signal type.
+
+    BUY/ACCUMULATE/WATCH show 5d win rate; CAUTION shows 5d avoid rate.
+    Sub-line carries sample size and the 10d average move.
+    """
+    min_samples = 3
+    specs = [
+        ("BUY", "win", "should we have bought"),
+        ("ACCUMULATE", "win", "did adds pay off"),
+        ("WATCH", "win", "did the setups fire"),
+        ("CAUTION", "avoid", "right to stay away"),
+    ]
+    cells = ""
+    for sig, mode, _gloss in specs:
+        data = acc_df[acc_df["signal"] == sig] if not acc_df.empty else pd.DataFrame()
+        count = len(data)
+        valid5 = data["return_5d"].dropna() if "return_5d" in data.columns else pd.Series(dtype=float)
+        valid10 = data["return_10d"].dropna() if "return_10d" in data.columns else pd.Series(dtype=float)
+        label = "5d avoid rate" if mode == "avoid" else "5d win rate"
+
+        if len(valid5) >= min_samples:
+            rate = (valid5 <= 0).mean() * 100 if mode == "avoid" else (valid5 > 0).mean() * 100
+            col = _rate_color(rate)
+            val_html = f'<div class="cval" style="color:{col};">{rate:.0f}%</div>'
+        else:
+            val_html = f'<div class="cval muted">{"Pending" if count else "—"}</div>'
+
+        sub = f"{label} · n={count}"
+        if len(valid10) >= min_samples:
+            sub += f" · 10d {valid10.mean():+.1f}%"
+        color = SIGNAL_COLORS.get(sig, "#9F988B")
+        cells += (
+            f'<div class="calib-cell">'
+            f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
+            f'{val_html}<div class="csub">{sub}</div>'
+            f'</div>'
+        )
+    return f'<div class="calib-grid">{cells}</div>'
+
+
+def _winbar_html(rate: float | None) -> str:
+    if rate is None:
+        return ('<div class="winbar-wrap"><div class="winbar"></div>'
+                '<span class="winbar-pct led-empty">—</span></div>')
+    col = _rate_color(rate)
+    return (
+        f'<div class="winbar-wrap"><div class="winbar">'
+        f'<div class="winbar-fill" style="width:{rate:.0f}%;background:{col};"></div></div>'
+        f'<span class="winbar-pct" style="color:{col};">{rate:.0f}%</span></div>'
+    )
+
+
+def _ret_num_cell(v: float | None) -> str:
+    if v is None or pd.isna(v):
+        return '<div class="led-num led-empty">—</div>'
+    return f'<div class="led-num" style="color:{_ret_color(v)};">{v:+.1f}%</div>'
+
+
+def _episode_table_html(eps: pd.DataFrame) -> str:
+    """Compact per-name episode table — lives inside the row's drill-down."""
+    eps = eps.sort_values("start", ascending=False)
+    rows = ""
+    for _, e in eps.iterrows():
+        ret = e["return_pct"]
+        peak = e["run_during_pct"]
+        verdict = e["verdict"] or "—"
+        vcol = "var(--ink-3)"
+        if "✓" in verdict:
+            vcol = "#22c55e"
+        elif "✗" in verdict:
+            vcol = "#ef4444"
+        elif "⚠" in verdict:
+            vcol = "#f59e0b"
+        exit_lbl = "open" if e["is_active"] else (
+            e["exit_date"].strftime("%Y-%m-%d") if pd.notna(e["exit_date"]) else "—"
+        )
+        entry_p = f'{e["entry_price"]:.2f}' if pd.notna(e["entry_price"]) else "—"
+        exit_p = f'{e["exit_price"]:.2f}' if pd.notna(e["exit_price"]) else "—"
+        ret_s = f'{ret:+.1f}%' if pd.notna(ret) else "—"
+        peak_s = f'{peak:+.1f}%' if pd.notna(peak) else "—"
+        rows += (
+            f'<tr>'
+            f'<td>{_signal_pill_html(e["signal"], small=True)}</td>'
+            f'<td>{e["start"].strftime("%Y-%m-%d")} → {exit_lbl}</td>'
+            f'<td class="num">{int(e["duration_days"])}d</td>'
+            f'<td class="num">{entry_p} → {exit_p}</td>'
+            f'<td class="num" style="color:{_ret_color(ret)};">{ret_s}</td>'
+            f'<td class="num">{peak_s}</td>'
+            f'<td style="color:{vcol};">{verdict}</td>'
+            f'</tr>'
+        )
+    return (
+        '<table class="ep-table"><thead><tr>'
+        '<th>Signal</th><th>Window</th><th class="num">Held</th>'
+        '<th class="num">Entry → Exit/Now</th><th class="num">Return</th>'
+        '<th class="num">Peak run</th><th>Verdict</th>'
+        '</tr></thead><tbody>'
+        f'{rows}</tbody></table>'
+    )
+
+
+def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
+    """One <details> block per name: summary scorecard row + episode drill-down.
+
+    Sorted scored-names-first (by win rate, then avg return); names with no
+    closed trades sink to the bottom.
+    """
+    rows: list[tuple] = []
+    for ticker, tk_eps in episodes.groupby("ticker"):
+        if tk_eps.empty:
+            continue
+        scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"]) & ~tk_eps["is_active"]]
+        n_scored = len(scored)
+        wins = int(scored["verdict"].isin(["✓ profit", "✓ avoided"]).sum())
+        win_rate = (wins / n_scored * 100) if n_scored else None
+        rets = tk_eps["return_pct"].dropna()
+        avg = rets.mean() if len(rets) else None
+        best = rets.max() if len(rets) else None
+        worst = rets.min() if len(rets) else None
+        open_n = int(tk_eps["is_active"].sum())
+
+        display_tk = TICKER_DISPLAY.get(ticker, ticker)
+        cur_sig = current_signal.get(ticker, "HOLD")
+        cluster = CLUSTER_MAP.get(ticker, "")
+
+        eps_cell = f'{len(tk_eps)}'
+        if open_n:
+            eps_cell += f'<span class="led-open"> · {open_n} open</span>'
+
+        summary = (
+            '<summary>'
+            f'<div class="led-tk">{display_tk}</div>'
+            f'<div class="led-name">{cluster}</div>'
+            f'<div>{_signal_pill_html(cur_sig, small=True)}</div>'
+            f'<div class="led-num">{eps_cell}</div>'
+            f'{_winbar_html(win_rate)}'
+            f'{_ret_num_cell(avg)}'
+            f'{_ret_num_cell(best)}'
+            f'{_ret_num_cell(worst)}'
+            '</summary>'
+        )
+        body = f'<div class="tk-drilldown">{_episode_table_html(tk_eps)}</div>'
+        block = f'<details class="led-details" data-signal="{cur_sig}">{summary}{body}</details>'
+
+        # sort: scored names first (group 0) by -win_rate, -avg; then the rest
+        if win_rate is not None:
+            key = (0, -win_rate, -(avg if avg is not None else -999))
+        else:
+            key = (1, 0, -(avg if avg is not None else -999))
+        rows.append((key, block))
+
+    rows.sort(key=lambda r: r[0])
+    head = (
+        '<div class="led-head">'
+        '<div>Name</div><div>Sector</div><div>Now</div>'
+        '<div class="led-num">Episodes</div><div>Trades won</div>'
+        '<div class="led-num">Avg</div><div class="led-num">Best</div>'
+        '<div class="led-num">Worst</div>'
+        '</div>'
+    )
+    return head + "".join(b for _, b in rows)
+
+
 def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
-    """Render the Signal Tracker page.
+    """Render the Signal Tracker page — the Performance Ledger.
+
+    Three tiers, verdict-first:
+      1. Calibration band  — is the pipeline systematically any good?
+      2. By-name ledger    — which names' calls work, click to see episodes.
+      3. Secondary detail  — signal changes + paper-trade log (collapsed).
 
     Args:
         reports: filtered reports dict (date-keyed).
         prices_df: filtered SQLite prices DataFrame.
     """
-    st.title("Signal Tracker")
+    st.markdown(
+        '<div class="section-head"><h2>Signal Tracker</h2>'
+        '<span class="sub">Track record · calibration</span></div>',
+        unsafe_allow_html=True,
+    )
     sig_df = extract_signal_history(reports)
 
     if sig_df.empty:
         st.warning("No signal data available yet.")
         st.stop()
 
-    # Ticker selector
     tickers = sorted(sig_df["ticker"].unique())
-    selected_tickers = st.multiselect(
-        "Select tickers", tickers, default=tickers
-    )
 
+    # Filter lives in a popover so the page no longer opens on a wall of chips.
+    with st.popover(f"Filter names · {len(tickers)} selected", use_container_width=False):
+        selected_tickers = st.multiselect(
+            "Names to include", tickers, default=tickers, label_visibility="collapsed",
+        )
     if not selected_tickers:
-        st.info("Select at least one ticker.")
+        st.info("Select at least one name in the filter.")
         st.stop()
 
-    signal_map = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
-    filtered = sig_df[sig_df["ticker"].isin(selected_tickers)].copy()
-    filtered["signal_num"] = filtered["signal"].map(signal_map)
-
-    # ── Signal Changes (top — what shifted, when) ──
-    st.subheader("Signal Changes")
-    changes = []
-    for ticker in selected_tickers:
-        tk = filtered[filtered["ticker"] == ticker].sort_values("date")
-        if len(tk) < 2:
-            continue
-        for i in range(1, len(tk)):
-            prev = tk.iloc[i - 1]
-            curr = tk.iloc[i]
-            if prev["signal"] != curr["signal"]:
-                changes.append({
-                    "Date": curr["date"].strftime("%Y-%m-%d"),
-                    "Ticker": ticker,
-                    "From": prev["signal"],
-                    "To": curr["signal"],
-                    "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
-                })
-    if changes:
-        st.dataframe(pd.DataFrame(changes), width="stretch", hide_index=True)
-    else:
-        st.caption("No signal changes detected in the selected tickers/date range.")
-
-    st.divider()
-
-    # ── Signal Outcome History (per-ticker episode view) ──
-    st.subheader("Signal Outcome History")
+    # ── 1. Calibration band (across ALL tickers — the headline sanity check) ──
+    acc_df = compute_signal_accuracy(sig_df, prices_df)
     st.caption(
-        "Each row = one *episode* (consecutive days with the same signal, collapsed). "
-        "Return uses trade-economics, not signal-window boundaries: "
-        "BUY/ACCUMULATE is held through HOLD/WATCH and only closes on the next **CAUTION** "
-        "(or stays open vs. current price if no CAUTION has fired). CAUTION is measured "
-        "until the next BUY/ACCUMULATE. ⏳ = trade still open. "
-        "BUY/ACCUMULATE: ✓ if up. CAUTION: ✓ if down (loss avoided). "
-        "WATCH: ⚠ missed if price ran ≥5% during the episode."
+        "Forward-return calibration across **all** tracked names, deduped to the "
+        "first day of each signal streak. BUY/ACCUMULATE/WATCH: % that rose 5 "
+        "sessions later. CAUTION: % that fell (loss avoided)."
     )
+    if acc_df.empty:
+        st.caption("No signals tracked yet — calibration populates as signals accumulate.")
+    else:
+        st.markdown(_calibration_band_html(acc_df), unsafe_allow_html=True)
+        hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
+        if hold_count:
+            st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
 
-    show_all = st.checkbox(
-        "Show all episodes (include HOLD and quiet WATCH)",
-        value=False,
-        help="By default only actionable episodes are shown: BUY, ACCUMULATE, CAUTION, and WATCH episodes where price moved ≥5%.",
+    # ── 2. By-name performance ledger (replaces 27 stacked tables) ──
+    st.markdown(
+        '<div class="section-head" style="margin-top:26px;"><h2>By Name</h2>'
+        '<span class="sub">Click a row for its episodes</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "One row per name. *Trades won* = share of closed BUY/ACCUMULATE/CAUTION "
+        "episodes that worked out (profit, or loss avoided). Return uses trade-"
+        "economics: BUY/ACCUMULATE is held through HOLD/WATCH and closes on the "
+        "next CAUTION; CAUTION runs until the next BUY/ACCUMULATE. Names with no "
+        "closed trades sort last."
     )
 
     episodes = build_signal_episodes(
         sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
     )
+    if not episodes.empty:
+        actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"])
+        watch_triggered = (episodes["signal"] == "WATCH") & (
+            episodes["run_during_pct"].fillna(0) >= 5
+        )
+        episodes = episodes[actionable_mask | watch_triggered]
 
     if episodes.empty:
-        st.info("No episode data available yet.")
+        st.info("No actionable episodes for the selected names yet.")
     else:
-        if not show_all:
-            actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"])
-            watch_triggered = (episodes["signal"] == "WATCH") & (
-                episodes["run_during_pct"].fillna(0) >= 5
-            )
-            episodes = episodes[actionable_mask | watch_triggered]
+        latest = sig_df.sort_values("date").groupby("ticker")["signal"].last().to_dict()
+        st.markdown(_name_ledger_html(episodes, latest), unsafe_allow_html=True)
 
-        if episodes.empty:
-            st.caption("No actionable episodes for the selected tickers — toggle 'Show all' to see HOLD/quiet WATCH.")
+    # ── 3. Secondary detail (collapsed by default) ──
+    filtered = sig_df[sig_df["ticker"].isin(selected_tickers)]
+    changes = []
+    for ticker in selected_tickers:
+        tk = filtered[filtered["ticker"] == ticker].sort_values("date")
+        for i in range(1, len(tk)):
+            prev, curr = tk.iloc[i - 1], tk.iloc[i]
+            if prev["signal"] != curr["signal"]:
+                changes.append({
+                    "Date": curr["date"].strftime("%Y-%m-%d"),
+                    "Ticker": TICKER_DISPLAY.get(ticker, ticker),
+                    "From": prev["signal"],
+                    "To": curr["signal"],
+                    "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
+                })
+
+    with st.expander(f"Signal changes ({len(changes)}) — what flipped, and why", expanded=False):
+        if changes:
+            st.dataframe(pd.DataFrame(changes), width="stretch", hide_index=True)
         else:
-            for ticker in selected_tickers:
-                tk_eps = episodes[episodes["ticker"] == ticker].sort_values("start", ascending=False)
-                if tk_eps.empty:
-                    continue
-                display_tk = TICKER_DISPLAY.get(ticker, ticker)
+            st.caption("No signal changes in the selected names / date range.")
 
-                scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"]) &
-                                ~tk_eps["is_active"]]
-                wins = scored["verdict"].isin(["✓ profit", "✓ avoided"]).sum()
-                total_scored = len(scored)
-                active = tk_eps["is_active"].sum()
-                summary = f"**{display_tk}** — {len(tk_eps)} episodes"
-                if total_scored:
-                    summary += f", {wins}/{total_scored} closed trades worked out ({wins / total_scored * 100:.0f}%)"
-                if active:
-                    summary += f" · {active} still open"
-                st.markdown(summary)
+    _render_paper_trade_outcomes()
 
-                display_df = tk_eps[[
-                    "signal", "start", "exit_date", "duration_days",
-                    "entry_price", "exit_price", "return_pct",
-                    "run_during_pct", "is_active", "verdict",
-                ]].copy()
-                display_df["start"] = display_df["start"].dt.strftime("%Y-%m-%d")
-                display_df["exit_date"] = display_df.apply(
-                    lambda r: (
-                        "open" if r["is_active"]
-                        else (r["exit_date"].strftime("%Y-%m-%d") if pd.notna(r["exit_date"]) else "—")
-                    ),
-                    axis=1,
-                )
-                display_df["entry_price"] = display_df["entry_price"].map(
-                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
-                )
-                display_df["exit_price"] = display_df["exit_price"].map(
-                    lambda v: f"{v:.2f}" if pd.notna(v) else "—"
-                )
-                display_df["return_pct"] = display_df["return_pct"].map(
-                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
-                )
-                display_df["run_during_pct"] = display_df["run_during_pct"].map(
-                    lambda v: f"{v:+.1f}%" if pd.notna(v) else "—"
-                )
-                display_df = display_df.drop(columns=["is_active"])
-                display_df.columns = [
-                    "Signal", "Entry date", "Exit date", "Signal days",
-                    "Entry", "Exit/Now", "Return", "Peak run", "Verdict",
-                ]
-                st.dataframe(display_df, width="stretch", hide_index=True)
 
-    st.divider()
-
-    # ── Aggregate Calibration (one-number-across-the-watchlist sanity check) ──
-    st.subheader("Aggregate Calibration")
-    st.caption(
-        "Win rates across **all tickers** at 5d / 10d horizons — answers "
-        "\"is the pipeline systematically good at calling BUYs / avoiding CAUTIONs?\""
-    )
-    acc_df = compute_signal_accuracy(sig_df, prices_df)  # uses ALL tickers
-
-    if acc_df.empty:
-        st.caption("No signals tracked yet — scorecard will populate as signals accumulate.")
-    else:
-        # A) Summary metrics row — bullish signals
-        min_samples = 3
-        st.markdown("**Bullish Signals** — *should we have bought?*")
-        bull_cols = st.columns(9)
-        for i, sig_type in enumerate(["BUY", "ACCUMULATE", "WATCH"]):
-            sig_data = acc_df[acc_df["signal"] == sig_type]
-            count = len(sig_data)
-            offset = i * 3
-
-            bull_cols[offset].metric(f"{sig_type} Signals", count)
-
-            valid_5d = sig_data["return_5d"].dropna()
-            if len(valid_5d) >= min_samples:
-                win_rate = (valid_5d > 0).mean() * 100
-                bull_cols[offset + 1].metric(
-                    f"{sig_type} 5d Win Rate", f"{win_rate:.1f}%"
-                )
-            else:
-                bull_cols[offset + 1].metric(
-                    f"{sig_type} 5d Win Rate", "Pending" if count > 0 else "—"
-                )
-
-            valid_10d = sig_data["return_10d"].dropna()
-            if len(valid_10d) >= min_samples:
-                avg_ret = valid_10d.mean()
-                bull_cols[offset + 2].metric(
-                    f"{sig_type} 10d Avg", f"{avg_ret:+.1f}%"
-                )
-            else:
-                bull_cols[offset + 2].metric(
-                    f"{sig_type} 10d Avg", "Pending" if count > 0 else "—"
-                )
-
-        # A2) Summary metrics row — defensive signals (CAUTION only)
-        st.markdown("**Defensive Signals** — *were we right to stay away?*")
-        def_cols = st.columns(3)
-        caution_data = acc_df[acc_df["signal"] == "CAUTION"]
-        caution_count = len(caution_data)
-        def_cols[0].metric("CAUTION Signals", caution_count)
-
-        valid_5d = caution_data["return_5d"].dropna()
-        if len(valid_5d) >= min_samples:
-            avoid_rate = (valid_5d <= 0).mean() * 100
-            def_cols[1].metric("CAUTION 5d Avoid Rate", f"{avoid_rate:.1f}%")
-        else:
-            def_cols[1].metric("CAUTION 5d Avoid Rate", "Pending" if caution_count > 0 else "—")
-
-        valid_10d = caution_data["return_10d"].dropna()
-        if len(valid_10d) >= min_samples:
-            avg_ret = valid_10d.mean()
-            def_cols[2].metric("CAUTION 10d Avg", f"{avg_ret:+.1f}%")
-        else:
-            def_cols[2].metric("CAUTION 10d Avg", "Pending" if caution_count > 0 else "—")
-
-        # HOLD — informational only (not a directional signal)
-        hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
-        if hold_count > 0:
-            st.caption(f"HOLD signals: {hold_count} days across all tickers (not scored — HOLD is non-directional)")
-
-    # ── Paper Trade Outcomes (from pipeline signal_evaluation_log) ──
-    st.divider()
-    st.subheader("Paper Trade Outcomes")
-    st.caption(
-        "Realised returns from the pipeline's own log — `entry_price` and "
-        "`invalidation` are what the pipeline saw at signal time, not "
-        "reconstructed after the fact. Outcomes fill in as trading days elapse."
-    )
-
+def _render_paper_trade_outcomes() -> None:
+    """Pipeline paper-trade log — a separate data source, kept collapsed."""
     sig_log = load_signal_log()
-    if sig_log.empty:
-        st.info("No signal log data yet — `signal_log.csv` will appear after the next pipeline run.")
-    else:
+    title = "Paper trade outcomes — realised returns from the pipeline log"
+    with st.expander(title, expanded=False):
+        st.caption(
+            "Realised returns from the pipeline's own log — `entry_price` and "
+            "`invalidation` are what the pipeline saw at signal time, not "
+            "reconstructed after the fact. Outcomes fill in as trading days elapse."
+        )
+        if sig_log.empty:
+            st.info("No signal log data yet — `signal_log.csv` appears after the next pipeline run.")
+            return
+
         post_cutover_only = st.checkbox(
             "Post-cutover only (≥ 2026-04-19)",
             value=True,
@@ -517,18 +596,15 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
             sig_log = sig_log[sig_log["date"] >= pd.Timestamp("2026-04-19")].copy()
         if sig_log.empty:
             st.info("No post-cutover signals logged yet.")
-            st.stop()
-        # Summary metrics
+            return
+
         total_rows = len(sig_log)
         by_type = sig_log["entry_type"].value_counts().to_dict()
-        # "Catalyst Entries" KPI removed 2026-05-30 — the catalyst entry_type is
-        # retired (path is narrative-only; no new catalyst rows are produced).
         summary_cols = st.columns(3)
         summary_cols[0].metric("Total Signals Logged", total_rows)
         summary_cols[1].metric("Standard Entries", by_type.get("standard", 0))
         summary_cols[2].metric("Monitor (non-entry)", by_type.get("monitor", 0))
 
-        # Hit-rate on invalidation vs upside target (rows with final outcomes)
         finalised = sig_log.dropna(subset=["price_after_20d"])
         if not finalised.empty:
             hit_inv = int(finalised["hit_invalidation"].fillna(0).sum())
@@ -544,7 +620,6 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
         else:
             st.caption("No signals have aged 20 trading sessions yet — hit-rate stats pending.")
 
-        # Per-signal, per-entry-type realised return breakdown
         st.markdown("**Realised Return by Signal × Entry Type**")
         breakdown_rows = []
         for (sig_type, etype), group in sig_log.groupby(["signal", "entry_type"]):
@@ -564,7 +639,6 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
             ).reset_index(drop=True)
             st.dataframe(bd_df, width="stretch", hide_index=True)
 
-        # Open positions — logged but still within the 20-session window
         open_rows = sig_log[sig_log["price_after_20d"].isna()].copy()
         if not open_rows.empty:
             with st.expander(f"Open positions ({len(open_rows)}) — outcomes still resolving"):
