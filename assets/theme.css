@@ -117,8 +117,23 @@
 .main .block-container { max-width: 1280px; padding-top: 18px; padding-bottom: 80px; }
 [data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 
-/* Hide default Streamlit chrome */
-#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
+/* Hide default Streamlit chrome. The header is both hidden AND collapsed to
+   0 height so it stops reserving the tall empty band above the masthead while
+   keeping its Deploy button / menu out of sight. */
+#MainMenu, footer { visibility: hidden; }
+header[data-testid="stHeader"] {
+  visibility: hidden;
+  height: 0;
+  min-height: 0;
+}
+/* Trim Streamlit's default ~6rem top padding on the main content column so the
+   masthead sits near the top instead of below a tall void. Both the legacy
+   (.block-container) and current (stMainBlockContainer) selectors are set. */
+.main .block-container,
+[data-testid="stMainBlockContainer"],
+.stMainBlockContainer {
+  padding-top: 2.2rem !important;
+}
 
 /* Typography */
 h1, h2, h3, h4 {
@@ -269,44 +284,86 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 }
 
 /* Top page-nav: scoped via the st-key-page_nav class Streamlit generates
-   from st.radio(key="page_nav"). The .topnav-wrap marker is kept (hidden)
-   purely as a documentation anchor in masthead.py. */
+   from st.radio(key="page_nav"). Rendered as a single-row tab strip that
+   never wraps — on cramped viewports it scrolls horizontally instead, so the
+   baseline rule always sits under exactly one row (the old 28px gap pushed
+   "Terminology" onto a second line and broke the underline). The strip is
+   sticky so the nav stays reachable while scrolling the long Briefing.
+   The .topnav-wrap marker is kept (hidden) as a doc anchor in masthead.py. */
 .topnav-wrap { display: none; }
 
 .st-key-page_nav {
-  border-bottom: 1.5px solid var(--ink);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--paper);
   margin-bottom: 22px;
+  padding-top: 6px;
 }
 .st-key-page_nav .stRadio > label {
   display: none !important;
 }
 .st-key-page_nav [role="radiogroup"] {
   flex-direction: row !important;
-  gap: 28px !important;
+  flex-wrap: nowrap !important;
+  gap: 22px !important;
   border: none !important;
+  border-bottom: 1.5px solid var(--ink) !important;
+  overflow-x: auto;
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE / old Edge */
 }
+.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar { display: none; }
 .st-key-page_nav [role="radiogroup"] > label {
+  flex: 0 0 auto;                 /* keep on one line, never shrink */
+  white-space: nowrap;
   font-family: var(--mono) !important;
   font-size: 11px !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase;
   color: var(--ink-3) !important;
-  padding: 8px 0 10px !important;
-  margin-bottom: -1.5px !important;
+  padding: 9px 0 11px !important;
+  margin-bottom: -2px !important;
   cursor: pointer;
-  border-bottom: 1.5px solid transparent !important;
+  border-bottom: 2px solid transparent !important;
   font-weight: 500;
   background: transparent !important;
+  transition: color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
 }
 /* Hide the native radio circle (BaseWeb's wrapper div) and the input itself */
 .st-key-page_nav [role="radiogroup"] > label > div:first-child,
 .st-key-page_nav [role="radiogroup"] > label > input[type="radio"] {
   display: none !important;
 }
+.st-key-page_nav [role="radiogroup"] > label:hover {
+  color: var(--ink-2) !important;
+  border-bottom-color: var(--rule-strong) !important;
+}
 .st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
   color: var(--ink) !important;
   font-weight: 600;
-  border-bottom-color: var(--ink) !important;
+  border-bottom-color: #f59e0b !important;   /* amber accent = "you are here" */
+}
+
+/* Narrow viewports: tighten the strip so more tabs fit before it scrolls, and
+   fade the right edge to hint that the off-screen tabs are reachable by scroll. */
+@media (max-width: 820px) {
+  .st-key-page_nav [role="radiogroup"] { gap: 18px !important; }
+  .st-key-page_nav [role="radiogroup"] > label {
+    font-size: 10.5px !important;
+    letter-spacing: 0.08em !important;
+  }
+  .st-key-page_nav::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 0;
+    bottom: 2px;
+    width: 40px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--paper));
+  }
 }
 
 /* Dataframes */
