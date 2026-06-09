@@ -102,6 +102,26 @@ page = render_masthead_and_nav()
 _status_reports = load_all_reports()
 _latest_date = max(_status_reports.keys()) if _status_reports else "—"
 _latest_rpt = _status_reports.get(_latest_date, {})
+
+# ── Body-level data refresh + freshness indicator ──
+# The sidebar holds a "Refresh Data" button, but on mobile/narrow viewports the
+# Streamlit chrome that carries the sidebar-expand arrow is hidden, leaving the
+# sidebar (and its refresh) unreachable. Surface a compact refresh here in the
+# main flow so every viewport can reload the latest data. Mirrors the sidebar
+# button's clear-cache + rerun behaviour.
+_fresh_col, _refresh_col = st.columns([4, 1])
+with _fresh_col:
+    st.markdown(
+        f'<div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);'
+        f'padding-top:6px;">Data as of <span style="color:var(--ink-2);">'
+        f'{_latest_date}</span></div>',
+        unsafe_allow_html=True,
+    )
+with _refresh_col:
+    if st.button("↻ Refresh", use_container_width=True,
+                 help=f"Reload the latest data (showing {_latest_date})"):
+        st.cache_data.clear()
+        st.rerun()
 _sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
 
 _status_html = '<div class="sidebar-status">'
