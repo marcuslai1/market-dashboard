@@ -64,6 +64,11 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
         # New simple format: geopolitical.probabilities = {base: 50, optimistic: 22, ...}
         probs = geo.get("probabilities", {})
         if probs:
+            # Per-case writeups (restored 2026-06-08) live alongside the integer
+            # probabilities in geopolitical.scenarios[name].description. Surface
+            # them here — the probabilities dict stays the source of truth for
+            # the odds, the scenarios block supplies the prose.
+            new_scenarios = geo.get("scenarios", {}) or {}
             for name, val in probs.items():
                 mid = None
                 prob_str = ""
@@ -77,7 +82,7 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
                     "scenario": _norm_scenario(name),
                     "probability_str": prob_str,
                     "probability_mid": mid,
-                    "description": "",
+                    "description": (new_scenarios.get(name) or {}).get("description", ""),
                 })
             continue  # Skip legacy format if new format present
 
