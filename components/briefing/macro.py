@@ -171,6 +171,47 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
             '</div>'
         )
 
+    # Scenario descriptions — what each odds segment actually means for the
+    # portfolio. The odds bar above carries the probabilities; this carries the
+    # narrative. Keyed in the same order/colour as the bar. Hidden when absent.
+    scenarios = geo.get("scenarios") or {}
+    if scenarios:
+        sc_colors = {
+            "base":        SIGNAL_COLORS["ACCUMULATE"],
+            "optimistic":  SIGNAL_COLORS["BUY"],
+            "pessimistic": SIGNAL_COLORS["CAUTION"],
+            "wildcard":    SIGNAL_COLORS["WATCH"],
+        }
+        sc_labels = {"base": "Base case", "optimistic": "Optimistic",
+                     "pessimistic": "Pessimistic", "wildcard": "Wildcard"}
+        sc_rows = ""
+        for k in ["base", "optimistic", "pessimistic", "wildcard"]:
+            sc = scenarios.get(k)
+            desc = sc.get("description") if isinstance(sc, dict) else None
+            if not desc:
+                continue
+            pct = probs.get(k)
+            pct_s = f" · {pct}%" if pct else ""
+            sc_rows += (
+                f'<div style="margin-bottom:8px;padding-left:10px;'
+                f'border-left:2px solid {sc_colors[k]};">'
+                f'<div style="font-family:var(--mono);font-size:10px;'
+                f'letter-spacing:0.08em;text-transform:uppercase;'
+                f'color:{sc_colors[k]};margin-bottom:2px;">'
+                f'{sc_labels[k]}{pct_s}</div>'
+                f'<div style="font-size:12.5px;color:var(--ink-2);'
+                f'line-height:1.5;">{_escape_dollars(desc)}</div>'
+                f'</div>'
+            )
+        if sc_rows:
+            body += (
+                '<div style="margin-top:16px;">'
+                '<div style="font-family:var(--mono);font-size:10px;'
+                'letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);'
+                'margin-bottom:8px;">What each scenario means</div>'
+                f'{sc_rows}</div>'
+            )
+
     return card_container(
         eyebrow="THE MACRO NOTE",
         headline="What's driving prices",

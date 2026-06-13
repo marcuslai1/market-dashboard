@@ -269,6 +269,25 @@ if page == "Briefing":
     # the lede (stance deck) and ledger (signal counts) as grid children.
     st.markdown(stance_band_html(snapshot, len(watchlist)), unsafe_allow_html=True)
 
+    # Data-coverage banner — only when the report ran on incomplete data.
+    # A degraded run disarms cluster medians + extension-regime checks, so the
+    # whole briefing should carry a visible trust caveat. Silent on clean days.
+    _dc = (report.get("meta") or {}).get("data_coverage") or {}
+    if _dc.get("coverage_degraded"):
+        _skipped = _dc.get("skipped") or []
+        _skip_note = f" Missing: {', '.join(_skipped[:8])}." if _skipped else ""
+        st.markdown(
+            '<div style="background:rgba(239,68,68,0.10);'
+            'border:1px solid rgba(239,68,68,0.40);border-left:3px solid #ef4444;'
+            'border-radius:4px;padding:10px 16px;margin-bottom:14px;'
+            'font-family:var(--mono);font-size:11.5px;letter-spacing:0.04em;'
+            'color:var(--ink-2);">⚠ Data coverage degraded — '
+            f'{_dc.get("fetched")}/{_dc.get("expected")} names fetched.'
+            f'{_skip_note} Cluster medians and extension-regime checks are '
+            'disarmed today; treat signals as provisional.</div>',
+            unsafe_allow_html=True,
+        )
+
     # ACCUMULATE paper-phase status — one measured line (replaces the old
     # per-ticker "PAPER TRADE" labels; the [paper] tag rides in what_to_do).
     # Present only on days carrying ≥1 ACCUMULATE; sourced from the pipeline's
