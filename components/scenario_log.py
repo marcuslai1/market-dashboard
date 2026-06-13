@@ -7,6 +7,8 @@ Comparison imports from this module.
 """
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -111,6 +113,68 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
 
+_SCENARIO_ORDER = {"Base": 0, "Optimistic": 1, "Pessimistic": 2, "Wildcard": 3}
+
+
+def _render_move_log(moves: list[dict], colors: dict[str, str]) -> str:
+    """Render probability shifts as a dated editorial ledger (HTML string).
+
+    Days descend (newest first); within a day, shifts follow the canonical
+    Base → Optimistic → Pessimistic → Wildcard order. Each shift card carries
+    a scenario-coloured rail, a from→to readout with an odds bar, and the full
+    untruncated narrative for that case.
+    """
+    by_date: dict[pd.Timestamp, list[dict]] = {}
+    for m in moves:
+        by_date.setdefault(m["date"], []).append(m)
+
+    days_html = []
+    for d in sorted(by_date, reverse=True):
+        day_moves = sorted(
+            by_date[d], key=lambda m: _SCENARIO_ORDER.get(m["scenario"], 99)
+        )
+        n = len(day_moves)
+        rows = []
+        for m in day_moves:
+            color = colors.get(m["scenario"], "#6b7280")
+            delta = m["delta"]
+            arrow = "▲" if delta > 0 else "▼"
+            desc = m["description"].strip()
+            desc_html = (
+                _escape_dollars(html.escape(desc)) if desc
+                else '<span style="color:var(--ink-4)">No narrative recorded for this shift.</span>'
+            )
+            rows.append(
+                f'<div class="scn-move" style="border-left-color:{color}">'
+                f'<div class="scn-meta">'
+                f'<div class="scn-name" style="color:{color}">{m["scenario"]}</div>'
+                f'<div class="scn-shift">'
+                f'<span class="scn-from">{m["from"]:.0f}%</span>'
+                f'<span class="scn-arr">→</span>'
+                f'<span class="scn-to">{m["to"]:.0f}%</span>'
+                f'<span class="scn-delta" style="color:{color}">{arrow}&#8201;{abs(delta):.0f}</span>'
+                f'</div>'
+                f'<div class="scn-bar">'
+                f'<span class="scn-bar-fill" style="width:{min(m["to"], 100):.0f}%;background:{color}"></span>'
+                f'</div>'
+                f'</div>'
+                f'<div class="scn-desc">{desc_html}</div>'
+                f'</div>'
+            )
+        date_label = f'{d.strftime("%b")} {d.day}, {d.year}'  # "Jun 13, 2026" (Win-safe)
+        days_html.append(
+            f'<div class="scn-day">'
+            f'<div class="scn-day-rule">'
+            f'<span class="scn-day-date">{date_label}</span>'
+            f'<span class="scn-day-dow">{d.strftime("%A")}</span>'
+            f'<span class="scn-day-count">{n} shift{"s" if n != 1 else ""}</span>'
+            f'</div>'
+            f'{"".join(rows)}'
+            f'</div>'
+        )
+    return f'<div class="scn-log">{"".join(days_html)}</div>'
+
+
 def render_scenario_log_page(reports: dict) -> None:
     """Render the Scenario Log page.
 
@@ -159,31 +223,34 @@ def render_scenario_log_page(reports: dict) -> None:
     st.subheader("Days when probabilities moved")
     st.caption(
         "By design the prompt carries forward yesterday's odds unless a named event justifies a shift — "
-        "this table shows only the days where Claude actually changed at least one scenario."
+        "this log shows only the days where Claude actually changed at least one scenario. Each card is one "
+        "shift; the narrative beside it is that case's full macro write-up for the day (base / optimistic / "
+        "pessimistic / wildcard outcome)."
     )
-    move_rows = []
+
+    # Collect each shift with raw values so we can render a readable ledger
+    # (the old st.dataframe clipped the narrative column to one truncated line).
+    moves = []
     for sc_name in sc_df["scenario"].unique():
         sc_data = sc_df[sc_df["scenario"] == sc_name].sort_values("date")
-        prev_p, prev_d = None, None
+        prev_p = None
         for _, row in sc_data.iterrows():
             p = row["probability_mid"]
             if p is None or pd.isna(p):
                 continue
             if prev_p is not None and abs(p - prev_p) >= 0.5:
-                move_rows.append({
-                    "Date": pd.Timestamp(row["date"]).strftime("%Y-%m-%d"),
-                    "Scenario": sc_name,
-                    "From": f"{prev_p:.0f}%",
-                    "To": f"{p:.0f}%",
-                    "Δ": f"{p - prev_p:+.0f}",
-                    "New description": row.get("description") or "",
+                moves.append({
+                    "date": pd.Timestamp(row["date"]),
+                    "scenario": sc_name,
+                    "from": prev_p,
+                    "to": p,
+                    "delta": p - prev_p,
+                    "description": row.get("description") or "",
                 })
             prev_p = p
-            prev_d = row["date"]
 
-    if move_rows:
-        moves_df = pd.DataFrame(move_rows).sort_values("Date", ascending=False).reset_index(drop=True)
-        st.dataframe(moves_df, width="stretch", hide_index=True)
+    if moves:
+        st.markdown(_render_move_log(moves, scenario_colors), unsafe_allow_html=True)
     else:
         st.caption("No probability shifts in the selected date range.")
 
