@@ -88,10 +88,30 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             f'color:#fbb454;padding:3px 8px;border-radius:3px;">'
             f'momentum_warn · {_escape_dollars(reason_str)}</span>'
         )
+    data_anomaly = d.get("data_anomaly")
+    if data_anomaly:
+        _anom = str(data_anomaly).replace("_", " ").replace("=", " = ")
+        status_chips.append(
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
+            f'color:#fbb454;padding:3px 8px;border-radius:3px;">'
+            f'data anomaly · {_escape_dollars(_anom)}</span>'
+        )
     if status_chips:
         parts.append(
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
             + "".join(status_chips) + '</div>'
+        )
+
+    # ── Thesis break condition ──
+    # Pipeline-injected single sentence: what would invalidate the thesis.
+    # High-signal exit guidance — surfaced near the top of the drill-down.
+    thesis_break = (d.get("writeup") or {}).get("thesis_break_condition")
+    if thesis_break:
+        parts.append(_drilldown_section_html("Thesis break condition"))
+        parts.append(
+            f'<div class="dd-line" style="color:var(--ink-2);">'
+            f'{_escape_dollars(thesis_break)}</div>'
         )
 
     # ── RCP state ──
@@ -300,6 +320,24 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             f'<div class="dd-line" style="color:{summary_color};font-size:12.5px;">'
             f'{summary_text}</div>'
         )
+        # Abstained gates — couldn't be evaluated on incomplete data (NOT the
+        # same as a failed gate). Listed so a degraded run reads honestly.
+        _abstained = gates.get("abstained") or []
+        if _abstained:
+            _ab_items = "".join(
+                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
+                f'· <strong>{_escape_dollars(str(a.get("gate", "")))}</strong> '
+                f'not evaluated — {_escape_dollars(str(a.get("reason", "")))}</div>'
+                for a in _abstained if isinstance(a, dict)
+            )
+            if _ab_items:
+                parts.append(
+                    '<div style="margin-top:6px;">'
+                    '<div style="font-family:var(--mono);font-size:10px;'
+                    'letter-spacing:0.08em;text-transform:uppercase;'
+                    'color:var(--ink-3);margin-bottom:4px;">Abstained gates</div>'
+                    f'{_ab_items}</div>'
+                )
 
     band = d.get("pre_earnings_band") or {}
     if band:
