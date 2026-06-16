@@ -1,0 +1,4635 @@
+{
+  "meta": {
+    "report_date": "2026-06-16",
+    "market_date": "2026-06-15",
+    "generated_at": "2026-06-16T09:44:44.396353",
+    "timezone": "SGT",
+    "data_coverage": {
+      "expected": 27,
+      "fetched": 27,
+      "skipped": [],
+      "benchmarks_skipped": [],
+      "coverage_degraded": false
+    },
+    "prev_snapshot_status": "ok"
+  },
+  "benchmarks": {
+    "SPY": {
+      "price": 754.83,
+      "chg_pct": 1.68,
+      "5d_pct": 2.11,
+      "1mo_pct": 0.89,
+      "unit": "USD/share"
+    },
+    "QQQ": {
+      "price": 744.0,
+      "chg_pct": 2.91,
+      "5d_pct": 3.9,
+      "1mo_pct": 3.36,
+      "unit": "USD/share"
+    },
+    "DXY": {
+      "price": 99.65,
+      "chg_pct": 0.14,
+      "5d_pct": -0.39,
+      "1mo_pct": 0.78,
+      "unit": "index"
+    },
+    "WTI": {
+      "price": 81.07,
+      "chg_pct": -4.49,
+      "5d_pct": -11.2,
+      "1mo_pct": -19.87,
+      "unit": "USD/bbl",
+      "data_anomaly": "price_source_conflict: fast_info prev_close $80.54 vs history $84.88 diverge by 5.1%. Signal suppressed."
+    },
+    "Gold": {
+      "price": 4336.5,
+      "chg_pct": -0.21,
+      "5d_pct": 0.01,
+      "1mo_pct": -7.3,
+      "unit": "USD/troy oz"
+    },
+    "VIX": {
+      "price": 16.2,
+      "chg_pct": -8.42,
+      "5d_pct": -14.38,
+      "1mo_pct": -12.1,
+      "unit": "index"
+    },
+    "US10Y": {
+      "price": 4.47,
+      "chg_pct": -0.4,
+      "5d_pct": -1.82,
+      "1mo_pct": 0.18,
+      "unit": "% yield"
+    },
+    "SOXX": {
+      "price": 628.45,
+      "chg_pct": 4.71,
+      "5d_pct": 10.03,
+      "1mo_pct": 18.63
+    }
+  },
+  "macro_summary": "U.S. stocks surged Monday after President Trump announced a completed peace deal with Iran to reopen the Strait of Hormuz. WTI crude collapsed 4.5% to $81.07, the VIX fell 8.4% to 16.2, and the 10-year Treasury yield dropped 4 bps to 4.47% as inflation fears eased. The Nasdaq‑100 jumped 2.9% led by semiconductors (SOXX +4.7%), but the rally leaves 14 of 27 watchlist names technically extended ahead of Fed Chair Warsh’s first FOMC meeting on Wednesday.",
+  "commodities_note": "WTI crashed 4.5% to $81.07 on the Hormuz deal, though a data conflict (fast_info prev close $80.54 vs history $84.88) clouds the exact closing level. Gold was nearly flat at $4,337. The dollar was steady (DXY 99.65) as lower oil and lower yields offset each other.",
+  "watchlist": {
+    "D05_SI": {
+      "price": 63.45,
+      "currency": "SGD",
+      "chg_pct": -0.09,
+      "5d_pct": -0.49,
+      "1mo_pct": 5.4,
+      "sma10": 63.41,
+      "sma50": 59.55,
+      "sma100": 57.66,
+      "sma200": 54.85,
+      "vs_50sma": "+6.6%",
+      "vs_sma50_pct": 6.56,
+      "rsi_14": 60.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 965100,
+      "avg_volume_10d": 5121291,
+      "vol_ratio": 0.19,
+      "volume_signal": "Low",
+      "support_zones": [
+        55.61,
+        52.02
+      ],
+      "resistance_zones": [
+        65.19
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 52,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "vol_ratio 0.19 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 15.2,
+        "trailing_pe": 16.6,
+        "price_to_book": 2.61,
+        "dividend_yield_pct": 5.1,
+        "peg_ratio": 4.15,
+        "revenue_growth_pct": 3.2,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 15,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Singapore",
+        "cluster_median_pe": 13.3,
+        "cluster_median_peg": 3.59,
+        "pe_vs_cluster_pct": 14.3
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 59.55,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 65.19,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 6.1,
+        "upside_pct": 2.7,
+        "ratio": 0.4,
+        "ratio_raw": 0.44,
+        "ratio_label": "0.4:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 55.61,
+        "structural_support_pct": 12.4,
+        "wide_stop_rr": 0.22
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "REGULAR",
+      "vs_cluster_chg_pct": -0.55,
+      "vs_cluster_5d_pct": -0.78,
+      "vs_cluster_1mo_pct": 1.3,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "vol_ratio 0.19 (<0.7)"
+        ],
+        "earnings_days_until": null
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 63.43,
+        "rsi_14": 60.3,
+        "vs_sma50_pct": 6.79,
+        "risk_reward": {
+          "ratio": 0.4,
+          "rr_distorted": false,
+          "upside_pct": 2.8,
+          "downside_pct": 6.4,
+          "structural_support_pct": 12.3
+        }
+      },
+      "writeup_tier": "brief",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "Banks hold above 50-day, but R:R 0.4:1 — wait for pullback.",
+        "prior_period_delta_narrative": "Close SGD 63.43→SGD 63.45, RSI 60.3→60.3, extension 6.8%→6.6% since 2026-06-15.",
+        "what_to_do": "DBS held above its 50-day despite a 0.09% dip; no volume confirmation. NIM compression persists with US10Y at 4.47%, far above the 4.20% relief trigger. Entry would require a pullback toward SGD 60.50–61.50 (2–3% below) to reset the risk/reward. Reassess if US10Y cracks 4.20% sustainably.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "WATCH"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "O39_SI": {
+      "price": 23.87,
+      "currency": "SGD",
+      "chg_pct": 0.46,
+      "5d_pct": 0.29,
+      "1mo_pct": 4.1,
+      "sma10": 23.73,
+      "sma50": 22.68,
+      "sma100": 21.7,
+      "sma200": 19.62,
+      "vs_50sma": "+5.2%",
+      "vs_sma50_pct": 5.25,
+      "rsi_14": 59.1,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 724300,
+      "avg_volume_10d": 6511320,
+      "vol_ratio": 0.11,
+      "volume_signal": "Low",
+      "support_zones": [
+        23.12,
+        21.55
+      ],
+      "resistance_zones": [
+        24.68
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 58,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "vol_ratio 0.11 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 13.3,
+        "trailing_pe": 14.5,
+        "price_to_book": 1.78,
+        "dividend_yield_pct": 3.54,
+        "peg_ratio": 3.59,
+        "revenue_growth_pct": 4.9,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 16,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Singapore",
+        "cluster_median_pe": 13.3,
+        "cluster_median_peg": 3.59,
+        "pe_vs_cluster_pct": 0.0
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 22.68,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 24.68,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 5.0,
+        "upside_pct": 3.4,
+        "ratio": 0.7,
+        "ratio_raw": 0.68,
+        "ratio_label": "0.7:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 21.55,
+        "structural_support_pct": 9.7,
+        "wide_stop_rr": 0.35
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "REGULAR",
+      "vs_cluster_chg_pct": 0.0,
+      "vs_cluster_5d_pct": 0.0,
+      "vs_cluster_1mo_pct": 0.0,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "vol_ratio 0.11 (<0.7)"
+        ],
+        "earnings_days_until": 52
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 23.78,
+        "rsi_14": 58.0,
+        "vs_sma50_pct": 5.04,
+        "risk_reward": {
+          "ratio": 0.8,
+          "rr_distorted": false,
+          "upside_pct": 3.8,
+          "downside_pct": 4.8,
+          "structural_support_pct": 9.4
+        }
+      },
+      "writeup_tier": "brief",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "OCBC extended 5.3% above 50-day — no entry yet.",
+        "prior_period_delta_narrative": "Close SGD 23.78→SGD 23.87, RSI 58.0→59.1, extension 5.0%→5.2% since 2026-06-15.",
+        "what_to_do": "OCBC, the relative outperformer in Singapore banks, is 5.3% above its 50-day with RSI 59 and R:R still a poor 0.7:1. The peace-driven drop in US10Y is a small tailwind, but NIM relief requires a sustained move below 4.20%. Watch for a pullback toward the 50-day at SGD 22.68 before considering entry.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "WATCH"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "U11_SI": {
+      "price": 38.66,
+      "currency": "SGD",
+      "chg_pct": 0.68,
+      "5d_pct": 0.73,
+      "1mo_pct": 3.65,
+      "sma10": 38.3,
+      "sma50": 37.16,
+      "sma100": 36.94,
+      "sma200": 35.58,
+      "vs_50sma": "+4.0%",
+      "vs_sma50_pct": 4.02,
+      "rsi_14": 62.0,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 331400,
+      "avg_volume_10d": 3377697,
+      "vol_ratio": 0.1,
+      "volume_signal": "Low",
+      "support_zones": [
+        37.32,
+        35.46
+      ],
+      "resistance_zones": [
+        38.8
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 31,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "vol_ratio 0.10 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 10.6,
+        "trailing_pe": 14.1,
+        "price_to_book": 1.32,
+        "dividend_yield_pct": 3.69,
+        "peg_ratio": 2.04,
+        "revenue_growth_pct": -4.4,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 14,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Singapore",
+        "cluster_median_pe": 13.3,
+        "cluster_median_peg": 3.59,
+        "pe_vs_cluster_pct": -20.3
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 37.16,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 38.8,
+        "upside_reason": "Sole resistance within 1.5% — noise-level ceiling",
+        "downside_pct": 3.9,
+        "upside_pct": 0.4,
+        "ratio": 0.1,
+        "ratio_raw": 0.1,
+        "ratio_label": "0.1:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": true,
+        "nearest_resistance": 38.8,
+        "nearest_resistance_pct": 0.4,
+        "rr_distorted": true,
+        "structural_support": 35.58,
+        "structural_support_pct": 8.0,
+        "rr_distorted_advisory": true,
+        "wide_stop_rr": 0.05
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "REGULAR",
+      "vs_cluster_chg_pct": 0.22,
+      "vs_cluster_5d_pct": 0.44,
+      "vs_cluster_1mo_pct": -0.45,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "vol_ratio 0.10 (<0.7)"
+        ],
+        "earnings_days_until": 52,
+        "rr_distorted_advisory": true
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 38.47,
+        "rsi_14": 60.0,
+        "vs_sma50_pct": 3.65,
+        "risk_reward": {
+          "ratio": 0.3,
+          "rr_distorted": true,
+          "upside_pct": 0.9,
+          "downside_pct": 3.5,
+          "structural_support_pct": 7.6
+        }
+      },
+      "writeup_tier": "brief",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "UOB price above 50-day but setup unusable — distorted R:R.",
+        "prior_period_delta_narrative": "Close SGD 38.47→SGD 38.66, RSI 60.0→62.0, extension 3.6%→4.0% since 2026-06-15.",
+        "what_to_do": "UOB is 4% above its 50-day with RSI 62 and a headline R:R of 0.1:1 that is distorted by a near‑term resistance at SGD 38.80 (0.4% away). The wide‑stop R:R to structural support at SGD 35.58 is a mere 0.05:1, so no entry is justified. Any upgrade would require a breakout above SGD 38.80 on volume, which is unlikely before the August earnings.",
+        "entry_block": null,
+        "valuation_judgment": "Trades at a 20% discount to the Singapore cluster median PE — the cheapest of the three banks.",
+        "tight_upside_disclosure": "Nearest resistance at SGD 38.80 (0.4% above) — headline R:R only materialises once that level breaks on above‑average volume.",
+        "_generated_for_signal": "WATCH"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "NVDA": {
+      "price": 212.45,
+      "currency": "USD",
+      "chg_pct": 3.42,
+      "5d_pct": 1.83,
+      "1mo_pct": -9.77,
+      "sma10": 210.06,
+      "sma50": 207.41,
+      "sma100": 194.92,
+      "sma200": 189.19,
+      "vs_50sma": "+2.4%",
+      "vs_sma50_pct": 2.43,
+      "rsi_14": 51.4,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 130006836,
+      "avg_volume_10d": 162468133,
+      "vol_ratio": 0.8,
+      "volume_signal": "Normal",
+      "support_zones": [
+        208.54,
+        194.51
+      ],
+      "resistance_zones": [
+        216.58,
+        232.01
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 1,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 16.7,
+        "trailing_pe": 31.4,
+        "price_to_book": 26.33,
+        "dividend_yield_pct": 0.49,
+        "ev_ebitda": 30.8,
+        "peg_ratio": 0.63,
+        "fcf_yield_pct": 0.9,
+        "revenue_growth_pct": 85.2,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 59,
+          "earnings_growth_pct": 214.5
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": -46.0
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 207.41,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 216.58,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 2.4,
+        "upside_pct": 1.9,
+        "ratio": 0.8,
+        "ratio_raw": 0.79,
+        "ratio_label": "0.8:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 194.51,
+        "structural_support_pct": 8.4,
+        "wide_stop_rr": 0.23
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": 0.0,
+      "vs_cluster_5d_pct": -6.38,
+      "vs_cluster_1mo_pct": -20.06,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": null
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 205.19,
+        "rsi_14": 45.4,
+        "vs_sma50_pct": -0.73,
+        "risk_reward": {
+          "ratio": 0.6,
+          "rr_distorted": false,
+          "upside_pct": 3.3,
+          "downside_pct": 5.2,
+          "structural_support_pct": 7.9
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "Upgraded to WATCH — reclaimed 50-day after Iran deal rally.",
+        "prior_period_delta_narrative": "Close $205.19→$212.45, RSI 45.4→51.4, extension -0.7%→2.4% since 2026-06-15.",
+        "what_to_do": "NVDA jumped 3.4% to close at $212.45, reclaiming its 50-day for the first time since falling below it. RSI a neutral 51, but R:R is a weak 0.8:1 to the nearest resistance at $216.58. The move was driven by the broad Iran‑deal risk‑on trade, not a company‑specific catalyst, so treat it as a tentative technical improvement. Wait for a volume-backed push through $216.58 to confirm a real trend change.",
+        "entry_block": null,
+        "valuation_judgment": "Trades at a 46% discount to the semis cluster median PE — the cheapest mega‑cap semi.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "WATCH",
+        "thesis_break_condition": "Thesis breaks if Blackwell Ultra (B300) ramp (Q2-Q3 2026) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "AMD": {
+      "price": 547.26,
+      "currency": "USD",
+      "chg_pct": 6.29,
+      "5d_pct": 11.61,
+      "1mo_pct": 21.69,
+      "sma10": 501.92,
+      "sma50": 393.38,
+      "sma100": 302.51,
+      "sma200": 255.83,
+      "vs_50sma": "+39.1%",
+      "vs_sma50_pct": 39.12,
+      "rsi_14": 65.2,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 32213308,
+      "avg_volume_10d": 31468040,
+      "vol_ratio": 1.02,
+      "volume_signal": "Normal",
+      "support_zones": [
+        393.36,
+        224.64
+      ],
+      "resistance_zones": [
+        574.62,
+        629.35
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 51,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 41.8,
+        "trailing_pe": 169.4,
+        "price_to_book": 13.84,
+        "ev_ebitda": 119.0,
+        "peg_ratio": 1.23,
+        "fcf_yield_pct": 0.8,
+        "revenue_growth_pct": 37.8,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 48,
+          "earnings_growth_pct": 91.2
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": 35.3
+      },
+      "entry_block": "BLOCKED: +39.1% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 393.38,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 574.62,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 28.1,
+        "upside_pct": 5.0,
+        "ratio": 0.2,
+        "ratio_raw": 0.18,
+        "ratio_label": "0.2:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 255.83,
+        "structural_support_pct": 53.3,
+        "wide_stop_rr": 0.09
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "sma50_warning": "SMA50 is 28% below price — pullback to SMA50 would require a crash-level move. Use shorter-term support levels for entry guidance instead.",
+      "vs_cluster_chg_pct": 2.87,
+      "vs_cluster_5d_pct": 3.4,
+      "vs_cluster_1mo_pct": 11.4,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 50
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 511.57,
+        "rsi_14": 60.5,
+        "vs_sma50_pct": 32.26,
+        "risk_reward": {
+          "ratio": 0.3,
+          "rr_distorted": false,
+          "upside_pct": 6.8,
+          "downside_pct": 24.4,
+          "structural_support_pct": 50.4
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +39% above SMA50 on Iran deal surge.",
+        "prior_period_delta_narrative": "Close $511.57→$547.26, RSI 60.5→65.2, extension 32.3%→39.1% since 2026-06-15.",
+        "what_to_do": "AMD rocketed another 6.3% to $547, now 39% above its 50-day. The MEXT acquisition and Ryzen AI Halo announcements (per Simply Wall St., June 15) add AI‑story depth, but at 42x forward PE and 169x trailing, the price already prices in a perfect MI450 ramp. The Meta framework remains a ceiling, not a firm PO. Fundamentals (PEG 1.23, revenue growth 38%) keep it on deck, but entry requires a pullback to the $400–450 zone.",
+        "entry_block": "BLOCKED: +39.1% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at a 35% premium to the semis cluster median PE — unjustifiable without external MI450 customer wins.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if Meta $100B+ GPU supply deal (MI450-based) (H2 2026) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "INTC": {
+      "price": 127.86,
+      "currency": "USD",
+      "chg_pct": 1.98,
+      "5d_pct": 15.95,
+      "1mo_pct": 10.29,
+      "sma10": 112.62,
+      "sma50": 97.24,
+      "sma100": 71.7,
+      "sma200": 54.02,
+      "vs_50sma": "+31.5%",
+      "vs_sma50_pct": 31.5,
+      "rsi_14": 64.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 128707934,
+      "avg_volume_10d": 132535833,
+      "vol_ratio": 0.97,
+      "volume_signal": "Normal",
+      "support_zones": [
+        102.4,
+        98.33
+      ],
+      "resistance_zones": [
+        132.75
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 52,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 82.9,
+        "price_to_book": 5.77,
+        "ev_ebitda": 47.2,
+        "peg_ratio": 1.36,
+        "fcf_yield_pct": -1.29,
+        "revenue_growth_pct": 7.2,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 41,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": 168.3
+      },
+      "entry_block": "BLOCKED: +31.5% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 97.24,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 132.75,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 23.9,
+        "upside_pct": 3.8,
+        "ratio": 0.2,
+        "ratio_raw": 0.16,
+        "ratio_label": "0.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 54.02,
+        "structural_support_pct": 57.8,
+        "wide_stop_rr": 0.07
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": -1.44,
+      "vs_cluster_5d_pct": 7.74,
+      "vs_cluster_1mo_pct": 0.0,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 38
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "regime_change_pending",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 124.57,
+        "rsi_14": 62.4,
+        "vs_sma50_pct": 30.19,
+        "risk_reward": {
+          "ratio": 0.1,
+          "rr_distorted": false,
+          "upside_pct": 1.7,
+          "downside_pct": 23.2,
+          "structural_support_pct": 57.1
+        }
+      },
+      "rcp_state": {
+        "gap_date": "2026-06-09",
+        "gap_settle_price": 107.91999816894531,
+        "pre_gap_close": 110.2699966430664,
+        "price_basis": "adjusted_rederived",
+        "stored_gap_settle_price": 110.27,
+        "basis_drift_pct": 2.18,
+        "pre_gap_sma50": 90.08559982299805,
+        "sessions_since_gap": 4,
+        "first_band_6_session": null,
+        "first_band_8_session": null,
+        "path_a_session": null,
+        "path_b_session": null,
+        "path_a_voided_by": null,
+        "path_b_voided_by": null,
+        "failure_session": null,
+        "gap_fill_session": 2,
+        "current_phase": "failed",
+        "terminal_outcome": "gap_fill",
+        "terminal_outcome_session": 2,
+        "graduation_path": null,
+        "sessions_since_terminal": 2,
+        "min_consolidation_sessions": 25,
+        "parameter_set_version": "v1",
+        "confirmation_type": "other",
+        "named_customer": "Google/Alphabet",
+        "terms_summary": "PRESS-REPORTED (not yet Intel-IR-confirmed): Alphabet to make ~3M in-house chips via Intel foundry (The Information / Reuters, 2026-06-09), + Nvidia foundry buzz + Hitachi pact. Drove the +11.2% gap; price corroborated ($110 -> ~$124 by 06-13). Append to rcp_invalidation_events if the deal is denied."
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "RCP gap fill confirmed; no entry — Google foundry buzz not enough.",
+        "prior_period_delta_narrative": "Close $124.57→$127.86, RSI 62.4→64.3, extension 30.2%→31.5% since 2026-06-15.",
+        "what_to_do": "Intel’s RCP phase failed on June 9 when price filled the gap to $110.27, invalidating the consolidation gate. The Google/Alphabet foundry rumour (per Motley Fool, June 16) and Cramer commentary add narrative, but with no Intel‑IR confirmation and the stock 32% above its 50‑day, any entry is blocked. Wait for a pullback below $110 or a verified external customer announcement before reconsidering.",
+        "entry_block": "BLOCKED: +31.5% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at a 168% premium to the semis cluster median PE — reflective of 18A hopes, not confirmed revenue.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if multiple compresses toward the Semis cluster median (30.9x) without a corresponding earnings re-rating."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "ASML": {
+      "price": 1892.66,
+      "currency": "USD",
+      "chg_pct": 1.59,
+      "5d_pct": 8.21,
+      "1mo_pct": 19.45,
+      "sma10": 1774.76,
+      "sma50": 1547.65,
+      "sma100": 1469.53,
+      "sma200": 1247.51,
+      "vs_50sma": "+22.3%",
+      "vs_sma50_pct": 22.29,
+      "rsi_14": 67.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 2310967,
+      "avg_volume_10d": 2390976,
+      "vol_ratio": 0.97,
+      "volume_signal": "Normal",
+      "support_zones": [
+        1441.31,
+        1372.27
+      ],
+      "resistance_zones": [
+        1987.29,
+        2176.56
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 29,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 39.3,
+        "trailing_pe": 63.5,
+        "price_to_book": 1681.82,
+        "dividend_yield_pct": 0.46,
+        "ev_ebitda": 3189.3,
+        "peg_ratio": 2.75,
+        "fcf_yield_pct": 1.13,
+        "revenue_growth_pct": 13.2,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 15,
+          "earnings_growth_pct": 19.2
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": 27.2
+      },
+      "entry_block": "BLOCKED: +22.3% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 1547.65,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 1987.29,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 18.2,
+        "upside_pct": 5.0,
+        "ratio": 0.3,
+        "ratio_raw": 0.27,
+        "ratio_label": "0.3:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 1441.31,
+        "structural_support_pct": 23.8,
+        "wide_stop_rr": 0.21
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": -1.83,
+      "vs_cluster_5d_pct": 0.0,
+      "vs_cluster_1mo_pct": 9.16,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 29
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "avoid",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 1863.55,
+        "rsi_14": 65.9,
+        "vs_sma50_pct": 21.32,
+        "risk_reward": {
+          "ratio": 0.3,
+          "rr_distorted": false,
+          "upside_pct": 5.0,
+          "downside_pct": 17.6,
+          "structural_support_pct": 22.7
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +22% above 50-day, Mistral AI stake adds narrative not revenue.",
+        "prior_period_delta_narrative": "Close $1863.55→$1892.66, RSI 65.9→67.3, extension 21.3%→22.3% since 2026-06-15.",
+        "what_to_do": "ASML rose 1.6% to $1,892.66, maintaining extreme extension (+22% above 50-day). The €1.3B Mistral AI stake (per Simply Wall St., June 13) diversifies but doesn’t change near‑term revenue. Terafab buzz is real but intangible. Forward PE 39x, PEG 2.75 leave no margin for error. Wait for a consolidation toward $1,550–1,600 (the 50‑day) before considering entry.",
+        "entry_block": "BLOCKED: +22.3% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at a 27% premium to the semis cluster median PE — reasonable for a monopoly, but not while extended.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if High-NA EUV customer ramp (Intel 14A) (H2 2026) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "MU": {
+      "price": 1087.99,
+      "currency": "USD",
+      "chg_pct": 9.94,
+      "5d_pct": 14.61,
+      "1mo_pct": 40.2,
+      "sma10": 984.62,
+      "sma50": 692.08,
+      "sma100": 547.72,
+      "sma200": 386.43,
+      "vs_50sma": "+57.2%",
+      "vs_sma50_pct": 57.21,
+      "rsi_14": 66.6,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 44256323,
+      "avg_volume_10d": 54776672,
+      "vol_ratio": 0.81,
+      "volume_signal": "Normal",
+      "support_zones": [
+        386.43,
+        692.08
+      ],
+      "resistance_zones": [
+        1089.29
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 48,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 9.6,
+        "trailing_pe": 51.3,
+        "price_to_book": 16.94,
+        "dividend_yield_pct": 0.06,
+        "ev_ebitda": 33.2,
+        "peg_ratio": 0.34,
+        "fcf_yield_pct": 0.24,
+        "revenue_growth_pct": 196.3,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 40,
+          "earnings_growth_pct": 756.0
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": -68.9
+      },
+      "entry_block": "BLOCKED: +57.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 692.08,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 1089.29,
+        "upside_reason": "Sole resistance within 1.5% — noise-level ceiling",
+        "downside_pct": 36.4,
+        "upside_pct": 0.1,
+        "ratio": 0.0,
+        "ratio_raw": 0.0,
+        "ratio_label": "0.0:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": true,
+        "nearest_resistance": 1089.29,
+        "nearest_resistance_pct": 0.1,
+        "rr_distorted": true,
+        "structural_support": 386.43,
+        "structural_support_pct": 64.5,
+        "rr_distorted_advisory": true,
+        "wide_stop_rr": 0.0
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "sma50_warning": "SMA50 is 36% below price — pullback to SMA50 would require a crash-level move. Use shorter-term support levels for entry guidance instead.",
+      "vs_cluster_chg_pct": 6.52,
+      "vs_cluster_5d_pct": 6.4,
+      "vs_cluster_1mo_pct": 29.91,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 9,
+        "rr_distorted_advisory": true
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 981.61,
+        "rsi_14": 60.8,
+        "vs_sma50_pct": 44.86,
+        "risk_reward": {
+          "ratio": 0.3,
+          "rr_distorted": false,
+          "upside_pct": 11.0,
+          "downside_pct": 31.0,
+          "structural_support_pct": 61.1
+        }
+      },
+      "pre_earnings_band": {
+        "n_priors": 4,
+        "avg_up_pct": 6.9,
+        "avg_down_pct": -2.34,
+        "max_up_pct": 6.9,
+        "max_down_pct": -3.77,
+        "earnings_date": "2026-06-25",
+        "days_until": 9,
+        "temporal_status": "upcoming",
+        "temporal_phrase": "reports in 9 days",
+        "implied_upper": 1163.06,
+        "implied_lower": 1062.53,
+        "setup_archetype": "priced_for_perfection",
+        "setup_rationale": "vs_sma50 +57.2% — extreme extension above the >20% hard-block threshold; the bar is set by price, not RSI."
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +57% above SMA50, record high before earnings.",
+        "prior_period_delta_narrative": "Close $981.61→$1087.99, RSI 60.8→66.6, extension 44.9%→57.2% since 2026-06-15.",
+        "what_to_do": "MU exploded 9.9% to a record $1,087.99 on Iran deal hope and DRAM optimism (per IBD, June 16), putting it 57% above its 50‑day. The pre‑earnings band (reports in 9 days) implies a bull case to ~$1,163 if HBM prices rise 40% (per Micron’s CEO projections — bullish seller call), but a miss on bit‑shipments could send it to ~$1,062. At 9.6x forward PE and PEG 0.34, the valuation is cheap, but the extreme extension makes any entry high‑risk. Wait for earnings clarity.",
+        "entry_block": "BLOCKED: +57.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at a 69% discount to the semis cluster median PE — the cheapest AI play, but extreme extension overrides.",
+        "tight_upside_disclosure": "Nearest resistance at $1,089.29 (0.1% above) — headline R:R only materialises once that level breaks on above‑average volume.",
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if MU Jun 25 earnings miss by >5% or guidance is cut."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "TSM": {
+      "price": 441.4,
+      "currency": "USD",
+      "chg_pct": 3.66,
+      "5d_pct": 3.66,
+      "1mo_pct": 5.92,
+      "sma10": 428.63,
+      "sma50": 399.39,
+      "sma100": 373.08,
+      "sma200": 330.36,
+      "vs_50sma": "+10.5%",
+      "vs_sma50_pct": 10.52,
+      "rsi_14": 59.7,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 11156909,
+      "avg_volume_10d": 13194190,
+      "vol_ratio": 0.85,
+      "volume_signal": "Normal",
+      "support_zones": [
+        384.16,
+        359.71
+      ],
+      "resistance_zones": [
+        449.11
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 48,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 22.5,
+        "trailing_pe": 36.5,
+        "price_to_book": 98.15,
+        "dividend_yield_pct": 0.9,
+        "ev_ebitda": 5.6,
+        "peg_ratio": 1.32,
+        "revenue_growth_pct": 35.1,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 18,
+          "earnings_growth_pct": 58.4
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": -27.2
+      },
+      "entry_block": "BLOCKED: +10.5% above 50-day SMA (>5% hard block). Sustained trend exception not met: 10.5% (>=10% ceiling for trend exception).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 399.39,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 449.11,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 9.5,
+        "upside_pct": 1.7,
+        "ratio": 0.2,
+        "ratio_raw": 0.18,
+        "ratio_label": "0.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 384.16,
+        "structural_support_pct": 13.0,
+        "wide_stop_rr": 0.13
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "thesis_highlights": [
+        "Cramer commentary on TSMC ('more business than they can handle') is directionally consistent with CoWoS thesis."
+      ],
+      "vs_cluster_chg_pct": 0.24,
+      "vs_cluster_5d_pct": -4.55,
+      "vs_cluster_1mo_pct": -4.37,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 30
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 423.93,
+        "rsi_14": 54.1,
+        "vs_sma50_pct": 6.69,
+        "risk_reward": {
+          "ratio": 0.9,
+          "rr_distorted": false,
+          "upside_pct": 5.9,
+          "downside_pct": 6.3,
+          "structural_support_pct": 9.4
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — +10.5% above 50-day triggers hard block.",
+        "prior_period_delta_narrative": "Close $423.93→$441.40, RSI 54.1→59.7, extension 6.7%→10.5% since 2026-06-15.",
+        "what_to_do": "TSM added 3.7% to $441.40, breaching the 10% extension ceiling and triggering a hard block. CoWoS capacity remains tight (per GuruFocus, June 15), a structural positive, but the entry is blocked until a pullback toward $400–410. Forward PE 22.5x is attractive, keeping it on deck for the next consolidation.",
+        "entry_block": "BLOCKED: +10.5% above 50-day SMA (>5% hard block). Sustained trend exception not met: 10.5% (>=10% ceiling for trend exception).",
+        "valuation_judgment": "Trades at a 27% discount to the semis cluster median PE — the safest large‑cap semi, but blocked on price.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "TSEM": {
+      "price": 286.86,
+      "currency": "USD",
+      "chg_pct": 9.07,
+      "5d_pct": 18.52,
+      "1mo_pct": 2.2,
+      "sma10": 255.12,
+      "sma50": 234.75,
+      "sma100": 187.15,
+      "sma200": 140.03,
+      "vs_50sma": "+22.2%",
+      "vs_sma50_pct": 22.2,
+      "rsi_14": 61.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 2164706,
+      "avg_volume_10d": 1899540,
+      "vol_ratio": 1.14,
+      "volume_signal": "Above Avg",
+      "support_zones": [
+        140.03,
+        234.75
+      ],
+      "resistance_zones": [
+        302.86
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 4,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 50.0,
+        "trailing_pe": 122.1,
+        "price_to_book": 11.06,
+        "ev_ebitda": 57.6,
+        "fcf_yield_pct": 0.38,
+        "revenue_growth_pct": 15.5,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 6,
+          "earnings_growth_pct": 62.9
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": 61.8
+      },
+      "entry_block": "BLOCKED: +22.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 234.75,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 302.86,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 18.2,
+        "upside_pct": 5.6,
+        "ratio": 0.3,
+        "ratio_raw": 0.31,
+        "ratio_label": "0.3:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 140.03,
+        "structural_support_pct": 51.2,
+        "wide_stop_rr": 0.11
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": 5.65,
+      "vs_cluster_5d_pct": 10.31,
+      "vs_cluster_1mo_pct": -8.09,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 48
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "avoid",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 262.92,
+        "rsi_14": 55.2,
+        "vs_sma50_pct": 12.86,
+        "risk_reward": {
+          "ratio": 0.7,
+          "rr_distorted": false,
+          "upside_pct": 7.8,
+          "downside_pct": 11.4,
+          "structural_support_pct": 30.0
+        }
+      },
+      "rcp_state": {
+        "gap_date": "2026-05-14",
+        "gap_settle_price": 270.77,
+        "pre_gap_close": 220.83,
+        "price_basis": "stored_frozen",
+        "sessions_since_gap": 23,
+        "first_band_6_session": null,
+        "path_a_session": null,
+        "path_b_session": null,
+        "failure_session": null,
+        "gap_fill_session": 2,
+        "current_phase": "failed",
+        "terminal_outcome": "gap_fill",
+        "terminal_outcome_session": 2,
+        "graduation_path": null,
+        "sessions_since_terminal": 21,
+        "min_consolidation_sessions": 25,
+        "parameter_set_version": "v1",
+        "confirmation_type": "signed_contract",
+        "named_customer": null,
+        "terms_summary": "$1.3B photonics deals drove the +22.6% gap (re-rate confirmed by 2026-05-18 report, '+43% extension after $1.3B photonics deals'); counterparty not named in coverage.",
+        "frozen": true,
+        "finalized_at": "2026-06-15T14:13:02.866032"
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "RCP gap fill confirmed; photonics deal offset by extreme extension.",
+        "prior_period_delta_narrative": "Close $262.92→$286.86, RSI 55.2→61.5, extension 12.9%→22.2% since 2026-06-15.",
+        "what_to_do": "Tower surged 9.1% to $286.86 on a new InP epiwafer supply deal with IQE (per Proactive, June 15), but the previous RCP consolidation failed when the price filled the gap to $270.77. Despite a $1.3B photonics pipeline (per Simply Wall St.), the stock is 22% above its 50‑day with no gradu‑ation path. Avoid until a pullback below $240 or a new step‑function catalyst resets the pattern.",
+        "entry_block": "BLOCKED: +22.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at a 62% premium to the semis cluster median PE — rich for a contract foundry, even with photonics momentum.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if multiple compresses toward the Semis cluster median (30.9x) without a corresponding earnings re-rating."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "000660_KS": {
+      "price": 2330500.0,
+      "currency": "KRW",
+      "chg_pct": 1.86,
+      "5d_pct": 5.21,
+      "1mo_pct": 18.32,
+      "sma10": 2177150.0,
+      "sma50": 1629613.68,
+      "sma100": 1263892.89,
+      "sma200": 873893.89,
+      "vs_50sma": "+43.0%",
+      "vs_sma50_pct": 43.01,
+      "rsi_14": 63.7,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 1407338,
+      "avg_volume_10d": 4523849,
+      "vol_ratio": 0.31,
+      "volume_signal": "Low",
+      "support_zones": [
+        1855000.0,
+        1689717.45
+      ],
+      "resistance_zones": [
+        2407000.0
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 47,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "vol_ratio 0.31 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 5.7,
+        "dividend_yield_pct": 0.13,
+        "ev_ebitda": 17.3,
+        "peg_ratio": 3.13,
+        "fcf_yield_pct": 1.56,
+        "revenue_growth_pct": 198.1,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 38,
+          "earnings_growth_pct": 396.6
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": -81.6
+      },
+      "entry_block": "BLOCKED: +43.0% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 1629613.68,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 2407000.0,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 30.1,
+        "upside_pct": 3.3,
+        "ratio": 0.1,
+        "ratio_raw": 0.11,
+        "ratio_label": "0.1:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 873893.89,
+        "structural_support_pct": 62.5,
+        "wide_stop_rr": 0.05
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "REGULAR",
+      "sma50_warning": "SMA50 is 30% below price — pullback to SMA50 would require a crash-level move. Use shorter-term support levels for entry guidance instead.",
+      "thesis_highlights": [
+        "SK Hynix dominates HBM3E with >50% share — AI training demand is structurally separated from inference-efficiency risk."
+      ],
+      "vs_cluster_chg_pct": -1.56,
+      "vs_cluster_5d_pct": -3.0,
+      "vs_cluster_1mo_pct": 8.03,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "vol_ratio 0.31 (<0.7)"
+        ],
+        "earnings_days_until": null
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "avoid",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 2281500.0,
+        "rsi_14": 62.3,
+        "vs_sma50_pct": 42.52,
+        "risk_reward": {
+          "ratio": 0.2,
+          "rr_distorted": false,
+          "upside_pct": 5.5,
+          "downside_pct": 29.8,
+          "structural_support_pct": 62.1
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +43% above SMA50, volume faint.",
+        "prior_period_delta_narrative": "Close KRW 2,281,500→KRW 2,330,500, RSI 62.3→63.7, extension 42.5%→43.0% since 2026-06-15.",
+        "what_to_do": "SK Hynix gained 1.9% to KRW 2,330,500, remaining 43% above its 50‑day on very low volume. HBM demand is structurally intact, but the stock has run too far; the nearest support is KRW 1,855,000, 20% below. No entry until a pullback toward that level or the 200‑day at KRW 873,894 — whichever comes first.",
+        "entry_block": "BLOCKED: +43.0% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": "Trades at an 82% discount to the semis cluster median PE — extreme value, but price disconnected from fundamentals.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "CRWV": {
+      "price": 106.71,
+      "currency": "USD",
+      "chg_pct": 4.36,
+      "5d_pct": 4.24,
+      "1mo_pct": -6.57,
+      "sma10": 103.8,
+      "sma50": 109.47,
+      "sma100": 98.07,
+      "sma200": 100.14,
+      "vs_50sma": "-2.5%",
+      "vs_sma50_pct": -2.52,
+      "rsi_14": 50.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 21764134,
+      "avg_volume_10d": 26925143,
+      "vol_ratio": 0.81,
+      "volume_signal": "Normal",
+      "support_zones": [
+        103.05,
+        100.8
+      ],
+      "resistance_zones": [
+        114.45,
+        124.96
+      ],
+      "raw_signal": "HOLD",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "price_to_book": 11.93,
+        "ev_ebitda": 30.1,
+        "fcf_yield_pct": -14.7,
+        "revenue_growth_pct": 111.6,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 33,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 103.05,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 114.45,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 3.4,
+        "upside_pct": 7.3,
+        "ratio": 2.1,
+        "ratio_raw": 2.15,
+        "ratio_label": "2.1:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 100.8,
+        "structural_support_pct": 5.5,
+        "wide_stop_rr": 1.33
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "thesis_highlights": [
+        "CoreWeave neocloud thesis: GPU rental margins compress as hyperscalers build own capacity — watch for contract duration and customer concentration."
+      ],
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": true,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": null
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 100.55,
+        "rsi_14": 45.2,
+        "vs_sma50_pct": -7.74,
+        "risk_reward": {
+          "ratio": 5.8,
+          "rr_distorted": true,
+          "upside_pct": 2.9,
+          "downside_pct": 0.5,
+          "structural_support_pct": 5.7
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "HOLD",
+      "writeup": {
+        "headline": "R:R improved to 2.1:1, but neocloud thesis still fragile.",
+        "prior_period_delta_narrative": "Close $100.55→$106.71, RSI 45.2→50.5, extension -7.7%→-2.5% since 2026-06-15.",
+        "what_to_do": "CoreWeave rose 4.4% to $106.71, bouncing from support at $103. The R:R to $114.45 is 2.1:1, but the neocloud model faces hyperscaler in‑housing risk and a negative FCF yield. Nasdaq‑100 inclusion on June 22 could provide a sentiment lift, but until then, no entry. Upgrade to WATCH if volume confirms a breakout above $114.50.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "HOLD"
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "CBRS": {
+      "price": 218.03,
+      "currency": "USD",
+      "chg_pct": 0.82,
+      "5d_pct": -8.33,
+      "1mo_pct": -29.91,
+      "sma10": 222.84,
+      "sma50": null,
+      "sma100": null,
+      "sma200": null,
+      "vs_50sma": "N/A",
+      "vs_sma50_pct": null,
+      "rsi_14": 36.9,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 4869038,
+      "avg_volume_10d": 5086173,
+      "vol_ratio": 0.96,
+      "volume_signal": "Normal",
+      "support_zones": [
+        196.73
+      ],
+      "resistance_zones": [
+        228.93,
+        250.73
+      ],
+      "raw_signal": "HOLD",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $218.03 below SMA10 $222.84 with 5d -8.33%"
+      ],
+      "valuation": {
+        "forward_pe": 258.7,
+        "trailing_pe": 495.5,
+        "peg_ratio": 2.83,
+        "fcf_yield_pct": -1.3,
+        "revenue_growth_pct": 1474.4,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 10,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "CAUTION: forward P/E of 259x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline.",
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 196.73,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 228.93,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 9.8,
+        "upside_pct": 5.0,
+        "ratio": 0.5,
+        "ratio_raw": 0.51,
+        "ratio_label": "0.5:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": null,
+        "structural_support_pct": null
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "data_anomaly": "insufficient_history=22",
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": true,
+        "all_mechanical_pass": false,
+        "abstained": [
+          {
+            "gate": "extension",
+            "reason": "insufficient price history (<50 bars) — extension gates unverifiable"
+          }
+        ],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $218.03 below SMA10 $222.84 with 5d -8.33%"
+        ],
+        "earnings_days_until": 8,
+        "note": "Gates abstained: insufficient price history (<50 bars) — extension gates unverifiable — ACCUMULATE is not assertable on incomplete data."
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 214.0,
+        "rsi_14": 35.8,
+        "vs_sma50_pct": null,
+        "risk_reward": {
+          "ratio": 0.6,
+          "rr_distorted": false,
+          "upside_pct": 5.0,
+          "downside_pct": 8.1,
+          "structural_support_pct": null
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — 259x forward PE, short history makes RSI unreliable.",
+        "prior_period_delta_narrative": "Close $214.00→$218.03, RSI 35.8→36.9 since 2026-06-15.",
+        "what_to_do": "Cerebras ticked up 0.8% to $218.03, but the forward PE of 259x and 496x trailing are disqualifying for any entry. The data anomaly (insufficient history) means RSI and SMA‑based technicals are unreliable. Wait for the June 24 earnings to see if revenue quality and gross margins improve; at these multiples, even a strong print may not justify buying.",
+        "entry_block": "CAUTION: forward P/E of 259x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline.",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "AMZN": {
+      "price": 246.02,
+      "currency": "USD",
+      "chg_pct": 3.09,
+      "5d_pct": 0.33,
+      "1mo_pct": -7.93,
+      "sma10": 245.98,
+      "sma50": 255.5,
+      "sma100": 235.25,
+      "sma200": 232.59,
+      "vs_50sma": "-3.7%",
+      "vs_sma50_pct": -3.71,
+      "rsi_14": 43.2,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 41083012,
+      "avg_volume_10d": 43494291,
+      "vol_ratio": 0.94,
+      "volume_signal": "Normal",
+      "support_zones": [
+        225.96,
+        221.11
+      ],
+      "resistance_zones": [
+        248.36,
+        258.6
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 25.0,
+        "trailing_pe": 32.6,
+        "price_to_book": 5.99,
+        "ev_ebitda": 17.6,
+        "peg_ratio": 1.83,
+        "fcf_yield_pct": 0.37,
+        "revenue_growth_pct": 16.6,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 63,
+          "earnings_growth_pct": 74.8
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 25.2,
+        "cluster_median_peg": 1.62,
+        "pe_vs_cluster_pct": -0.8
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 232.59,
+        "invalidation_reason": "200-day SMA (nearest support)",
+        "upside_target": 258.6,
+        "upside_reason": "Next resistance zone (nearest within 1.5%)",
+        "downside_pct": 5.5,
+        "upside_pct": 5.1,
+        "ratio": 0.9,
+        "ratio_raw": 0.93,
+        "ratio_label": "0.9:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": true,
+        "nearest_resistance": 248.36,
+        "nearest_resistance_pct": 1.0,
+        "rr_distorted": false,
+        "structural_support": 225.96,
+        "structural_support_pct": 8.2,
+        "wide_stop_rr": 0.62
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": 0.77,
+      "vs_cluster_5d_pct": 0.0,
+      "vs_cluster_1mo_pct": -0.42,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 45
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 238.55,
+        "rsi_14": 34.8,
+        "vs_sma50_pct": -6.37,
+        "risk_reward": {
+          "ratio": 1.6,
+          "rr_distorted": false,
+          "upside_pct": 4.1,
+          "downside_pct": 2.5,
+          "structural_support_pct": 5.3
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — tight resistance at $248 caps upside.",
+        "prior_period_delta_narrative": "Close $238.55→$246.02, RSI 34.8→43.2, extension -6.4%→-3.7% since 2026-06-15.",
+        "what_to_do": "Amazon rose 3.1% to $246.02 in the broad rally, but is still 3.7% below its 50‑day and faces immediate resistance at $248.36 (1.0% away). R:R is a poor 0.9:1. The $200B AI capex story is a 2027 payoff, not 2026. No entry until a clear break above $248 on volume, or a pullback to the 200‑day near $232 to offer a better risk/reward.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": "Nearest resistance at $248.36 (1.0% above) — headline R:R only materialises once that level breaks on above‑average volume.",
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if $200B AI capex announcement (2026) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "GOOG": {
+      "price": 367.11,
+      "currency": "USD",
+      "chg_pct": 2.23,
+      "5d_pct": 1.64,
+      "1mo_pct": -7.51,
+      "sma10": 360.68,
+      "sma50": 360.74,
+      "sma100": 335.3,
+      "sma200": 307.93,
+      "vs_50sma": "+1.8%",
+      "vs_sma50_pct": 1.76,
+      "rsi_14": 50.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 17078172,
+      "avg_volume_10d": 26081557,
+      "vol_ratio": 0.65,
+      "volume_signal": "Low",
+      "support_zones": [
+        319.12,
+        308.38
+      ],
+      "resistance_zones": [
+        404.23
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 1,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "vol_ratio 0.65 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 25.4,
+        "trailing_pe": 27.3,
+        "price_to_book": 9.29,
+        "dividend_yield_pct": 0.24,
+        "ev_ebitda": 27.4,
+        "peg_ratio": 1.41,
+        "fcf_yield_pct": 0.62,
+        "revenue_growth_pct": 21.8,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 14,
+          "earnings_growth_pct": 82.0
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 25.2,
+        "cluster_median_peg": 1.62,
+        "pe_vs_cluster_pct": 0.8
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 360.74,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 404.23,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 1.7,
+        "upside_pct": 10.1,
+        "ratio": 5.9,
+        "ratio_raw": 5.94,
+        "ratio_label": "5.9:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": true,
+        "structural_support": 319.12,
+        "structural_support_pct": 13.1,
+        "sizing_rr": {
+          "invalidation": 319.12,
+          "downside_pct": 13.1,
+          "ratio": 0.8,
+          "ratio_raw": 0.77,
+          "ratio_label": "0.8:1"
+        },
+        "wide_stop_rr": 0.77
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": -0.09,
+      "vs_cluster_5d_pct": 1.31,
+      "vs_cluster_1mo_pct": 0.0,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": true,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "vol_ratio 0.65 (<0.7)"
+        ],
+        "earnings_days_until": 38
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 358.16,
+        "rsi_14": 43.5,
+        "vs_sma50_pct": -0.31,
+        "risk_reward": {
+          "ratio": 1.2,
+          "rr_distorted": false,
+          "upside_pct": 12.9,
+          "downside_pct": 10.9,
+          "structural_support_pct": 13.9
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "Upgraded to WATCH — strong R:R headline, but sizing R:R only 0.8:1.",
+        "prior_period_delta_narrative": "Close $358.16→$367.11, RSI 43.5→50.3, extension -0.3%→1.8% since 2026-06-15.",
+        "what_to_do": "Alphabet added 2.2% to $367.11, reclaiming its 50‑day. Headline R:R to $404.23 is an impressive 5.9:1, but the stop is only 1.7% away, making the trade brittle. The sizing R:R to structural support at $319.12 is just 0.8:1, so no entry yet. Watch for a breakout above the 50‑day on volume that widens the margin for error.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "WATCH",
+        "thesis_break_condition": "Thesis breaks if TPU v7 dominance in AI compute (2026) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "MSFT": {
+      "price": 399.76,
+      "currency": "USD",
+      "chg_pct": 2.32,
+      "5d_pct": -2.91,
+      "1mo_pct": -2.15,
+      "sma10": 410.67,
+      "sma50": 411.74,
+      "sma100": 407.05,
+      "sma200": 451.35,
+      "vs_50sma": "-2.9%",
+      "vs_sma50_pct": -2.91,
+      "rsi_14": 42.8,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 31889993,
+      "avg_volume_10d": 35171539,
+      "vol_ratio": 0.91,
+      "volume_signal": "Normal",
+      "support_zones": [
+        398.58,
+        390.58
+      ],
+      "resistance_zones": [
+        412.16,
+        424.43
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $399.76 below SMA10 $410.67 with 5d -2.91%"
+      ],
+      "valuation": {
+        "forward_pe": 20.7,
+        "trailing_pe": 23.3,
+        "price_to_book": 7.17,
+        "dividend_yield_pct": 0.91,
+        "ev_ebitda": 16.4,
+        "peg_ratio": 1.2,
+        "fcf_yield_pct": 1.25,
+        "revenue_growth_pct": 18.3,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 55,
+          "earnings_growth_pct": 23.4
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 25.2,
+        "cluster_median_peg": 1.62,
+        "pe_vs_cluster_pct": -17.9
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 398.58,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 412.16,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 0.3,
+        "upside_pct": 3.1,
+        "ratio": 10.3,
+        "ratio_raw": 10.33,
+        "ratio_label": "10.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": true,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": true,
+        "structural_support": 390.58,
+        "structural_support_pct": 2.3,
+        "sizing_rr": {
+          "invalidation": 390.58,
+          "downside_pct": 2.3,
+          "ratio": 1.4,
+          "ratio_raw": 1.35,
+          "ratio_label": "1.4:1"
+        }
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "thesis_highlights": [
+        "Azure AI capacity additions tracking ahead of workload demand — watch for margin compression if AI capacity runs ahead of revenue."
+      ],
+      "vs_cluster_chg_pct": 0.0,
+      "vs_cluster_5d_pct": -3.24,
+      "vs_cluster_1mo_pct": 5.36,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": true,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $399.76 below SMA10 $410.67 with 5d -2.91%"
+        ],
+        "earnings_days_until": 44
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 390.74,
+        "rsi_14": 37.2,
+        "vs_sma50_pct": -4.98,
+        "risk_reward": {
+          "ratio": 0.0,
+          "rr_distorted": false,
+          "upside_pct": 5.5,
+          "downside_pct": 0.0,
+          "structural_support_pct": 2.5
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "CAUTION holds — Azure class‑action lawsuit adds sentiment risk.",
+        "prior_period_delta_narrative": "Close $390.74→$399.76, RSI 37.2→42.8, extension -5.0%→-2.9% since 2026-06-15.",
+        "what_to_do": "Microsoft rose 2.3% to $399.76 but remains below its 50‑day ($411.74). The new class‑action lawsuit alleging misstatements about Azure and Copilot (per Simply Wall St., June 15) adds a fresh overhang to the OpenAI concentration risk. PEG 1.2 and PE 20.7x keep it on deck, but entry requires a clean break above $412 on volume — preferably after the July earnings clarify Azure quality.",
+        "entry_block": null,
+        "valuation_judgment": "Trades at an 18% discount to the BigTech cluster median PE — fairly priced given Azure risk.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if Azure revenue quality — OpenAI credit circularity deteriorates materially."
+      },
+      "news_sentiment_skew": "bearish"
+    },
+    "AVGO": {
+      "price": 393.94,
+      "currency": "USD",
+      "chg_pct": 2.98,
+      "5d_pct": -0.67,
+      "1mo_pct": -10.43,
+      "sma10": 408.79,
+      "sma50": 408.04,
+      "sma100": 366.15,
+      "sma200": 357.75,
+      "vs_50sma": "-3.5%",
+      "vs_sma50_pct": -3.45,
+      "rsi_14": 45.3,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 25453353,
+      "avg_volume_10d": 42111985,
+      "vol_ratio": 0.6,
+      "volume_signal": "Low",
+      "support_zones": [
+        369.17,
+        334.17
+      ],
+      "resistance_zones": [
+        401.39,
+        412.95
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $393.94 below SMA10 $408.79 with 5d -0.67%",
+        "vol_ratio 0.60 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 20.4,
+        "trailing_pe": 63.7,
+        "price_to_book": 21.37,
+        "dividend_yield_pct": 0.68,
+        "ev_ebitda": 45.6,
+        "peg_ratio": 0.69,
+        "fcf_yield_pct": 1.45,
+        "revenue_growth_pct": 47.9,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 45,
+          "earnings_growth_pct": 85.4
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": -34.0
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 369.17,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 401.39,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 6.3,
+        "upside_pct": 1.9,
+        "ratio": 0.3,
+        "ratio_raw": 0.3,
+        "ratio_label": "0.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 357.75,
+        "structural_support_pct": 9.2,
+        "wide_stop_rr": 0.21
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": -0.44,
+      "vs_cluster_5d_pct": -8.88,
+      "vs_cluster_1mo_pct": -20.72,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $393.94 below SMA10 $408.79 with 5d -0.67%",
+          "vol_ratio 0.60 (<0.7)"
+        ],
+        "earnings_days_until": null
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 382.07,
+        "rsi_14": 41.4,
+        "vs_sma50_pct": -6.0,
+        "risk_reward": {
+          "ratio": 1.5,
+          "rr_distorted": false,
+          "upside_pct": 5.1,
+          "downside_pct": 3.4,
+          "structural_support_pct": 6.5
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "CAUTION holds — below 50‑day, downward momentum persists.",
+        "prior_period_delta_narrative": "Close $382.07→$393.94, RSI 41.4→45.3, extension -6.0%→-3.5% since 2026-06-15.",
+        "what_to_do": "AVGO gained 3.0% to $393.94 but is still 3.5% below its 50‑day. Momentum is weak (volume ratio 0.60), and the stock has lagged the semis cluster by 6.4% over five days. Custom ASIC thesis is intact, but the near‑term set‑up is poor. Wait for a 50‑day reclaim on volume, or a pullback to $369 support, before considering entry.",
+        "entry_block": null,
+        "valuation_judgment": "Trades at a 34% discount to the semis cluster median PE — attractive if the 50‑day is reclaimed.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if Custom ASIC ramp — Google TPU, Meta training chips, OpenAI/ByteDance inference (2026-2027) is delayed, cancelled, or underwhelms market expectations."
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "LITE": {
+      "price": 957.24,
+      "currency": "USD",
+      "chg_pct": 3.93,
+      "5d_pct": 6.91,
+      "1mo_pct": -4.45,
+      "sma10": 911.47,
+      "sma50": 903.34,
+      "sma100": 756.17,
+      "sma200": 501.48,
+      "vs_50sma": "+6.0%",
+      "vs_sma50_pct": 5.97,
+      "rsi_14": 54.4,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 5243682,
+      "avg_volume_10d": 6133388,
+      "vol_ratio": 0.85,
+      "volume_signal": "Normal",
+      "support_zones": [
+        849.81,
+        803.59
+      ],
+      "resistance_zones": [
+        960.0,
+        1049.53
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 2,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 52.8,
+        "trailing_pe": 161.4,
+        "price_to_book": 80.73,
+        "ev_ebitda": 135.2,
+        "peg_ratio": 0.63,
+        "fcf_yield_pct": 0.13,
+        "revenue_growth_pct": 90.1,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 25,
+          "earnings_growth_pct": null
+        },
+        "cluster_name": "Semis",
+        "cluster_median_pe": 30.9,
+        "cluster_median_peg": 1.23,
+        "pe_vs_cluster_pct": 70.9
+      },
+      "entry_block": "BLOCKED: +6.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=2 (<30).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 903.34,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 1049.53,
+        "upside_reason": "Next resistance zone (nearest within 1.5%)",
+        "downside_pct": 5.6,
+        "upside_pct": 9.6,
+        "ratio": 1.7,
+        "ratio_raw": 1.71,
+        "ratio_label": "1.7:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": true,
+        "nearest_resistance": 960.0,
+        "nearest_resistance_pct": 0.3,
+        "rr_distorted": false,
+        "structural_support": 849.81,
+        "structural_support_pct": 11.2,
+        "wide_stop_rr": 0.86
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 58
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 921.56,
+        "rsi_14": 51.7,
+        "vs_sma50_pct": 2.31,
+        "risk_reward": {
+          "ratio": 1.8,
+          "rr_distorted": false,
+          "upside_pct": 4.2,
+          "downside_pct": 2.3,
+          "structural_support_pct": 7.8
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — +6% above 50‑day triggers hard block.",
+        "prior_period_delta_narrative": "Close $921.56→$957.24, RSI 51.7→54.4, extension 2.3%→6.0% since 2026-06-15.",
+        "what_to_do": "Lumentum added 3.9% to $957.24, extending 6% above its 50‑day and hitting the hard block. The NVIDIA $2B partnership and JPMorgan’s defence of the AI optics case (per Insider Monkey, June 14) keep the thesis strong, but the entry is blocked. Wait for a pullback toward $900–910 (the 50‑day) before stepping in.",
+        "entry_block": "BLOCKED: +6.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=2 (<30).",
+        "valuation_judgment": "Trades at a 71% premium to the semis cluster median PE — justified only by NVDA partnership volume.",
+        "tight_upside_disclosure": "Nearest resistance at $960.00 (0.3% above) — headline R:R only materialises once that level breaks on above‑average volume.",
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if multiple compresses toward the Semis cluster median (30.9x) without a corresponding earnings re-rating."
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "NOK": {
+      "price": 14.82,
+      "currency": "USD",
+      "chg_pct": -0.45,
+      "5d_pct": 1.58,
+      "1mo_pct": 2.49,
+      "sma10": 15.01,
+      "sma50": 12.89,
+      "sma100": 10.25,
+      "sma200": 8.06,
+      "vs_50sma": "+15.0%",
+      "vs_sma50_pct": 15.0,
+      "rsi_14": 53.7,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 121846864,
+      "avg_volume_10d": 132026186,
+      "vol_ratio": 0.92,
+      "volume_signal": "Normal",
+      "support_zones": [
+        8.06,
+        12.89
+      ],
+      "resistance_zones": [
+        17.45
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 94,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 30.4,
+        "trailing_pe": 92.6,
+        "price_to_book": 3.37,
+        "dividend_yield_pct": 1.11,
+        "ev_ebitda": 31.7,
+        "peg_ratio": 1.43,
+        "fcf_yield_pct": 1.93,
+        "revenue_growth_pct": 2.4,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 9,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +15.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: 15.0% (>=10% ceiling for trend exception).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 12.89,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 17.45,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 13.0,
+        "upside_pct": 17.7,
+        "ratio": 1.4,
+        "ratio_raw": 1.36,
+        "ratio_label": "1.4:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 8.06,
+        "structural_support_pct": 45.6,
+        "wide_stop_rr": 0.39
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 37
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 14.8,
+        "rsi_14": 53.5,
+        "vs_sma50_pct": 15.93,
+        "risk_reward": {
+          "ratio": 1.3,
+          "rr_distorted": false,
+          "upside_pct": 17.9,
+          "downside_pct": 13.7,
+          "structural_support_pct": 45.9
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +15% above SMA50, no volume support.",
+        "prior_period_delta_narrative": "Close $14.80→$14.82, RSI 53.5→53.7, extension 15.9%→15.0% since 2026-06-15.",
+        "what_to_do": "Nokia slipped 0.5% to $14.82 but remains 15% above its 50‑day, well into the hard‑block zone. The AI‑networking narrative (800G/1.6T optics, JPMorgan bullish call) is real, but entry requires a pullback toward $13–13.50. Forward PE 30x is expensive for a slow‑cycle compounder; wait for the 50‑day retest.",
+        "entry_block": "BLOCKED: +15.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: 15.0% (>=10% ceiling for trend exception).",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "BE": {
+      "price": 274.5,
+      "currency": "USD",
+      "chg_pct": 4.57,
+      "5d_pct": 8.25,
+      "1mo_pct": -9.53,
+      "sma10": 267.62,
+      "sma50": 251.78,
+      "sma100": 201.39,
+      "sma200": 150.4,
+      "vs_50sma": "+9.0%",
+      "vs_sma50_pct": 9.02,
+      "rsi_14": 52.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 7366085,
+      "avg_volume_10d": 10433238,
+      "vol_ratio": 0.71,
+      "volume_signal": "Low",
+      "support_zones": [
+        249.1,
+        241.75
+      ],
+      "resistance_zones": [
+        302.99,
+        322.83
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 3,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 63.1,
+        "price_to_book": 84.67,
+        "ev_ebitda": 339.3,
+        "peg_ratio": 1.38,
+        "fcf_yield_pct": 0.34,
+        "revenue_growth_pct": 130.4,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 24,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +9.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=3 (<30).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 251.78,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 302.99,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 8.3,
+        "upside_pct": 10.4,
+        "ratio": 1.2,
+        "ratio_raw": 1.25,
+        "ratio_label": "1.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 241.75,
+        "structural_support_pct": 11.9,
+        "wide_stop_rr": 0.87
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": 3.67,
+      "vs_cluster_5d_pct": 3.79,
+      "vs_cluster_1mo_pct": -16.01,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": null
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "regime_change_pending",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 260.22,
+        "rsi_14": 48.3,
+        "vs_sma50_pct": 4.51,
+        "risk_reward": {
+          "ratio": 3.8,
+          "rr_distorted": false,
+          "upside_pct": 16.4,
+          "downside_pct": 4.3,
+          "structural_support_pct": 7.1
+        }
+      },
+      "rcp_state": {
+        "gap_date": "2026-06-03",
+        "gap_settle_price": 287.32000732421875,
+        "pre_gap_close": 302.8500061035156,
+        "price_basis": "adjusted_rederived",
+        "stored_gap_settle_price": 302.85,
+        "basis_drift_pct": 5.41,
+        "pre_gap_sma50": 228.85760116577148,
+        "sessions_since_gap": 8,
+        "first_band_6_session": null,
+        "first_band_8_session": null,
+        "path_a_session": null,
+        "path_b_session": null,
+        "path_a_voided_by": null,
+        "path_b_voided_by": null,
+        "failure_session": null,
+        "gap_fill_session": null,
+        "current_phase": "consolidating",
+        "terminal_outcome": null,
+        "terminal_outcome_session": null,
+        "graduation_path": null,
+        "sessions_since_terminal": null,
+        "min_consolidation_sessions": 25,
+        "parameter_set_version": "v1",
+        "confirmation_type": "signed_contract",
+        "named_customer": "Oracle",
+        "terms_summary": "Oracle 'Project Jupiter' deal — the structural AI-power catalyst behind the +10.7% gap (per 2026-06-04 report). Natural-gas dependency + dilution history are the standing risks."
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "RCP consolidating; Oracle deal catalyst intact, entry gated at session 8 of 25.",
+        "prior_period_delta_narrative": "Close $260.22→$274.50, RSI 48.3→52.3, extension 4.5%→9.0% since 2026-06-15.",
+        "what_to_do": "Bloom Energy jumped 4.6% to $274.50, extending 9% above its 50‑day, but remains in the 25‑session RCP consolidation gate after the Oracle Project Jupiter gap. Session 8 of 25: entry requires Path A SMA50 retest ($251.78) or Path B breakout above $301.67. No entry until one of these triggers fires. Holding pattern; wait for the gate to clear.",
+        "entry_block": "BLOCKED: +9.0% above 50-day SMA (>5% hard block). Sustained trend exception not met: days_above_sma50=3 (<30).",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "bullish"
+    },
+    "IFX_DE": {
+      "price": 80.75,
+      "currency": "EUR",
+      "chg_pct": 0.86,
+      "5d_pct": 4.46,
+      "1mo_pct": 18.63,
+      "sma10": 80.48,
+      "sma50": 61.94,
+      "sma100": 51.81,
+      "sma200": 43.31,
+      "vs_50sma": "+30.4%",
+      "vs_sma50_pct": 30.37,
+      "rsi_14": 61.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 4944365,
+      "avg_volume_10d": 5920762,
+      "vol_ratio": 0.84,
+      "volume_signal": "Normal",
+      "support_zones": [
+        43.31,
+        61.94
+      ],
+      "resistance_zones": [
+        88.46
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 47,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 31.2,
+        "trailing_pe": 98.5,
+        "price_to_book": 6.25,
+        "dividend_yield_pct": 0.44,
+        "ev_ebitda": 27.7,
+        "peg_ratio": 0.76,
+        "fcf_yield_pct": 1.29,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 24,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +30.4% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 61.94,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 88.46,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 23.3,
+        "upside_pct": 9.5,
+        "ratio": 0.4,
+        "ratio_raw": 0.41,
+        "ratio_label": "0.4:1",
+        "rr_quality": "derived",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 43.31,
+        "structural_support_pct": 46.4,
+        "wide_stop_rr": 0.2
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "PREPRE",
+      "vs_cluster_chg_pct": -0.04,
+      "vs_cluster_5d_pct": 0.0,
+      "vs_cluster_1mo_pct": 12.15,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": false,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 50
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 80.06,
+        "rsi_14": 61.5,
+        "vs_sma50_pct": 29.26,
+        "risk_reward": {
+          "ratio": 0.5,
+          "rr_distorted": false,
+          "upside_pct": 10.5,
+          "downside_pct": 22.6,
+          "structural_support_pct": 45.9
+        }
+      },
+      "writeup_tier": "brief",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +30% above SMA50 on thin pre-market tape.",
+        "prior_period_delta_narrative": "Close EUR 80.06→EUR 80.75, RSI 61.5→61.5, extension 29.3%→30.4% since 2026-06-15.",
+        "what_to_do": "Infineon edged up 0.9% to €80.75 in thin pre‑market trading, remaining 30% above its 50‑day. The SiC datacenter pivot thesis is intact but unconfirmed by a named hyperscaler contract. No entry until a pullback to the €62–65 range.",
+        "entry_block": "BLOCKED: +30.4% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "AIXA_DE": {
+      "price": 58.86,
+      "currency": "EUR",
+      "chg_pct": 3.26,
+      "5d_pct": 7.72,
+      "1mo_pct": 6.48,
+      "sma10": 56.33,
+      "sma50": 48.42,
+      "sma100": 37.43,
+      "sma200": 26.58,
+      "vs_50sma": "+21.6%",
+      "vs_sma50_pct": 21.56,
+      "rsi_14": 57.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 571288,
+      "avg_volume_10d": 721061,
+      "vol_ratio": 0.79,
+      "volume_signal": "Low",
+      "support_zones": [
+        45.72,
+        42.4
+      ],
+      "resistance_zones": [
+        60.8
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 154,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 46.7,
+        "trailing_pe": 111.1,
+        "price_to_book": 7.64,
+        "dividend_yield_pct": 0.26,
+        "ev_ebitda": 66.9,
+        "peg_ratio": 2.08,
+        "fcf_yield_pct": 2.71,
+        "revenue_growth_pct": -47.2,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 15,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +21.6% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 48.42,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 60.8,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 17.7,
+        "upside_pct": 3.3,
+        "ratio": 0.2,
+        "ratio_raw": 0.19,
+        "ratio_label": "0.2:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 45.72,
+        "structural_support_pct": 22.3,
+        "wide_stop_rr": 0.15
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "PREPRE",
+      "vs_cluster_chg_pct": 2.36,
+      "vs_cluster_5d_pct": 3.26,
+      "vs_cluster_1mo_pct": 0.0,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 44
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "avoid",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 57.0,
+        "rsi_14": 57.5,
+        "vs_sma50_pct": 17.72,
+        "risk_reward": {
+          "ratio": 0.4,
+          "rr_distorted": false,
+          "upside_pct": 6.7,
+          "downside_pct": 15.1,
+          "structural_support_pct": 19.8
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +22% above SMA50, no catalyst in sight.",
+        "prior_period_delta_narrative": "Close EUR 57.00→EUR 58.86, RSI 57.5→57.5, extension 17.7%→21.6% since 2026-06-15.",
+        "what_to_do": "Aixtron rose 3.3% to €58.86, maintaining extreme extension. No news flow; the GaN MOCVD monopoly is a slow‑burn story. Avoid until a pullback to the 50‑day at €48.42 or a named customer capex announcement.",
+        "entry_block": "BLOCKED: +21.6% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "2308_TW": {
+      "price": 2240.0,
+      "currency": "TWD",
+      "chg_pct": 0.9,
+      "5d_pct": -7.25,
+      "1mo_pct": 10.89,
+      "sma10": 2287.5,
+      "sma50": 2110.3,
+      "sma100": 1706.95,
+      "sma200": 1307.53,
+      "vs_50sma": "+6.1%",
+      "vs_sma50_pct": 6.15,
+      "rsi_14": 51.0,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 2641297,
+      "avg_volume_10d": 10618034,
+      "vol_ratio": 0.25,
+      "volume_signal": "Low",
+      "support_zones": [
+        1880.0,
+        1365.0
+      ],
+      "resistance_zones": [
+        2370.0,
+        2585.0
+      ],
+      "raw_signal": "WATCH",
+      "days_above_sma50": 108,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $2240.00 below SMA10 $2287.50 with 5d -7.25%",
+        "vol_ratio 0.25 (<0.7)"
+      ],
+      "valuation": {
+        "forward_pe": 34.5,
+        "trailing_pe": 97.5,
+        "price_to_book": 19.42,
+        "dividend_yield_pct": 0.52,
+        "ev_ebitda": 45.2,
+        "peg_ratio": 3.49,
+        "fcf_yield_pct": 0.56,
+        "revenue_growth_pct": 34.0,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 19,
+          "earnings_growth_pct": 101.0
+        }
+      },
+      "entry_block": null,
+      "caution_source": null,
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 2110.3,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 2370.0,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 5.8,
+        "upside_pct": 5.8,
+        "ratio": 1.0,
+        "ratio_raw": 1.0,
+        "ratio_label": "1.0:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 1880.0,
+        "structural_support_pct": 16.1,
+        "wide_stop_rr": 0.36
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "REGULAR",
+      "vs_cluster_chg_pct": 0.0,
+      "vs_cluster_5d_pct": -11.71,
+      "vs_cluster_1mo_pct": 4.41,
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $2240.00 below SMA10 $2287.50 with 5d -7.25%",
+          "vol_ratio 0.25 (<0.7)"
+        ],
+        "earnings_days_until": 43
+      },
+      "prev_signal": "WATCH",
+      "prev_date": "2026-06-15",
+      "prev_action": "watch_for_entry",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 2210.0,
+        "rsi_14": 49.6,
+        "vs_sma50_pct": 5.53,
+        "risk_reward": {
+          "ratio": 1.4,
+          "rr_distorted": false,
+          "upside_pct": 7.2,
+          "downside_pct": 5.2,
+          "structural_support_pct": 14.9
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "WATCH",
+      "writeup": {
+        "headline": "WATCH — near 50‑day, but volume anemic and R:R only 1.0:1.",
+        "prior_period_delta_narrative": "Close TWD 2,210→TWD 2,240, RSI 49.6→51.0, extension 5.5%→6.2% since 2026-06-15.",
+        "what_to_do": "Delta Electronics rose 0.9% to TWD 2,240, holding 6% above its 50‑day but on very low volume. R:R to resistance at TWD 2,370 is 1.0:1, not attractive. The AI server PSU business is a steady leg, but the SST story remains option value. Wait for a pullback toward TWD 2,110 (the 50‑day) or a breakout above TWD 2,370 with volume.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "WATCH"
+      },
+      "news_sentiment_skew": "neutral"
+    },
+    "NVTS": {
+      "price": 23.73,
+      "currency": "USD",
+      "chg_pct": 0.09,
+      "5d_pct": -3.06,
+      "1mo_pct": 6.32,
+      "sma10": 24.96,
+      "sma50": 19.26,
+      "sma100": 14.14,
+      "sma200": 11.51,
+      "vs_50sma": "+23.2%",
+      "vs_sma50_pct": 23.21,
+      "rsi_14": 51.3,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 35684902,
+      "avg_volume_10d": 40546490,
+      "vol_ratio": 0.88,
+      "volume_signal": "Normal",
+      "support_zones": [
+        23.59,
+        17.5
+      ],
+      "resistance_zones": [
+        23.82,
+        33.99
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 48,
+      "sma50_rising": true,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $23.73 below SMA10 $24.96 with 5d -3.06%"
+      ],
+      "valuation": {
+        "price_to_book": 13.1,
+        "fcf_yield_pct": 0.77,
+        "revenue_growth_pct": -38.7,
+        "analyst_consensus": {
+          "recommendation": "hold",
+          "num_analysts": 8,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +23.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 19.26,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 33.99,
+        "upside_reason": "Next resistance zone (nearest within 1.5%)",
+        "downside_pct": 18.8,
+        "upside_pct": 43.2,
+        "ratio": 2.3,
+        "ratio_raw": 2.3,
+        "ratio_label": "2.3:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": true,
+        "nearest_resistance": 23.82,
+        "nearest_resistance_pct": 0.4,
+        "rr_distorted": false,
+        "structural_support": 17.5,
+        "structural_support_pct": 26.3,
+        "wide_stop_rr": 1.64
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "vs_cluster_chg_pct": -0.81,
+      "vs_cluster_5d_pct": -7.52,
+      "vs_cluster_1mo_pct": -0.16,
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": true,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": true,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $23.73 below SMA10 $24.96 with 5d -3.06%"
+        ],
+        "earnings_days_until": 49
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "on_deck",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 23.39,
+        "rsi_14": 50.7,
+        "vs_sma50_pct": 23.35,
+        "risk_reward": {
+          "ratio": 0.1,
+          "rr_distorted": false,
+          "upside_pct": 1.8,
+          "downside_pct": 18.9,
+          "structural_support_pct": 25.2
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +23% above SMA50 after volatile week.",
+        "prior_period_delta_narrative": "Close $23.39→$23.73, RSI 50.7→51.3, extension 23.4%→23.2% since 2026-06-15.",
+        "what_to_do": "Navitas was flat at $23.73 but remains 23% above its 50‑day. The NVIDIA MGX showcase and SiC package news (per Simply Wall St., June 13) are positive, but the $500M ATM filing dilutes. Fundamentals are improving, but the extension means no entry. Wait for a pullback toward $20.",
+        "entry_block": "BLOCKED: +23.2% above 50-day SMA (>20% extreme extension). No trend exception applies at this level — entry requires a meaningful pullback regardless of trend duration.",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": "Nearest resistance at $23.82 (0.4% above) — headline R:R only materialises once that level breaks on above‑average volume.",
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "PLTR": {
+      "price": 134.71,
+      "currency": "USD",
+      "chg_pct": 5.06,
+      "5d_pct": -1.29,
+      "1mo_pct": 0.73,
+      "sma10": 136.41,
+      "sma50": 139.36,
+      "sma100": 143.14,
+      "sma200": 160.31,
+      "vs_50sma": "-3.3%",
+      "vs_sma50_pct": -3.34,
+      "rsi_14": 46.7,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 37284115,
+      "avg_volume_10d": 35984121,
+      "vol_ratio": 1.04,
+      "volume_signal": "Normal",
+      "support_zones": [
+        131.63,
+        128.63
+      ],
+      "resistance_zones": [
+        148.93,
+        152.68
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $134.71 below SMA10 $136.41 with 5d -1.29%"
+      ],
+      "valuation": {
+        "forward_pe": 64.8,
+        "trailing_pe": 149.7,
+        "price_to_book": 38.22,
+        "ev_ebitda": 156.2,
+        "peg_ratio": 1.84,
+        "fcf_yield_pct": 0.54,
+        "revenue_growth_pct": 84.7,
+        "analyst_consensus": {
+          "recommendation": "buy",
+          "num_analysts": 27,
+          "earnings_growth_pct": 325.0
+        },
+        "cluster_name": "BigTech",
+        "cluster_median_pe": 25.2,
+        "cluster_median_peg": 1.62,
+        "pe_vs_cluster_pct": 157.1
+      },
+      "entry_block": "CAUTION: forward P/E of 65x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline.",
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 131.63,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 148.93,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 2.3,
+        "upside_pct": 10.6,
+        "ratio": 4.6,
+        "ratio_raw": 4.61,
+        "ratio_label": "4.6:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 128.63,
+        "structural_support_pct": 4.5,
+        "wide_stop_rr": 2.36
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": true,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": true,
+        "all_mechanical_pass": true,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $134.71 below SMA10 $136.41 with 5d -1.29%"
+        ],
+        "earnings_days_until": 49,
+        "note": "All mechanical gates PASS, but momentum_warn is True (weak recent tape). ACCUMULATE requires either an explicit multi-year structural support cite (200-day SMA / prior cycle low / named floor) OR an imminent hard catalyst within 7 days (specific date). Generic fundamental praise does NOT clear the bar — default to WATCH if neither anchor applies."
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 127.99,
+        "rsi_14": 39.3,
+        "vs_sma50_pct": -8.34,
+        "risk_reward": {
+          "ratio": 12.6,
+          "rr_distorted": true,
+          "upside_pct": 16.4,
+          "downside_pct": 1.3,
+          "structural_support_pct": 4.1
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — 65x forward PE despite 5% bounce.",
+        "prior_period_delta_narrative": "Close $127.99→$134.71, RSI 39.3→46.7, extension -8.3%→-3.3% since 2026-06-15.",
+        "what_to_do": "Palantir jumped 5.1% to $134.71 on AI‑security rotation, but the 65x forward PE is too high without a specific catalyst. The stock is below its declining 50‑day ($139.36) and has no support until $131.63. Avoid until a reclaim of the 50‑day with volume, or a pullback that brings PE closer to 40x.",
+        "entry_block": "CAUTION: forward P/E of 65x (>40x). Requires explicit justification of why earnings growth supports this multiple — default to WATCH unless thesis is clearly articulated with specific catalysts and timeline.",
+        "valuation_judgment": "Trades at a 157% premium to the BigTech cluster median PE — unjustifiable without concrete defense contract conversion.",
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION",
+        "thesis_break_condition": "Thesis breaks if multiple compresses toward the BigTech cluster median (25.2x) without a corresponding earnings re-rating."
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "WRD": {
+      "price": 6.48,
+      "currency": "USD",
+      "chg_pct": 3.85,
+      "5d_pct": -1.22,
+      "1mo_pct": -14.74,
+      "sma10": 6.76,
+      "sma50": 7.46,
+      "sma100": 7.41,
+      "sma200": 8.44,
+      "vs_50sma": "-13.2%",
+      "vs_sma50_pct": -13.18,
+      "rsi_14": 40.4,
+      "rsi_zone": "Neutral-Bearish",
+      "volume": 2794444,
+      "avg_volume_10d": 3245854,
+      "vol_ratio": 0.86,
+      "volume_signal": "Normal",
+      "support_zones": [
+        6.03
+      ],
+      "resistance_zones": [
+        6.98,
+        7.97
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 0,
+      "sma50_rising": false,
+      "momentum_warn": true,
+      "momentum_warn_reasons": [
+        "price $6.48 below SMA10 $6.76 with 5d -1.22%"
+      ],
+      "valuation": {
+        "price_to_book": 1.84,
+        "ev_ebitda": 2.1,
+        "revenue_growth_pct": 57.6,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 12,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": null,
+      "caution_source": "base_scorer",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 6.03,
+        "invalidation_reason": "Nearest support zone",
+        "upside_target": 6.98,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 6.9,
+        "upside_pct": 7.7,
+        "ratio": 1.1,
+        "ratio_raw": 1.12,
+        "ratio_label": "1.1:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": null,
+        "structural_support_pct": null
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "thesis_highlights": [
+        "WeRide bull case rests on B2B fleet licensing (Uber, Grab, Bosch) + multi-country Robotaxi deployment — evaluate on commercial traction, not autonomy benchmarks vs Waymo/Tesla.",
+        "ADR/China delisting risk is a standing consideration — always maintain starter sizing for WRD."
+      ],
+      "accumulate_gates": {
+        "g1_signal_eligible": true,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": true,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": true,
+        "momentum_warn_reasons": [
+          "price $6.48 below SMA10 $6.76 with 5d -1.22%"
+        ],
+        "earnings_days_until": 44
+      },
+      "prev_signal": "HOLD",
+      "prev_date": "2026-06-15",
+      "prev_action": "hold_no_action",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 6.17,
+        "rsi_14": 34.1,
+        "vs_sma50_pct": -17.63,
+        "risk_reward": {
+          "ratio": 5.7,
+          "rr_distorted": false,
+          "upside_pct": 13.1,
+          "downside_pct": 2.3,
+          "structural_support_pct": null
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Downgraded to CAUTION — still below 50‑day, delisting risk lingers.",
+        "prior_period_delta_narrative": "Close $6.17→$6.48, RSI 34.1→40.4, extension -17.6%→-13.2% since 2026-06-15.",
+        "what_to_do": "WeRide bounced 3.9% to $6.48 but remains 13% below its 50‑day. The Madrid robotaxi pilot with Uber (per Simply Wall St., June 13) is a positive step, but commercial traction is early and the ADR/delisting risk is ever‑present. Wait for a reclaim of $7.46 (the 50‑day) on volume before considering, and keep any position starter‑sized.",
+        "entry_block": null,
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "mixed"
+    },
+    "SITM": {
+      "price": 742.46,
+      "currency": "USD",
+      "chg_pct": 1.36,
+      "5d_pct": 11.77,
+      "1mo_pct": -9.48,
+      "sma10": 692.81,
+      "sma50": 626.9,
+      "sma100": 499.14,
+      "sma200": 403.71,
+      "vs_50sma": "+18.4%",
+      "vs_sma50_pct": 18.43,
+      "rsi_14": 58.5,
+      "rsi_zone": "Neutral-Bullish",
+      "volume": 581861,
+      "avg_volume_10d": 520706,
+      "vol_ratio": 1.12,
+      "volume_signal": "Above Avg",
+      "support_zones": [
+        657.38,
+        502.78
+      ],
+      "resistance_zones": [
+        901.81
+      ],
+      "raw_signal": "CAUTION",
+      "days_above_sma50": 48,
+      "sma50_rising": true,
+      "momentum_warn": false,
+      "momentum_warn_reasons": [],
+      "valuation": {
+        "forward_pe": 69.6,
+        "price_to_book": 16.91,
+        "ev_ebitda": 5959.1,
+        "peg_ratio": 3.82,
+        "fcf_yield_pct": 0.04,
+        "revenue_growth_pct": 88.3,
+        "analyst_consensus": {
+          "recommendation": "strong_buy",
+          "num_analysts": 9,
+          "earnings_growth_pct": null
+        }
+      },
+      "entry_block": "BLOCKED: +18.4% above 50-day SMA (>5% hard block). Sustained trend exception not met: 18.4% (>=10% ceiling for trend exception).",
+      "caution_source": "hard_block",
+      "vol_confirmed": false,
+      "risk_reward": {
+        "invalidation": 626.9,
+        "invalidation_reason": "50-day SMA -- break below confirms rally failure",
+        "upside_target": 901.81,
+        "upside_reason": "Nearest resistance zone",
+        "downside_pct": 15.6,
+        "upside_pct": 21.5,
+        "ratio": 1.4,
+        "ratio_raw": 1.38,
+        "ratio_label": "1.4:1",
+        "rr_quality": "observed",
+        "tight_invalidation": false,
+        "tight_upside": false,
+        "nearest_resistance": null,
+        "nearest_resistance_pct": null,
+        "rr_distorted": false,
+        "structural_support": 502.78,
+        "structural_support_pct": 32.3,
+        "wide_stop_rr": 0.67
+      },
+      "pm_price": null,
+      "pm_chg_pct": null,
+      "market_state": "POSTPOST",
+      "accumulate_gates": {
+        "g1_signal_eligible": false,
+        "g2_rr_above_2": false,
+        "g3_rr_observed": true,
+        "g5_no_earnings_7d": true,
+        "g6_vix_ok": true,
+        "g8_rr_robust": false,
+        "all_mechanical_pass": false,
+        "abstained": [],
+        "momentum_warn": false,
+        "momentum_warn_reasons": [],
+        "earnings_days_until": 51
+      },
+      "prev_signal": "CAUTION",
+      "prev_date": "2026-06-15",
+      "prev_action": "avoid",
+      "prev_snapshot": {
+        "date": "2026-06-15",
+        "close": 729.89,
+        "rsi_14": 57.0,
+        "vs_sma50_pct": 17.92,
+        "risk_reward": {
+          "ratio": 1.6,
+          "rr_distorted": false,
+          "upside_pct": 23.6,
+          "downside_pct": 15.2,
+          "structural_support_pct": 31.1
+        }
+      },
+      "writeup_tier": "full",
+      "signal": "CAUTION",
+      "writeup": {
+        "headline": "Hard-blocked to CAUTION — +18% above SMA50, no design‑win entry trigger.",
+        "prior_period_delta_narrative": "Close $729.89→$742.46, RSI 57.0→58.5, extension 17.9%→18.4% since 2026-06-15.",
+        "what_to_do": "SiTime rose 1.4% to $742.46, extending 18% above its 50‑day. The MEMS‑timing displacement thesis is real but depends on named hyperscaler design wins, which are absent. PEG >3 and forward PE 70x make it uninvestable at this price. Avoid until a pullback to the 50‑day at $626 or a specific win is announced.",
+        "entry_block": "BLOCKED: +18.4% above 50-day SMA (>5% hard block). Sustained trend exception not met: 18.4% (>=10% ceiling for trend exception).",
+        "valuation_judgment": null,
+        "tight_upside_disclosure": null,
+        "_generated_for_signal": "CAUTION"
+      },
+      "news_sentiment_skew": "neutral"
+    }
+  },
+  "clusters": {
+    "singapore": {
+      "tickers": [
+        "D05.SI",
+        "O39.SI",
+        "U11.SI"
+      ],
+      "summary": "Singapore banks are holding above their 50-day averages, but UOB’s R:R is effectively zero and DBS/OCBC are too extended for fresh entry. The US10Y dip to 4.47% is a marginal tailwind, but NIM compression will persist until rates fall below 4.20% or MAS eases — neither event is imminent. OCBC remains the relative outperformer, but the cluster is a waiting game.",
+      "thesis_status": "Structurally impaired — awaiting NIM relief",
+      "key_development": "US10Y fell 4 bps to 4.47% on peace hopes, but still 27 bps above the 4.20% threshold for Singapore bank NIM relief.",
+      "data_anchors": {
+        "D05_SI": {
+          "vs_sma50_pct": 6.56,
+          "rsi_14": 60.3
+        },
+        "O39_SI": {
+          "vs_sma50_pct": 5.25,
+          "rsi_14": 59.1
+        },
+        "U11_SI": {
+          "vs_sma50_pct": 4.02,
+          "rsi_14": 62.0
+        }
+      }
+    },
+    "semiconductors": {
+      "tickers": [
+        "NVDA",
+        "AMD",
+        "INTC",
+        "ASML",
+        "MU",
+        "TSM",
+        "TSEM",
+        "AVGO",
+        "LITE",
+        "000660.KS",
+        "CRWV"
+      ],
+      "summary": "The semis cluster roared higher on the Iran deal (SOXX +4.7%), but the move left 10 of 15 names in hard‑block territory. NVDA reclaimed its 50‑day, while MU melted up to a record ahead of earnings. The internal divergence is stark — index‑level buying is masking extreme single‑stock risk. The cluster is structurally bullish, tactically overextended.",
+      "thesis_status": "Structurally bullish, tactically extended",
+      "key_development": "MU soared 10% to a record ahead of its June 25 earnings; the pre‑earnings band implies a 7% average upside move but the stock is already 57% above its 50‑day.",
+      "data_anchors": {
+        "NVDA": {
+          "vs_sma50_pct": 2.43,
+          "rsi_14": 51.4
+        },
+        "AMD": {
+          "vs_sma50_pct": 39.12,
+          "rsi_14": 65.2
+        },
+        "INTC": {
+          "vs_sma50_pct": 31.5,
+          "rsi_14": 64.3
+        },
+        "ASML": {
+          "vs_sma50_pct": 22.29,
+          "rsi_14": 67.3
+        },
+        "MU": {
+          "vs_sma50_pct": 57.21,
+          "rsi_14": 66.6
+        },
+        "TSM": {
+          "vs_sma50_pct": 10.52,
+          "rsi_14": 59.7
+        },
+        "TSEM": {
+          "vs_sma50_pct": 22.2,
+          "rsi_14": 61.5
+        },
+        "AVGO": {
+          "vs_sma50_pct": -3.45,
+          "rsi_14": 45.3
+        },
+        "LITE": {
+          "vs_sma50_pct": 5.97,
+          "rsi_14": 54.4
+        },
+        "000660_KS": {
+          "vs_sma50_pct": 43.01,
+          "rsi_14": 63.7
+        },
+        "CRWV": {
+          "vs_sma50_pct": -2.52,
+          "rsi_14": 50.5
+        }
+      }
+    },
+    "big_tech": {
+      "tickers": [
+        "AMZN",
+        "GOOG",
+        "MSFT",
+        "PLTR"
+      ],
+      "summary": "BigTech diverged: GOOG reclaimed its 50‑day, while AMZN and MSFT remain below theirs with fresh legal/dilution risks. The AI capex debate continues, with Microsoft’s class‑action lawsuit adding a new layer of governance concern. GOOG’s oversold bounce is the bright spot, but the cluster lacks a clear entry set‑up until FOMC passes.",
+      "thesis_status": "Mixed — AI spend confirmed, but risks are rising",
+      "key_development": "A class‑action suit alleges Microsoft misstated Azure and Copilot progress, adding to the OpenAI concentration overhang.",
+      "data_anchors": {
+        "AMZN": {
+          "vs_sma50_pct": -3.71,
+          "rsi_14": 43.2
+        },
+        "GOOG": {
+          "vs_sma50_pct": 1.76,
+          "rsi_14": 50.3
+        },
+        "MSFT": {
+          "vs_sma50_pct": -2.91,
+          "rsi_14": 42.8
+        },
+        "PLTR": {
+          "vs_sma50_pct": -3.34,
+          "rsi_14": 46.7
+        }
+      }
+    }
+  },
+  "interconnected": [
+    {
+      "ticker": "COHR",
+      "name": "Coherent Corp.",
+      "reason": "Direct LITE peer; NVIDIA $2B photonics investment partner. Any AI optics demand read‑through affects both.",
+      "entry_note": "Add to watchlist if LITE earnings August 13 confirm AI optics revenue above $500M annually.",
+      "price": 413.84,
+      "currency": "USD",
+      "chg_pct": 7.07
+    },
+    {
+      "ticker": "MRVL",
+      "name": "Marvell Technology",
+      "reason": "Custom ASIC and data‑center networking competitor to AVGO and NVDA, riding the same AI capex wave.",
+      "entry_note": "Revisit after AVGO earnings for read‑through on custom ASIC demand; a pullback below $120 would offer a better entry.",
+      "price": 308.88,
+      "currency": "USD",
+      "chg_pct": 9.84
+    },
+    {
+      "ticker": "QCOM",
+      "name": "Qualcomm",
+      "reason": "AI edge‑inferencing play; MSFT’s Copilot+ PC push and ARM PC expansion create a direct revenue catalyst.",
+      "entry_note": "Add to watchlist if next MSFT earnings show Copilot+ PC shipments above 2M units.",
+      "price": 220.81,
+      "currency": "USD",
+      "chg_pct": 3.86
+    },
+    {
+      "ticker": "ANET",
+      "name": "Arista Networks",
+      "reason": "NVDA Spectrum‑X networking partner; benefits from hyperscaler AI fabric build‑out, directly linked to NVDA and SNOW.",
+      "entry_note": "Consider if NVDA’s next data‑center revenue print beats by >5%, confirming fabric demand.",
+      "price": 169.09,
+      "currency": "USD",
+      "chg_pct": 3.25
+    },
+    {
+      "ticker": "SNOW",
+      "name": "Snowflake",
+      "reason": "Data‑warehouse demand is proxy for enterprise AI adoption; closely tied to AMZN AWS and MSFT Azure consumption.",
+      "entry_note": "Add to watchlist if AMZN’s next AWS AI growth accelerates above 30% YoY, confirming enterprise AI spending.",
+      "price": 240.78,
+      "currency": "USD",
+      "chg_pct": 3.21
+    }
+  ],
+  "geopolitical": {
+    "active_risks": [
+      "US‑Iran peace deal announced but not yet signed; Strait of Hormuz reopening timeline unclear.",
+      "Pentagon blacklist of Chinese tech firms (Alibaba, BYD, etc.) escalates US‑China tech tensions.",
+      "Section 301 tariffs on ‘forced labour’ grounds expand trade‑war front with EU and China.",
+      "FOMC meeting tomorrow: Fed Chair Warsh expected to hold rates, but hawkish tone could spook markets."
+    ],
+    "market_impact": "Oil’s 4.5% plunge directly eased inflation fears, lifting semis (SOXX +4.7%, MU +10%) and pulling the VIX to 16.2. However, 14 of 27 watchlist names are now extremely extended, making the rally fragile. If the Iran deal finalizes Friday as planned, oil could fall further, but any setback would reverse the risk‑on move violently.",
+    "new_since_yesterday": "Trump declared the Iran deal complete on Sunday; the formal signing is expected Friday. Oil dropped 4.5% Monday, the largest single‑day drop in weeks. The Pentagon blacklist also drew a sharp retaliation threat from Beijing.",
+    "probabilities": {
+      "base": 55,
+      "optimistic": 25,
+      "pessimistic": 15,
+      "wildcard": 5
+    },
+    "scenarios": {
+      "base": {
+        "description": "Iran deal signed Friday, Hormuz reopens; WTI stabilises near $75–80. Semis consolidate as oil risk recedes; FOMC holds, VIX stays low. MSFT and AMZN recover toward 50‑day; Singapore banks grind sideways waiting for rate relief."
+      },
+      "optimistic": {
+        "description": "Deal signed, oil crashes to $70, inflation expectations plummet. Fed hints at cuts; mega‑cap tech re‑rates higher. GOOG and NVDA break out, BigTech cluster fully recovers. Semis pullback provides entry opportunities."
+      },
+      "pessimistic": {
+        "description": "Signing delayed or Iran backtracks; oil spikes back above $90. Fed forced to hike, S&P drops 8–10%. Semis extreme extension unwinds violently; CRWV and TSEM gap fills resume. Defense names (PLTR) fare better."
+      },
+      "wildcard": {
+        "description": "China retaliates against Pentagon blacklist with rare‑earth export ban or cross‑strait escalation. TSM, ASML, and SK Hynix crash on supply‑chain fear; gold surges as safe haven despite oil drop. Portfolio hedges needed."
+      }
+    },
+    "portfolio_action": "Hold current positions, no new capital deployment until after the FOMC decision Wednesday and the Iran deal signing Friday — the binary risk is too high for fresh entry."
+  },
+  "events_this_week": [
+    {
+      "date": "2026-06-18",
+      "event": "FOMC Rate Decision",
+      "impact": "HIGH",
+      "type": "this_week"
+    },
+    {
+      "date": "2026-06-24",
+      "event": "Cerebras Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-06-25",
+      "event": "Micron Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-07-15",
+      "event": "ASML Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-07-16",
+      "event": "TSMC Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-07-23",
+      "event": "Nokia Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-07-24",
+      "event": "Intel Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    },
+    {
+      "date": "2026-07-24",
+      "event": "Google Earnings",
+      "impact": "MEDIUM",
+      "type": "forward_catalyst"
+    }
+  ],
+  "portfolio_snapshot": {
+    "overall_stance": "Cautiously bullish — risk‑on rally but extreme extensions curb entry",
+    "risk_posture": "14 of 27 names are hard‑blocked on technical extension, leaving few clean entry points. The Iran deal euphoria could reverse if the signing falters or FOMC surprises hawkish — size any new trades very conservatively.",
+    "signal_counts": {
+      "WATCH": 6,
+      "CAUTION": 20,
+      "HOLD": 1
+    },
+    "total_tickers": 27,
+    "expected_tickers": 27
+  },
+  "extension_regime": {
+    "hard_block_count": 14,
+    "total_tickers": 27,
+    "pct": 51.9,
+    "active": false,
+    "blocked_tickers": [
+      "000660_KS",
+      "AIXA_DE",
+      "AMD",
+      "ASML",
+      "BE",
+      "IFX_DE",
+      "INTC",
+      "LITE",
+      "MU",
+      "NOK",
+      "NVTS",
+      "SITM",
+      "TSEM",
+      "TSM"
+    ]
+  },
+  "macro_indicators": {
+    "CPI (YoY)": {
+      "value": 4.3,
+      "prior": 3.9,
+      "chg": 0.4,
+      "units": "% YoY",
+      "asof": "2026-05-01",
+      "age_days": 46,
+      "freshness": "latest available: 2026-05-01 print, 46d old — NOT live data",
+      "source": "FRED",
+      "series_id": "CPIAUCSL",
+      "is_stale": true
+    },
+    "Core PCE (YoY)": {
+      "value": 3.3,
+      "prior": 3.2,
+      "chg": 0.1,
+      "units": "% YoY",
+      "asof": "2026-04-01",
+      "age_days": 76,
+      "freshness": "latest available: 2026-04-01 print, 76d old — NOT live data",
+      "source": "FRED",
+      "series_id": "PCEPILFE",
+      "is_stale": true
+    },
+    "Unemployment": {
+      "value": 4.3,
+      "prior": 4.3,
+      "chg": 0.0,
+      "units": "%",
+      "asof": "2026-05-01",
+      "age_days": 46,
+      "freshness": "latest available: 2026-05-01 print, 46d old — NOT live data",
+      "source": "FRED",
+      "series_id": "UNRATE",
+      "is_stale": true
+    },
+    "Nonfarm payrolls": {
+      "value": 172.0,
+      "prior": 179.0,
+      "chg": -7.0,
+      "units": "k jobs (MoM)",
+      "asof": "2026-05-01",
+      "age_days": 46,
+      "freshness": "latest available: 2026-05-01 print, 46d old — NOT live data",
+      "source": "FRED",
+      "series_id": "PAYEMS",
+      "is_stale": true
+    },
+    "Fed funds (eff.)": {
+      "value": 3.62,
+      "prior": 3.62,
+      "chg": 0.0,
+      "units": "%",
+      "asof": "2026-06-12",
+      "age_days": 4,
+      "freshness": "latest available: 2026-06-12 print, 4d old — NOT live data",
+      "source": "FRED",
+      "series_id": "DFF",
+      "is_stale": false
+    },
+    "Real 10Y": {
+      "value": 2.17,
+      "prior": 2.16,
+      "chg": 0.01,
+      "units": "%",
+      "asof": "2026-06-12",
+      "age_days": 4,
+      "freshness": "latest available: 2026-06-12 print, 4d old — NOT live data",
+      "source": "FRED",
+      "series_id": "DFII10",
+      "is_stale": false
+    },
+    "5yr breakeven": {
+      "value": 2.4,
+      "prior": 2.39,
+      "chg": 0.01,
+      "units": "%",
+      "asof": "2026-06-15",
+      "age_days": 1,
+      "freshness": "latest available: 2026-06-15 print, 1d old — NOT live data",
+      "source": "FRED",
+      "series_id": "T5YIE",
+      "is_stale": false
+    },
+    "HY credit OAS": {
+      "value": 2.71,
+      "prior": 2.78,
+      "chg": -0.07,
+      "units": "%",
+      "asof": "2026-06-12",
+      "age_days": 4,
+      "freshness": "latest available: 2026-06-12 print, 4d old — NOT live data",
+      "source": "FRED",
+      "series_id": "BAMLH0A0HYM2",
+      "is_stale": false
+    }
+  },
+  "scheduled_tech_events": [
+    {
+      "date": "2026-05-19",
+      "event": "COMPUTEX 2026 — Jensen Huang Keynote",
+      "presenter": "Jensen Huang",
+      "venue": "COMPUTEX",
+      "impact": "HIGH",
+      "event_type": "conference_keynote",
+      "tickers_affected": [
+        "NVDA",
+        "TSM",
+        "LITE",
+        "AIXA_DE",
+        "000660_KS"
+      ],
+      "notes": "Vera Rubin samples confirmed shipping; optics integration revealed in Rubin rack design. Blackwell Ultra → Rubin transition timeline given.",
+      "days_until": -28,
+      "status": "released",
+      "result": null
+    },
+    {
+      "date": "2026-05-20",
+      "event": "GTC Taiwan 2026 — Jensen Huang Keynote",
+      "presenter": "Jensen Huang",
+      "venue": "GTC Taiwan",
+      "impact": "HIGH",
+      "event_type": "conference_keynote",
+      "tickers_affected": [
+        "NVDA",
+        "TSM",
+        "000660_KS",
+        "LITE",
+        "AIXA_DE",
+        "2308_TW"
+      ],
+      "notes": "Taiwan AI infrastructure partnerships; CoWoS capacity commitments from TSMC; HBM4 roadmap. Direct thesis-confirming event for AI Power Infrastructure cluster.",
+      "days_until": -27,
+      "status": "released",
+      "result": null
+    },
+    {
+      "date": "2026-06-09",
+      "event": "WWDC 2026 (Apple)",
+      "presenter": "Tim Cook / Apple Engineering",
+      "venue": "WWDC",
+      "impact": "MEDIUM",
+      "event_type": "developer_conference",
+      "tickers_affected": [
+        "MSFT",
+        "GOOG"
+      ],
+      "notes": "AI kit, on-device model integration, Vision Pro 2 rumours. Competitive signal for MSFT Copilot and GOOG Gemini on-device.",
+      "days_until": -7,
+      "status": "released",
+      "result": null
+    }
+  ],
+  "action_summary": {
+    "consider_adding": [],
+    "accumulate": [],
+    "watch_for_entry": [
+      {
+        "ticker": "D05_SI",
+        "on_watchlist": true,
+        "note": "Enter SGD 60.50–61.50 on pullback to 50‑day. Stop below SGD 59.55. NIM relief catalyst pending — US10Y <4.20% triggers upgrade.",
+        "entry_level": "Enter SGD 60.50–61.50, stop below SGD 59.55"
+      },
+      {
+        "ticker": "O39_SI",
+        "on_watchlist": true,
+        "note": "Wait for pullback to SGD 22.68 (50‑day). Stop below that level. OCBC’s NIM resilience is the differentiator; buy on dip.",
+        "entry_level": "Enter SGD 22.68–23.00, stop below SGD 22.68"
+      },
+      {
+        "ticker": "U11_SI",
+        "on_watchlist": true,
+        "note": "No entry until a breakout above SGD 38.80 with volume. R:R currently unusable. Lowest PE in cluster, worth monitoring.",
+        "entry_level": null
+      },
+      {
+        "ticker": "NVDA",
+        "on_watchlist": true,
+        "note": "Reclaimed 50‑day. Buy on a volume‑backed push through $216.58. Stop below $207.41. Weak R:R, so size small.",
+        "entry_level": "Enter above $216.60, stop below $207.41"
+      },
+      {
+        "ticker": "GOOG",
+        "on_watchlist": true,
+        "note": "Headline R:R attractive but sizing stop is tight. Wait for a close above the 50‑day ($360.74) with volume before entering.",
+        "entry_level": "Enter above $368 with volume, stop below $360.74"
+      },
+      {
+        "ticker": "2308_TW",
+        "on_watchlist": true,
+        "note": "Near 50‑day; enter on pullback to TWD 2,110. Stop below TWD 2,110. Volume must improve to confirm.",
+        "entry_level": "Enter TWD 2,110–2,150, stop below TWD 2,110"
+      }
+    ],
+    "regime_change_pending": [
+      {
+        "ticker": "BE",
+        "on_watchlist": true,
+        "note": "RCP consolidation gate, session 8 of 25. Path A retest SMA50 at $251.78; Path B breakout above $301.67. Oracle Jupiter deal catalyst intact. No entry until graduation.",
+        "gate_status": "consolidating: gate clears at session 25"
+      }
+    ],
+    "on_deck": [
+      {
+        "ticker": "AMD",
+        "on_watchlist": true,
+        "note": "Fundamentals attractive (PEG 1.23, revenue +38%) but extreme extension blocks entry. Revisit on pullback to $400–450.",
+        "rationale": "PEG 1.23, revenue growth 38%, forward PE 41.8x — cheap for a credible NVDA alternative.",
+        "trigger": "Pullback to $400–450 (50‑day nearing $393) or a new external MI450 customer announcement."
+      },
+      {
+        "ticker": "TSM",
+        "on_watchlist": true,
+        "note": "Cheapest mega‑cap semi (PE 22.5x, 27% discount to cluster). Blocked on extension; wait for $400–410 entry.",
+        "rationale": "Forward PE 22.5x, PEG 1.32, revenue growth 35% — defensive play with CoWoS monopoly.",
+        "trigger": "Pullback to $400–410 and RSI cooling below 55."
+      },
+      {
+        "ticker": "MU",
+        "on_watchlist": true,
+        "note": "Deeply undervalued (PE 9.6x, PEG 0.34) but 57% extended. Wait for post‑earnings June 25 clarity.",
+        "rationale": "PEG 0.34, forward PE 9.6x, revenue growth 196% — anomalously cheap, but extreme extension.",
+        "trigger": "Post‑earnings pullback to $700–800 or a confirmed headcount/applied guidance raise."
+      },
+      {
+        "ticker": "MSFT",
+        "on_watchlist": true,
+        "note": "Fairly valued (PE 20.7x, PEG 1.2). Class‑action overhang; wait for 50‑day reclaim above $412 on volume.",
+        "rationale": "PEG 1.2, FCF yield 1.25%, revenue growth 18% — reasonable for a cloud leader.",
+        "trigger": "Break above $412 with volume and no negative Azure headline pre‑earnings."
+      },
+      {
+        "ticker": "AVGO",
+        "on_watchlist": true,
+        "note": "Cheap vs semis (PE 20.4x, 34% discount) but below 50‑day. Wait for $408 reclaim with volume.",
+        "rationale": "PEG 0.69, revenue growth 48%; custom ASIC leader at a discount.",
+        "trigger": "Reclaim $408 (50‑day) with volume and a broader semis sentiment improvement."
+      },
+      {
+        "ticker": "LITE",
+        "on_watchlist": true,
+        "note": "NVDA partnership compelling, but 6% extension blocks entry. Wait for pullback to $900–910.",
+        "rationale": "PEG 0.63, revenue growth 90%; optical moat built on NVDA’s $2B commitment.",
+        "trigger": "Pullback to $900–910 and a 50‑day retest with volume."
+      },
+      {
+        "ticker": "NOK",
+        "on_watchlist": true,
+        "note": "Slow‑cycle AI networking play, 15% extended. Wait for pullback to $13–13.50 (50‑day).",
+        "rationale": "PEG 1.43, yield 1.1%, AI optics tailwind — reasonable for a compounder.",
+        "trigger": "Pullback to $13.00–13.50."
+      },
+      {
+        "ticker": "IFX_DE",
+        "on_watchlist": true,
+        "note": "SiC pivot thesis promising but unconfirmed. 30% extended; wait for €62–65 entry.",
+        "rationale": "PEG 0.76, forward PE 31.2x; cheap for a SiC leader if datacenter contracts materialise.",
+        "trigger": "Pullback to €62–65 or named hyperscaler contract win."
+      },
+      {
+        "ticker": "NVTS",
+        "on_watchlist": true,
+        "note": "GaN/SiC datacenter story, but 23% extended and ATM dilution overhang. Wait for $20–21 entry.",
+        "rationale": "Revenue growing, NVIDIA MGX showcase validates technology; ATM filing is the near‑term risk.",
+        "trigger": "Pullback to $20–21 or closure of the ATM programme."
+      },
+      {
+        "ticker": "WRD",
+        "on_watchlist": true,
+        "note": "Robotaxi deployments progressing, but 13% below 50‑day and delisting risk caps sizing. Wait for $7.46 reclaim.",
+        "rationale": "Revenue growth 58%, ev/ebitda 2.1x — deeply undervalued if European expansion holds.",
+        "trigger": "Reclaim $7.46 (50‑day) and no adverse US‑China escalation."
+      },
+      {
+        "ticker": "INTC",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → on_deck (PEG 1.36 < 1.5)] RCP gap fill failed; Google foundry buzz not confirmed. Revisit if 18A external customer is formally announced or price drops below $110."
+      }
+    ],
+    "avoid": [
+      {
+        "ticker": "ASML",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 2.75 >= 1.5; FCF yield 1.13% <= 2%)] [Rebucketed CAUTION → avoid (PEG 2.75 >= 1.5; FCF yield 1.13% <= 2%)] 22% extended, PEG 2.75. Reassess on pullback to $1,550–1,600."
+      },
+      {
+        "ticker": "TSEM",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (fwd PE 50.0x >= 20x (no PEG); FCF yield 0.38% <= 2%)] [Rebucketed CAUTION → avoid (fwd PE 50.0x >= 20x (no PEG); FCF yield 0.38% <= 2%)] RCP gap fill invalidated. Avoid until a new step‑function catalyst or pullback below $240."
+      },
+      {
+        "ticker": "000660_KS",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 3.13 >= 1.5; FCF yield 1.56% <= 2%)] [Rebucketed CAUTION → avoid (PEG 3.13 >= 1.5; FCF yield 1.56% <= 2%)] 43% extended, volume too low. Reassess on a pullback to KRW 1,855,000."
+      },
+      {
+        "ticker": "CBRS",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 2.83 >= 1.5; FCF yield -1.30% <= 2%)] [Rebucketed CAUTION → avoid (PEG 2.83 >= 1.5; FCF yield -1.30% <= 2%)] 259x forward PE is disqualifying. Revisit after June 24 earnings if multiples compress."
+      },
+      {
+        "ticker": "AMZN",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 1.83 >= 1.5; FCF yield 0.37% <= 2%)] [Rebucketed CAUTION → avoid (PEG 1.83 >= 1.5; FCF yield 0.37% <= 2%)] tight resistance at $248 caps upside. Reassess on a break above $248 or pullback to $232."
+      },
+      {
+        "ticker": "AIXA_DE",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 2.08 >= 1.5)] [Rebucketed CAUTION → avoid (PEG 2.08 >= 1.5)] 22% extended, no news. Reassess on pullback to €48."
+      },
+      {
+        "ticker": "PLTR",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 1.84 >= 1.5; FCF yield 0.54% <= 2%)] [Rebucketed CAUTION → avoid (PEG 1.84 >= 1.5; FCF yield 0.54% <= 2%)] 65x forward PE with no near‑term catalyst. Revisit if price drops to $110–120 or a major defense contract closes."
+      },
+      {
+        "ticker": "SITM",
+        "on_watchlist": true,
+        "note": "[Rebucketed CAUTION → avoid (PEG 3.82 >= 1.5; FCF yield 0.04% <= 2%)] [Rebucketed CAUTION → avoid (PEG 3.82 >= 1.5; FCF yield 0.04% <= 2%)] 18% extended, PEG >3. Revisit on pullback to $626 or a named hyperscaler design win."
+      }
+    ],
+    "hold_no_action": [
+      {
+        "ticker": "CRWV",
+        "on_watchlist": true,
+        "note": "R:R improved to 2.1:1 but thesis frail. Hold; upgrade to WATCH above $114.50 with volume."
+      }
+    ],
+    "new_stocks_to_watch": [
+      {
+        "ticker": "COHR",
+        "on_watchlist": false,
+        "note": "NVIDIA $2B photonics partner — direct LITE peer. Add to watchlist if LITE Aug earnings confirm AI optics demand acceleration."
+      },
+      {
+        "ticker": "MRVL",
+        "on_watchlist": false,
+        "note": "Custom ASIC and data‑center networking play. Watch for pullback below $120 as a potential entry."
+      },
+      {
+        "ticker": "QCOM",
+        "on_watchlist": false,
+        "note": "Edge AI beneficiary — tied to MSFT Copilot+ PC ramp. Monitor July MSFT earnings for PC shipment data."
+      }
+    ]
+  },
+  "macro_trigger_map": [
+    {
+      "event": "FOMC Rate Decision (Wed, June 18)",
+      "date": "2026-06-18",
+      "bullish_outcome": "Dovish hold — Warsh signals patience, 10Y drops below 4.4%.",
+      "bullish_upgrades": [
+        "NVDA → BUY candidate (rate‑sensitive semis rally)",
+        "D05_SI → WATCH (NIM relief in sight)"
+      ],
+      "bearish_outcome": "Hawkish hold or surprise hike — 10Y spikes above 4.7%, VIX >20.",
+      "bearish_impact": [
+        "All extended semis (AMD, INTC, MU) → deeper CAUTION",
+        "Singapore banks → remains blocked (NIM compression intensifies)"
+      ]
+    },
+    {
+      "event": "Iran Deal Formal Signing (Fri, June 20)",
+      "date": "2026-06-20",
+      "bullish_outcome": "Deal signed, Hormuz reopens, WTI below $75.",
+      "bullish_upgrades": [
+        "AMZN → WATCH (energy cost relief)",
+        "TSM → WATCH (lower input costs)"
+      ],
+      "bearish_outcome": "Signing delayed or Iranian walk‑back, WTI >$90.",
+      "bearish_impact": [
+        "All semis → remain CAUTION (inflation fear returns)",
+        "BE → avoid (natural‑gas cost spike)"
+      ]
+    }
+  ],
+  "_signal_mutations": [],
+  "_telemetry": {
+    "validator_warnings": {
+      "signal_category": 9,
+      "scenario_prose": 4,
+      "earnings_setup_archetype": 1,
+      "recent_news_attribution": 7
+    },
+    "validator_downgrades": {
+      "signal_category_rebucket": [
+        "INTC",
+        "ASML",
+        "TSEM",
+        "000660_KS",
+        "CBRS",
+        "AMZN",
+        "AIXA_DE",
+        "PLTR",
+        "SITM",
+        "ASML",
+        "TSEM",
+        "000660_KS",
+        "CBRS",
+        "AMZN",
+        "AIXA_DE",
+        "PLTR",
+        "SITM"
+      ]
+    },
+    "regen": {
+      "first_pass_critical_violations": [],
+      "regen_fired": false,
+      "post_regen_remaining": 0,
+      "regen_scope": null
+    },
+    "bucket_hint_audit": {
+      "regime": "trend_up",
+      "instrument_dark": false,
+      "pairs": {
+        "AMZN": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "O39_SI": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "ASML": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "NVTS": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "AIXA_DE": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "MU": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "TSM": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "2308_TW": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "CBRS": {
+          "injected_hint": "hold_no_action",
+          "raw_placement": "avoid"
+        },
+        "SITM": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "WRD": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "LITE": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "000660_KS": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "NVDA": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "AMD": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "GOOG": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "MSFT": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "D05_SI": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "AVGO": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "IFX_DE": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        },
+        "U11_SI": {
+          "injected_hint": "watch_for_entry",
+          "raw_placement": "watch_for_entry"
+        },
+        "PLTR": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "TSEM": {
+          "injected_hint": "avoid",
+          "raw_placement": "avoid"
+        },
+        "CRWV": {
+          "injected_hint": "hold_no_action",
+          "raw_placement": "hold_no_action"
+        },
+        "BE": {
+          "injected_hint": "regime_change_pending",
+          "raw_placement": "regime_change_pending"
+        },
+        "INTC": {
+          "injected_hint": "on_deck",
+          "raw_placement": "avoid"
+        },
+        "NOK": {
+          "injected_hint": "on_deck",
+          "raw_placement": "on_deck"
+        }
+      }
+    },
+    "macro_grounding": {
+      "claims_found": 0,
+      "claims_traced": 0,
+      "claims_untraced": [],
+      "contradictions": []
+    },
+    "rerun_divergence": []
+  },
+  "macro_context_line": "Rate backdrop (FRED, not live): payrolls +172k (eased from +179k); unemployment 4.3% (flat, stale); last CPI 4.3% YoY (up, stale). Reconcile the rate lean in the macro_summary against this when a CPI/FOMC/jobs event is near.",
+  "calibration_insights": {
+    "data_window": {
+      "from": "2026-04-17",
+      "to": "2026-06-16",
+      "lookback_days": 60
+    },
+    "signal_performance": {
+      "HOLD": {
+        "count": 129,
+        "n_matured_10d": 80,
+        "avg_return_10d": 9.51,
+        "alpha_10d": 2.86,
+        "n_alpha_10d": 80,
+        "win_rate_pct": 65.0,
+        "loss_rate_pct": 22.5,
+        "single_regime": false,
+        "regimes_present": [
+          "chop",
+          "trend_up"
+        ],
+        "by_regime": {
+          "chop": {
+            "n": 7,
+            "raw_return_10d": 16.7,
+            "alpha_10d": 8.5
+          },
+          "trend_up": {
+            "n": 73,
+            "raw_return_10d": 8.82,
+            "alpha_10d": 2.32
+          }
+        }
+      },
+      "BUY": {
+        "count": 7,
+        "n_matured_10d": 4,
+        "avg_return_10d": 6.3,
+        "alpha_10d": -5.29,
+        "n_alpha_10d": 4,
+        "win_rate_pct": 75.0,
+        "loss_rate_pct": 0.0,
+        "single_regime": false,
+        "regimes_present": [
+          "chop",
+          "trend_up"
+        ],
+        "by_regime": {
+          "chop": {
+            "n": 2,
+            "raw_return_10d": 5.3,
+            "alpha_10d": -6.74
+          },
+          "trend_up": {
+            "n": 2,
+            "raw_return_10d": 7.31,
+            "alpha_10d": -3.84
+          }
+        }
+      },
+      "WATCH": {
+        "count": 100,
+        "n_matured_10d": 41,
+        "avg_return_10d": 0.91,
+        "alpha_10d": -3.17,
+        "n_alpha_10d": 41,
+        "win_rate_pct": 51.2,
+        "loss_rate_pct": 34.1,
+        "single_regime": false,
+        "regimes_present": [
+          "chop",
+          "trend_up"
+        ],
+        "by_regime": {
+          "chop": {
+            "n": 1,
+            "raw_return_10d": 2.76,
+            "alpha_10d": 4.23
+          },
+          "trend_up": {
+            "n": 40,
+            "raw_return_10d": 0.87,
+            "alpha_10d": -3.36
+          }
+        }
+      },
+      "CAUTION": {
+        "count": 667,
+        "n_matured_10d": 433,
+        "avg_return_10d": 5.04,
+        "alpha_10d": -2.24,
+        "n_alpha_10d": 429,
+        "win_rate_pct": 51.7,
+        "loss_rate_pct": 27.7,
+        "single_regime": false,
+        "regimes_present": [
+          "chop",
+          "trend_up"
+        ],
+        "by_regime": {
+          "chop": {
+            "n": 3,
+            "raw_return_10d": 0.97,
+            "alpha_10d": -6.56
+          },
+          "trend_up": {
+            "n": 430,
+            "raw_return_10d": 5.07,
+            "alpha_10d": -2.21
+          }
+        }
+      },
+      "ACCUMULATE": {
+        "count": 11,
+        "n_matured_10d": 10,
+        "avg_return_10d": 0.23,
+        "alpha_10d": -1.31,
+        "n_alpha_10d": 10,
+        "win_rate_pct": 50.0,
+        "loss_rate_pct": 20.0,
+        "single_regime": false,
+        "regimes_present": [
+          "chop",
+          "trend_up"
+        ],
+        "by_regime": {
+          "chop": {
+            "n": 3,
+            "raw_return_10d": -1.2,
+            "alpha_10d": -3.3
+          },
+          "trend_up": {
+            "n": 7,
+            "raw_return_10d": 0.84,
+            "alpha_10d": -0.46
+          }
+        }
+      }
+    },
+    "caution_breakdown": {
+      "extension": {
+        "count": 404,
+        "n_matured_10d": 247,
+        "avg_return_10d": 7.09,
+        "alpha_10d": -1.05,
+        "n_alpha_10d": 246,
+        "rally_rate_5pct": 47.4,
+        "drawdown_rate_neg2pct": 27.1
+      },
+      "rsi_overbought": {
+        "count": 117,
+        "n_matured_10d": 97,
+        "avg_return_10d": 2.27,
+        "alpha_10d": -2.5,
+        "n_alpha_10d": 94,
+        "rally_rate_5pct": 22.7,
+        "drawdown_rate_neg2pct": 21.6
+      },
+      "hard_other": {
+        "count": 5,
+        "n_matured_10d": 5,
+        "avg_return_10d": 6.13,
+        "alpha_10d": -2.62,
+        "n_alpha_10d": 5,
+        "rally_rate_5pct": 40.0,
+        "drawdown_rate_neg2pct": 20.0
+      },
+      "other": {
+        "count": 31,
+        "n_matured_10d": 15,
+        "avg_return_10d": 5.57,
+        "alpha_10d": -5.71,
+        "n_alpha_10d": 15,
+        "rally_rate_5pct": 53.3,
+        "drawdown_rate_neg2pct": 13.3
+      },
+      "valuation": {
+        "count": 33,
+        "n_matured_10d": 22,
+        "avg_return_10d": 0.42,
+        "alpha_10d": -3.92,
+        "n_alpha_10d": 22,
+        "rally_rate_5pct": 18.2,
+        "drawdown_rate_neg2pct": 36.4
+      },
+      "claude_override": {
+        "count": 52,
+        "n_matured_10d": 24,
+        "avg_return_10d": 2.13,
+        "alpha_10d": -4.61,
+        "n_alpha_10d": 24,
+        "rally_rate_5pct": 29.2,
+        "drawdown_rate_neg2pct": 41.7
+      },
+      "unclassified": {
+        "count": 20,
+        "n_matured_10d": 20,
+        "avg_return_10d": 3.12,
+        "alpha_10d": -6.65,
+        "n_alpha_10d": 20,
+        "rally_rate_5pct": 35.0,
+        "drawdown_rate_neg2pct": 40.0
+      }
+    },
+    "lessons": [
+      {
+        "lesson": "NVDA CAUTION correctly avoided relative weakness in 21/26 cases over 10d (regimes: chop/trend_up).",
+        "evidence": "avg alpha vs SOXX: -9.2% (n=26)",
+        "tickers_involved": [
+          "NVDA"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "LITE CAUTION correctly avoided relative weakness in 21/28 cases over 10d (regimes: chop/trend_up).",
+        "evidence": "avg alpha vs SOXX: -7.8% (n=28)",
+        "tickers_involved": [
+          "LITE"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "CAUTION cross-watchlist (last 60d): beat benchmark in 125/429, lagged in 238/429 (regimes: chop/trend_up).",
+        "evidence": "avg alpha: -2.2% over 10d (n=429)",
+        "tickers_involved": [],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "O39_SI CAUTION correctly avoided relative weakness in 2/15 cases over 10d (regimes: chop/trend_up).",
+        "evidence": "avg alpha vs ^STI: +1.9% (n=15)",
+        "tickers_involved": [
+          "O39_SI"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "ACCUMULATE cross-watchlist (last 60d): beat benchmark in 2/10, lagged in 3/10 (regimes: chop/trend_up).",
+        "evidence": "avg alpha: -1.3% over 10d (n=10)",
+        "tickers_involved": [],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "INSUFFICIENT DATA: CAUTION for U11_SI has only n=17 over a single regime (trend_up) — do not adjust stance based on this.",
+        "evidence": "avg alpha vs ^STI: +1.5% over 10d (n=16)",
+        "tickers_involved": [
+          "U11_SI"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "INSUFFICIENT DATA: CAUTION for D05_SI has only n=19 over a single regime (trend_up) — do not adjust stance based on this.",
+        "evidence": "avg alpha vs ^STI: +3.2% over 10d (n=18)",
+        "tickers_involved": [
+          "D05_SI"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "INSUFFICIENT DATA: CAUTION for 2308_TW has only n=5 over a single regime (trend_up) — do not adjust stance based on this.",
+        "evidence": "avg alpha vs SOXX: -13.6% over 10d (n=4)",
+        "tickers_involved": [
+          "2308_TW"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "INSUFFICIENT DATA: WATCH for WRD has only n=14 over a single regime (trend_up) — do not adjust stance based on this.",
+        "evidence": "avg alpha vs SPY: -4.5% over 10d (n=14)",
+        "tickers_involved": [
+          "WRD"
+        ],
+        "computed_on": "2026-06-16"
+      },
+      {
+        "lesson": "INSUFFICIENT DATA: CAUTION for TSM has only n=25 over a single regime (trend_up) — do not adjust stance based on this.",
+        "evidence": "avg alpha vs SOXX: -6.8% over 10d (n=25)",
+        "tickers_involved": [
+          "TSM"
+        ],
+        "computed_on": "2026-06-16"
+      }
+    ],
+    "taxonomy_discrimination": {
+      "in_window": {
+        "observed_ordering": [
+          [
+            "HOLD",
+            2.86
+          ],
+          [
+            "ACCUMULATE",
+            -1.31
+          ],
+          [
+            "CAUTION",
+            -2.24
+          ],
+          [
+            "WATCH",
+            -3.17
+          ]
+        ],
+        "observed_ordering_str": "HOLD +2.9 > ACCUMULATE -1.3 > CAUTION -2.2 > WATCH -3.2",
+        "monotonic": "PARTIAL",
+        "readable_classes": [
+          "ACCUMULATE",
+          "CAUTION",
+          "HOLD",
+          "WATCH"
+        ],
+        "excluded_thin_n": [
+          "BUY"
+        ],
+        "single_regime_classes": [],
+        "tier_spread": {
+          "value": 0.93,
+          "readable": true,
+          "n_bull": 1,
+          "n_bear": 1,
+          "reason": null
+        },
+        "accumulate_minus_buy": {
+          "value": null,
+          "readable": false,
+          "reason": "BUY not readable (thin-n or single-regime)"
+        },
+        "caution_minus_hold": {
+          "value": -5.1,
+          "readable": true,
+          "reason": null
+        }
+      },
+      "full_corpus": {
+        "observed_ordering": [
+          [
+            "HOLD",
+            2.86
+          ],
+          [
+            "ACCUMULATE",
+            -0.82
+          ],
+          [
+            "CAUTION",
+            -2.24
+          ],
+          [
+            "WATCH",
+            -3.17
+          ]
+        ],
+        "observed_ordering_str": "HOLD +2.9 > ACCUMULATE -0.8 > CAUTION -2.2 > WATCH -3.2",
+        "monotonic": "PARTIAL",
+        "readable_classes": [
+          "ACCUMULATE",
+          "CAUTION",
+          "HOLD",
+          "WATCH"
+        ],
+        "excluded_thin_n": [
+          "BUY"
+        ],
+        "single_regime_classes": [],
+        "tier_spread": {
+          "value": 1.42,
+          "readable": true,
+          "n_bull": 1,
+          "n_bear": 1,
+          "reason": null
+        },
+        "accumulate_minus_buy": {
+          "value": null,
+          "readable": false,
+          "reason": "BUY not readable (thin-n or single-regime)"
+        },
+        "caution_minus_hold": {
+          "value": -5.1,
+          "readable": true,
+          "reason": null
+        }
+      },
+      "note": "Output-only meta-analysis of signal-class discrimination. NOT injected into the analysis prompt and NOT persisted into memory.lessons_learned. full_corpus pools pre-cutover (different-instrument) rows — informational only."
+    },
+    "confidence_banner": "Actionable buckets BUY (n=4) / ACCUMULATE (n=10) spanning chop, trend_up. NOT yet decision-grade — alpha figures are benchmark-relative; single-regime samples carry no out-of-regime evidence.",
+    "note": "Block is output-only — assembled post-LLM from signal_evaluation_log outcomes and never injected into the analysis prompt. The underlying lesson stats are separately persisted into report_memory.json under lessons_learned and DO reach the next day's prompt via the memory Layer 3 calibration loop. Treat as a reader-facing self-knowledge summary."
+  }
+}
