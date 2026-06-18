@@ -18,6 +18,55 @@ from lib.cards import card_container
 from lib.formatters import _escape_dollars
 
 
+def _bucket_pill_html(e: dict) -> str:
+    """Inline 'when-for-you' SG-day badge, e.g. [DURING SG MORNING].
+
+    Brighter ink when the event lands during the SG session (the reader is
+    awake / markets-adjacent), muted otherwise. Empty when absent (old reports
+    exported before the pipeline timing layer existed)."""
+    bucket = e.get("sg_bucket")
+    if not bucket:
+        return ""
+    active = bucket.startswith("DURING")
+    color = "var(--ink-2)" if active else "var(--ink-3)"
+    return (
+        f'<span style="font-family:var(--mono);font-size:9px;'
+        f'letter-spacing:0.08em;border:1px solid var(--rule);border-radius:3px;'
+        f'padding:1px 5px;margin-left:7px;color:{color};white-space:nowrap;'
+        f'vertical-align:1px;">{bucket}</span>'
+    )
+
+
+def _timing_line_html(e: dict) -> str:
+    """Sub-line under the event title: '<local/relation> · <SGT clock>'.
+
+    Left side prefers the relation phrase when the local clock is uninformative
+    (US after-close/before-open, or an SG-domiciled name whose local clock IS
+    the SGT clock); otherwise the local clock. '~' marks the approximate
+    earnings window. Empty when the event carries no resolved timing."""
+    t = e.get("timing")
+    if not t:
+        return ""
+    approx = bool(t.get("approx"))
+    tilde = "~" if approx else ""
+    sgt = t.get("sgt_label", "")
+    relation = t.get("relation")
+    local = t.get("local_label", "")
+    if relation and (relation in ("after US close", "before US open")
+                     or local == sgt):
+        left = relation                       # phrase — no tilde
+    elif local:
+        left = f"{tilde}{local}"              # clock — tilde when approx
+    else:
+        left = relation or ""
+    sgt_disp = f"{tilde}{sgt}" if sgt else ""
+    sep = " · " if left and sgt_disp else ""
+    return (
+        f'<span style="display:block;margin-top:3px;font-family:var(--mono);'
+        f'font-size:10px;color:var(--ink-3);">{left}{sep}{sgt_disp}</span>'
+    )
+
+
 def _group_html(group: list, muted: bool = False) -> str:
     """Return day-grouped events markup as a string."""
     grouped: dict[str, list] = {}
@@ -45,10 +94,18 @@ def _group_html(group: list, muted: bool = False) -> str:
                     for t in tickers[:5]
                 )
                 ticker_html = f'<div style="margin-top:3px;{style}">{tags}</div>'
+            # Bucket pill + timing line live INSIDE the .cal-text (1fr) column so
+            # they stay aligned under the title — the .cal-event grid has a fixed
+            # column count and must not gain extra direct children.
+            text_html = (
+                f'{_escape_dollars(e.get("event", ""))}'
+                f'{_bucket_pill_html(e)}'
+                f'{_timing_line_html(e)}'
+            )
             events_html += (
                 f'<div class="cal-event" style="{style}">'
                 f'<span class="cal-impact {impact}">{impact}</span>'
-                f'<span class="cal-text">{_escape_dollars(e.get("event", ""))}</span>'
+                f'<span class="cal-text">{text_html}</span>'
                 f'</div>'
                 f'{ticker_html}'
             )
