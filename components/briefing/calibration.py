@@ -11,6 +11,9 @@ from __future__ import annotations
 
 from collections import Counter
 
+import streamlit as st
+
+from lib.cards import render_section_head
 from lib.catalog import SIGNAL_ORDER
 from lib.formatters import _escape_dollars, _fmt_num, _sign
 from lib.pills import _signal_pill_html
@@ -208,3 +211,20 @@ def _calibration_html(calibration_insights: dict, watchlist: dict) -> str:
 
     parts.append("</div>")
     return f'<details class="cal-band cal-details">{"".join(parts)}</details>'
+
+
+def render_calibration(calibration_insights: dict | None, watchlist: dict) -> None:
+    """Briefing signal-calibration band — the pipeline's signal-accuracy
+    self-assessment (review P1-2).
+
+    Silent when the report carries no ``calibration_insights`` (older reports /
+    the ~56% without it); on the latest report it is present.
+    """
+    ci = calibration_insights or {}
+    if not ci.get("signal_performance"):
+        return
+    render_section_head("Signal Calibration", "How today's signals have actually performed")
+    st.markdown(
+        _calibration_html(ci, watchlist),
+        unsafe_allow_html=True,
+    )

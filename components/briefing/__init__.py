@@ -8,6 +8,7 @@ playbook, contrarians, and methodology footer), so there is no shared orchestrat
 from __future__ import annotations
 
 from components.briefing.action_card import render_action_card
+from components.briefing.calibration import render_calibration
 from components.briefing.catalyst_playbook import render_catalyst_playbook
 from components.briefing.changes import render_changes
 from components.briefing.clusters import render_clusters
@@ -16,6 +17,7 @@ from components.briefing.pulse import render_pulse
 
 __all__ = [
     "render_action_card",
+    "render_calibration",
     "render_catalyst_playbook",
     "render_changes",
     "render_clusters",

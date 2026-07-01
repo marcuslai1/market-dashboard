@@ -18,6 +18,7 @@ import streamlit as st
 
 from components.briefing import (
     render_action_card,
+    render_calibration,
     render_catalyst_playbook,
     render_changes,
     render_clusters,
@@ -306,6 +307,10 @@ if page == "Briefing":
         report.get("clusters", {}),
         watchlist,
         report.get("extension_regime"),
+    )
+    render_calibration(
+        report.get("calibration_insights"),
+        watchlist,
     )
     render_action_card(watchlist, events)
     render_catalyst_playbook(trigger_map)
