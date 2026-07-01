@@ -1,6 +1,7 @@
 /* MarketReport Streamlit theme — editorial dark.
-   Injected once at startup by dashboard.py via _inject_theme().
-   Keep colour tokens in sync with assets/catalog.json and styles.css.
+   Injected once at startup by dashboard.py (reads this file, wraps in <style>).
+   The signal palette below (:root --buy … --caution) mirrors
+   assets/catalog.json; tests/test_design_tokens.py fails if they drift.
 */
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -331,10 +332,20 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   transition: color var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out);
 }
-/* Hide the native radio circle (BaseWeb's wrapper div) and the input itself */
-.st-key-page_nav [role="radiogroup"] > label > div:first-child,
-.st-key-page_nav [role="radiogroup"] > label > input[type="radio"] {
+/* Hide the native radio circle (BaseWeb's wrapper div). */
+.st-key-page_nav [role="radiogroup"] > label > div:first-child {
   display: none !important;
+}
+/* Visually hide the radio input WITHOUT removing it from the tab order — a
+   plain `display:none` here made the whole nav unreachable by keyboard. This
+   sr-only pattern keeps focus landing on the input so the :focus-visible ring
+   below can show keyboard users which tab they're on. */
+.st-key-page_nav [role="radiogroup"] > label > input[type="radio"] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  margin: 0 !important;
 }
 .st-key-page_nav [role="radiogroup"] > label:hover {
   color: var(--ink-2) !important;
@@ -343,7 +354,13 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 .st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
   color: var(--ink) !important;
   font-weight: 600;
-  border-bottom-color: #f59e0b !important;   /* amber accent = "you are here" */
+  border-bottom-color: var(--watch) !important;   /* amber accent = "you are here" */
+}
+/* Keyboard focus ring on the active tab label (matches the summary treatment). */
+.st-key-page_nav [role="radiogroup"] > label:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* —— Folio index —— amber section numerals (01–07) injected via ::before so the
@@ -1115,3 +1132,46 @@ details.led-details[open] > summary {
 }
 .ep-table tr:last-child td { border-bottom: 0; }
 .ep-table .num { text-align: right; white-space: nowrap; }
+
+/* ── Briefing status banners ──────────────────────────────────────
+   One class replaces three near-identical inline-styled <div>s in
+   dashboard.py (data-coverage / accumulate-paper-phase / crisis flag).
+   `data-tone` picks the palette; values reproduce the originals 1:1. */
+.briefing-banner {
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-left-width: 3px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.briefing-banner[data-tone="warn"] {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.40);
+  border-left-color: var(--caution);
+}
+.briefing-banner[data-tone="test"] {
+  padding: 9px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: #f59e0b55;
+  border-left-color: var(--watch);
+}
+.briefing-banner[data-tone="ok"] {
+  padding: 9px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: #22c55e55;
+  border-left-color: var(--buy);
+}
+.briefing-banner[data-tone="crisis"] {
+  margin-bottom: 16px;
+  padding: 12px 18px;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.40);
+  border-left-width: 1px;   /* uniform border — no accent rail */
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  color: var(--caution);
+}

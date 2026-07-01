@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for signals + tickers. Loaded by dashboard.py and live_prices.py. Mirror to app.jsx/data.js manually for now (no build step).",
+  "_comment": "Single source of truth for signal palette + ticker metadata; consumed by lib/catalog.py (Python side). The CSS palette in assets/theme.css (:root --buy … --caution) hand-mirrors the `signals.colors`/`signals.tints` values here; tests/test_design_tokens.py fails if they drift.",
   "signals": {
     "order": ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"],
     "writeup": ["BUY", "ACCUMULATE", "WATCH", "CAUTION"],
