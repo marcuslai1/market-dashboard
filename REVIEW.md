@@ -115,7 +115,7 @@ everywhere (`CLUSTER_MAP.get("SNDK","")`). **Fixed:** added `SNDK` → `Semis`
 (`test_every_active_ticker_has_cluster_and_yahoo`) that fails if any non-retired
 watchlist ticker is missing from the cluster or yahoo maps.
 
-### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 1st slice shipped 2026-07-02)
+### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 2nd slice shipped 2026-07-02)
 Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0):
 `clusters` (top-level, 100%), `calibration_insights` (43%), `extension_regime`
 (40%), `scheduled_tech_events` (25%), `macro_context_line` (23%),
@@ -139,6 +139,23 @@ consumed and `extension_regime` is now partially consumed (the rest —
 (`scheduled_tech_events`) and the calibration scorecard (`calibration_insights`).
 Design + plan: `docs/superpowers/specs/2026-07-01-cluster-briefing-band-design.md`,
 `docs/superpowers/plans/2026-07-02-cluster-briefing-band.md`.
+
+**Update (2026-07-02) — second slice surfaced (merge `59b32e5`):** `calibration_insights`
+is now rendered as the **Briefing signal-calibration band** (placed after the cluster
+band): a confidence-gated scorecard anchored to today's live signals — collapsed headline
+(today's dominant signal + its 10d alpha + confidence state), expands to a per-signal track
+record (n / win-rate / avg-10d / alpha, all buckets by `SIGNAL_ORDER`, low-confidence rows
+muted), the full-corpus taxonomy verdict, and the `confidence_banner` caveat. So
+`calibration_insights` is now fully consumed. **Remaining unconsumed (~10):**
+`scheduled_tech_events`, `macro_context_line`, `news_sentiment_skew`, `thesis_highlights`,
+`vs_cluster_chg_pct/5d/1mo`, `premarket`/`pm_*`/`market_state`, `eps_trajectory`,
+`eps_surprise`, `structural_conviction`. Next candidate slice: the genuinely-free earnings
+piece is `eps_trajectory` (beat/miss history for MU / SK Hynix / LITE / PLTR) — note
+`scheduled_tech_events` is sparse (only 2/82 reports carry a *future* event) and
+`macro_trigger_map` is **already** consumed via `render_catalyst_playbook`, so the earnings
+slice is narrower than it first looked. Design + plan:
+`docs/superpowers/specs/2026-07-02-calibration-scorecard-band-design.md`,
+`docs/superpowers/plans/2026-07-02-calibration-scorecard-band.md`.
 
 ### P1-3 · minor · legacy format paths are LIVE — must stay tested — ✅ FIXED
 Dual-format handling is genuinely exercised, not dead code: **548 entries** still
@@ -366,9 +383,10 @@ fallback for full screen-reader parity.
 **Decisions still needed (yours):**
 - **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
   action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
-- **P1-2** surface-or-drop the **remaining ~11** "produced but unconsumed" report
-  fields — the `clusters` slice shipped 2026-07-02 as the Briefing cluster band
-  (merge `9efe4e7`), which also consumed `extension_regime.blocked_tickers`.
+- **P1-2** surface-or-drop the **remaining ~10** "produced but unconsumed" report
+  fields — two slices shipped 2026-07-02: the `clusters` cluster band (merge `9efe4e7`,
+  also consuming `extension_regime.blocked_tickers`) and the `calibration_insights`
+  signal-calibration band (merge `59b32e5`).
 
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
 P6-1 remainder (context-specific shades).
