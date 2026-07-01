@@ -6,7 +6,8 @@ from datetime import date, timedelta
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.formatters import _escape_dollars, _legacy_rationale_from
+from lib.catalog import SIGNAL_BULLISHNESS
+from lib.formatters import _escape_dollars, _legacy_rationale_from, _price_str
 from lib.pills import _signal_pill_html
 
 from components.scenario_log import _get_probs
@@ -58,7 +59,7 @@ def _editorial_table(headers: list[str], rows: list[list[str]],
     def _cls(i: int) -> str:
         return ' class="num"' if i in num_cols else ""
 
-    head = "".join(f"<th{_cls(i)}>{h}</th>" for i, h in enumerate(headers))
+    head = "".join(f'<th scope="col"{_cls(i)}>{h}</th>' for i, h in enumerate(headers))
     body = ""
     for r in rows:
         body += "<tr>" + "".join(f"<td{_cls(i)}>{c}</td>" for i, c in enumerate(r)) + "</tr>"
@@ -103,7 +104,6 @@ def render_report_comparison_page(reports: dict) -> None:
             wl_start = rpt_start.get("watchlist", {})
             wl_end = rpt_end.get("watchlist", {})
 
-            signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
             trend_changes = []
             upgrades = 0
             downgrades = 0
@@ -114,8 +114,8 @@ def render_report_comparison_page(reports: dict) -> None:
                 sig_e = wl_end.get(tk, {}).get("signal", "—")
                 if sig_s == sig_e:
                     continue
-                r_s = signal_rank.get(sig_s, 0)
-                r_e = signal_rank.get(sig_e, 0)
+                r_s = SIGNAL_BULLISHNESS.get(sig_s, 0)
+                r_e = SIGNAL_BULLISHNESS.get(sig_e, 0)
                 direction = "upgrade" if r_e > r_s else "downgrade"
                 if sig_s == "—":
                     direction = "new"
@@ -171,7 +171,7 @@ def render_report_comparison_page(reports: dict) -> None:
                 h = ["Ticker", f"Signal ({start_date})", f"Signal ({end_date})",
                      "Direction", "Price Chg"]
                 rows = [
-                    [tc["Ticker"], _sig_cell(tc[h[1]]), _sig_cell(tc[h[2]]),
+                    [_escape_dollars(tc["Ticker"]), _sig_cell(tc[h[1]]), _sig_cell(tc[h[2]]),
                      _dir_cell(tc["Direction"]), _delta_cell(tc["Price Chg"])]
                     for tc in trend_changes
                 ]
@@ -229,15 +229,14 @@ def render_report_comparison_page(reports: dict) -> None:
 
     # ── Signal Changes ──
     st.subheader("Signal Changes")
-    signal_rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
     sig_changes = []
     all_tickers = sorted(set(wl_a) | set(wl_b))
     for tk in all_tickers:
         sig_a = wl_a.get(tk, {}).get("signal", "—")
         sig_b = wl_b.get(tk, {}).get("signal", "—")
         if sig_a != sig_b:
-            r_a = signal_rank.get(sig_a, 0)
-            r_b = signal_rank.get(sig_b, 0)
+            r_a = SIGNAL_BULLISHNESS.get(sig_a, 0)
+            r_b = SIGNAL_BULLISHNESS.get(sig_b, 0)
             direction = "upgrade" if r_b > r_a else "downgrade"
             if sig_a == "—":
                 direction = "new"
@@ -254,7 +253,8 @@ def render_report_comparison_page(reports: dict) -> None:
     if sig_changes:
         h = ["Ticker", f"Signal ({date_a})", f"Signal ({date_b})", "Direction", "Rationale"]
         rows = [
-            [sc["Ticker"], _sig_cell(sc[h[1]]), _sig_cell(sc[h[2]]), _dir_cell(sc["Direction"]),
+            [_escape_dollars(sc["Ticker"]), _sig_cell(sc[h[1]]), _sig_cell(sc[h[2]]),
+             _dir_cell(sc["Direction"]),
              f'<span style="color:var(--ink-3);">{_escape_dollars(sc["Rationale"])}</span>']
             for sc in sig_changes
         ]
@@ -335,11 +335,10 @@ def render_report_comparison_page(reports: dict) -> None:
 
         curr_a = da.get("currency", "USD")
         curr_b = db.get("currency", "USD")
-        pfx = "S$" if curr_b == "SGD" or curr_a == "SGD" else "$"
         metric_rows.append({
             "Ticker": tk,
-            f"Price ({date_a})": f"{pfx}{price_a:,.2f}" if price_a else "—",
-            f"Price ({date_b})": f"{pfx}{price_b:,.2f}" if price_b else "—",
+            f"Price ({date_a})": _price_str(price_a, curr_a) if price_a else "—",
+            f"Price ({date_b})": _price_str(price_b, curr_b) if price_b else "—",
             "Price Chg": price_chg or "—",
             "RSI Chg": rsi_chg or "—",
             "vs SMA50 Chg": vs50_chg or "—",
@@ -348,7 +347,7 @@ def render_report_comparison_page(reports: dict) -> None:
         h = ["Ticker", f"Price ({date_a})", f"Price ({date_b})",
              "Price Chg", "RSI Chg", "vs SMA50 Chg"]
         rows = [
-            [m["Ticker"], m[h[1]], m[h[2]], _delta_cell(m["Price Chg"]),
+            [_escape_dollars(m["Ticker"]), m[h[1]], m[h[2]], _delta_cell(m["Price Chg"]),
              _delta_cell(m["RSI Chg"]), _delta_cell(m["vs SMA50 Chg"])]
             for m in metric_rows
         ]

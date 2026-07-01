@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from lib.catalog import RETIRED_TICKERS
+from lib.catalog import RETIRED_TICKERS, SIGNAL_SORT_RANK
 
 from components.watchlist.row import render_ticker_details_html
 
@@ -25,11 +25,11 @@ def render_watchlist(
     CSS can flash them on first mount.
     """
     changed_set = changed_tickers or set()
-    rank = {"BUY": 0, "ACCUMULATE": 1, "WATCH": 2, "HOLD": 3, "CAUTION": 4}
+    _rank_last = len(SIGNAL_SORT_RANK)
     items = sorted(
         [(tk, d) for tk, d in watchlist.items() if tk not in RETIRED_TICKERS],
         key=lambda x: (
-            rank.get(x[1].get("signal", "HOLD"), 5),
+            SIGNAL_SORT_RANK.get(x[1].get("signal", "HOLD"), _rank_last),
             -(x[1].get("1mo_pct") or 0),
         ),
     )
@@ -39,13 +39,15 @@ def render_watchlist(
     # blocks (the browser auto-closes it). .tk-scroll lets the fixed-column grid
     # swipe horizontally on phones instead of clipping columns off the edge.
     head = (
-        '<div class="tk-row head">'
-        '<div>Ticker</div><div>Name</div><div>Signal</div>'
-        '<div style="text-align:right;">Last · Δ</div>'
-        '<div style="text-align:right;">1mo</div>'
-        '<div style="text-align:right;">vs 50-day</div>'
-        '<div style="text-align:right;">RSI</div>'
-        '<div style="text-align:right;">R:R</div>'
+        '<div class="tk-row head" role="row">'
+        '<div role="columnheader">Ticker</div>'
+        '<div role="columnheader">Name</div>'
+        '<div role="columnheader">Signal</div>'
+        '<div role="columnheader" style="text-align:right;">Last · Δ</div>'
+        '<div role="columnheader" style="text-align:right;">1mo</div>'
+        '<div role="columnheader" style="text-align:right;">vs 50-day</div>'
+        '<div role="columnheader" style="text-align:right;">RSI</div>'
+        '<div role="columnheader" style="text-align:right;">R:R</div>'
         '</div>'
     )
     rows = "".join(
@@ -53,6 +55,7 @@ def render_watchlist(
         for tk, d in items
     )
     st.markdown(
-        f'<div class="tk-scroll">{head}{rows}</div>',
+        f'<div class="tk-scroll" role="table" aria-label="Watchlist — click a row to expand">'
+        f'{head}{rows}</div>',
         unsafe_allow_html=True,
     )

@@ -9,7 +9,10 @@ from __future__ import annotations
 
 from lib.catalog import CLUSTER_MAP, TICKER_DISPLAY
 from lib.formatters import (
+    _ccy_decimals,
+    _ccy_prefix,
     _delta_class,
+    _escape_attr,
     _escape_dollars,
     _fmt_num,
     _sign,
@@ -28,9 +31,10 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
     target it (gated by ``.watchlist-route[data-first-mount="true"]``).
     """
     sig = d.get("signal", "HOLD")
-    display_tk = TICKER_DISPLAY.get(tk, tk)
+    display_tk = _escape_dollars(TICKER_DISPLAY.get(tk, tk))
     ccy = d.get("currency", "USD")
-    pfx = "S$" if ccy == "SGD" else "$"
+    pfx = _ccy_prefix(ccy)
+    dec = _ccy_decimals(ccy)
     price = d.get("price")
     chg = d.get("chg_pct")
     m1 = d.get("1mo_pct")
@@ -44,7 +48,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
         f'<div class="name">{CLUSTER_MAP.get(tk, "")}</div>'
         f'<div>{_signal_pill_html(sig)}</div>'
         f'<div style="text-align:right;">'
-        f'{pfx}{_fmt_num(price, 2)}'
+        f'{pfx}{_fmt_num(price, dec)}'
         f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
         f'{_sign(chg)}{_fmt_num(chg, 2)}%</div></div>'
         f'<div class="{_delta_class(m1)}" style="text-align:right;">'
@@ -80,6 +84,6 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
 
     changed_attr = ' data-signal-changed="true"' if signal_changed else ''
     return (
-        f'<details class="tk-details" data-signal="{sig}"{changed_attr}>'
+        f'<details class="tk-details" data-signal="{_escape_attr(sig)}"{changed_attr}>'
         f'{summary}{body}</details>'
     )

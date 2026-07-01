@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from lib.catalog import SIGNAL_COLORS, TICKER_DISPLAY
+from lib.catalog import SIGNAL_BULLISHNESS, SIGNAL_COLORS, TICKER_DISPLAY
 from lib.formatters import _escape_dollars, _writeup_for_render
 from lib.pills import _signal_pill_html
 
@@ -17,7 +17,6 @@ from lib.pills import _signal_pill_html
 def render_changes(today_wl: dict, prev_wl: dict) -> None:
     if not prev_wl:
         return
-    rank = {"BUY": 5, "ACCUMULATE": 4, "WATCH": 3, "HOLD": 2, "CAUTION": 1}
     items = []
     rationales: dict[str, str] = {}
     for tk in sorted(set(today_wl) | set(prev_wl)):
@@ -25,12 +24,12 @@ def render_changes(today_wl: dict, prev_wl: dict) -> None:
         new = today_wl.get(tk, {}).get("signal", "—")
         if old == new or new == "—" or old == "—":
             continue
-        direction = "up" if rank.get(new, 0) > rank.get(old, 0) else "down"
+        direction = "up" if SIGNAL_BULLISHNESS.get(new, 0) > SIGNAL_BULLISHNESS.get(old, 0) else "down"
         arrow_color = SIGNAL_COLORS.get(new, "#9F988B")
         display_tk = TICKER_DISPLAY.get(tk, tk)
         items.append(
             f'<span style="display:inline-flex;align-items:center;gap:8px;">'
-            f'<strong style="color:var(--ink);">{display_tk}</strong>'
+            f'<strong style="color:var(--ink);">{_escape_dollars(display_tk)}</strong>'
             f'{_signal_pill_html(old, small=True)}'
             f'<span style="color:{arrow_color};font-weight:700;">'
             f'{"↑" if direction == "up" else "↓"}</span>'

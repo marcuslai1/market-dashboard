@@ -55,7 +55,7 @@ def render_catalyst_playbook(trigger_map: list) -> None:
             f'font-weight:500;color:var(--ink);">{_escape_dollars(name)}</span>'
             f'<span style="font-family:var(--mono);font-size:10.5px;'
             f'letter-spacing:0.10em;text-transform:uppercase;color:var(--ink-3);">'
-            f'{when}</span></div>'
+            f'{_escape_dollars(when)}</span></div>'
             f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">'
             f'<div>'
             f'<div style="font-family:var(--mono);font-size:10px;'

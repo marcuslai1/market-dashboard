@@ -20,6 +20,22 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = _PROJECT_ROOT / "data"
 
 
+def _safe_read_csv(csv_path: Path) -> pd.DataFrame:
+    """Read a CSV, returning an empty frame (not raising) on any read failure.
+
+    A truncated, locked, or malformed export used to crash the whole page; this
+    fails soft the same way ``load_all_reports`` does for bad JSON.
+    """
+    if not csv_path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(csv_path)
+    except (OSError, ValueError, UnicodeDecodeError, pd.errors.ParserError,
+            pd.errors.EmptyDataError):
+        st.sidebar.warning(f"Skipped unreadable data file: {csv_path.name}")
+        return pd.DataFrame()
+
+
 @st.cache_data(ttl=300)
 def load_all_reports() -> dict[str, dict]:
     """Load all morning_report JSON files, keyed by date string."""
@@ -38,11 +54,8 @@ def load_all_reports() -> dict[str, dict]:
 @st.cache_data(ttl=300)
 def load_sqlite_prices() -> pd.DataFrame:
     """Load price history from CSV export."""
-    csv_path = DATA_DIR / "market_data.csv"
-    if not csv_path.exists():
-        return pd.DataFrame()
-    df = pd.read_csv(csv_path)
-    if not df.empty:
+    df = _safe_read_csv(DATA_DIR / "market_data.csv")
+    if not df.empty and "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
         if "ticker" in df.columns:
             df = df[~df["ticker"].isin(RETIRED_TICKERS)]
@@ -52,10 +65,9 @@ def load_sqlite_prices() -> pd.DataFrame:
 @st.cache_data(ttl=300)
 def load_pipeline_stats() -> pd.DataFrame:
     """Load pipeline article stats from CSV export."""
-    csv_path = DATA_DIR / "pipeline_stats.csv"
-    if not csv_path.exists():
-        return pd.DataFrame()
-    df = pd.read_csv(csv_path)
+    df = _safe_read_csv(DATA_DIR / "pipeline_stats.csv")
+    if df.empty:
+        return df
     extra_cols = ["yfinance_articles", "yfinance_chars", "tavily_articles",
                   "tavily_chars", "system_prompt_chars", "watchlist_data_chars",
                   "memory_chars", "total_prompt_chars", "computed_cost_usd",
@@ -69,13 +81,11 @@ def load_pipeline_stats() -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=300)
 def load_token_usage() -> pd.DataFrame:
     """Load Claude API usage from CSV export."""
-    csv_path = DATA_DIR / "claude_analysis.csv"
-    if not csv_path.exists():
-        return pd.DataFrame()
-    df = pd.read_csv(csv_path)
-    if not df.empty:
+    df = _safe_read_csv(DATA_DIR / "claude_analysis.csv")
+    if not df.empty and "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
     return df
 
@@ -83,11 +93,8 @@ def load_token_usage() -> pd.DataFrame:
 @st.cache_data(ttl=300)
 def load_signal_log() -> pd.DataFrame:
     """Load signal_evaluation_log export (paper-trade outcomes)."""
-    csv_path = DATA_DIR / "signal_log.csv"
-    if not csv_path.exists():
-        return pd.DataFrame()
-    df = pd.read_csv(csv_path)
-    if df.empty:
+    df = _safe_read_csv(DATA_DIR / "signal_log.csv")
+    if df.empty or "date" not in df.columns:
         return df
     df["date"] = pd.to_datetime(df["date"])
     for col in ["price_after_5d", "price_after_10d", "price_after_20d",
