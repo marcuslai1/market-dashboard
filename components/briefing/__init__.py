@@ -13,6 +13,7 @@ from components.briefing.catalyst_playbook import render_catalyst_playbook
 from components.briefing.changes import render_changes
 from components.briefing.clusters import render_clusters
 from components.briefing.contrarians import render_contrarian_candidates
+from components.briefing.earnings import render_earnings
 from components.briefing.pulse import render_pulse
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "render_changes",
     "render_clusters",
     "render_contrarian_candidates",
+    "render_earnings",
     "render_pulse",
 ]
