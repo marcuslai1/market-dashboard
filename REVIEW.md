@@ -115,7 +115,7 @@ everywhere (`CLUSTER_MAP.get("SNDK","")`). **Fixed:** added `SNDK` → `Semis`
 (`test_every_active_ticker_has_cluster_and_yahoo`) that fails if any non-retired
 watchlist ticker is missing from the cluster or yahoo maps.
 
-### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 2nd slice shipped 2026-07-02)
+### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 3rd slice shipped 2026-07-02)
 Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0):
 `clusters` (top-level, 100%), `calibration_insights` (43%), `extension_regime`
 (40%), `scheduled_tech_events` (25%), `macro_context_line` (23%),
@@ -152,6 +152,25 @@ piece is `eps_trajectory` (beat/miss history for MU / SK Hynix / LITE / PLTR) �
 `scheduled_tech_events` is sparse (only 2/82 reports carry a *future* event) and
 `macro_trigger_map` is **already** consumed via `render_catalyst_playbook`, so the earnings
 slice is narrower than it first looked.
+
+**Update (2026-07-02) — third slice surfaced (merge `193d09c`):** `eps_trajectory` is now
+rendered as the **Briefing earnings-scorecard band** (placed after the calibration band): a
+collapsible beat/miss track record for the AI beneficiaries carrying the field (MU / SK Hynix /
+LITE / PLTR) — collapsed corpus headline (*"N of M beat last quarter · K accelerating"*), expands
+to a per-ticker scorecard (latest surprise + the 4-quarter surprise trend, beat green / miss red)
+plus the `accel_reason` lines for accelerating names. So `eps_trajectory` is now fully consumed.
+The ledger correction was **verified against the data first**: `scheduled_tech_events` is present
+in 21/82 reports but only **2–3/82 carry a forward-dated event** (the rest are `"released"`
+back-recaps), and `macro_trigger_map` is confirmed consumed (`dashboard.py:250`→`:316`
+`render_catalyst_playbook`) — so `eps_trajectory` was the genuinely-free piece. Two real-data
+gotchas surfaced during TDD: `watchlist` is a **dict keyed by ticker** (not a list), and
+`TICKER_DISPLAY` is a **sparse** override map that omits plain underscore-for-dot keys
+(`000660_KS`) — so a local `_display_ticker` fallback restores the dotted `000660.KS` the cluster
+band already shows (note: the sibling `changes` band still leaks the underscore key — a small
+app-wide display cleanup for later). **Remaining unconsumed (~8):** `scheduled_tech_events`
+(sparse — forward-events dead-end), `macro_context_line`, `news_sentiment_skew`,
+`thesis_highlights`, `vs_cluster_chg_pct/5d/1mo`, `premarket`/`pm_*`/`market_state`,
+`eps_surprise`, `structural_conviction`.
 
 ### P1-3 · minor · legacy format paths are LIVE — must stay tested — ✅ FIXED
 Dual-format handling is genuinely exercised, not dead code: **548 entries** still
@@ -379,10 +398,11 @@ fallback for full screen-reader parity.
 **Decisions still needed (yours):**
 - **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
   action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
-- **P1-2** surface-or-drop the **remaining ~10** "produced but unconsumed" report
-  fields — two slices shipped 2026-07-02: the `clusters` cluster band (merge `9efe4e7`,
-  also consuming `extension_regime.blocked_tickers`) and the `calibration_insights`
-  signal-calibration band (merge `59b32e5`).
+- **P1-2** surface-or-drop the **remaining ~8** "produced but unconsumed" report
+  fields — three slices shipped 2026-07-02: the `clusters` cluster band (merge `9efe4e7`,
+  also consuming `extension_regime.blocked_tickers`), the `calibration_insights`
+  signal-calibration band (merge `59b32e5`), and the `eps_trajectory` earnings-scorecard
+  band (merge `193d09c`).
 
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
 P6-1 remainder (context-specific shades).
