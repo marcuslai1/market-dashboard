@@ -35,6 +35,14 @@ CHART_PALETTE = [
     "#9A9488",  # warm gray
 ]
 
+# Semantic status trio (good / bad / caution) reused by analytics helpers. Kept
+# separate from SIGNAL_COLORS on purpose: these express an *outcome* (win/loss/
+# warning), not a signal identity. Single-sourced here so the many former inline
+# hex literals don't drift.
+STATUS_POS = "#22c55e"   # win / positive return / ✓
+STATUS_NEG = "#ef4444"   # loss / negative return / ✗
+STATUS_WARN = "#f59e0b"  # caution / missed / ⚠
+
 _AXIS = dict(
     gridcolor=_RULE,
     zerolinecolor=_RULE_STRONG,

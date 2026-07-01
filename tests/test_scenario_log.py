@@ -48,6 +48,27 @@ def test_description_pulled_from_scenarios_when_probabilities_present():
     assert opt_row["description"] == "Ceasefire; WTI back to $75."
 
 
+def test_extract_history_legacy_scenarios_only():
+    """Legacy reports (5 in data) carry only `scenarios` with range strings —
+    parse the midpoint and description without a `probabilities` block."""
+    reports = {
+        "2026-03-01": {
+            "geopolitical": {
+                "scenarios": {
+                    "base_case": {"probability": "50-55%", "description": "Base."},
+                    "pessimistic_case": {"probability": "20%", "description": "Bear."},
+                }
+            }
+        }
+    }
+    df = extract_scenario_history(reports)
+    base = df[df["scenario"] == "Base"].iloc[0]
+    assert base["probability_mid"] == 52.5
+    assert base["description"] == "Base."
+    pess = df[df["scenario"] == "Pessimistic"].iloc[0]
+    assert pess["probability_mid"] == 20.0
+
+
 def test_probabilities_without_scenarios_descriptions_is_safe():
     """A new-format report with no `scenarios` block must not raise and yields
     empty descriptions."""
