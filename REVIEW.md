@@ -5,6 +5,18 @@
 > Only **decisions** (P1-2 surface-or-drop; P0-1 local-env upgrade) and explicitly
 > **deferred/accepted** items remain — see *Final synthesis*. Resume by reading this
 > file in a fresh session.
+>
+> **Resume verification (2026-07-01):** re-walked every remaining thread against the
+> code. Confirmed `pytest -q` → **75 passed** locally (py3.9 / pandas 1.4.2 — the
+> P0-1 env, hence the cosmetic `np.find_common_type` warnings) and `ruff check .`
+> clean. Reconciled 6 stale per-finding headers that still read *OPEN* but had
+> shipped: **P0-3** (CI), **P0-4** (ruff gate), **P1-3** (legacy-format tests),
+> **P1-6** (schema guard — verified running against the real 82-file dataset, not
+> skipping), plus **P2-1** (live-quote deadline — had a ✅ update block below) and
+> **P2-3** (I/O-layer tests). Re-checked **P8-2**: still only 2 consumers, deferral
+> holds. Nothing
+> else was both worth-doing and doable without a product (P1-2) or machine (P0-1)
+> decision, so the rest is left as-is. **Review complete.**
 
 Standing record for the phased full-codebase review. Resume-friendly: each phase
 has a status, and every finding has a stable ID, severity, and fix.
@@ -71,16 +83,20 @@ All deps use `>=`; no lock/constraints file → non-reproducible builds and sile
 transitive drift. **Fix:** pin exact versions or add a lockfile
 (`requirements.lock` / `pip-tools` / `uv`).
 
-### P0-3 · minor · no CI — OPEN
-No `.github/workflows`. Tests and lint aren't enforced on push. **Fix:** add a
-workflow running `pytest -q` (and decide on the ruff gate, P0-4) on PRs.
+### P0-3 · minor · no CI — ✅ FIXED
+No `.github/workflows`. Tests and lint aren't enforced on push. **Fixed:**
+`.github/workflows/ci.yml` runs `pytest -q` on Python 3.10 + 3.12 (installing the
+declared `requirements.txt` floors) plus a blocking `ruff check .` lint job, on push
+to `main` and every PR.
 
-### P0-4 · minor · ruff configured but not enforced (11 pre-existing violations) — OPEN
-`pyproject` defines a rich ruff config, but the tree has 11 standing violations:
+### P0-4 · minor · ruff configured but not enforced (11 pre-existing violations) — ✅ FIXED
+`pyproject` defines a rich ruff config, but the tree had 11 standing violations:
 import sorting (`I001`) in several files, `RUF013` implicit-Optional in
 `macro.py:110,277`, `RUF003` ambiguous unicode in `report_comparison.py:25-26`
-comments, `RUF022` unsorted `__all__` in two `__init__.py`. **Fix:** decide
-adopt-and-clean (then gate in CI) or trim the ruleset to what you'll enforce.
+comments, `RUF022` unsorted `__all__` in two `__init__.py`. **Fixed (adopt-and-clean):**
+autofixed imports/`__all__`, made the `macro.py` Optionals explicit, and ignored
+`RUF003` for the intentional arrow glyphs — tree is now `ruff check .` clean and the
+CI `lint` job is blocking.
 
 ### P0-5 · info · secrets handling is clean
 `.streamlit/secrets.toml` is gitignored; no credentials tracked. (A grep hit on
@@ -109,13 +125,16 @@ Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0)
 are underscore-prefixed and intentionally not for display — ignore.) **Action:**
 product decision to surface or drop; at minimum document so the gap is intentional.
 
-### P1-3 · minor · legacy format paths are LIVE — must stay tested — OPEN
+### P1-3 · minor · legacy format paths are LIVE — must stay tested — ✅ FIXED
 Dual-format handling is genuinely exercised, not dead code: **548 entries** still
 use legacy `signal_rationale` (vs 1197 new `writeup` dict), and **5 reports** use
 `geopolitical.scenarios`-only (legacy) vs 76 new `probabilities`. The legacy
 branches in `_writeup_for_render`, `_get_probs`, `extract_scenario_history` are
-required. **Fix:** add regression tests pinning legacy behavior (only the
-new-format scenario path is currently tested).
+required. **Fixed:** `test_writeup.py` pins the `signal_rationale` shim
+(headline/body split, single-sentence, HOLD + CAUTION-hard-block suppression, both
+`_legacy_rationale_from` directions); `test_scenario_log.py` adds
+`test_get_probs_legacy_range_midpoint` and `test_extract_history_legacy_scenarios_only`
+for the scenarios-only path.
 
 ### P1-4 · minor · schema redundancy + one null signal — OPEN
 Data carries overlapping fields (`vs_50sma` **and** `vs_sma50_pct`; `sma50_warning`
@@ -128,17 +147,20 @@ All code-referenced columns exist in `market_data.csv`, `pipeline_stats.csv` (44
 cols; code back-fills a subset), `claude_analysis.csv`, `signal_log.csv`. Low drift
 risk today.
 
-### P1-6 · minor · no schema validation (silent `.get()` defaulting) — OPEN
+### P1-6 · minor · no schema validation (silent `.get()` defaulting) — ✅ FIXED
 Every reader tolerates missing keys via `.get(...)`, so schema drift fails silently
-(a renamed field just renders as "—"). **Fix (optional Phase-1 deliverable):** a
-lightweight validator over the latest report asserting the required core schema, run
-as a test, so drift fails loudly.
+(a renamed field just renders as "—"). **Fixed:** `tests/test_schema.py` validates
+the newest `data/morning_report_*.json` against the required core schema — top-level
+keys (`meta`/`benchmarks`/`watchlist`/`geopolitical`/`events_this_week`/
+`portfolio_snapshot`), `meta.report_date`/`market_date`, and per-entry
+`price`/`currency`/`signal` — so drift fails loudly in CI. Confirmed executing
+against the real 82-file dataset (not skipping).
 
 ---
 
 ## Findings — Phase 2 (data layer & external I/O)
 
-### P2-1 · major · `fetch_live_quotes` has no bounded deadline — OPEN
+### P2-1 · major · `fetch_live_quotes` has no bounded deadline — ✅ FIXED (see P2-1 update below)
 `live_prices._fetch_one` calls `yf.Ticker(sym).fast_info` with no request timeout,
 and `fetch_live_quotes` uses `as_completed(futures)` with **no `timeout=`**. Live
 prices are **on by default** and fetched on the Briefing/Watchlist first render, so
@@ -149,7 +171,7 @@ on `as_completed(..., timeout=T)`, catch `TimeoutError`, and return whatever
 completed (the caller already treats a partial/empty dict as "some/all frozen").
 Optionally pass a per-call network timeout to yfinance.
 
-### P2-2 · minor · `st.*` calls inside `@st.cache_data` functions — OPEN
+### P2-2 · minor · `st.*` calls inside `@st.cache_data` functions — OPEN (accepted — no change)
 `load_all_reports` and the new `_safe_read_csv` call `st.sidebar.warning(...)` from
 inside cached functions. Streamlit discourages emitting UI from cached code — it
 only runs on a cache miss and can trigger a "calling st commands inside a cached
@@ -157,12 +179,12 @@ function" warning, and the message won't reappear on cache hits (so a persistent
 bad file goes quiet after the first miss). **Fix:** return a status/error from the
 loader and render the warning in the page layer, outside the cache.
 
-### P2-3 · minor · no tests for the I/O layer — OPEN
+### P2-3 · minor · no tests for the I/O layer — ✅ FIXED
 `overlay_live` (pure, trivially testable), `fetch_live_quotes` meta/partial-fill,
-and `_safe_read_csv` have zero coverage (`data_loader` 27%). **Fix:** unit-test
-`overlay_live` (benchmark+watchlist merge, partial fill, empty-live passthrough,
-no mutation of the input report) and `_safe_read_csv` (missing/malformed/empty →
-empty frame, no raise).
+and `_safe_read_csv` had zero coverage (`data_loader` 27%). **Fixed:**
+`tests/test_live_prices.py` covers `overlay_live` (benchmark+watchlist merge,
+partial fill, empty-live passthrough returning the same object — no mutation) and
+`_safe_read_csv` (missing/malformed → empty frame, no raise).
 
 ### P2-4 · info · `overlay_live` merge is currency-safe (reviewed clean)
 Live quotes overlay only `price`/`chg_pct`; `currency` and all snapshot fields
@@ -372,7 +394,11 @@ P7-2 (recompute at scale).
 ---
 
 ## Status
-All 8 phases complete. Findings fixed this review: P1-1, P2-1, P2-3, P3-1, P5-1,
-plus the escaping/analytics/currency fixes from the earlier merged pass. Remaining
-work is captured in **Final synthesis — open backlog** above (decisions + cleanups
-+ small robustness items). Resume there.
+All 8 phases complete. Findings fixed this review: P0-3, P0-4, P1-1, P1-3, P1-6,
+P2-1, P2-3, P3-1, P5-1, plus the escaping/analytics/currency fixes from the earlier
+merged pass. Remaining work is captured in **Final synthesis — open backlog** above,
+and is entirely **decisions** (P0-1 local-env upgrade — machine-side; P1-2
+surface-or-drop) plus explicitly **deferred/accepted/monitor** items (P0-2 lockfile,
+P1-4, P2-2, P2-5, P3-3, P5-3, P6-1 remainder, P7-2, P8-2, P8-4 remainder) — none of
+which is newly actionable in-repo without your input. Review verified and complete
+(see *Resume verification* at top).
