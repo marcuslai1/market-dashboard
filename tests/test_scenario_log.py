@@ -1,5 +1,27 @@
-"""Tests for components.scenario_log.extract_scenario_history."""
-from components.scenario_log import extract_scenario_history
+"""Tests for components.scenario_log.extract_scenario_history + _get_probs."""
+from components.scenario_log import _get_probs, extract_scenario_history
+
+
+# ── _get_probs ──
+def test_get_probs_new_format_returns_pct_and_midpoint():
+    out = _get_probs({"geopolitical": {"probabilities": {"base": 55, "optimistic": 20}}})
+    assert out["Base"] == ("55%", 55.0)
+    assert out["Optimistic"] == ("20%", 20.0)
+
+
+def test_get_probs_legacy_range_midpoint():
+    out = _get_probs(
+        {"geopolitical": {"scenarios": {"base_case": {"probability": "50-55%"}}}}
+    )
+    disp, mid = out["Base"]
+    assert disp == "50-55%"
+    assert mid == 52.5
+
+
+def test_get_probs_new_format_nonnumeric_is_safe():
+    """A malformed probability must not crash the drift/compare pages."""
+    out = _get_probs({"geopolitical": {"probabilities": {"base": "n/a"}}})
+    assert out["Base"][1] is None
 
 
 def test_description_pulled_from_scenarios_when_probabilities_present():

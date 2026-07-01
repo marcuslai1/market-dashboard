@@ -98,3 +98,43 @@ def test_spy_benchmark_suppressed_for_foreign_ticker():
     acc = compute_signal_accuracy(sig, prices)
     row = acc.iloc[0]
     assert pd.isna(row["spy_5d"])
+
+
+# ── edge cases (characterization) ──
+def test_empty_inputs_return_empty_frames():
+    empty = pd.DataFrame()
+    assert build_signal_episodes(empty, empty).empty
+    assert compute_signal_accuracy(empty, empty).empty
+
+
+def test_none_entry_price_yields_no_return_not_crash():
+    sig = _sig_df([("2026-01-05", "AMD", "BUY", None)])
+    eps = build_signal_episodes(sig, _prices_df([]))
+    row = eps.iloc[0]
+    assert row["entry_price"] is None
+    assert row["return_pct"] is None
+
+
+def test_hold_is_non_directional():
+    sig = _sig_df([("2026-01-05", "AMD", "HOLD", 100.0)])
+    eps = build_signal_episodes(sig, _prices_df([]))
+    assert eps.iloc[0]["verdict"] == "— non-directional"
+
+
+def test_watch_missed_vs_quiet():
+    # run_during >= 5% while WATCH => missed; else quiet.
+    assert _classify_episode_verdict("WATCH", None, 7.0, False) == "⚠ missed"
+    assert _classify_episode_verdict("WATCH", None, 1.0, False) == "— quiet"
+
+
+def test_accuracy_skips_none_signal_price():
+    sig = _sig_df([("2026-01-05", "AMD", "BUY", None)])
+    prices = _prices_df([(f"2026-01-{5 + i:02d}", "AMD", 100.0 + i) for i in range(7)])
+    assert compute_signal_accuracy(sig, prices).empty
+
+
+def test_accuracy_insufficient_forward_rows_is_none():
+    sig = _sig_df([("2026-01-05", "AMD", "BUY", 100.0)])
+    prices = _prices_df([("2026-01-05", "AMD", 100.0), ("2026-01-06", "AMD", 101.0)])
+    acc = compute_signal_accuracy(sig, prices)
+    assert pd.isna(acc.iloc[0]["return_5d"])  # <5 forward rows

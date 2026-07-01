@@ -11,12 +11,19 @@ falls back to the report-snapshot values.
 """
 from __future__ import annotations
 
+import concurrent.futures
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
+
+# Overall wall-clock budget for one live-quote batch. Live prices are on by
+# default and fetched on first render, so an unreachable/slow Yahoo must never
+# stall the page longer than this — we return whatever completed and fall back to
+# the frozen snapshot for the rest.
+_FETCH_DEADLINE_S = 8
 
 # ── Yahoo symbol map ───────────────────────────────────────────────────
 # Loaded from assets/catalog.json so dashboard.py and this module stay in sync.
@@ -66,13 +73,20 @@ def fetch_live_quotes() -> dict:
     """
     out: dict[str, dict] = {}
     items = list(TICKER_TO_YAHOO.items())
-    with ThreadPoolExecutor(max_workers=12) as pool:
+    # Not using the context manager: its __exit__ calls shutdown(wait=True), which
+    # would block on stragglers and defeat the deadline. We cancel/return instead.
+    pool = ThreadPoolExecutor(max_workers=12)
+    try:
         futures = {pool.submit(_fetch_one, sym): key for key, sym in items}
-        for fut in as_completed(futures):
-            key = futures[fut]
-            quote = fut.result()
-            if quote is not None:
-                out[key] = quote
+        try:
+            for fut in as_completed(futures, timeout=_FETCH_DEADLINE_S):
+                quote = fut.result()
+                if quote is not None:
+                    out[futures[fut]] = quote
+        except concurrent.futures.TimeoutError:
+            pass  # Yahoo slow/unreachable — keep what completed, fall back for the rest.
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
     out["__meta__"] = {
         "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "n_ok": len(out),

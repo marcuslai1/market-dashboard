@@ -14,13 +14,13 @@ from __future__ import annotations
 from datetime import date, timedelta
 from pathlib import Path
 
-import pandas as pd
 import streamlit as st
 
 from live_prices import fetch_live_quotes, overlay_live
 from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
 from lib.cards import render_section_head
 from lib.data_loader import load_all_reports, load_sqlite_prices
+from lib.filters import filter_prices, filter_reports
 from lib.pills import _render_live_caption, signal_text_color
 from lib.state import init_session_state, is_first_mount, mark_mounted
 from components.briefing import (
@@ -175,26 +175,6 @@ if isinstance(date_range, tuple) and len(date_range) == 2:
     DATE_START, DATE_END = date_range
 else:
     DATE_START, DATE_END = _pre_start, _default_end
-
-
-def filter_reports(reports: dict) -> dict:
-    """Filter reports dict to the selected date range."""
-    filtered = {}
-    for date_str, rpt in reports.items():
-        try:
-            d = date.fromisoformat(date_str)
-            if DATE_START <= d <= DATE_END:
-                filtered[date_str] = rpt
-        except ValueError:
-            continue
-    return filtered
-
-
-def filter_prices(df: pd.DataFrame) -> pd.DataFrame:
-    """Filter price DataFrame to the selected date range."""
-    if df.empty:
-        return df
-    return df[(df["date"].dt.date >= DATE_START) & (df["date"].dt.date <= DATE_END)]
 
 
 st.sidebar.divider()
@@ -401,8 +381,8 @@ elif page == "Watchlist":
 elif page == "Signal Tracker":
     from components.signal_tracker import render_signal_tracker_page
     render_signal_tracker_page(
-        filter_reports(load_all_reports()),
-        filter_prices(load_sqlite_prices()),
+        filter_reports(load_all_reports(), DATE_START, DATE_END),
+        filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
     )
 
 
@@ -411,7 +391,7 @@ elif page == "Signal Tracker":
 # ════════════════════════════════════════════
 elif page == "Scenario Log":
     from components.scenario_log import render_scenario_log_page
-    render_scenario_log_page(filter_reports(load_all_reports()))
+    render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
 # ════════════════════════════════════════════
@@ -419,7 +399,7 @@ elif page == "Scenario Log":
 # ════════════════════════════════════════════
 elif page == "Pipeline Stats":
     from components.pipeline_stats import render_pipeline_stats_page
-    render_pipeline_stats_page(filter_reports(load_all_reports()))
+    render_pipeline_stats_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
 # ════════════════════════════════════════════
@@ -427,7 +407,7 @@ elif page == "Pipeline Stats":
 # ════════════════════════════════════════════
 elif page == "Report Comparison":
     from components.report_comparison import render_report_comparison_page
-    render_report_comparison_page(filter_reports(load_all_reports()))
+    render_report_comparison_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
 # ════════════════════════════════════════════
