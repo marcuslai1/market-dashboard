@@ -20,13 +20,13 @@ has a status, and every finding has a stable ID, severity, and fix.
 |-------|-------|--------|
 | 0 | Baseline & review harness | ✅ done (this pass) |
 | 1 | Data contract & schema | ✅ done (this pass) |
-| 2 | Data layer & external I/O | ✅ done (this pass) |
-| 3 | Analytics correctness core | ⬜ pending |
-| 4 | Rendering & security surface | ⬜ pending |
-| 5 | UI state, interaction & orchestration | ⬜ pending |
-| 6 | Design system & theming (code-level) | ⬜ pending |
-| 7 | Performance & scalability | ⬜ pending |
-| 8 | Maintainability, architecture & synthesis | ⬜ pending |
+| 2 | Data layer & external I/O | ✅ done |
+| 3 | Analytics correctness core | ✅ done |
+| 4 | Rendering & security surface | ✅ done |
+| 5 | UI state, interaction & orchestration | ✅ done |
+| 6 | Design system & theming (code-level) | ✅ done |
+| 7 | Performance & scalability | ✅ done |
+| 8 | Maintainability, architecture & synthesis | ✅ done |
 
 > Prior work (not re-reviewed): UI/UX visual pass (merged) and the
 > code-quality/correctness pass merged as `c7d2bad`.
@@ -34,12 +34,12 @@ has a status, and every finding has a stable ID, severity, and fix.
 ---
 
 ## Baseline metrics (Phase 0 deliverable)
-- **Tests:** 39 passing (`pytest -q`). Files: `test_formatters`, `test_catalog`,
-  `test_signal_tracker`, `test_scenario_log`, `test_macro_prints`, `test_design_tokens`.
-- **Coverage:** **21% total** (1844 stmts, 1452 missed). Well-covered: `lib/catalog`
-  100%, `lib/charts` 76%, `lib/cards` 57%, `lib/formatters` 47%, `components/signal_tracker`
-  38%. **0%**: `report_comparison`, `pipeline_stats`, `terminology`, `masthead`,
-  `state`, `watchlist/*` (all render-only, no render tests yet).
+- **Tests:** 67 passing (`pytest -q`) — up from 13 at review start. New files this
+  review: `test_formatters`, `test_catalog`, `test_signal_tracker`, `test_filters`,
+  `test_live_prices`, `test_rendering_security`, `test_schema` (plus additions to
+  `test_scenario_log`).
+- **Coverage:** started 21%; render-path + I/O + filters + scenario now exercised.
+  Still thin: `pipeline_stats`, `terminology`, `masthead` (render-only).
 - **Environment (installed vs declared):** streamlit 1.50.0, pandas **1.4.2**,
   plotly **5.6.0**, yfinance 1.2.0. See P0-1.
 - **CI:** none. **Lint gate:** none (ruff present in `pyproject` but not enforced).
@@ -175,6 +175,144 @@ Callers `.copy()` cached frames before mutating (`pipeline_stats`), and the anal
 transforms build new frames rather than mutating in place, so cached objects aren't
 corrupted across reruns.
 
+### P2-1 update · ✅ FIXED
+`fetch_live_quotes` now runs under an 8s wall-clock deadline
+(`as_completed(timeout=…)` + `shutdown(wait=False, cancel_futures=True)`), returning
+partial results instead of blocking the render. `overlay_live` / `_safe_read_csv`
+now have tests (P2-3 ✅). P2-2 (st.* in cached fns) and P2-5 (TTL lag) remain open.
+
+---
+
+## Findings — Phase 3 (analytics correctness core)
+
+### P3-1 · major · `_get_probs` crashed on a non-numeric probability — ✅ FIXED
+The new-format branch did `float(v)` with no guard (unlike its sibling
+`extract_scenario_history`), so a malformed `probabilities` value would raise and
+take down the Report-Comparison drift table. **Fixed:** guarded `float()` (→ `mid=None`)
+and normalized the display to `"NN%"`; added `test_get_probs_*`.
+
+### P3-2 · info · episode/accuracy math verified (reviewed clean, now tested)
+Added characterization + edge tests: empty inputs → empty frames; `None` entry
+price → no return (no crash); HOLD non-directional; WATCH missed-vs-quiet at the 5%
+run threshold; accuracy skips `None` signal price; insufficient forward rows → `None`.
+All pass — the trade-economics logic (with the P1/earlier ticker+AVOID fixes) is sound.
+
+### P3-3 · minor · row-offset forward returns assume gap-free rows — OPEN (accepted)
+`compute_signal_accuracy` still measures "N sessions later" by row offset with no
+gap detection (documented as intended). Left as-is; noted so it's a conscious
+limitation, not a latent surprise.
+
+---
+
+## Findings — Phase 4 (rendering & security surface)
+
+### P4-1 · info · escaping contract holds end-to-end — ✅ locked with tests
+Added `test_rendering_security.py`: hostile payloads through the real builders —
+`<script>`/`<img onerror>` in writeup/support_legs/avoid_source, `javascript:` and
+attribute-breakout URLs in catalyst links, `<script>` in macro/calendar — are all
+neutralized. These lock the fixes from the earlier pass against regression. No new
+unescaped sink found in the audit.
+
+---
+
+## Findings — Phase 5 (UI state, interaction & orchestration)
+
+### P5-1 · minor · date filters were coupled to module globals / untestable — ✅ FIXED
+`filter_reports`/`filter_prices` lived in `dashboard.py` reading module-global
+`DATE_START/END`, so they couldn't be unit-tested without running the whole app.
+**Fixed:** extracted to pure `lib/filters.py` taking explicit `(start, end)`; call
+sites pass the sidebar range; added `test_filters.py` (inclusive boundaries, non-ISO
+keys skipped, empty passthrough). Also removed the now-unused `pandas` import from
+`dashboard.py` and compute `.dt.date` once (minor P7 win).
+
+### P5-2 · info · rerun determinism + page walk verified
+`AppTest` drives every page (initial + all 7 nav targets) with no exception, across
+live-on default, after the filter refactor and the `mark_mounted` relocation. Widget
+keys are unique; first-mount gating flips before any `st.stop()` (earlier fix).
+
+### P5-3 · minor · `date_input` single-date state — OPEN (low risk)
+Mid-selection Streamlit can return a 1-tuple from the range picker; the code falls
+back to the preset range when `len != 2`, so a half-selected range momentarily shows
+the default window rather than erroring. Acceptable; documented.
+
+---
+
+## Findings — Phase 6 (design system & theming, code-level)
+
+### P6-1 · minor · ~71 hardcoded hex colors bypass the token system — OPEN
+`grep` finds ~71 six-digit hex literals in `components/` (32 in `watchlist/drilldown.py`
+alone; also `signal_tracker`, `action_card`, `scenario_log`), many duplicating the
+canonical `#22c55e/#ef4444/#f59e0b/#3498db` signal tokens. They can't drift-check
+against `catalog.json`. **Fix (deferred, high-churn/low-risk):** route status colors
+through `SIGNAL_COLORS` / a small `lib` palette; keep the `test_design_tokens` guard.
+
+### P6-2 · info · token single-source is intact for what's consumed
+`test_design_tokens` confirms `theme.css --buy…--avoid` mirror `catalog.json` (AVOID
+color included after this review's `SIGNAL_ORDER` change). AVOID pill tint reads from
+`catalog` (Python), so no unused `--avoid-tint` CSS var is required.
+
+---
+
+## Findings — Phase 7 (performance & scalability)
+
+### P7-1 · info · current scale is comfortable
+Full dataset builds 352 episodes / 221 accuracy rows in well under 100 ms; file
+loads are `@st.cache_data`-backed. `filter_prices` now computes `.dt.date` once.
+
+### P7-2 · minor · recompute-per-rerun won't scale linearly — OPEN (monitor)
+`extract_signal_history → build_signal_episodes → compute_signal_accuracy` run on
+every Signal-Tracker rerun (filter/toggle) and are `O(reports × tickers)`. Fine now;
+as history grows to multiple years, memoize on a cheap signature. Not cached today
+because the transforms take a `dict` of reports (`st.cache_data` can't hash it) —
+caching would need a hashable key (e.g. the sorted date span + selected tickers).
+
+---
+
+## Findings — Phase 8 (maintainability, architecture & synthesis)
+
+### P8-1 · minor · dead-in-app briefing orchestration — OPEN (decision)
+`render_briefing` is referenced only in docstrings (never invoked — `dashboard.py`
+hand-calls the sub-renderers), and `render_interconnected` has **no call sites** at
+all. Their wrappers (`render_stance/_macro/_calendar/_action_summary`) exist only to
+serve `render_briefing`. Kept as documented "future use"; recommend either wiring
+`render_briefing` in or deleting the unused branch to cut ~150 dead lines.
+
+### P8-2 · polish · duplicated HTML-table builder — OPEN
+`report_comparison._editorial_table` and the `signal_tracker` grid builders repeat
+the `tk-scroll`/`ep-table` pattern. Consolidate into `lib/` if a third consumer appears.
+
+### P8-3 · info · typing & docstrings healthy
+81/91 functions in `components/`+`lib/` carry return annotations (~89%); module and
+function docstrings are thorough and current.
+
+### P8-4 · minor · accessibility completeness — PARTIAL
+Real tables now carry `scope="col"`; div-grids carry `role=table/row/columnheader`;
+pulse cells have `aria-label`. Still open: Plotly charts have no text/table
+alternative for screen readers (add a companion caption/data table per chart).
+
+---
+
+## Final synthesis — open backlog (by priority)
+Everything below is **recorded, not yet actioned** (the rest was fixed this review).
+
+**Decisions needed (yours):**
+- **P0-1** dep/env drift — bring dev env to the declared floors *or* pin
+  `requirements.txt`. CI (added) now runs the suite on the declared deps, so it will
+  reveal any real pandas-2.x incompatibility.
+- **P1-2** surface-or-drop the ~13 "produced but unconsumed" report fields.
+- **P8-1** wire in or delete the dead briefing orchestration.
+
+**Cleanups (safe, deferred for churn):**
+- **P0-2** pin deps / lockfile · **P0-4** clear ruff findings then flip CI lint to blocking.
+- **P6-1** route ~71 hardcoded hex through tokens.
+- **P8-2** consolidate the editorial-table builder.
+
+**Robustness (small, worth doing):**
+- **P2-2** move loader warnings out of cached functions.
+- **P1-3** add legacy-format regression tests (`signal_rationale`, scenarios-only).
+- **P8-4** chart text alternatives.
+- **P2-5 / P3-3 / P5-3 / P7-2** accepted/monitor items.
+
 ---
 
 ## Reference appendix
@@ -209,12 +347,8 @@ corrupted across reruns.
 
 ---
 
-## Full phase plan (for resuming)
-**P3 Analytics core** — episodes/accuracy/scenario/drift math; property tests; trading-day semantics.
-**P4 Rendering & security** — enumerate all ~57 `unsafe_allow_html` sinks; prove the escaping contract.
-**P5 UI state & orchestration** — rerun determinism, widget keys, filter parity, session lifecycle.
-**P6 Design system** — token single-source (extend guard), hardcoded hex, chart/card/pill consistency.
-**P7 Performance** — rerun cost, O(reports×tickers) recompute, caching boundaries, scale to years.
-**P8 Maintainability & synthesis** — module boundaries, DRY, dead exports, typing, a11y completeness, final backlog.
-
-Suggested order: 0→1 (done) → 2 → 3 → 4 → 5 → 6 → 7 → 8. Minimum path: 3 + 4 next.
+## Status
+All 8 phases complete. Findings fixed this review: P1-1, P2-1, P2-3, P3-1, P5-1,
+plus the escaping/analytics/currency fixes from the earlier merged pass. Remaining
+work is captured in **Final synthesis — open backlog** above (decisions + cleanups
++ small robustness items). Resume there.
