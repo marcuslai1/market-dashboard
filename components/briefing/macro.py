@@ -12,9 +12,9 @@ for ``render_briefing`` and any direct callers.
 """
 from __future__ import annotations
 
-import streamlit as st
-
 from datetime import datetime as _dt
+
+import streamlit as st
 
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS
@@ -107,7 +107,7 @@ def macro_prints_html(indicators: dict) -> str:
 
 
 def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
-                    macro_indicators: dict = None) -> str:
+                    macro_indicators: dict | None = None) -> str:
     """Return the Macro Note card markup (lede lane).
 
     Body contains: lede paragraph, optional commodities note rule, optional
@@ -274,7 +274,7 @@ def risks_card_html(geo: dict) -> str:
 
 
 def render_macro(macro_summary: str, geo: dict, commodities_note: str = "",
-                 macro_indicators: dict = None) -> None:
+                 macro_indicators: dict | None = None) -> None:
     """Thin wrapper that emits both Macro Note + Risks cards sequentially.
 
     Used by ``render_briefing`` and any caller that doesn't compose the

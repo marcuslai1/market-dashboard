@@ -34,10 +34,11 @@ has a status, and every finding has a stable ID, severity, and fix.
 ---
 
 ## Baseline metrics (Phase 0 deliverable)
-- **Tests:** 67 passing (`pytest -q`) — up from 13 at review start. New files this
+- **Tests:** 75 passing (`pytest -q`) — up from 13 at review start. New files this
   review: `test_formatters`, `test_catalog`, `test_signal_tracker`, `test_filters`,
-  `test_live_prices`, `test_rendering_security`, `test_schema` (plus additions to
-  `test_scenario_log`).
+  `test_live_prices`, `test_rendering_security`, `test_schema`, `test_writeup` (plus
+  additions to `test_scenario_log`).
+- **Lint:** `ruff check .` clean; CI `lint` job is blocking.
 - **Coverage:** started 21%; render-path + I/O + filters + scenario now exercised.
   Still thin: `pipeline_stats`, `terminology`, `masthead` (render-only).
 - **Environment (installed vs declared):** streamlit 1.50.0, pandas **1.4.2**,
@@ -287,31 +288,48 @@ function docstrings are thorough and current.
 
 ### P8-4 · minor · accessibility completeness — PARTIAL
 Real tables now carry `scope="col"`; div-grids carry `role=table/row/columnheader`;
-pulse cells have `aria-label`. Still open: Plotly charts have no text/table
-alternative for screen readers (add a companion caption/data table per chart).
+pulse cells have `aria-label`; and descriptive `st.caption` text alternatives were
+added to the previously-captionless charts (scenario prob-over-time; pipeline
+tokens/gen-time/articles/prompt-breakdown). Still open (nicety): a per-chart data-table
+fallback for full screen-reader parity.
 
 ---
 
-## Final synthesis — open backlog (by priority)
-Everything below is **recorded, not yet actioned** (the rest was fixed this review).
+## Final synthesis — backlog status
 
-**Decisions needed (yours):**
-- **P0-1** dep/env drift — bring dev env to the declared floors *or* pin
-  `requirements.txt`. CI (added) now runs the suite on the declared deps, so it will
-  reveal any real pandas-2.x incompatibility.
+**✅ Safe cleanups done this pass:**
+- **P0-4** — tree is now ruff-clean (autofixed imports/`__all__`; fixed implicit
+  `Optional` in `macro.py`; `RUF003` ignored for the intentional arrow glyphs). CI
+  `lint` job flipped to **blocking**.
+- **P0-2** — added upper version bounds (`pandas<3`, `plotly<7`, `streamlit<2`,
+  `yfinance<2`) to cap surprise majors. (Full pin/lockfile still pending the P0-1
+  floor decision.)
+- **P1-3** — legacy-format regression tests added (`test_writeup.py` for the
+  `signal_rationale` shim; legacy scenarios-only in `test_scenario_log.py`).
+- **P6-1 (partial)** — added `STATUS_POS/NEG/WARN` to `lib/charts.py` and routed the
+  analytics color helpers (`_rate_color`, `_ret_color`, episode verdicts) through
+  them. ~60 context-specific shade literals remain (deferred, needs visual review).
+- **P8-4 (partial)** — descriptive `st.caption` alternatives added to the charts
+  that had none (scenario prob-over-time; pipeline tokens/gen-time/articles/prompt).
+  A per-chart data-table fallback is still a future nicety.
+
+**Reviewed → acceptable (no change):**
+- **P2-2** — `st.sidebar.warning` inside `@st.cache_data`: Streamlit caches & replays
+  static elements, so it renders on every run, not just the miss. Not a defect; kept
+  for the data-visibility it gives.
+
+**Decisions still needed (yours):**
+- **P0-1** dep/env drift — bring the dev env up to the declared floors *or* decide the
+  real floor. CI now runs the suite on the declared deps, so its first GitHub run
+  reveals any actual pandas-2.x incompatibility.
 - **P1-2** surface-or-drop the ~13 "produced but unconsumed" report fields.
-- **P8-1** wire in or delete the dead briefing orchestration.
+- **P8-1** wire in or delete the dead briefing orchestration (~150 lines).
 
-**Cleanups (safe, deferred for churn):**
-- **P0-2** pin deps / lockfile · **P0-4** clear ruff findings then flip CI lint to blocking.
-- **P6-1** route ~71 hardcoded hex through tokens.
-- **P8-2** consolidate the editorial-table builder.
+**Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
+P6-1 remainder (context-specific shades).
 
-**Robustness (small, worth doing):**
-- **P2-2** move loader warnings out of cached functions.
-- **P1-3** add legacy-format regression tests (`signal_rationale`, scenarios-only).
-- **P8-4** chart text alternatives.
-- **P2-5 / P3-3 / P5-3 / P7-2** accepted/monitor items.
+**Accepted / monitor:** P2-5 (TTL lag), P3-3 (row-offset), P5-3 (date_input tuple),
+P7-2 (recompute at scale).
 
 ---
 

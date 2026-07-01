@@ -5,12 +5,11 @@ from datetime import date, timedelta
 
 import streamlit as st
 
+from components.scenario_log import _get_probs
 from lib.cards import render_section_head
 from lib.catalog import SIGNAL_BULLISHNESS
 from lib.formatters import _escape_dollars, _legacy_rationale_from, _price_str
 from lib.pills import _signal_pill_html
-
-from components.scenario_log import _get_probs
 
 # ── Editorial table helpers ──────────────────────────────────────────────────
 # The diff tables used to render as bare st.dataframe grids: signals shown as

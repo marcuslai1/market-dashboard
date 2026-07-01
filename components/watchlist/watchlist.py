@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from lib.catalog import RETIRED_TICKERS, SIGNAL_SORT_RANK
-
 from components.watchlist.row import render_ticker_details_html
+from lib.catalog import RETIRED_TICKERS, SIGNAL_SORT_RANK
 
 
 def render_watchlist(

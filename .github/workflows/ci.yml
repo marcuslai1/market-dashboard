@@ -28,7 +28,6 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    continue-on-error: true  # advisory until the standing ruff findings are cleared (P0-4)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

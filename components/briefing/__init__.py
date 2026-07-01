@@ -27,17 +27,17 @@ from components.briefing.stance import render_stance
 from lib.cards import render_section_head
 
 __all__ = [
-    "render_stance",
-    "render_pulse",
-    "render_changes",
     "render_action_card",
     "render_action_summary",
-    "render_macro",
+    "render_briefing",
     "render_calendar",
     "render_catalyst_playbook",
+    "render_changes",
     "render_contrarian_candidates",
     "render_interconnected",
-    "render_briefing",
+    "render_macro",
+    "render_pulse",
+    "render_stance",
 ]
 
 
