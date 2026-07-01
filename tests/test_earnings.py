@@ -1,5 +1,5 @@
 """Tests for the Briefing earnings-scorecard band (review P1-2)."""
-from components.briefing.earnings import _eps_rows, _headline
+from components.briefing.earnings import _earnings_html, _eps_rows, _headline
 
 
 def _entry(quarters, accelerating=False, accel_reason=""):
@@ -57,3 +57,65 @@ def test_headline_counts():
 
 def test_headline_empty_generic():
     assert _headline([]) == "Earnings scorecard"
+
+
+_WL = {
+    "000660_KS": _entry(
+        [{"surprise_pct": 2.5}, {"surprise_pct": 41.8},
+         {"surprise_pct": 20.8}, {"surprise_pct": 41.6}],
+        accelerating=True, accel_reason="EPS 17850 -> 21522 -> 56670 over 3 qtrs",
+    ),
+    "MU": _entry(
+        [{"surprise_pct": 5.9}, {"surprise_pct": 20.7},
+         {"surprise_pct": 33.2}, {"surprise_pct": 21.2}],
+        accelerating=True, accel_reason="EPS 4.78 -> 12.2 -> 25.11 over 3 qtrs",
+    ),
+    "LITE": _entry(
+        [{"surprise_pct": 8.6}, {"surprise_pct": 6.8},
+         {"surprise_pct": 18.4}, {"surprise_pct": 4.4}],
+        accelerating=False,
+    ),
+}
+
+
+def test_earnings_html_full():
+    out = _earnings_html(_WL)
+    assert "eps-scorecard" in out
+    assert "000660.KS" in out and "MU" in out and "LITE" in out
+    # headline: all three latest > 0, two accelerating
+    assert "3 of 3 beat last quarter · 2 accelerating" in out
+    assert "eps-beat" in out          # positive surprises are green
+    assert "▲" in out                 # accel marker present
+    assert "EPS 4.78" in out          # accel_reason line for an accelerating name
+
+
+def test_earnings_html_empty_placeholder():
+    assert "No earnings data" in _earnings_html({})
+    assert "No earnings data" in _earnings_html({"MU": {"signal": "BUY"}})
+
+
+def test_surprise_none_tolerated():
+    wl = {"MU": _entry([{"surprise_pct": None}, {"surprise_pct": 21.2}],
+                       accelerating=True)}
+    out = _earnings_html(wl)
+    assert "—" in out                 # the None surprise renders as a dash
+    assert "eps-scorecard" in out
+    (row,) = _eps_rows(wl)
+    assert row["latest"] == 21.2
+    assert row["beats"] == 1          # only the non-None positive counts
+
+
+def test_miss_colored_red():
+    wl = {"MU": _entry([{"surprise_pct": -3.0}], accelerating=False)}
+    out = _earnings_html(wl)
+    assert "eps-miss" in out
+    assert "0 of 1 beat last quarter · 0 accelerating" in out
+
+
+def test_accel_reason_escaped():
+    wl = {"MU": _entry([{"surprise_pct": 10.0}], accelerating=True,
+                       accel_reason="<script>alert(1)</script><img src=x onerror=alert(1)>")}
+    out = _earnings_html(wl)
+    assert "<script>" not in out
+    assert "<img" not in out
+    assert "&lt;script&gt;" in out
