@@ -9,6 +9,9 @@ complement to the signal-calibration band.
 """
 from __future__ import annotations
 
+import streamlit as st
+
+from lib.cards import render_section_head
 from lib.catalog import TICKER_DISPLAY
 from lib.formatters import _escape_dollars, _fmt_num, _sign
 
@@ -167,3 +170,15 @@ def _earnings_html(watchlist: dict) -> str:
         "</div>",
     ]
     return f'<details class="eps-band eps-details">{"".join(parts)}</details>'
+
+
+def render_earnings(watchlist: dict) -> None:
+    """Briefing earnings-scorecard band — per-ticker ``eps_trajectory`` (review P1-2).
+
+    Silent when no watchlist entry carries ``eps_trajectory`` (older reports);
+    on the latest reports MU / SK Hynix / LITE / PLTR carry it.
+    """
+    if not _eps_rows(watchlist):
+        return
+    render_section_head("Earnings Scorecard", "Beat/miss track record for the AI beneficiaries")
+    st.markdown(_earnings_html(watchlist), unsafe_allow_html=True)

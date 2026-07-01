@@ -23,6 +23,7 @@ from components.briefing import (
     render_changes,
     render_clusters,
     render_contrarian_candidates,
+    render_earnings,
     render_pulse,
 )
 from components.briefing.calendar import calendar_card_html
@@ -312,6 +313,7 @@ if page == "Briefing":
         report.get("calibration_insights"),
         watchlist,
     )
+    render_earnings(watchlist)
     render_action_card(watchlist, events)
     render_catalyst_playbook(trigger_map)
     render_contrarian_candidates(contrarians)
