@@ -115,7 +115,7 @@ everywhere (`CLUSTER_MAP.get("SNDK","")`). **Fixed:** added `SNDK` → `Semis`
 (`test_every_active_ticker_has_cluster_and_yahoo`) that fails if any non-retired
 watchlist ticker is missing from the cluster or yahoo maps.
 
-### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call)
+### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 1st slice shipped 2026-07-02)
 Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0):
 `clusters` (top-level, 100%), `calibration_insights` (43%), `extension_regime`
 (40%), `scheduled_tech_events` (25%), `macro_context_line` (23%),
@@ -124,6 +124,21 @@ Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0)
 `eps_surprise`, `structural_conviction`. (Internal `_telemetry`/`_signal_mutations`
 are underscore-prefixed and intentionally not for display — ignore.) **Action:**
 product decision to surface or drop; at minimum document so the gap is intentional.
+
+**Update (2026-07-02) — first slice surfaced (merge `9efe4e7`):** `clusters` is now
+rendered as the **Briefing cluster band** (collapsed row = name + computed at-a-glance
+[signal mix + extension breadth] + `key_development`; expands to `thesis_status` +
+`summary` + a per-name anchor table). That band also consumes
+`extension_regime.blocked_tickers` for the breadth chip. So `clusters` is fully
+consumed and `extension_regime` is now partially consumed (the rest —
+`hard_block_count`/`pct`/`active` — still unused). **Remaining unconsumed (~11):**
+`calibration_insights`, `scheduled_tech_events`, `macro_context_line`,
+`news_sentiment_skew`, `thesis_highlights`, `vs_cluster_chg_pct/5d/1mo`,
+`premarket`/`pm_*`/`market_state`, `eps_trajectory`, `eps_surprise`,
+`structural_conviction`. Next candidate slices: earnings/events
+(`scheduled_tech_events`) and the calibration scorecard (`calibration_insights`).
+Design + plan: `docs/superpowers/specs/2026-07-01-cluster-briefing-band-design.md`,
+`docs/superpowers/plans/2026-07-02-cluster-briefing-band.md`.
 
 ### P1-3 · minor · legacy format paths are LIVE — must stay tested — ✅ FIXED
 Dual-format handling is genuinely exercised, not dead code: **548 entries** still
@@ -351,7 +366,9 @@ fallback for full screen-reader parity.
 **Decisions still needed (yours):**
 - **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
   action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
-- **P1-2** surface-or-drop the ~13 "produced but unconsumed" report fields.
+- **P1-2** surface-or-drop the **remaining ~11** "produced but unconsumed" report
+  fields — the `clusters` slice shipped 2026-07-02 as the Briefing cluster band
+  (merge `9efe4e7`), which also consumed `extension_regime.blocked_tickers`.
 
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
 P6-1 remainder (context-specific shades).
