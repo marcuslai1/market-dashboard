@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from collections import Counter
 
-from lib.catalog import SIGNAL_ORDER
+from lib.catalog import SIGNAL_ORDER, TICKER_DISPLAY
+from lib.formatters import _escape_dollars, _fmt_num, _sign
+from lib.pills import _signal_pill_html
 
 
 def _norm(ticker: str) -> str:
@@ -47,3 +49,82 @@ def _extension_breadth(tickers: list, extension_regime) -> tuple | None:
     blocked = {str(t) for t in (extension_regime.get("blocked_tickers") or [])}
     n = sum(1 for tk in tickers if _norm(tk) in blocked)
     return (n, len(tickers))
+
+
+def _anchor_table_html(cluster: dict, watchlist: dict) -> str:
+    """A .ep-table of ticker -> live signal pill, vs-50, RSI (or '' if none)."""
+    anchors = cluster.get("data_anchors") or {}
+    if not anchors:
+        return ""
+    rows = []
+    for tk in cluster.get("tickers", []) or []:
+        a = anchors.get(_norm(tk))
+        if not a:
+            continue
+        sig = (watchlist.get(tk) or {}).get("signal")
+        pill = _signal_pill_html(sig, small=True) if sig else "—"
+        vs50 = a.get("vs_sma50_pct")
+        rsi = a.get("rsi_14")
+        vs50_str = f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"
+        rows.append(
+            f"<tr><td>{_escape_dollars(TICKER_DISPLAY.get(tk, tk))}</td>"
+            f"<td>{pill}</td>"
+            f'<td class="num">{vs50_str}</td>'
+            f'<td class="num">{_fmt_num(rsi, 0)}</td></tr>'
+        )
+    if not rows:
+        return ""
+    return (
+        '<div class="tk-scroll"><table class="ep-table cl-anchors">'
+        "<thead><tr><th>Ticker</th><th>Signal</th>"
+        '<th class="num">vs 50</th><th class="num">RSI</th></tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table></div>'
+    )
+
+
+def _glance_html(tickers: list, watchlist: dict, extension_regime) -> str:
+    """Computed at-a-glance chips: signal mix, then extension breadth."""
+    chips = [
+        f'<span class="cl-chip">{n}&nbsp;{_escape_dollars(sig)}</span>'
+        for sig, n in _signal_mix(tickers, watchlist)
+    ]
+    breadth = _extension_breadth(tickers, extension_regime)
+    if breadth is not None:
+        n, total = breadth
+        warn = ' data-warn="1"' if n else ""
+        chips.append(f'<span class="cl-chip cl-ext"{warn}>{n}/{total}&nbsp;ext.</span>')
+    return f'<span class="cl-glance">{"".join(chips)}</span>'
+
+
+def _cluster_details_html(name: str, cluster: dict, watchlist: dict,
+                          extension_regime) -> str:
+    tickers = cluster.get("tickers", []) or []
+    dev = cluster.get("key_development") or ""
+    summary = cluster.get("summary") or ""
+    thesis = cluster.get("thesis_status") or ""
+    dev_html = f'<span class="cl-dev">{_escape_dollars(dev)}</span>' if dev else ""
+    body = []
+    if thesis:
+        body.append(f'<p class="cl-thesis">{_escape_dollars(thesis)}</p>')
+    if summary:
+        body.append(f'<p class="cl-sum">{_escape_dollars(summary)}</p>')
+    body.append(_anchor_table_html(cluster, watchlist))
+    return (
+        '<details class="cl-details"><summary class="cl-summary">'
+        f'<span class="cl-name">{_escape_dollars(str(name).title())}</span>'
+        f"{_glance_html(tickers, watchlist, extension_regime)}{dev_html}"
+        f'</summary><div class="cl-body">{"".join(body)}</div></details>'
+    )
+
+
+def _clusters_html(clusters: dict, watchlist: dict, extension_regime=None) -> str:
+    if not clusters:
+        return '<div class="cl-band cl-empty">No cluster breakdown in this report.</div>'
+    blocks = [
+        _cluster_details_html(name, c, watchlist, extension_regime)
+        for name, c in clusters.items()
+        if isinstance(c, dict)
+    ]
+    if not blocks:
+        return '<div class="cl-band cl-empty">No cluster breakdown in this report.</div>'
+    return f'<div class="cl-band">{"".join(blocks)}</div>'
