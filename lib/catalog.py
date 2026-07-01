@@ -33,6 +33,14 @@ SIGNAL_ORDER = _CATALOG["signals"]["order"]
 WRITEUP_SIGNALS = set(_CATALOG["signals"]["writeup"])
 ACTIONABLE_SIGNALS = set(_CATALOG["signals"]["actionable"])
 
+# Single-source signal ranking, derived from SIGNAL_ORDER so nothing hand-maintains
+# a parallel {"BUY": 5, ...} map (they had already drifted on AVOID). SIGNAL_ORDER
+# is best→worst, so:
+#   SIGNAL_SORT_RANK  — 0-based, lower = more bullish (watchlist/list sort order)
+#   SIGNAL_BULLISHNESS — higher = more bullish (upgrade/downgrade direction)
+SIGNAL_SORT_RANK = {sig: i for i, sig in enumerate(SIGNAL_ORDER)}
+SIGNAL_BULLISHNESS = {sig: len(SIGNAL_ORDER) - i for i, sig in enumerate(SIGNAL_ORDER)}
+
 # Signal palette tints (used by sig_pill_html for backgrounds)
 SIGNAL_TINTS = _CATALOG["signals"]["tints"]
 

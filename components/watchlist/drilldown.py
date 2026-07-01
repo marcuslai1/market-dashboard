@@ -6,7 +6,14 @@ embedded inside a ``<details>`` element rendered by ``components.watchlist.row``
 from __future__ import annotations
 
 from lib.catalog import CLUSTER_MAP
-from lib.formatters import _escape_dollars, _fmt_num, _sign
+from lib.formatters import (
+    _ccy_decimals,
+    _ccy_prefix,
+    _escape_dollars,
+    _fmt_num,
+    _safe_href,
+    _sign,
+)
 
 
 def _drilldown_section_html(title: str) -> str:
@@ -29,7 +36,13 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
     """HTML-string version of _render_drilldown_detail — returns one block of HTML
     suitable for embedding inside a <details> element. No Streamlit calls."""
     ccy = d.get("currency", "USD")
-    pfx = "S$" if ccy == "SGD" else "$"
+    pfx = _ccy_prefix(ccy)
+    dec = _ccy_decimals(ccy)
+
+    def _p(v) -> str:
+        """Currency-prefixed price with the right decimal count for this ticker."""
+        return f"{pfx}{_fmt_num(v, dec)}"
+
     val = d.get("valuation", {}) or {}
     rr_obj = d.get("risk_reward", {}) or {}
     sma50 = d.get("sma50")
@@ -150,9 +163,9 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         if rcp_phase not in _TERMINAL_PHASES:
             _rcp_metrics: list[tuple[str, str]] = []
             if rcp_path_a is not None:
-                _rcp_metrics.append(("Path A graduation", f"{pfx}{_fmt_num(rcp_path_a, 2)}"))
+                _rcp_metrics.append(("Path A graduation", _p(rcp_path_a)))
             if rcp_path_b is not None:
-                _rcp_metrics.append(("Path B graduation", f"{pfx}{_fmt_num(rcp_path_b, 2)}"))
+                _rcp_metrics.append(("Path B graduation", _p(rcp_path_b)))
             if rcp_sessions is not None:
                 _rcp_metrics.append(("Sessions remaining", str(max(0, 60 - rcp_sessions))))
             if _rcp_metrics:
@@ -205,9 +218,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             )
             if c_source:
                 head_html += f' <span style="color:var(--ink-3);">— {_escape_dollars(c_source)}</span>'
-            if c_url:
+            _c_href = _safe_href(c_url)
+            if _c_href:
                 head_html += (
-                    f' <a href="{c_url}" target="_blank" '
+                    f' <a href="{_c_href}" target="_blank" rel="noopener noreferrer" '
                     f'style="color:var(--ink-3);font-family:var(--mono);'
                     f'font-size:11px;">[link]</a>'
                 )
@@ -219,8 +233,8 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             cat_metrics += [
                 ("Catalyst R:R", f"{_fmt_num(c_rr_ratio, 2)}:1" if c_rr_ratio else "—"),
                 ("Gap-fill invalidation",
-                 f"{pfx}{_fmt_num(c_rr_inv, 2)}" if c_rr_inv else (
-                     f"{pfx}{_fmt_num(c_pre_price, 2)}" if c_pre_price else "—")),
+                 _p(c_rr_inv) if c_rr_inv else (
+                     _p(c_pre_price) if c_pre_price else "—")),
                 ("Position tier",
                  f"{c_tier_name} ({_fmt_num(c_max_size, 0)}% max)"
                  if c_tier_name and c_max_size is not None else (c_tier_name or "—")),
@@ -245,14 +259,14 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
     if has_rr:
         parts.append(_drilldown_section_html("Risk & Reward"))
         if upside_target is not None:
-            line = f"<strong>Upside target.</strong> {pfx}{_fmt_num(upside_target, 2)}"
+            line = f"<strong>Upside target.</strong> {_p(upside_target)}"
             if upside_pct is not None:
                 line += f" (+{_fmt_num(upside_pct, 1)}%)"
             if upside_reason:
                 line += f" — {_escape_dollars(upside_reason)}"
             parts.append(f'<div class="dd-line">{line}</div>')
         if invalidation is not None:
-            line = f"<strong>Invalidation.</strong> {pfx}{_fmt_num(invalidation, 2)}"
+            line = f"<strong>Invalidation.</strong> {_p(invalidation)}"
             if inv_pct is not None:
                 line += f" (-{_fmt_num(inv_pct, 1)}%)"
             if invalidation_reason:
@@ -263,7 +277,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—"),
             (
                 "Structural support",
-                f"{pfx}{_fmt_num(structural, 2)} (-{_fmt_num(struct_pct, 1)}%)"
+                f"{_p(structural)} (-{_fmt_num(struct_pct, 1)}%)"
                 if structural else "—",
             ),
         ]
@@ -376,14 +390,14 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         if avg_up is not None and impl_up is not None:
             parts.append(
                 f'<div class="dd-line">'
-                f'<strong>Bull case.</strong> {pfx}{_fmt_num(impl_up, 2)} '
+                f'<strong>Bull case.</strong> {_p(impl_up)} '
                 f'({_sign(avg_up)}{_fmt_num(avg_up, 1)}% avg of {n_priors} priors)'
                 f'</div>'
             )
         if avg_dn is not None and impl_lo is not None:
             parts.append(
                 f'<div class="dd-line">'
-                f'<strong>Bear case.</strong> {pfx}{_fmt_num(impl_lo, 2)} '
+                f'<strong>Bear case.</strong> {_p(impl_lo)} '
                 f'({_fmt_num(avg_dn, 1)}% avg of {n_priors} priors)'
                 f'</div>'
             )
@@ -427,7 +441,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
         ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
         ("SMA50",
-         f"{pfx}{_fmt_num(sma50, 2)} ({sma_status})" if sma50 else "—"),
+         f"{_p(sma50)} ({sma_status})" if sma50 else "—"),
         ("Days above SMA50", str(days_above) if days_above is not None else "—"),
         ("RSI (14d)", f"{_fmt_num(rsi, 0)} {rsi_zone}" if rsi else "—"),
         ("Volume signal",
@@ -448,13 +462,13 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         if supports:
             parts.append(
                 '<div class="dd-line"><strong>Support:</strong> '
-                + ", ".join(f"{pfx}{_fmt_num(s, 2)}" for s in supports)
+                + ", ".join(_p(s) for s in supports)
                 + '</div>'
             )
         if resistances:
             parts.append(
                 '<div class="dd-line"><strong>Resistance:</strong> '
-                + ", ".join(f"{pfx}{_fmt_num(r, 2)}" for r in resistances)
+                + ", ".join(_p(r) for r in resistances)
                 + '</div>'
             )
 
@@ -529,9 +543,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                     f'<span style="color:var(--ink-3);">{_escape_dollars(_av_date)}</span>'
                 )
             _cite_html = " · ".join(_cite_parts)
-            if _av_url:
+            _av_href = _safe_href(_av_url)
+            if _av_href:
                 _cite_html += (
-                    f' <a href="{_av_url}" target="_blank" '
+                    f' <a href="{_av_href}" target="_blank" rel="noopener noreferrer" '
                     f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
                 )
             parts.append(f'<div class="dd-line">{_cite_html}</div>')
@@ -549,9 +564,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                 _ern_html += (
                     f' <span style="color:var(--ink-3);">— {_escape_dollars(_ern_source)}</span>'
                 )
-            if _ern_url:
+            _ern_href = _safe_href(_ern_url)
+            if _ern_href:
                 _ern_html += (
-                    f' <a href="{_ern_url}" target="_blank" '
+                    f' <a href="{_ern_href}" target="_blank" rel="noopener noreferrer" '
                     f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
                 )
             _ern_html += '</div>'

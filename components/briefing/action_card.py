@@ -24,6 +24,7 @@ from lib.catalog import (
 from lib.formatters import (
     _escape_dollars,
     _fmt_num,
+    _price_str,
     _sign,
     _writeup_for_render,
 )
@@ -55,8 +56,8 @@ def render_action_card(wl: dict, events: list) -> None:
         return
     sig = d.get("signal", "WATCH")
     color = SIGNAL_COLORS.get(sig, "#9F988B")
-    display_tk = TICKER_DISPLAY.get(tk, tk)
-    cluster = CLUSTER_MAP.get(tk, "")
+    display_tk = _escape_dollars(TICKER_DISPLAY.get(tk, tk))
+    cluster = _escape_dollars(CLUSTER_MAP.get(tk, ""))
     price = d.get("price")
     ccy = d.get("currency", "USD")
     chg = d.get("chg_pct")
@@ -66,8 +67,7 @@ def render_action_card(wl: dict, events: list) -> None:
     block = wu["entry_block"]
     rr_label = (d.get("risk_reward") or {}).get("ratio_label", "")
 
-    pfx = "S$" if ccy == "SGD" else "$"
-    price_str = f"{pfx}{_fmt_num(price, 2)}"
+    price_str = _price_str(price, ccy)
     delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
     delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
     verb_pill = (
@@ -166,7 +166,7 @@ def render_action_summary(action_summary: dict) -> None:
             tk = entry.get("ticker", "")
             note = entry.get("note", "")
             entry_level = entry.get("entry_level")
-            display_tk = TICKER_DISPLAY.get(tk, tk)
+            display_tk = _escape_dollars(TICKER_DISPLAY.get(tk, tk))
             level_html = (
                 f'<span style="color:var(--ink-3);font-family:var(--mono);font-size:11px;'
                 f'margin-left:10px;flex-shrink:0;">@ {_escape_dollars(str(entry_level))}</span>'
