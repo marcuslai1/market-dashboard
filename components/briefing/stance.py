@@ -6,8 +6,6 @@ Day-2 modularization pass.
 """
 from __future__ import annotations
 
-import streamlit as st
-
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS, SIGNAL_ORDER
 from lib.formatters import _escape_dollars
@@ -21,7 +19,7 @@ def stance_band_html(snapshot: dict, total_tracked: int) -> str:
     its own ``stMarkdownContainer`` wrapper — multiple ``st.markdown`` calls
     cannot share a single ``<div class="lane-wrapper">`` parent reliably. This
     helper sidesteps that by composing both cards in one string emitted via a
-    single ``st.markdown`` call (see ``render_stance`` below).
+    single ``st.markdown`` call at the call site (dashboard.py).
     """
     stance = snapshot.get("overall_stance", "—")
     posture = snapshot.get("risk_posture", "")
@@ -65,9 +63,3 @@ def stance_band_html(snapshot: dict, total_tracked: int) -> str:
     )
 
     return f'<div class="lane-wrapper">{lede_card}{ledger_card}</div>'
-
-
-def render_stance(snapshot: dict, total_tracked: int) -> None:
-    """Backward-compat wrapper. Emits the stance band via a single
-    ``st.markdown`` call so the lane-wrapper actually scopes both cards."""
-    st.markdown(stance_band_html(snapshot, total_tracked), unsafe_allow_html=True)

@@ -4,17 +4,13 @@ Renders the macro lead paragraph, optional commodities note, geopolitical
 portfolio implication, scenario-odds bar, and the active-risks side column.
 Extracted from dashboard.py during the Day-2 modularization pass.
 
-Visual Step 5 (ContextBand split): exposes ``macro_card_html`` and
-``risks_card_html`` as string-returning helpers so the Briefing band can
-be composed as a single ``st.markdown`` emission inside a lane wrapper.
-The ``render_macro`` wrapper preserves the original sequential-render API
-for ``render_briefing`` and any direct callers.
+Exposes ``macro_card_html`` and ``risks_card_html`` as string-returning helpers so
+the Briefing band can be composed as a single ``st.markdown`` emission (from
+dashboard.py) inside a lane wrapper.
 """
 from __future__ import annotations
 
 from datetime import datetime as _dt
-
-import streamlit as st
 
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS
@@ -271,18 +267,3 @@ def risks_card_html(geo: dict) -> str:
         body_html=body,
         lane="ledger",
     )
-
-
-def render_macro(macro_summary: str, geo: dict, commodities_note: str = "",
-                 macro_indicators: dict | None = None) -> None:
-    """Thin wrapper that emits both Macro Note + Risks cards sequentially.
-
-    Used by ``render_briefing`` and any caller that doesn't compose the
-    lane-wrapper itself. The cards' ``data-lane`` attributes are inert
-    outside a ``.lane-wrapper`` parent.
-    """
-    st.markdown(
-        macro_card_html(macro_summary, geo, commodities_note, macro_indicators),
-        unsafe_allow_html=True,
-    )
-    st.markdown(risks_card_html(geo), unsafe_allow_html=True)
