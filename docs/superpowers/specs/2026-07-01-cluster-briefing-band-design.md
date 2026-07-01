@@ -82,11 +82,11 @@ Source: the already-loaded latest report dict.
 | Anchors | `clusters[name].data_anchors[<ticker>]{vs_sma50_pct, rsi_14}` |
 | Live signal / price | `watchlist[ticker].{signal, price, currency, chg_pct}` |
 
-**Key-normalization detail (avoids a silent "—" bug):** `data_anchors` keys use an
-**underscore** form (`D05_SI`, `000660_KS`) while `tickers` and `watchlist` keys use the
-**dotted** form (`D05.SI`, `000660.KS`). Join by normalizing the dotted ticker with
-`ticker.replace(".", "_")` when looking up an anchor. Likewise `extension_regime.blocked_tickers`
-uses the underscore form.
+**Key-normalization detail (avoids a silent "—" bug):** only `clusters[name].tickers` use the
+**dotted** form (`D05.SI`, `000660.KS`). The `watchlist`, `data_anchors`, `TICKER_DISPLAY`,
+and `extension_regime.blocked_tickers` maps are **all** keyed by the **underscore** form
+(`D05_SI`, `000660_KS`). Normalize every ticker with `ticker.replace(".", "_")` before *any*
+of those lookups (not just anchors) — otherwise dotted names silently fall into the null bucket.
 
 ### Computed at-a-glance (INCLUDED per design decision)
 
@@ -151,7 +151,7 @@ New `tests/test_clusters.py`, all against the pure `_clusters_html` builder:
    counts, including a `—` bucket for a null signal.
 3. `test_extension_breadth_counts` — with `extension_regime.blocked_tickers` present →
    `X/Y ext.` correct; and the `entry_block` fallback path when `extension_regime` absent.
-4. `test_anchor_key_normalization` — `data_anchors["D05_SI"]` joins to `watchlist["D05.SI"]`.
+4. `test_anchor_key_normalization` — the dotted cluster ticker `D05.SI` resolves to `data_anchors["D05_SI"]` and `watchlist["D05_SI"]` via `_norm`.
 5. `test_empty_clusters_returns_placeholder` — `{}` → muted placeholder, no raise.
 6. `test_missing_data_anchors_tolerated` — cluster without `data_anchors` → narrative
    renders, no anchor table, no raise.

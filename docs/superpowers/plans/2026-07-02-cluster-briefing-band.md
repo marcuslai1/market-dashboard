@@ -17,7 +17,7 @@
 - **Colors via tokens (review P6-1):** CSS uses existing custom properties only (`--ink`, `--ink-2`, `--ink-3`, `--rule`, `--paper-3`, `--mono`, `--caution`). No new hardcoded hex literals.
 - **Green gates:** `python -m pytest -q` and `python -m ruff check .` must both pass after every task's commit.
 - **Scope:** snapshot-only (today's report); no time-series; no new nav page. Band lives on the Briefing, inserted after `render_changes`.
-- **Data key normalization:** `data_anchors` and `extension_regime.blocked_tickers` use an **underscore** ticker form (`D05_SI`, `000660_KS`); `tickers`/`watchlist` keys use the **dotted** form (`D05.SI`). Join via `ticker.replace(".", "_")`.
+- **Data key normalization:** only `clusters[].tickers` use the **dotted** form (`D05.SI`); `watchlist`, `data_anchors`, `TICKER_DISPLAY`, and `extension_regime.blocked_tickers` are all keyed by the **underscore** form (`D05_SI`). Normalize every ticker via `_norm` (`ticker.replace(".", "_")`) before *any* of those lookups.
 
 ## File Structure
 
