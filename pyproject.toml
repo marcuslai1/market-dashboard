@@ -28,6 +28,7 @@ ignore = [
     "B008",    # function call in default arg — common Streamlit pattern
     "RUF001",  # ambiguous unicode — editorial copy uses em-dash and minus sign
     "RUF002",  # ambiguous unicode in docstrings — same
+    "RUF003",  # ambiguous unicode in comments — arrow glyphs (▲ ＋ −) mirror the UI
     "C408",    # unnecessary dict() call — plotly layout uses dict(l=0, r=0, ...)
 ]
 

@@ -16,13 +16,6 @@ from pathlib import Path
 
 import streamlit as st
 
-from live_prices import fetch_live_quotes, overlay_live
-from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
-from lib.cards import render_section_head
-from lib.data_loader import load_all_reports, load_sqlite_prices
-from lib.filters import filter_prices, filter_reports
-from lib.pills import _render_live_caption, signal_text_color
-from lib.state import init_session_state, is_first_mount, mark_mounted
 from components.briefing import (
     render_action_card,
     render_catalyst_playbook,
@@ -35,6 +28,13 @@ from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
+from lib.cards import render_section_head
+from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
+from lib.data_loader import load_all_reports, load_sqlite_prices
+from lib.filters import filter_prices, filter_reports
+from lib.pills import _render_live_caption, signal_text_color
+from lib.state import init_session_state, is_first_mount, mark_mounted
+from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
 DATA_DIR = Path(__file__).parent / "data"
