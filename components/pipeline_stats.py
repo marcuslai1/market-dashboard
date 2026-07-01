@@ -6,7 +6,14 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.charts import PLOTLY_CONFIG, style_fig
+from lib.charts import (
+    CHART_ACCENT,
+    CHART_LINE,
+    CHART_MUTED,
+    CHART_PALETTE,
+    PLOTLY_CONFIG,
+    style_fig,
+)
 from lib.data_loader import load_pipeline_stats, load_token_usage
 
 
@@ -30,7 +37,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=token_df["date"], y=token_df["token_count"],
-        name="Tokens", marker_color="#3b82f6",
+        name="Tokens", marker_color=CHART_ACCENT,
     ))
     fig.update_layout(
         yaxis_title="Token Count", height=300,
@@ -43,7 +50,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
     fig2.add_trace(go.Scatter(
         x=token_df["date"], y=token_df["generation_time_seconds"],
         mode="lines+markers", name="Gen Time",
-        line=dict(color="#f59e0b", width=2),
+        line=dict(color=CHART_ACCENT, width=2),
     ))
     fig2.update_layout(
         yaxis_title="Seconds", height=250,
@@ -107,25 +114,25 @@ def render_pipeline_stats_page(reports: dict) -> None:
             fig_cost.add_trace(go.Bar(
                 x=pre["date"], y=pre["cost_usd"],
                 name="Pre-cutover (Sonnet+Haiku)",
-                marker_color="#6b7280", opacity=0.5,
+                marker_color=CHART_MUTED, opacity=0.6,
             ))
         if not post.empty:
             fig_cost.add_trace(go.Bar(
                 x=post["date"], y=post["cost_usd"],
                 name="Post-cutover (DeepSeek)",
-                marker_color="#3b82f6", opacity=0.85,
+                marker_color=CHART_ACCENT, opacity=0.9,
             ))
         fig_cost.add_trace(go.Scatter(
             x=cost_df["date"], y=cost_df["cost_7d_avg"],
             mode="lines", name="7d avg",
-            line=dict(color="#f59e0b", width=2),
+            line=dict(color=CHART_LINE, width=2),
         ))
         # Plotly's add_vline annotation midpoint does sum(X)/len(X) which
         # blows up on pd.Timestamp; pass the date as a millisecond epoch
         # so the math works. The visual is identical.
         cutover_ms = int(cutover.timestamp() * 1000)
         fig_cost.add_vline(
-            x=cutover_ms, line=dict(color="#ef4444", dash="dash", width=1),
+            x=cutover_ms, line=dict(color=CHART_LINE, dash="dash", width=1),
             annotation_text="DeepSeek cutover",
             annotation_position="top right",
         )
@@ -141,8 +148,8 @@ def render_pipeline_stats_page(reports: dict) -> None:
         fig_cum.add_trace(go.Scatter(
             x=cost_df["date"], y=cost_df["cumulative_cost"],
             mode="lines+markers", name="Cumulative",
-            line=dict(color="#22c55e", width=2),
-            fill="tozeroy", fillcolor="rgba(34,197,94,0.1)",
+            line=dict(color=CHART_ACCENT, width=2),
+            fill="tozeroy", fillcolor="rgba(201,166,107,0.12)",
         ))
         fig_cum.update_layout(
             yaxis_title="Cumulative Cost (USD)", height=200,
@@ -198,11 +205,11 @@ def render_pipeline_stats_page(reports: dict) -> None:
         fig_cache = go.Figure()
         fig_cache.add_trace(go.Bar(
             x=cdf["date"], y=cdf["cache_hit_tokens"],
-            name="Cache hit", marker_color="#22c55e",
+            name="Cache hit", marker_color=CHART_ACCENT,
         ))
         fig_cache.add_trace(go.Bar(
             x=cdf["date"], y=cdf["cache_miss_tokens"],
-            name="Cache miss", marker_color="#ef4444",
+            name="Cache miss", marker_color=CHART_MUTED,
         ))
         fig_cache.update_layout(
             barmode="stack",
@@ -242,12 +249,12 @@ def render_pipeline_stats_page(reports: dict) -> None:
         fig_art = go.Figure()
         fig_art.add_trace(go.Bar(
             x=ps_df["date"], y=ps_df["articles_after_filter"],
-            name="Tavily", marker_color="#3b82f6",
+            name="Tavily", marker_color=CHART_PALETTE[0],
         ))
         if ps_df["yfinance_articles"].notna().any():
             fig_art.add_trace(go.Bar(
                 x=ps_df["date"], y=ps_df["yfinance_articles"],
-                name="yFinance", marker_color="#f59e0b",
+                name="yFinance", marker_color=CHART_PALETTE[1],
             ))
         fig_art.update_layout(
             barmode="stack",
@@ -276,11 +283,11 @@ def render_pipeline_stats_page(reports: dict) -> None:
             if len(breakdown_df) > 0:
                 fig_pb = go.Figure()
                 components = [
-                    ("system_prompt_chars", "System Prompt", "#6366f1"),
-                    ("watchlist_data_chars", "Watchlist Data", "#3b82f6"),
-                    ("yfinance_chars", "yFinance News", "#f59e0b"),
-                    ("tavily_chars", "Tavily News", "#22c55e"),
-                    ("memory_chars", "Memory", "#ec4899"),
+                    ("system_prompt_chars", "System Prompt", CHART_PALETTE[0]),
+                    ("watchlist_data_chars", "Watchlist Data", CHART_PALETTE[1]),
+                    ("yfinance_chars", "yFinance News", CHART_PALETTE[2]),
+                    ("tavily_chars", "Tavily News", CHART_PALETTE[3]),
+                    ("memory_chars", "Memory", CHART_PALETTE[4]),
                 ]
                 for col, name, color in components:
                     fig_pb.add_trace(go.Bar(

@@ -19,6 +19,22 @@ _MONO = "JetBrains Mono, ui-monospace, monospace"
 # Hide the Plotly modebar — the editorial surface has no use for it.
 PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True}
 
+# ── Editorial chart palette ──────────────────────────────────────────────────
+# Deliberately distinct from the signal tokens (--buy #22c55e / --caution
+# #ef4444 / --watch #f59e0b / --accumulate #3498db) so a chart series never
+# reads as a signal, and free of the off-brand magenta/indigo (#ec4899 /#6366f1)
+# the Plotly defaults introduced. Muted, mid-luminance tones that sit on --paper.
+CHART_ACCENT = "#C9A66B"   # warm brass — primary single-series bars/lines
+CHART_MUTED = "#5E5A50"    # ink-4 — de-emphasised / historical / "base" series
+CHART_LINE = "#908A7C"     # ink-3 — trend / threshold overlays (7d avg, cutover)
+CHART_PALETTE = [
+    "#7FA8C9",  # muted steel blue
+    "#C9A66B",  # warm brass
+    "#8FB08A",  # sage
+    "#B58AA6",  # dusty mauve
+    "#9A9488",  # warm gray
+]
+
 _AXIS = dict(
     gridcolor=_RULE,
     zerolinecolor=_RULE_STRONG,
