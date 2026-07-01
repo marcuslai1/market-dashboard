@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS, TICKER_DISPLAY
+from lib.charts import STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import load_signal_log
 from lib.formatters import _escape_attr, _escape_dollars, _legacy_rationale_from
 from lib.pills import _signal_pill_html
@@ -311,16 +312,16 @@ def _rate_color(rate: float | None) -> str:
     if rate is None:
         return "var(--ink-3)"
     if rate >= 55:
-        return "#22c55e"
+        return STATUS_POS
     if rate < 45:
-        return "#ef4444"
+        return STATUS_NEG
     return "var(--ink-2)"
 
 
 def _ret_color(v: float | None) -> str:
     if v is None or pd.isna(v) or v == 0:
         return "var(--ink-3)"
-    return "#22c55e" if v > 0 else "#ef4444"
+    return STATUS_POS if v > 0 else STATUS_NEG
 
 
 def _calibration_band_html(acc_df: pd.DataFrame) -> str:
@@ -400,11 +401,11 @@ def _episode_table_html(eps: pd.DataFrame) -> str:
         verdict = e["verdict"] or "—"
         vcol = "var(--ink-3)"
         if "✓" in verdict:
-            vcol = "#22c55e"
+            vcol = STATUS_POS
         elif "✗" in verdict:
-            vcol = "#ef4444"
+            vcol = STATUS_NEG
         elif "⚠" in verdict:
-            vcol = "#f59e0b"
+            vcol = STATUS_WARN
         exit_lbl = "open" if e["is_active"] else (
             e["exit_date"].strftime("%Y-%m-%d") if pd.notna(e["exit_date"]) else "—"
         )

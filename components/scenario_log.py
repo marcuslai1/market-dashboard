@@ -227,6 +227,10 @@ def render_scenario_log_page(reports: dict) -> None:
         legend=dict(orientation="h", yanchor="bottom", y=1.02),
     )
     st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
+    st.caption(
+        "Line chart — each macro scenario's probability (%) over the selected "
+        "window; the dated ledger below lists the exact shifts."
+    )
 
     # ── Days when probabilities actually moved ──
     st.subheader("Days when probabilities moved")
