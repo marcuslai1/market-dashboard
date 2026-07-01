@@ -12,8 +12,6 @@ from __future__ import annotations
 
 from datetime import datetime as _dt
 
-import streamlit as st
-
 from lib.cards import card_container
 from lib.formatters import _escape_dollars
 
@@ -158,12 +156,3 @@ def calendar_card_html(events: list, lane: str = "ledger") -> str:
         body_html=body,
         lane=lane,
     )
-
-
-def render_calendar(events: list) -> None:
-    """Thin wrapper that emits the Week-Ahead card.
-
-    Used by ``render_briefing`` and any caller that doesn't compose the
-    lane-wrapper itself.
-    """
-    st.markdown(calendar_card_html(events), unsafe_allow_html=True)

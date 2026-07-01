@@ -272,12 +272,13 @@ caching would need a hashable key (e.g. the sorted date span + selected tickers)
 
 ## Findings — Phase 8 (maintainability, architecture & synthesis)
 
-### P8-1 · minor · dead-in-app briefing orchestration — OPEN (decision)
-`render_briefing` is referenced only in docstrings (never invoked — `dashboard.py`
-hand-calls the sub-renderers), and `render_interconnected` has **no call sites** at
-all. Their wrappers (`render_stance/_macro/_calendar/_action_summary`) exist only to
-serve `render_briefing`. Kept as documented "future use"; recommend either wiring
-`render_briefing` in or deleting the unused branch to cut ~150 dead lines.
+### P8-1 · minor · dead-in-app briefing orchestration — ✅ FIXED (deleted)
+`render_briefing` (never invoked), `render_interconnected` (zero call sites), and the
+wrappers that existed only to serve them (`render_stance`/`render_macro`/
+`render_calendar`/`render_action_summary`) were removed, along with the now-unused
+`interconnected.py` module and dangling `streamlit`/`render_section_head` imports.
+`dashboard.py` continues to hand-call the sub-renderers + `*_html` builders. Verified
+ruff-clean, 75 tests green, all 7 pages render via AppTest.
 
 ### P8-2 · polish · duplicated HTML-table builder — OPEN
 `report_comparison._editorial_table` and the `signal_tracker` grid builders repeat
@@ -323,7 +324,6 @@ fallback for full screen-reader parity.
 - **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
   action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
 - **P1-2** surface-or-drop the ~13 "produced but unconsumed" report fields.
-- **P8-1** wire in or delete the dead briefing orchestration (~150 lines).
 
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
 P6-1 remainder (context-specific shades).
