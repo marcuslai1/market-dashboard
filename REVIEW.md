@@ -50,14 +50,15 @@ has a status, and every finding has a stable ID, severity, and fix.
 
 ## Findings — Phase 0 (baseline & harness)
 
-### P0-1 · major · environment drift from declared deps — OPEN
-`requirements.txt` floors are `pandas>=2.0.0`, `plotly>=5.18.0`, but the dev env
-runs **pandas 1.4.2** and **plotly 5.6.0** — *below* the floors. Tests pass on
-versions the project claims not to support; pandas 1.x↔2.x differ in `groupby`,
-`to_datetime`, empty-reduction, and `.iloc[].get()` behavior, so green here ≠ green
-on a compliant install (also the source of the `np.find_common_type` warnings).
-**Fix:** either bring the env up to the declared floors, or pin `requirements.txt`
-to versions actually used/tested; ideally a CI matrix on both.
+### P0-1 · major · environment drift from declared deps — ⚠️ mostly resolved
+`requirements.txt` floors are `pandas>=2.0.0`, `plotly>=5.18.0`, but the *local* dev
+env runs **pandas 1.4.2** and **plotly 5.6.0** — below the floors (source of the
+`np.find_common_type` warnings). The worry was "green locally ≠ green on the declared
+2.x." **Now verified:** the CI added this review installs the declared deps and the
+suite passes on **Python 3.10 and 3.12** (run `28520419857`+ green), so the code is
+compatible with pandas ≥2.0. **Remaining (local hygiene, your machine):** upgrade the
+local env to the declared floors so local runs match CI (I can't change your env from
+here). Optional: pin/lock exact versions (P0-2).
 
 ### P0-2 · minor · unpinned dependencies / no lockfile — OPEN
 All deps use `>=`; no lock/constraints file → non-reproducible builds and silent
@@ -319,9 +320,8 @@ fallback for full screen-reader parity.
   for the data-visibility it gives.
 
 **Decisions still needed (yours):**
-- **P0-1** dep/env drift — bring the dev env up to the declared floors *or* decide the
-  real floor. CI now runs the suite on the declared deps, so its first GitHub run
-  reveals any actual pandas-2.x incompatibility.
+- **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
+  action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
 - **P1-2** surface-or-drop the ~13 "produced but unconsumed" report fields.
 - **P8-1** wire in or delete the dead briefing orchestration (~150 lines).
 
