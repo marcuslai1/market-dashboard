@@ -3,13 +3,69 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-import pandas as pd
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.formatters import _legacy_rationale_from
+from lib.formatters import _escape_dollars, _legacy_rationale_from
+from lib.pills import _signal_pill_html
 
 from components.scenario_log import _get_probs
+
+# ── Editorial table helpers ──────────────────────────────────────────────────
+# The diff tables used to render as bare st.dataframe grids: signals shown as
+# uncolored text, Direction uncolored, Rationale truncated. On the one page
+# about signal *changes* that dropped all the color scent the rest of the app
+# relies on. These build the same rows as editorial HTML tables (reusing the
+# .ep-table look) with signal pills + colour-coded direction/deltas instead.
+
+_DIRECTION_STYLE = {
+    "upgrade": ("▲", "var(--buy)"),       # ▲
+    "downgrade": ("▼", "var(--caution)"),  # ▼
+    "new": ("＋", "var(--accumulate)"),     # ＋
+    "removed": ("−", "var(--ink-3)"),      # −
+}
+
+
+def _sig_cell(sig: str) -> str:
+    if not sig or sig == "—":
+        return '<span style="color:var(--ink-3);">—</span>'
+    return _signal_pill_html(sig, small=True)
+
+
+def _dir_cell(direction: str) -> str:
+    arrow, col = _DIRECTION_STYLE.get(direction, ("", "var(--ink-2)"))
+    return f'<span style="color:{col};font-weight:600;">{arrow} {direction}</span>'
+
+
+def _delta_cell(s: str) -> str:
+    """Colour a pre-formatted +/- change string ('+1.3%', '-2.0pp', '—')."""
+    if not s or s == "—":
+        return '<span style="color:var(--ink-3);">—</span>'
+    t = s.strip()
+    cls = "down" if t.startswith("-") else "up" if t.startswith("+") else "flat"
+    return f'<span class="{cls}">{s}</span>'
+
+
+def _editorial_table(headers: list[str], rows: list[list[str]],
+                     num_cols: set[int] | None = None) -> str:
+    """Render an editorial HTML table (reuses the .ep-table styling).
+
+    ``num_cols`` are column indices to right-align + nowrap (the .num class).
+    Wrapped in .tk-scroll so a wide diff swipes rather than clips on phones.
+    """
+    num_cols = num_cols or set()
+
+    def _cls(i: int) -> str:
+        return ' class="num"' if i in num_cols else ""
+
+    head = "".join(f"<th{_cls(i)}>{h}</th>" for i, h in enumerate(headers))
+    body = ""
+    for r in rows:
+        body += "<tr>" + "".join(f"<td{_cls(i)}>{c}</td>" for i, c in enumerate(r)) + "</tr>"
+    return (
+        '<div class="tk-scroll"><table class="ep-table cmp-table">'
+        f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+    )
 
 
 def render_report_comparison_page(reports: dict) -> None:
@@ -26,7 +82,6 @@ def render_report_comparison_page(reports: dict) -> None:
     dates = sorted(reports.keys(), reverse=True)
 
     render_section_head("Multi-Day Trend", "How posture and signals shifted across a window")
-    st.subheader("Multi-Day Trend Summary")
     window_options = {3: "3 days", 5: "5 days", 7: "7 days", 14: "14 days", 30: "30 days"}
     window = st.select_slider(
         "Show changes over last", options=list(window_options.keys()),
@@ -113,7 +168,14 @@ def render_report_comparison_page(reports: dict) -> None:
                 st.caption(f"Volatile signals: {volatile_str}")
 
             if trend_changes:
-                st.dataframe(pd.DataFrame(trend_changes), width="stretch", hide_index=True)
+                h = ["Ticker", f"Signal ({start_date})", f"Signal ({end_date})",
+                     "Direction", "Price Chg"]
+                rows = [
+                    [tc["Ticker"], _sig_cell(tc[h[1]]), _sig_cell(tc[h[2]]),
+                     _dir_cell(tc["Direction"]), _delta_cell(tc["Price Chg"])]
+                    for tc in trend_changes
+                ]
+                st.markdown(_editorial_table(h, rows, num_cols={4}), unsafe_allow_html=True)
             else:
                 st.caption(f"No signal changes in the last {window_options[window]}.")
 
@@ -137,15 +199,19 @@ def render_report_comparison_page(reports: dict) -> None:
                     "_abs_drift": abs(drift_val) if drift_val is not None else 0,
                 })
             if drift_rows:
-                drift_df = pd.DataFrame(drift_rows).sort_values("_abs_drift", ascending=False)
-                st.dataframe(drift_df.drop(columns=["_abs_drift"]), width="stretch", hide_index=True)
+                drift_sorted = sorted(drift_rows, key=lambda r: r["_abs_drift"], reverse=True)
+                h = ["Scenario", f"Prob ({start_date})", f"Prob ({end_date})", "Drift (pp)"]
+                rows = [
+                    [dr["Scenario"], dr[h[1]], dr[h[2]], _delta_cell(dr["Drift (pp)"])]
+                    for dr in drift_sorted
+                ]
+                st.markdown(_editorial_table(h, rows, num_cols={1, 2, 3}), unsafe_allow_html=True)
         else:
             st.caption(f"Only 1 report in the last {window_options[window]} — need at least 2.")
 
     st.divider()
 
     render_section_head("Pairwise Comparison", "Side-by-side diff between any two dates")
-    st.subheader("Pairwise Comparison")
     ccols = st.columns(2)
     with ccols[0]:
         date_a = st.selectbox("Report A (older)", dates[1:], index=0, key="cmp_a")
@@ -186,9 +252,13 @@ def render_report_comparison_page(reports: dict) -> None:
             })
 
     if sig_changes:
-        df_sc = pd.DataFrame(sig_changes)
-        # Color-code direction
-        st.dataframe(df_sc, width="stretch", hide_index=True)
+        h = ["Ticker", f"Signal ({date_a})", f"Signal ({date_b})", "Direction", "Rationale"]
+        rows = [
+            [sc["Ticker"], _sig_cell(sc[h[1]]), _sig_cell(sc[h[2]]), _dir_cell(sc["Direction"]),
+             f'<span style="color:var(--ink-3);">{_escape_dollars(sc["Rationale"])}</span>']
+            for sc in sig_changes
+        ]
+        st.markdown(_editorial_table(h, rows), unsafe_allow_html=True)
     else:
         st.caption("No signal changes between these dates.")
 
@@ -213,7 +283,12 @@ def render_report_comparison_page(reports: dict) -> None:
             "Drift (pp)": f"{drift:+.1f}" if drift is not None else "—",
         })
     if prob_rows:
-        st.dataframe(pd.DataFrame(prob_rows), width="stretch", hide_index=True)
+        h = ["Scenario", f"Prob ({date_a})", f"Prob ({date_b})", "Drift (pp)"]
+        rows = [
+            [pr["Scenario"], pr[h[1]], pr[h[2]], _delta_cell(pr["Drift (pp)"])]
+            for pr in prob_rows
+        ]
+        st.markdown(_editorial_table(h, rows, num_cols={1, 2, 3}), unsafe_allow_html=True)
 
     # ── Interconnected Stocks Diff ──
     st.subheader("Interconnected Stocks Diff")
@@ -270,4 +345,11 @@ def render_report_comparison_page(reports: dict) -> None:
             "vs SMA50 Chg": vs50_chg or "—",
         })
     if metric_rows:
-        st.dataframe(pd.DataFrame(metric_rows), width="stretch", hide_index=True)
+        h = ["Ticker", f"Price ({date_a})", f"Price ({date_b})",
+             "Price Chg", "RSI Chg", "vs SMA50 Chg"]
+        rows = [
+            [m["Ticker"], m[h[1]], m[h[2]], _delta_cell(m["Price Chg"]),
+             _delta_cell(m["RSI Chg"]), _delta_cell(m["vs SMA50 Chg"])]
+            for m in metric_rows
+        ]
+        st.markdown(_editorial_table(h, rows, num_cols={1, 2, 3, 4, 5}), unsafe_allow_html=True)

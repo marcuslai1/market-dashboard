@@ -7,9 +7,21 @@ import streamlit as st
 
 from lib.catalog import SIGNAL_COLORS, SIGNAL_TINTS
 
+# Contrast-safe *text* variants of the signal colours. The canonical tokens
+# (kept in catalog.json / theme.css for dots + rails) are fine as fills but two
+# fail WCAG AA as small pill text on the dark surfaces: HOLD #6b7280 (~3.6:1)
+# and AVOID #b91c1c (~2.9:1). These lighter siblings clear 4.5:1 while staying
+# unmistakably "muted gray" / "danger red". Used for pill/legend text only.
+_SIGNAL_TEXT_COLORS = {"HOLD": "#a1a1aa", "AVOID": "#e2726e"}
+
+
+def signal_text_color(sig: str) -> str:
+    """Signal colour safe to use as small text (>=4.5:1 on --paper/-2)."""
+    return _SIGNAL_TEXT_COLORS.get(sig, SIGNAL_COLORS.get(sig, "#9F988B"))
+
 
 def _signal_pill_html(sig: str, small: bool = False) -> str:
-    color = SIGNAL_COLORS.get(sig, "#9F988B")
+    color = signal_text_color(sig)
     tint = SIGNAL_TINTS.get(sig, "rgba(255,255,255,0.08)")
     pad = "1px 6px" if small else "3px 8px"
     fs = "9.5px" if small else "10.5px"

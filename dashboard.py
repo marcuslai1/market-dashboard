@@ -18,10 +18,10 @@ import pandas as pd
 import streamlit as st
 
 from live_prices import fetch_live_quotes, overlay_live
-from lib.catalog import RETIRED_TICKERS, SIGNAL_COLORS, SIGNAL_ORDER, SIGNAL_VERBS
+from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
 from lib.cards import render_section_head
 from lib.data_loader import load_all_reports, load_sqlite_prices
-from lib.pills import _render_live_caption
+from lib.pills import _render_live_caption, signal_text_color
 from lib.state import init_session_state, is_first_mount, mark_mounted
 from components.briefing import (
     render_action_card,
@@ -137,7 +137,7 @@ for _sig in SIGNAL_ORDER:
     _cnt = _sig_counts.get(_sig, 0)
     if _cnt:
         _sig_dots += (
-            f'<span style="color:{SIGNAL_COLORS[_sig]};font-weight:700;margin-right:8px;">'
+            f'<span style="color:{signal_text_color(_sig)};font-weight:700;margin-right:8px;">'
             f'●{_cnt}</span>'
         )
 _status_html += (
@@ -197,7 +197,7 @@ st.sidebar.divider()
 # Built from the canonical catalog (colors + verbs) so the palette and verbs
 # never drift from lib/catalog.py / assets/catalog.json.
 _legend_rows = "<br>".join(
-    f'<span style="color:{SIGNAL_COLORS[_s]};font-weight:700;">● {_s}</span>'
+    f'<span style="color:{signal_text_color(_s)};font-weight:700;">● {_s}</span>'
     f' — {SIGNAL_VERBS.get(_s, "")}'
     for _s in SIGNAL_ORDER
 )

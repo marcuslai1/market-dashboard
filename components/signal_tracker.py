@@ -328,7 +328,14 @@ def _calibration_band_html(acc_df: pd.DataFrame) -> str:
         if len(valid5) >= min_samples:
             rate = (valid5 <= 0).mean() * 100 if mode == "avoid" else (valid5 > 0).mean() * 100
             col = _rate_color(rate)
-            val_html = f'<div class="cval" style="color:{col};">{rate:.0f}%</div>'
+            # Numeral stays --ink (neutral). Performance (good/weak) rides a thin
+            # meter below it — so a low ACCUMULATE win-rate no longer renders in
+            # CAUTION-red and read as a signal. The meter matches the by-name
+            # winbars, keeping "rate = a bar" consistent across the page.
+            val_html = (
+                f'<div class="cval">{rate:.0f}%</div>'
+                f'<div class="cbar"><i style="width:{rate:.0f}%;background:{col};"></i></div>'
+            )
         else:
             val_html = f'<div class="cval muted">{"Pending" if count else "—"}</div>'
 
@@ -465,7 +472,10 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
         '<div class="led-num">Worst</div>'
         '</div>'
     )
-    return head + "".join(b for _, b in rows)
+    # Wrapped in .tk-scroll so the fixed-column ledger swipes horizontally on
+    # phones rather than clipping the Avg/Best/Worst columns off the edge.
+    body = head + "".join(b for _, b in rows)
+    return f'<div class="tk-scroll">{body}</div>'
 
 
 def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:

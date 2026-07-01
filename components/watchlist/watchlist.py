@@ -33,7 +33,12 @@ def render_watchlist(
             -(x[1].get("1mo_pct") or 0),
         ),
     )
-    st.markdown(
+    # The whole table (header + every row) is emitted in ONE st.markdown so the
+    # .tk-scroll wrapper genuinely contains the rows in the DOM — a div opened in
+    # one st.markdown and closed in another does NOT wrap sibling Streamlit
+    # blocks (the browser auto-closes it). .tk-scroll lets the fixed-column grid
+    # swipe horizontally on phones instead of clipping columns off the edge.
+    head = (
         '<div class="tk-row head">'
         '<div>Ticker</div><div>Name</div><div>Signal</div>'
         '<div style="text-align:right;">Last · Δ</div>'
@@ -41,11 +46,13 @@ def render_watchlist(
         '<div style="text-align:right;">vs 50-day</div>'
         '<div style="text-align:right;">RSI</div>'
         '<div style="text-align:right;">R:R</div>'
-        '</div>',
+        '</div>'
+    )
+    rows = "".join(
+        render_ticker_details_html(tk, d, signal_changed=(tk in changed_set))
+        for tk, d in items
+    )
+    st.markdown(
+        f'<div class="tk-scroll">{head}{rows}</div>',
         unsafe_allow_html=True,
     )
-    for tk, d in items:
-        st.markdown(
-            render_ticker_details_html(tk, d, signal_changed=(tk in changed_set)),
-            unsafe_allow_html=True,
-        )
