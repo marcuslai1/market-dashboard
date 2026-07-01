@@ -18,20 +18,17 @@ import pandas as pd
 import streamlit as st
 
 from live_prices import fetch_live_quotes, overlay_live
-from lib.catalog import RETIRED_TICKERS
+from lib.catalog import RETIRED_TICKERS, SIGNAL_COLORS, SIGNAL_ORDER, SIGNAL_VERBS
 from lib.cards import render_section_head
 from lib.data_loader import load_all_reports, load_sqlite_prices
 from lib.pills import _render_live_caption
 from lib.state import init_session_state, is_first_mount, mark_mounted
 from components.briefing import (
     render_action_card,
-    render_calendar,
     render_catalyst_playbook,
     render_changes,
     render_contrarian_candidates,
-    render_macro,
     render_pulse,
-    render_stance,
 )
 from components.briefing.calendar import calendar_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
@@ -136,13 +133,11 @@ _status_html += (
     f'<span class="status-value">{sum(_sig_counts.values())}</span></div>'
 )
 _sig_dots = ""
-for _sig, _color in [("BUY", "#22c55e"), ("ACCUMULATE", "#3498db"),
-                      ("WATCH", "#f59e0b"), ("HOLD", "#6b7280"),
-                      ("CAUTION", "#ef4444")]:
+for _sig in SIGNAL_ORDER:
     _cnt = _sig_counts.get(_sig, 0)
     if _cnt:
         _sig_dots += (
-            f'<span style="color:{_color};font-weight:700;margin-right:8px;">'
+            f'<span style="color:{SIGNAL_COLORS[_sig]};font-weight:700;margin-right:8px;">'
             f'●{_cnt}</span>'
         )
 _status_html += (
@@ -199,14 +194,15 @@ st.sidebar.divider()
 
 
 # ── Sidebar: signal legend ──
+# Built from the canonical catalog (colors + verbs) so the palette and verbs
+# never drift from lib/catalog.py / assets/catalog.json.
+_legend_rows = "<br>".join(
+    f'<span style="color:{SIGNAL_COLORS[_s]};font-weight:700;">● {_s}</span>'
+    f' — {SIGNAL_VERBS.get(_s, "")}'
+    for _s in SIGNAL_ORDER
+)
 st.sidebar.markdown(
-    '<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">'
-    '<span style="color:#22c55e;font-weight:700;">● BUY</span> — Enter now<br>'
-    '<span style="color:#3498db;font-weight:700;">● ACCUMULATE</span> — Add on strength<br>'
-    '<span style="color:#f59e0b;font-weight:700;">● WATCH</span> — Waiting for trigger<br>'
-    '<span style="color:#6b7280;font-weight:700;">● HOLD</span> — Maintain<br>'
-    '<span style="color:#ef4444;font-weight:700;">● CAUTION</span> — Trim / avoid'
-    '</div>',
+    f'<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">{_legend_rows}</div>',
     unsafe_allow_html=True,
 )
 
@@ -277,11 +273,7 @@ if page == "Briefing":
         _skipped = _dc.get("skipped") or []
         _skip_note = f" Missing: {', '.join(_skipped[:8])}." if _skipped else ""
         st.markdown(
-            '<div style="background:rgba(239,68,68,0.10);'
-            'border:1px solid rgba(239,68,68,0.40);border-left:3px solid #ef4444;'
-            'border-radius:4px;padding:10px 16px;margin-bottom:14px;'
-            'font-family:var(--mono);font-size:11.5px;letter-spacing:0.04em;'
-            'color:var(--ink-2);">⚠ Data coverage degraded — '
+            '<div class="briefing-banner" data-tone="warn">⚠ Data coverage degraded — '
             f'{_dc.get("fetched")}/{_dc.get("expected")} names fetched.'
             f'{_skip_note} Cluster medians and extension-regime checks are '
             'disarmed today; treat signals as provisional.</div>',
@@ -295,14 +287,9 @@ if page == "Briefing":
     _aps = report.get("accumulate_paper_status")
     if isinstance(_aps, dict) and _aps.get("line"):
         _grad = _aps.get("graduated")
-        _col = "#22c55e" if _grad else "#f59e0b"
         st.markdown(
-            f'<div style="background:rgba(245,158,11,0.08);'
-            f'border:1px solid {_col}55;border-left:3px solid {_col};'
-            'border-radius:4px;padding:9px 14px;margin-bottom:14px;'
-            'font-family:var(--mono);font-size:11.5px;letter-spacing:0.04em;'
-            f'color:var(--ink-2);">{"✅" if _grad else "🧪"} '
-            f'{_aps["line"]}</div>',
+            f'<div class="briefing-banner" data-tone="{"ok" if _grad else "test"}">'
+            f'{"✅" if _grad else "🧪"} {_aps["line"]}</div>',
             unsafe_allow_html=True,
         )
 
@@ -314,9 +301,7 @@ if page == "Briefing":
     )
     if _crisis_detected:
         st.markdown(
-            '<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);'
-            'border-radius:4px;padding:12px 18px;margin-bottom:16px;'
-            'font-family:var(--mono);font-size:12px;letter-spacing:0.07em;color:#ef4444;">'
+            '<div class="briefing-banner" data-tone="crisis">'
             'CRISIS DISLOCATION FLAG ACTIVE — elevated signal noise. '
             'Treat all AVOID/CAUTION signals as provisional.'
             '</div>',

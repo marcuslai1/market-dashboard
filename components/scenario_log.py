@@ -7,8 +7,6 @@ Comparison imports from this module.
 """
 from __future__ import annotations
 
-import html
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -141,7 +139,7 @@ def _render_move_log(moves: list[dict], colors: dict[str, str]) -> str:
             arrow = "▲" if delta > 0 else "▼"
             desc = m["description"].strip()
             desc_html = (
-                _escape_dollars(html.escape(desc)) if desc
+                _escape_dollars(desc) if desc
                 else '<span style="color:var(--ink-4)">No narrative recorded for this shift.</span>'
             )
             rows.append(

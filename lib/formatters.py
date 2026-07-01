@@ -6,19 +6,33 @@ trivially testable and reusable from non-Streamlit contexts).
 """
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 
 
 def _escape_dollars(text: str) -> str:
-    """Neutralize ``$`` so Streamlit never renders it as LaTeX math.
+    """Make report-derived text safe to inject through ``unsafe_allow_html``.
 
-    Uses the HTML numeric entity ``&#36;`` rather than a markdown backslash
-    escape (``\\$``). The backslash form only works in pure-markdown text —
-    inside the raw HTML we inject via ``unsafe_allow_html`` the markdown
-    processor is bypassed, so ``\\$`` leaks the literal backslash to the page.
-    ``&#36;`` renders as ``$`` in *both* contexts and is never parsed as math.
+    Two passes, order matters:
+
+    1. **HTML-escape** ``& < >`` so LLM prose like ``"P/E < 15"`` or ``"R&D"``
+       can't break the surrounding markup or be swallowed by the browser as a
+       bogus tag. ``quote=False`` keeps apostrophes/quotes literal — every call
+       site injects into element text, never into an attribute value.
+    2. **Neutralize ``$``** so Streamlit never renders it as LaTeX math. Uses
+       the HTML numeric entity ``&#36;`` rather than a markdown backslash escape
+       (``\\$``): the backslash form only works in pure-markdown text, but inside
+       the raw HTML we inject the markdown processor is bypassed, so ``\\$``
+       would leak a literal backslash. ``&#36;`` renders as ``$`` in both
+       contexts and is never parsed as math.
+
+    The ``$`` step runs *after* HTML-escaping so the ``&`` it introduces is not
+    itself turned into ``&amp;``. (Name kept for the many existing call sites.)
     """
-    return text.replace("$", "&#36;") if text else text
+    if not text:
+        return text
+    return html.escape(str(text), quote=False).replace("$", "&#36;")
 
 
 def _truncate_rationale(text: str) -> str:
