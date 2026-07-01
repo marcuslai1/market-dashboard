@@ -7,6 +7,7 @@ Streamlit calls. Drives the click-to-expand watchlist grid in
 """
 from __future__ import annotations
 
+from components.watchlist.drilldown import render_drilldown_detail_html
 from lib.catalog import CLUSTER_MAP, TICKER_DISPLAY
 from lib.formatters import (
     _ccy_decimals,
@@ -19,8 +20,6 @@ from lib.formatters import (
     _writeup_for_render,
 )
 from lib.pills import _signal_pill_html
-
-from components.watchlist.drilldown import render_drilldown_detail_html
 
 
 def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -> str:
