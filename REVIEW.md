@@ -1,5 +1,11 @@
 # Codebase Review Ledger
 
+> **Status: CLOSED (2026-07-01).** 8/8 phases done · tests 13 → 75 · `ruff` clean ·
+> CI green (py3.10/3.12 + lint). All safe/actionable findings fixed and merged.
+> Only **decisions** (P1-2 surface-or-drop; P0-1 local-env upgrade) and explicitly
+> **deferred/accepted** items remain — see *Final synthesis*. Resume by reading this
+> file in a fresh session.
+
 Standing record for the phased full-codebase review. Resume-friendly: each phase
 has a status, and every finding has a stable ID, severity, and fix.
 
