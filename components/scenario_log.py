@@ -36,7 +36,18 @@ def _get_probs(rpt):
     # New format: geopolitical.probabilities = {base: 50, ...}
     probs = geo.get("probabilities", {})
     if probs:
-        return {_norm_scenario(k): (str(v), float(v) if v is not None else None) for k, v in probs.items()}
+        out = {}
+        for k, v in probs.items():
+            # Guard float() the same way the legacy branch (and
+            # extract_scenario_history) do — a malformed value must not crash the
+            # Report-Comparison drift table.
+            try:
+                mid = float(v) if v is not None else None
+            except (ValueError, TypeError):
+                mid = None
+            disp = f"{int(mid)}%" if mid is not None else "—"
+            out[_norm_scenario(k)] = (disp, mid)
+        return out
     # Legacy format: geopolitical.scenarios = {base_case: {probability: "50-55%"}}
     result = {}
     for name, sc in geo.get("scenarios", {}).items():
