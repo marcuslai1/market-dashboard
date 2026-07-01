@@ -11,6 +11,65 @@ import html
 import pandas as pd
 
 
+def _escape_attr(text) -> str:
+    """Escape a value destined for an HTML *attribute* value.
+
+    Unlike :func:`_escape_dollars` (text-node only, ``quote=False``), this
+    escapes quotes too so a value like ``a" onmouseover="x`` cannot break out of
+    ``attr="..."`` and inject new attributes. Use for every dynamic value that
+    lands inside ``foo="{...}"``.
+    """
+    if not text:
+        return ""
+    return html.escape(str(text), quote=True)
+
+
+def _safe_href(url) -> str:
+    """Sanitise a URL for use inside ``href="..."``.
+
+    Only ``http``/``https`` URLs are allowed through (blocks ``javascript:`` /
+    ``data:`` script vectors); the result is attribute-escaped so a stray quote
+    or angle bracket cannot break out of the attribute. Anything else → ``""``
+    (caller should then omit the link).
+    """
+    if not url:
+        return ""
+    s = str(url).strip()
+    lowered = s.lower()
+    if not (lowered.startswith("http://") or lowered.startswith("https://")):
+        return ""
+    return html.escape(s, quote=True)
+
+
+# ── Currency-aware price formatting ──
+# HTML-safe prefixes: ``$`` is emitted as ``&#36;`` so Streamlit never parses a
+# price as LaTeX math (same reasoning as ``_escape_dollars``). Non-``$`` symbols
+# (€ ₩ £ ¥) are literal — they never trigger LaTeX.
+_CCY_PREFIX = {
+    "USD": "&#36;",
+    "SGD": "S&#36;",
+    "EUR": "€",
+    "KRW": "₩",
+    "TWD": "NT&#36;",
+    "JPY": "¥",
+    "GBP": "£",
+    "HKD": "HK&#36;",
+}
+
+# Zero-decimal currencies: prices carry no minor unit, so ``,.2f`` invents cents.
+_CCY_ZERO_DECIMAL = {"KRW", "JPY"}
+
+
+def _ccy_prefix(currency) -> str:
+    """HTML-safe currency prefix for a price. Unknown/None → ``$``."""
+    return _CCY_PREFIX.get(currency or "USD", "&#36;")
+
+
+def _ccy_decimals(currency) -> int:
+    """Decimal places for a price in *currency* (0 for zero-decimal units)."""
+    return 0 if currency in _CCY_ZERO_DECIMAL else 2
+
+
 def _escape_dollars(text: str) -> str:
     """Make report-derived text safe to inject through ``unsafe_allow_html``.
 
@@ -35,33 +94,15 @@ def _escape_dollars(text: str) -> str:
     return html.escape(str(text), quote=False).replace("$", "&#36;")
 
 
-def _truncate_rationale(text: str) -> str:
-    """Show the first 1-2 complete sentences of the rationale."""
-    if not text:
-        return text
-    # Find the second sentence boundary to capture 1-2 full sentences
-    end = -1
-    for i, ch in enumerate(text):
-        if ch == '.' and i + 1 < len(text) and text[i + 1] == ' ':
-            if end == -1:
-                end = i + 1  # first sentence
-            else:
-                end = i + 1  # second sentence
-                break
-    # If text ends with a period (single sentence, no trailing space)
-    if end == -1 and text.rstrip().endswith('.'):
-        return text.rstrip()
-    if end == -1:
-        return text  # no sentence boundary found, show all
-    return text[:end]
-
-
 def _price_str(price, currency: str = "USD") -> str:
-    """Format a price with currency-aware prefix, escaped for Streamlit."""
-    if price is None:
+    """Format a price with currency-aware prefix + decimals, HTML-safe.
+
+    Uses the currency map so KRW renders ``₩2,560,000`` (right symbol, no bogus
+    cents) and EUR/TWD get their own symbols rather than a hard-coded ``$``.
+    """
+    if price is None or (isinstance(price, float) and pd.isna(price)):
         return "—"
-    pfx = "S&#36;" if currency == "SGD" else "&#36;"
-    return f"{pfx}{price:,.2f}"
+    return f"{_ccy_prefix(currency)}{price:,.{_ccy_decimals(currency)}f}"
 
 
 # ── Metric color helpers ──

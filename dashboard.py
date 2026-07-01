@@ -90,6 +90,13 @@ if st.session_state.density == "compact":
         unsafe_allow_html=True,
     )
 
+# ── First-mount flag flip ──
+# Flip immediately after the one-shot animation <style> above has been decided.
+# is_first_mount() is only read there, so flipping now is safe — and doing it
+# here (rather than at the bottom) means an early st.stop() in any page branch
+# can't leave has_mounted False and re-fire the intro animations next run.
+mark_mounted()
+
 
 # ── Masthead + top nav ──
 page = render_masthead_and_nav()
@@ -429,10 +436,3 @@ elif page == "Report Comparison":
 elif page == "Terminology":
     from components.terminology import render_terminology_page
     render_terminology_page()
-
-
-# ── First-mount flag flip ──
-# Must be the absolute last line — after every elif branch can render. On the
-# next rerun, is_first_mount() returns False and the one-shot CSS keyframes
-# (signal-flash, severity-pulse) stay dormant.
-mark_mounted()

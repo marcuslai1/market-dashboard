@@ -11,7 +11,7 @@ import streamlit as st
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS, TICKER_DISPLAY
 from lib.data_loader import load_signal_log
-from lib.formatters import _legacy_rationale_from
+from lib.formatters import _escape_attr, _escape_dollars, _legacy_rationale_from
 from lib.pills import _signal_pill_html
 
 
@@ -33,7 +33,7 @@ def _classify_episode_verdict(signal: str, ret: float | None,
     prefix = "⏳ " if is_active else ""
     if signal in ("BUY", "ACCUMULATE"):
         return f"{prefix}✓ profit" if ret > 0 else f"{prefix}✗ loss"
-    if signal == "CAUTION":
+    if signal in ("CAUTION", "AVOID"):
         return f"{prefix}✓ avoided" if ret < 0 else f"{prefix}✗ wrong"
     return "—"
 
@@ -97,23 +97,29 @@ def build_signal_episodes(sig_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.D
             exit_date = None
             is_active = False
 
+            # latest_by_ticker is keyed by DB-style (dot) tickers; the loop key is
+            # report-style (underscore). Convert before lookup or every non-US
+            # name silently misses and freezes an open position at its stale
+            # in-episode price instead of the latest close.
+            db_ticker = _report_ticker_to_db(ticker)
+
             if signal in ("BUY", "ACCUMULATE"):
                 for j in range(i + 1, len(ticker_eps)):
-                    if ticker_eps[j]["signal"] == "CAUTION":
+                    if ticker_eps[j]["signal"] in ("CAUTION", "AVOID"):
                         exit_price = ticker_eps[j]["entry_price"]
                         exit_date = ticker_eps[j]["start"]
                         break
                 if exit_price is None:
-                    exit_price = latest_by_ticker.get(ticker) or ep["last_in_ep"]
+                    exit_price = latest_by_ticker.get(db_ticker) or ep["last_in_ep"]
                     is_active = True
-            elif signal == "CAUTION":
+            elif signal in ("CAUTION", "AVOID"):
                 for j in range(i + 1, len(ticker_eps)):
                     if ticker_eps[j]["signal"] in ("BUY", "ACCUMULATE"):
                         exit_price = ticker_eps[j]["entry_price"]
                         exit_date = ticker_eps[j]["start"]
                         break
                 if exit_price is None:
-                    exit_price = latest_by_ticker.get(ticker) or ep["last_in_ep"]
+                    exit_price = latest_by_ticker.get(db_ticker) or ep["last_in_ep"]
                     is_active = True
             else:
                 exit_price = ep["last_in_ep"]
@@ -179,6 +185,17 @@ def _is_sgx_ticker(ticker: str) -> bool:
     return ticker.endswith("_SI")
 
 
+def _is_foreign_ticker(ticker: str) -> bool:
+    """True for any non-US listing (has an exchange suffix: .SI/.KS/.TW/.DE/…).
+
+    US tickers pass through ``_report_ticker_to_db`` unchanged; foreign ones gain
+    a dot. The SPY benchmark is only meaningful for US names — a foreign name's
+    Nth trading row lands on a different calendar date than SPY's Nth row, so the
+    'excess vs SPY' comparison is apples-to-oranges for them.
+    """
+    return _report_ticker_to_db(ticker) != ticker
+
+
 def compute_signal_accuracy(
     sig_df: pd.DataFrame, prices_df: pd.DataFrame
 ) -> pd.DataFrame:
@@ -193,7 +210,9 @@ def compute_signal_accuracy(
     if sig_df.empty or prices_df.empty:
         return pd.DataFrame()
 
-    actionable = sig_df[sig_df["signal"].isin(["BUY", "ACCUMULATE", "WATCH", "CAUTION"])].copy()
+    actionable = sig_df[
+        sig_df["signal"].isin(["BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID"])
+    ].copy()
     if actionable.empty:
         return pd.DataFrame()
 
@@ -216,7 +235,7 @@ def compute_signal_accuracy(
         db_ticker = _report_ticker_to_db(row["ticker"])
         signal_date = row["date"]
         signal_price = row["price"]
-        is_sgx = _is_sgx_ticker(row["ticker"])
+        is_foreign = _is_foreign_ticker(row["ticker"])
 
         if signal_price is None or pd.isna(signal_price):
             continue
@@ -253,7 +272,7 @@ def compute_signal_accuracy(
                 entry[f"return_{label}"] = None
 
             # SPY benchmark return over same window
-            if is_sgx or spy_base_price is None:
+            if is_foreign or spy_base_price is None:
                 entry[f"spy_{label}"] = None
                 entry[f"excess_{label}"] = None
             elif len(spy_future) >= offset:
@@ -316,6 +335,7 @@ def _calibration_band_html(acc_df: pd.DataFrame) -> str:
         ("ACCUMULATE", "win", "did adds pay off"),
         ("WATCH", "win", "did the setups fire"),
         ("CAUTION", "avoid", "right to stay away"),
+        ("AVOID", "avoid", "right to stay out"),
     ]
     cells = ""
     for sig, mode, _gloss in specs:
@@ -405,9 +425,11 @@ def _episode_table_html(eps: pd.DataFrame) -> str:
         )
     return (
         '<table class="ep-table"><thead><tr>'
-        '<th>Signal</th><th>Window</th><th class="num">Held</th>'
-        '<th class="num">Entry → Exit/Now</th><th class="num">Return</th>'
-        '<th class="num">Peak run</th><th>Verdict</th>'
+        '<th scope="col">Signal</th><th scope="col">Window</th>'
+        '<th scope="col" class="num">Held</th>'
+        '<th scope="col" class="num">Entry → Exit/Now</th>'
+        '<th scope="col" class="num">Return</th>'
+        '<th scope="col" class="num">Peak run</th><th scope="col">Verdict</th>'
         '</tr></thead><tbody>'
         f'{rows}</tbody></table>'
     )
@@ -423,7 +445,7 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
     for ticker, tk_eps in episodes.groupby("ticker"):
         if tk_eps.empty:
             continue
-        scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"]) & ~tk_eps["is_active"]]
+        scored = tk_eps[tk_eps["signal"].isin(["BUY", "ACCUMULATE", "CAUTION", "AVOID"]) & ~tk_eps["is_active"]]
         n_scored = len(scored)
         wins = int(scored["verdict"].isin(["✓ profit", "✓ avoided"]).sum())
         win_rate = (wins / n_scored * 100) if n_scored else None
@@ -433,9 +455,9 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
         worst = rets.min() if len(rets) else None
         open_n = int(tk_eps["is_active"].sum())
 
-        display_tk = TICKER_DISPLAY.get(ticker, ticker)
+        display_tk = _escape_dollars(TICKER_DISPLAY.get(ticker, ticker))
         cur_sig = current_signal.get(ticker, "HOLD")
-        cluster = CLUSTER_MAP.get(ticker, "")
+        cluster = _escape_dollars(CLUSTER_MAP.get(ticker, ""))
 
         eps_cell = f'{len(tk_eps)}'
         if open_n:
@@ -454,7 +476,7 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
             '</summary>'
         )
         body = f'<div class="tk-drilldown">{_episode_table_html(tk_eps)}</div>'
-        block = f'<details class="led-details" data-signal="{cur_sig}">{summary}{body}</details>'
+        block = f'<details class="led-details" data-signal="{_escape_attr(cur_sig)}">{summary}{body}</details>'
 
         # sort: scored names first (group 0) by -win_rate, -avg; then the rest
         if win_rate is not None:
@@ -465,17 +487,21 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
 
     rows.sort(key=lambda r: r[0])
     head = (
-        '<div class="led-head">'
-        '<div>Name</div><div>Sector</div><div>Now</div>'
-        '<div class="led-num">Episodes</div><div>Trades won</div>'
-        '<div class="led-num">Avg</div><div class="led-num">Best</div>'
-        '<div class="led-num">Worst</div>'
+        '<div class="led-head" role="row">'
+        '<div role="columnheader">Name</div>'
+        '<div role="columnheader">Sector</div>'
+        '<div role="columnheader">Now</div>'
+        '<div role="columnheader" class="led-num">Episodes</div>'
+        '<div role="columnheader">Trades won</div>'
+        '<div role="columnheader" class="led-num">Avg</div>'
+        '<div role="columnheader" class="led-num">Best</div>'
+        '<div role="columnheader" class="led-num">Worst</div>'
         '</div>'
     )
     # Wrapped in .tk-scroll so the fixed-column ledger swipes horizontally on
     # phones rather than clipping the Avg/Best/Worst columns off the edge.
     body = head + "".join(b for _, b in rows)
-    return f'<div class="tk-scroll">{body}</div>'
+    return f'<div class="tk-scroll" role="table" aria-label="Per-name track record">{body}</div>'
 
 
 def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
@@ -545,7 +571,7 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
         sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
     )
     if not episodes.empty:
-        actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION"])
+        actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION", "AVOID"])
         watch_triggered = (episodes["signal"] == "WATCH") & (
             episodes["run_during_pct"].fillna(0) >= 5
         )

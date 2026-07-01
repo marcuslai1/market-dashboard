@@ -33,7 +33,7 @@ def _bucket_pill_html(e: dict) -> str:
         f'<span style="font-family:var(--mono);font-size:9px;'
         f'letter-spacing:0.08em;border:1px solid var(--rule);border-radius:3px;'
         f'padding:1px 5px;margin-left:7px;color:{color};white-space:nowrap;'
-        f'vertical-align:1px;">{bucket}</span>'
+        f'vertical-align:1px;">{_escape_dollars(bucket)}</span>'
     )
 
 
@@ -63,7 +63,8 @@ def _timing_line_html(e: dict) -> str:
     sep = " · " if left and sgt_disp else ""
     return (
         f'<span style="display:block;margin-top:3px;font-family:var(--mono);'
-        f'font-size:10px;color:var(--ink-3);">{left}{sep}{sgt_disp}</span>'
+        f'font-size:10px;color:var(--ink-3);">'
+        f'{_escape_dollars(left)}{sep}{_escape_dollars(sgt_disp)}</span>'
     )
 
 
@@ -90,7 +91,7 @@ def _group_html(group: list, muted: bool = False) -> str:
                     f'<span style="font-family:var(--mono);font-size:10px;'
                     f'background:var(--surface-2,#1e1e2e);border-radius:3px;'
                     f'padding:1px 5px;margin-right:3px;color:var(--ink-2);">'
-                    f'{t}</span>'
+                    f'{_escape_dollars(t)}</span>'
                     for t in tickers[:5]
                 )
                 ticker_html = f'<div style="margin-top:3px;{style}">{tags}</div>'

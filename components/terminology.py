@@ -62,7 +62,7 @@ def render_terminology_page() -> None:
 .term-bullets b { color: var(--ink); }
 </style>
 <table class="term-table">
-<thead><tr><th>Signal</th><th>Meaning</th><th>Trigger</th></tr></thead>
+<thead><tr><th scope="col">Signal</th><th scope="col">Meaning</th><th scope="col">Trigger</th></tr></thead>
 <tbody>
 <tr>
   <td><span class="term-pill" style="background:rgba(34,197,94,0.16);color:#22c55e;">● BUY</span></td>
@@ -153,7 +153,7 @@ are risking more than you stand to gain at the nearest target; above 2.0 means
 the geometry favours the trade.
 </div>
 <table class="term-table">
-<thead><tr><th>Band</th><th>Reading</th></tr></thead>
+<thead><tr><th scope="col">Band</th><th scope="col">Reading</th></tr></thead>
 <tbody>
 <tr><td><b>R:R ≥ 2.0</b></td><td>Favourable. Geometry alone supports the entry.</td></tr>
 <tr><td><b>1.0 ≤ R:R &lt; 2.0</b></td><td>Mixed. Need a thesis or technical edge to compensate.</td></tr>
@@ -173,7 +173,7 @@ ticker's vs-SMA50 reading.
     render_section_head("Technical Indicators", "Bucket cutoffs and what they imply")
     st.markdown("""
 <table class="term-table">
-<thead><tr><th>Metric</th><th>Definition</th><th>Bands</th></tr></thead>
+<thead><tr><th scope="col">Metric</th><th scope="col">Definition</th><th scope="col">Bands</th></tr></thead>
 <tbody>
 <tr>
   <td><b>RSI (14-day)</b></td>
@@ -208,7 +208,7 @@ ticker's vs-SMA50 reading.
     render_section_head("Valuation Metrics", "How fundamentals are read into the signal")
     st.markdown("""
 <table class="term-table">
-<thead><tr><th>Metric</th><th>Definition &amp; use</th></tr></thead>
+<thead><tr><th scope="col">Metric</th><th scope="col">Definition &amp; use</th></tr></thead>
 <tbody>
 <tr>
   <td><b>Forward P/E</b></td>
@@ -258,7 +258,7 @@ mechanical <b>setup archetype</b> that names what kind of bar the print is
 clearing.
 </div>
 <table class="term-table">
-<thead><tr><th>Archetype</th><th>Trigger</th><th>What "good news" must look like</th></tr></thead>
+<thead><tr><th scope="col">Archetype</th><th scope="col">Trigger</th><th scope="col">What "good news" must look like</th></tr></thead>
 <tbody>
 <tr>
   <td><span class="term-pill" style="background:rgba(239,68,68,0.18);color:#ef4444;">Priced for perfection</span></td>
@@ -353,7 +353,7 @@ A 1-day ACCUMULATE flipping to HOLD does not return 0%; it stays open
 until a CAUTION or AVOID closes it.
 </div>
 <table class="term-table">
-<thead><tr><th>Verdict</th><th>Rule</th></tr></thead>
+<thead><tr><th scope="col">Verdict</th><th scope="col">Rule</th></tr></thead>
 <tbody>
 <tr><td><b>✓ profit</b> (BUY/ACCUMULATE)</td><td>return_pct &gt; 0 at exit.</td></tr>
 <tr><td><b>✗ loss</b> (BUY/ACCUMULATE)</td><td>return_pct ≤ 0 at exit.</td></tr>

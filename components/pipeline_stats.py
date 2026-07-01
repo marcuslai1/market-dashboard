@@ -21,13 +21,26 @@ def render_pipeline_stats_page(reports: dict) -> None:
     """Render the Pipeline Stats page.
 
     Args:
-        reports: filtered reports dict (only used to gate the empty state).
+        reports: filtered reports dict (date-keyed). Its date span drives the
+            range clip so the sidebar Range control actually applies here.
     """
     st.title("Pipeline Statistics")
-    token_df = load_token_usage()
+
+    # Clip the pipeline frames to the same date window the sidebar selected.
+    # reports keys are ISO date strings already validated by filter_reports.
+    _rk = sorted(reports.keys())
+    _lo = pd.Timestamp(_rk[0]) if _rk else None
+    _hi = pd.Timestamp(_rk[-1]) if _rk else None
+
+    def _clip(df: pd.DataFrame) -> pd.DataFrame:
+        if df.empty or _lo is None or "date" not in df.columns:
+            return df
+        return df[(df["date"] >= _lo) & (df["date"] <= _hi)]
+
+    token_df = _clip(load_token_usage())
 
     if token_df.empty:
-        st.warning("No pipeline data available yet.")
+        st.warning("No pipeline data in the selected date range.")
         st.stop()
 
     render_section_head("Cost & Tokens", "API spend and runtime per report")
@@ -70,7 +83,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
     # Post-cutover rows are cache-aware DeepSeek v4 Pro. We render both ranges
     # so the step-change is visible rather than silently averaging across them.
     st.subheader("API Cost")
-    ps_for_cost = load_pipeline_stats()
+    ps_for_cost = _clip(load_pipeline_stats())
     cost_df = ps_for_cost.dropna(subset=["computed_cost_usd"]).sort_values("date").copy()
     if cost_df.empty:
         st.info("No cost data available — pipeline_stats.computed_cost_usd is empty.")
@@ -232,7 +245,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
 
     # ── Articles Fed to Prompt ──
     st.subheader("Articles Fed to Prompt")
-    ps_df = load_pipeline_stats()
+    ps_df = _clip(load_pipeline_stats())
     if ps_df.empty:
         st.info("No pipeline stats recorded yet.")
     else:

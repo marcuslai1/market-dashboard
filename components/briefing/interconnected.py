@@ -20,7 +20,7 @@ def render_interconnected(stocks: list) -> None:
         if not isinstance(s, dict):
             continue
         ticker = (s.get("ticker") or "—").upper()
-        display = TICKER_DISPLAY.get(ticker, ticker)
+        display = _escape_dollars(TICKER_DISPLAY.get(ticker, ticker))
         name = s.get("name", "")
         reason = s.get("reason") or ""
         entry_note = s.get("entry_note") or ""
