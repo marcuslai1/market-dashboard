@@ -24,6 +24,12 @@ def test_signal_mix_buckets_null_and_missing_last():
     assert _signal_mix(["A", "B", "C"], wl) == [("HOLD", 1), ("—", 2)]
 
 
+def test_signal_mix_matches_underscore_keyed_watchlist():
+    # Real data: cluster tickers are dotted, the watchlist is underscore-keyed.
+    wl = {"D05_SI": {"signal": "HOLD"}, "000660_KS": {"signal": "WATCH"}}
+    assert _signal_mix(["D05.SI", "000660.KS"], wl) == [("WATCH", 1), ("HOLD", 1)]
+
+
 def test_extension_breadth_counts_blocked_normalized():
     er = {"blocked_tickers": ["D05_SI", "000660_KS"]}
     assert _extension_breadth(["D05.SI", "O39.SI", "000660.KS"], er) == (2, 3)
@@ -35,8 +41,8 @@ def test_extension_breadth_none_without_regime():
 
 
 _WL = {
-    "D05.SI": {"signal": "HOLD", "price": 47.0, "currency": "SGD", "chg_pct": -0.3},
-    "O39.SI": {"signal": "WATCH", "price": 17.0, "currency": "SGD"},
+    "D05_SI": {"signal": "HOLD", "price": 47.0, "currency": "SGD", "chg_pct": -0.3},
+    "O39_SI": {"signal": "WATCH", "price": 17.0, "currency": "SGD"},
 }
 _CLUSTERS = {
     "singapore": {
@@ -105,3 +111,9 @@ def test_prose_is_escaped():
     assert "<script>" not in out
     assert "<img" not in out
     assert "&lt;script&gt;" in out
+
+
+def test_cluster_name_humanized():
+    out = _clusters_html({"big_tech": {"tickers": [], "summary": "S"}}, {})
+    assert "Big Tech" in out
+    assert "Big_Tech" not in out

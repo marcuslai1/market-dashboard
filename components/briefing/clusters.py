@@ -11,6 +11,9 @@ from __future__ import annotations
 
 from collections import Counter
 
+import streamlit as st
+
+from lib.cards import render_section_head
 from lib.catalog import SIGNAL_ORDER, TICKER_DISPLAY
 from lib.formatters import _escape_dollars, _fmt_num, _sign
 from lib.pills import _signal_pill_html
@@ -29,7 +32,7 @@ def _signal_mix(tickers: list, watchlist: dict) -> list:
     """
     counts: Counter = Counter()
     for tk in tickers:
-        sig = (watchlist.get(tk) or {}).get("signal")
+        sig = (watchlist.get(_norm(tk)) or {}).get("signal")
         counts[sig if sig else "—"] += 1
     ordered = [(s, counts[s]) for s in SIGNAL_ORDER if counts.get(s)]
     if counts.get("—"):
@@ -61,13 +64,13 @@ def _anchor_table_html(cluster: dict, watchlist: dict) -> str:
         a = anchors.get(_norm(tk))
         if not a:
             continue
-        sig = (watchlist.get(tk) or {}).get("signal")
+        sig = (watchlist.get(_norm(tk)) or {}).get("signal")
         pill = _signal_pill_html(sig, small=True) if sig else "—"
         vs50 = a.get("vs_sma50_pct")
         rsi = a.get("rsi_14")
         vs50_str = f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"
         rows.append(
-            f"<tr><td>{_escape_dollars(TICKER_DISPLAY.get(tk, tk))}</td>"
+            f"<tr><td>{_escape_dollars(TICKER_DISPLAY.get(_norm(tk), tk))}</td>"
             f"<td>{pill}</td>"
             f'<td class="num">{vs50_str}</td>'
             f'<td class="num">{_fmt_num(rsi, 0)}</td></tr>'
@@ -111,7 +114,7 @@ def _cluster_details_html(name: str, cluster: dict, watchlist: dict,
     body.append(_anchor_table_html(cluster, watchlist))
     return (
         '<details class="cl-details"><summary class="cl-summary">'
-        f'<span class="cl-name">{_escape_dollars(str(name).title())}</span>'
+        f'<span class="cl-name">{_escape_dollars(str(name).replace("_", " ").title())}</span>'
         f"{_glance_html(tickers, watchlist, extension_regime)}{dev_html}"
         f'</summary><div class="cl-body">{"".join(body)}</div></details>'
     )
@@ -128,3 +131,18 @@ def _clusters_html(clusters: dict, watchlist: dict, extension_regime=None) -> st
     if not blocks:
         return '<div class="cl-band cl-empty">No cluster breakdown in this report.</div>'
     return f'<div class="cl-band">{"".join(blocks)}</div>'
+
+
+def render_clusters(clusters: dict, watchlist: dict, extension_regime=None) -> None:
+    """Briefing cluster band — the daily per-cluster analysis (review P1-2).
+
+    Silent when the report carries no ``clusters`` block (older reports); on the
+    latest report this is always present.
+    """
+    if not clusters:
+        return
+    render_section_head("Clusters", "Where each group stands today")
+    st.markdown(
+        _clusters_html(clusters, watchlist, extension_regime),
+        unsafe_allow_html=True,
+    )
