@@ -42,7 +42,11 @@ def _render_live_caption(live: dict, enabled: bool) -> None:
         )
         return
     meta = (live or {}).get("__meta__", {})
-    n_ok = max(0, meta.get("n_ok", 0) - 1)  # exclude __meta__ from count
+    # meta["n_ok"] is already the successful-quote count (computed before the
+    # __meta__ key was added), so use it directly — the old `- 1` under-counted
+    # by one and flipped the caption to "FETCH FAILED" when exactly one quote
+    # succeeded.
+    n_ok = max(0, meta.get("n_ok", 0))
     n_total = meta.get("n_total", 0)
     fetched = meta.get("fetched_at", "")
     try:

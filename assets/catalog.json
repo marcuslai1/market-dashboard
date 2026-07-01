@@ -1,8 +1,8 @@
 {
   "_comment": "Single source of truth for signal palette + ticker metadata; consumed by lib/catalog.py (Python side). The CSS palette in assets/theme.css (:root --buy … --caution) hand-mirrors the `signals.colors`/`signals.tints` values here; tests/test_design_tokens.py fails if they drift.",
   "signals": {
-    "order": ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION"],
-    "writeup": ["BUY", "ACCUMULATE", "WATCH", "CAUTION"],
+    "order": ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION", "AVOID"],
+    "writeup": ["BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID"],
     "actionable": ["BUY", "ACCUMULATE", "WATCH"],
     "colors": {
       "BUY":        "#22c55e",
@@ -17,21 +17,24 @@
       "ACCUMULATE": "rgba(52,152,219,0.18)",
       "WATCH":      "rgba(245,158,11,0.18)",
       "HOLD":       "rgba(160,160,160,0.14)",
-      "CAUTION":    "rgba(239,68,68,0.16)"
+      "CAUTION":    "rgba(239,68,68,0.16)",
+      "AVOID":      "rgba(185,28,28,0.20)"
     },
     "st_colors": {
       "BUY": "green",
       "ACCUMULATE": "blue",
       "WATCH": "orange",
       "HOLD": "gray",
-      "CAUTION": "red"
+      "CAUTION": "red",
+      "AVOID": "red"
     },
     "verbs": {
       "BUY":        "Enter now",
       "ACCUMULATE": "Add on strength",
       "WATCH":      "Wait for trigger",
       "HOLD":       "Maintain",
-      "CAUTION":    "Trim / avoid"
+      "CAUTION":    "Trim / avoid",
+      "AVOID":      "Exit / stay out"
     }
   },
   "tickers": {
