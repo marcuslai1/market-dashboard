@@ -57,6 +57,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         margin=dict(l=0, r=0, t=30, b=0),
     )
     st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
+    st.caption("Bar chart — total tokens per report over time. Summary stats below.")
 
     # Generation time
     fig2 = go.Figure()
@@ -70,6 +71,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         margin=dict(l=0, r=0, t=30, b=0),
     )
     st.plotly_chart(style_fig(fig2), use_container_width=True, config=PLOTLY_CONFIG)
+    st.caption("Line chart — report generation time (seconds) per run over time.")
 
     # Summary stats
     cols = st.columns(4)
@@ -276,6 +278,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
         st.plotly_chart(style_fig(fig_art), use_container_width=True, config=PLOTLY_CONFIG)
+        st.caption("Stacked bars — article count fed to the prompt by source (Tavily, yFinance) over time.")
 
         # ── Prompt Size Breakdown ──
         has_breakdown = ps_df["total_prompt_chars"].notna().any()
@@ -314,3 +317,4 @@ def render_pipeline_stats_page(reports: dict) -> None:
                     legend=dict(orientation="h", yanchor="bottom", y=1.02),
                 )
                 st.plotly_chart(style_fig(fig_pb), use_container_width=True, config=PLOTLY_CONFIG)
+                st.caption("Stacked bars — prompt size (chars) by component over time.")
