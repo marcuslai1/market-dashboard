@@ -20,6 +20,7 @@ from components.briefing import (
     render_action_card,
     render_catalyst_playbook,
     render_changes,
+    render_clusters,
     render_contrarian_candidates,
     render_pulse,
 )
@@ -300,6 +301,11 @@ if page == "Briefing":
     render_changes(
         watchlist,
         prev_report.get("watchlist", {}) if prev_report else {},
+    )
+    render_clusters(
+        report.get("clusters", {}),
+        watchlist,
+        report.get("extension_regime"),
     )
     render_action_card(watchlist, events)
     render_catalyst_playbook(trigger_map)

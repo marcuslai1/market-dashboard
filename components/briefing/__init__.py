@@ -10,6 +10,7 @@ from __future__ import annotations
 from components.briefing.action_card import render_action_card
 from components.briefing.catalyst_playbook import render_catalyst_playbook
 from components.briefing.changes import render_changes
+from components.briefing.clusters import render_clusters
 from components.briefing.contrarians import render_contrarian_candidates
 from components.briefing.pulse import render_pulse
 
@@ -17,6 +18,7 @@ __all__ = [
     "render_action_card",
     "render_catalyst_playbook",
     "render_changes",
+    "render_clusters",
     "render_contrarian_candidates",
     "render_pulse",
 ]
