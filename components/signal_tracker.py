@@ -10,7 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
-from lib.charts import STATUS_NEG, STATUS_POS, STATUS_WARN
+from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import load_signal_log
 from lib.formatters import (
     _escape_attr,
@@ -368,7 +368,7 @@ def _calibration_band_html(acc_df: pd.DataFrame) -> str:
         sub = f"{label} · n={count}"
         if len(valid10) >= min_samples:
             sub += f" · 10d {valid10.mean():+.1f}%"
-        color = SIGNAL_COLORS.get(sig, "#9F988B")
+        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         cells += (
             f'<div class="calib-cell">'
             f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
@@ -510,7 +510,35 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
     return f'<div class="tk-scroll" role="table" aria-label="Per-name track record">{body}</div>'
 
 
-def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
+@st.cache_data(max_entries=4)
+def _history_and_accuracy_cached(
+    cache_key: tuple, _reports: dict, _prices: pd.DataFrame,
+) -> tuple:
+    """History + accuracy frames, memoized on the cheap corpus fingerprint.
+
+    The transforms are O(reports × tickers) and used to rerun on every
+    filter/toggle interaction (review P7-2). ``cache_key`` is
+    ``(data_fingerprint(), date_start, date_end)`` from the caller; the heavy
+    inputs are ``_``-prefixed so ``st.cache_data`` never hashes them.
+    """
+    sig_df = extract_signal_history(_reports)
+    acc_df = compute_signal_accuracy(sig_df, _prices)
+    return sig_df, acc_df
+
+
+@st.cache_data(max_entries=8)
+def _episodes_cached(
+    cache_key: tuple, selected: tuple, _sig_df: pd.DataFrame, _prices: pd.DataFrame,
+) -> pd.DataFrame:
+    """Episode economics for the selected names, memoized per (key, selection)."""
+    return build_signal_episodes(
+        _sig_df[_sig_df["ticker"].isin(selected)], _prices
+    )
+
+
+def render_signal_tracker_page(
+    reports: dict, prices_df: pd.DataFrame, cache_key: tuple | None = None,
+) -> None:
     """Render the Signal Tracker page — the Performance Ledger.
 
     Three tiers, verdict-first:
@@ -521,13 +549,20 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
     Args:
         reports: filtered reports dict (date-keyed).
         prices_df: filtered SQLite prices DataFrame.
+        cache_key: cheap hashable signature of (corpus, date range). When given,
+            the derived frames are memoized on it; when None (tests, ad-hoc
+            callers) the transforms run uncached.
     """
     st.markdown(
         '<div class="section-head"><h2>Signal Tracker</h2>'
         '<span class="sub">Track record · calibration</span></div>',
         unsafe_allow_html=True,
     )
-    sig_df = extract_signal_history(reports)
+    if cache_key is not None:
+        sig_df, _acc_df_pre = _history_and_accuracy_cached(cache_key, reports, prices_df)
+    else:
+        sig_df = extract_signal_history(reports)
+        _acc_df_pre = None
 
     if sig_df.empty:
         st.warning("No signal data available yet.")
@@ -545,7 +580,7 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
         st.stop()
 
     # ── 1. Calibration band (across ALL tickers — the headline sanity check) ──
-    acc_df = compute_signal_accuracy(sig_df, prices_df)
+    acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
     st.caption(
         "Forward-return calibration across **all** tracked names, deduped to the "
         "first day of each signal streak. BUY/ACCUMULATE/WATCH: % that rose 5 "
@@ -573,9 +608,14 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
         "closed trades sort last."
     )
 
-    episodes = build_signal_episodes(
-        sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
-    )
+    if cache_key is not None:
+        episodes = _episodes_cached(
+            cache_key, tuple(sorted(selected_tickers)), sig_df, prices_df
+        )
+    else:
+        episodes = build_signal_episodes(
+            sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
+        )
     if not episodes.empty:
         actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION", "AVOID"])
         watch_triggered = (episodes["signal"] == "WATCH") & (

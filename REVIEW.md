@@ -84,10 +84,17 @@ compatible with pandas ≥2.0. **Remaining (local hygiene, your machine):** upgr
 local env to the declared floors so local runs match CI (I can't change your env from
 here). Optional: pin/lock exact versions (P0-2).
 
-### P0-2 · minor · unpinned dependencies / no lockfile — OPEN
-All deps use `>=`; no lock/constraints file → non-reproducible builds and silent
-transitive drift. **Fix:** pin exact versions or add a lockfile
-(`requirements.lock` / `pip-tools` / `uv`).
+**Update (2026-07-02, closeout pass) — ✅ resolved locally without touching base
+Anaconda:** a project `.venv` (system Python 3.10, gitignored) installed from the new
+`requirements.lock` now runs the suite on pandas 2.3.3 / streamlit 1.58 — first
+green local run on the declared 2.x line. Base Anaconda is unchanged; run the app
+from `.venv\Scripts\python -m streamlit run dashboard.py` for a CI-matching env.
+
+### P0-2 · minor · unpinned dependencies / no lockfile — ✅ FIXED (2026-07-02)
+All deps used `>=`; no lock/constraints file → non-reproducible builds and silent
+transitive drift. **Fixed:** `requirements.lock` compiled with
+`uv pip compile requirements.txt --universal -o requirements.lock`; CI's test job
+installs the lock, `requirements.txt` stays the human-edited floors source.
 
 ### P0-3 · minor · no CI — ✅ FIXED
 No `.github/workflows`. Tests and lint aren't enforced on push. **Fixed:**
@@ -340,12 +347,18 @@ the default window rather than erroring. Acceptable; documented.
 
 ## Findings — Phase 6 (design system & theming, code-level)
 
-### P6-1 · minor · ~71 hardcoded hex colors bypass the token system — OPEN
+### P6-1 · minor · ~71 hardcoded hex colors bypass the token system — ✅ FIXED (2026-07-02)
 `grep` finds ~71 six-digit hex literals in `components/` (32 in `watchlist/drilldown.py`
 alone; also `signal_tracker`, `action_card`, `scenario_log`), many duplicating the
 canonical `#22c55e/#ef4444/#f59e0b/#3498db` signal tokens. They can't drift-check
 against `catalog.json`. **Fix (deferred, high-churn/low-risk):** route status colors
 through `SIGNAL_COLORS` / a small `lib` palette; keep the `test_design_tokens` guard.
+
+**Update (2026-07-02, closeout pass) — ✅ FIXED:** every component hex literal now
+routes through `lib/charts` semantic constants (values byte-identical, rendering
+unchanged by construction). `terminology.py` is the one sanctioned exception (static
+HTML/CSS block); two new `test_design_tokens` guards enforce the invariant —
+components stay hex-free, and terminology's static colors must match the palette.
 
 ### P6-2 · info · token single-source is intact for what's consumed
 `test_design_tokens` confirms `theme.css --buy…--avoid` mirror `catalog.json` (AVOID
@@ -360,12 +373,14 @@ color included after this review's `SIGNAL_ORDER` change). AVOID pill tint reads
 Full dataset builds 352 episodes / 221 accuracy rows in well under 100 ms; file
 loads are `@st.cache_data`-backed. `filter_prices` now computes `.dt.date` once.
 
-### P7-2 · minor · recompute-per-rerun won't scale linearly — OPEN (monitor)
-`extract_signal_history → build_signal_episodes → compute_signal_accuracy` run on
-every Signal-Tracker rerun (filter/toggle) and are `O(reports × tickers)`. Fine now;
-as history grows to multiple years, memoize on a cheap signature. Not cached today
-because the transforms take a `dict` of reports (`st.cache_data` can't hash it) —
-caching would need a hashable key (e.g. the sorted date span + selected tickers).
+### P7-2 · minor · recompute-per-rerun won't scale linearly — ✅ FIXED (2026-07-02)
+`extract_signal_history → build_signal_episodes → compute_signal_accuracy` ran on
+every Signal-Tracker rerun (filter/toggle) and are `O(reports × tickers)`. **Fixed:**
+the derives now memoize via `st.cache_data` keyed on
+`(data_fingerprint(), DATE_START, DATE_END)` — a cheap (path, mtime) signature over
+the report corpus + `market_data.csv` — with the heavy frames passed as
+underscore-prefixed (unhashed) args. `cache_key=None` keeps tests/ad-hoc callers on
+the uncached path.
 
 ---
 
@@ -387,12 +402,13 @@ the `tk-scroll`/`ep-table` pattern. Consolidate into `lib/` if a third consumer 
 81/91 functions in `components/`+`lib/` carry return annotations (~89%); module and
 function docstrings are thorough and current.
 
-### P8-4 · minor · accessibility completeness — PARTIAL
+### P8-4 · minor · accessibility completeness — ✅ FIXED (2026-07-02)
 Real tables now carry `scope="col"`; div-grids carry `role=table/row/columnheader`;
 pulse cells have `aria-label`; and descriptive `st.caption` text alternatives were
 added to the previously-captionless charts (scenario prob-over-time; pipeline
-tokens/gen-time/articles/prompt-breakdown). Still open (nicety): a per-chart data-table
-fallback for full screen-reader parity.
+tokens/gen-time/articles/prompt-breakdown). **Closeout pass:** the remaining nicety
+shipped — `chart_data_table` (lib/charts) renders each chart's exact source frame
+behind a collapsed expander, applied to all 7 charts for full data parity.
 
 ---
 
@@ -422,17 +438,18 @@ fallback for full screen-reader parity.
 **Decisions still needed (yours):**
 - **P0-1** — code is CI-verified on the declared deps (py3.10/3.12 green). Only local
   action left: upgrade your local pandas/plotly so local runs match CI (machine-side).
+  *(Closeout pass: resolved via the project `.venv` — see the P0-1 update.)*
 - **P1-2** surface-or-drop the **remaining ~8** "produced but unconsumed" report
   fields — three slices shipped 2026-07-02: the `clusters` cluster band (merge `9efe4e7`,
   also consuming `extension_regime.blocked_tickers`), the `calibration_insights`
   signal-calibration band (merge `59b32e5`), and the `eps_trajectory` earnings-scorecard
   band (merge `193d09c`).
 
-**Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
-P6-1 remainder (context-specific shades).
+**Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer).
+*(P6-1 remainder was here; fixed in the closeout pass.)*
 
-**Accepted / monitor:** P3-3 (row-offset), P5-3 (date_input tuple),
-P7-2 (recompute at scale). *(P2-5 was on this list; fixed 2026-07-02 — see addendum.)*
+**Accepted / monitor:** P3-3 (row-offset), P5-3 (date_input tuple).
+*(P2-5 and P7-2 were on this list; both fixed 2026-07-02 — see addendum.)*
 
 ---
 
@@ -467,7 +484,7 @@ An audit of this ledger against the tree found four real gaps; all fixed:
 
 Suite after this pass: **138 passing**; `ruff check .` clean.
 
-### Skipped knowingly (unchanged status, with reasons)
+### Skipped knowingly (statuses at the time of the gap pass, with reasons)
 - **P0-1** — local env is base Anaconda (not a venv); upgrading pandas/plotly there
   is a machine-level call only the user should make. CI still proves 2.x compat.
 - **P0-2** — lockfile needs a tooling decision (uv / pip-tools) from the user.
@@ -477,6 +494,23 @@ Suite after this pass: **138 passing**; `ruff check .` clean.
 - **P1-2 remaining ~8 fields** — product decisions (next natural slices:
   `vs_cluster_chg_pct` in the drilldown, `news_sentiment_skew` chips,
   `premarket`/`market_state` masthead indicator; or document-and-drop).
+
+*(All five were subsequently closed the same day by the **closeout pass** below,
+after the user approved the recommendations.)*
+
+### C. Ledger-closeout pass (2026-07-02, branch `ledger-closeout-2026-07-02`)
+User-approved "do all of it" pass over the skip list:
+- **P0-2 → ✅** `requirements.lock` (uv, `--universal`); CI test job installs it.
+- **P0-1 → ✅ (local)** project `.venv` on system Python 3.10 from the lock — first
+  local suite run on pandas 2.3.3 / streamlit 1.58, green; base Anaconda untouched.
+- **P7-2 → ✅** Signal-Tracker derives memoized on `(data_fingerprint(), date range)`.
+- **P8-4 → ✅** `chart_data_table` fallback under all 7 charts.
+- **P6-1 → ✅** all component hexes routed through `lib/charts` constants;
+  terminology.py sanctioned-exception + two drift guards in `test_design_tokens`.
+- **Navigation upgraded again:** the morning's `?page=` mechanism is replaced by
+  native `st.navigation`/`st.Page` — real URL per page (`/briefing`, …), browser
+  back/forward and refresh are Streamlit-native; the masthead radio mirrors the
+  navigation state and issues `st.switch_page`.
 
 ---
 

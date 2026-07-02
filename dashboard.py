@@ -4,10 +4,10 @@ Run with: streamlit run dashboard.py
 
 Slim orchestrator — page-level UI lives in ``components/``. This module owns:
 - ``st.set_page_config`` + theme CSS injection
-- the masthead/nav call (returns the active page)
+- the page functions + ``st.navigation`` registry (real URL per page)
+- the masthead/nav call (returns the selected page title)
 - sidebar filter controls (date range, live-prices toggle, refresh)
-- global filter helpers (``filter_reports`` / ``filter_prices``)
-- the page elif chain that dispatches to ``components.<page>``
+- ``_pg.run()`` dispatch at the bottom
 """
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ from components.watchlist import render_watchlist
 from lib.cards import render_section_head
 from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
 from lib.data_loader import (
+    data_fingerprint,
     list_report_dates,
     load_all_reports,
     load_report,
@@ -53,8 +54,7 @@ st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
 # ── Session state bootstrap ──
 # Must run BEFORE any component reads st.session_state.has_mounted / density.
-# mark_mounted() flips has_mounted at the absolute bottom of this script so
-# subsequent reruns are quiet.
+# mark_mounted() flips has_mounted below so subsequent reruns are quiet.
 init_session_state()
 
 # ── Theme CSS: dark editorial (Newsreader serif + JetBrains Mono + Inter Tight) ──
@@ -109,136 +109,12 @@ if st.session_state.density == "compact":
 mark_mounted()
 
 
-# ── Masthead + top nav ──
-page = render_masthead_and_nav()
-
-
-# ── Sidebar: status summary ──
-# Only the latest report's snapshot is needed here — load it lazily rather than
-# parsing every report just to read one signal_counts block.
-_report_dates = list_report_dates()
-_latest_date = _report_dates[-1] if _report_dates else "—"
-_latest_rpt = load_report(_latest_date) if _report_dates else {}
-
-# ── Body-level data refresh + freshness indicator ──
-# The sidebar holds a "Refresh Data" button, but on mobile/narrow viewports the
-# Streamlit chrome that carries the sidebar-expand arrow is hidden, leaving the
-# sidebar (and its refresh) unreachable. Surface a compact refresh here in the
-# main flow so every viewport can reload the latest data. Mirrors the sidebar
-# button's clear-cache + rerun behaviour.
-_fresh_col, _refresh_col = st.columns([4, 1])
-with _fresh_col:
-    st.markdown(
-        f'<div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);'
-        f'padding-top:6px;">Data as of <span style="color:var(--ink-2);">'
-        f'{_latest_date}</span></div>',
-        unsafe_allow_html=True,
-    )
-with _refresh_col:
-    if st.button("↻ Refresh", use_container_width=True,
-                 help=f"Reload the latest data (showing {_latest_date})"):
-        st.cache_data.clear()
-        st.rerun()
-_sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
-
-_status_html = '<div class="sidebar-status">'
-_status_html += (
-    '<div class="status-row">'
-    '<span class="status-label">Latest report</span>'
-    f'<span class="status-value">{_latest_date}</span></div>'
-)
-_status_html += (
-    '<div class="status-row">'
-    '<span class="status-label">Tickers</span>'
-    f'<span class="status-value">{sum(_sig_counts.values())}</span></div>'
-)
-_sig_dots = ""
-for _sig in SIGNAL_ORDER:
-    _cnt = _sig_counts.get(_sig, 0)
-    if _cnt:
-        _sig_dots += (
-            f'<span style="color:{signal_text_color(_sig)};font-weight:700;margin-right:8px;">'
-            f'●{_cnt}</span>'
-        )
-_status_html += (
-    '<div class="status-row" style="margin-top:4px;">'
-    '<span class="status-label">Signals</span>'
-    f'<span>{_sig_dots}</span></div>'
-)
-_status_html += '</div>'
-st.sidebar.markdown(_status_html, unsafe_allow_html=True)
-
-st.sidebar.divider()
-
-
-# ── Sidebar: date range filter ──
-_default_end = date.today()
-_default_start = _default_end - timedelta(days=30)
-_range_presets = {"30 days": 30, "7 days": 7, "All": None}
-_preset = st.sidebar.radio("Range", list(_range_presets.keys()), horizontal=True, key="range_preset")
-_preset_days = _range_presets[_preset]
-if _preset_days is not None:
-    _pre_start = _default_end - timedelta(days=_preset_days)
-else:
-    _pre_start = date(2020, 1, 1)  # effectively "all time"
-date_range = st.sidebar.date_input(
-    "Date range", value=(_pre_start, _default_end), key="date_range"
-)
-if isinstance(date_range, tuple) and len(date_range) == 2:
-    DATE_START, DATE_END = date_range
-else:
-    DATE_START, DATE_END = _pre_start, _default_end
-
-
-st.sidebar.divider()
-
-
-# ── Sidebar: signal legend ──
-# Built from the canonical catalog (colors + verbs) so the palette and verbs
-# never drift from lib/catalog.py / assets/catalog.json.
-_legend_rows = "<br>".join(
-    f'<span style="color:{signal_text_color(_s)};font-weight:700;">● {_s}</span>'
-    f' — {SIGNAL_VERBS.get(_s, "")}'
-    for _s in SIGNAL_ORDER
-)
-st.sidebar.markdown(
-    f'<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">{_legend_rows}</div>',
-    unsafe_allow_html=True,
-)
-
-st.sidebar.divider()
-
-# ── Sidebar: density toggle ──
-# Radio holds the display label ("Relaxed"/"Compact"); on_change normalises to
-# the canonical lowercase value in st.session_state.density. The :root override
-# above watches that canonical value.
-st.sidebar.radio(
-    "Density",
-    options=["Relaxed", "Compact"],
-    index=0 if st.session_state.density == "relaxed" else 1,
-    horizontal=True,
-    key="density_radio",
-    on_change=lambda: st.session_state.update(density=st.session_state.density_radio.lower()),
-)
-
-st.sidebar.divider()
-LIVE_PRICES = st.sidebar.toggle(
-    "Live prices (Yahoo)",
-    value=True,
-    help="When on, benchmarks and watchlist Last/Δ show live Yahoo quotes "
-         "(60s cache). Snapshot fields like RSI / 1mo / SMA stay frozen at the "
-         "report date. Historical reports are never overlaid.",
-)
-
-if st.sidebar.button("↻ Refresh Data"):
-    st.cache_data.clear()
-    st.rerun()
-
-
 # ════════════════════════════════════════════
-# PAGE 0: Briefing
+# Page bodies. Each runs via st.navigation → _pg.run() at the bottom of this
+# script, AFTER the sidebar has assigned LIVE_PRICES / DATE_START / DATE_END —
+# the functions read those module globals at call time.
 # ════════════════════════════════════════════
-if page == "Briefing":
+def _page_briefing() -> None:
     _dates = list_report_dates()
     if not _dates:
         st.error("No report files found in market_data/.")
@@ -373,10 +249,7 @@ if page == "Briefing":
     _render_briefing_body()
 
 
-# ════════════════════════════════════════════
-# PAGE: Watchlist (full drill-down view; covers any past report date)
-# ════════════════════════════════════════════
-elif page == "Watchlist":
+def _page_watchlist() -> None:
     _dates_desc = list_report_dates()[::-1]  # newest first for the selector
     if not _dates_desc:
         st.error("No report files found in market_data/.")
@@ -427,44 +300,181 @@ elif page == "Watchlist":
     _render_watchlist_body()
 
 
-# ════════════════════════════════════════════
-# PAGE 2: Signal Tracker
-# ════════════════════════════════════════════
-elif page == "Signal Tracker":
+def _page_signal_tracker() -> None:
     from components.signal_tracker import render_signal_tracker_page
     render_signal_tracker_page(
         filter_reports(load_all_reports(), DATE_START, DATE_END),
         filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
+        # Cheap corpus signature so the page's derived frames memoize across
+        # filter/toggle reruns instead of recomputing O(reports × tickers).
+        cache_key=(data_fingerprint(), DATE_START, DATE_END),
     )
 
 
-# ════════════════════════════════════════════
-# PAGE: Scenario Log
-# ════════════════════════════════════════════
-elif page == "Scenario Log":
+def _page_scenario_log() -> None:
     from components.scenario_log import render_scenario_log_page
     render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
-# ════════════════════════════════════════════
-# PAGE: Pipeline Stats
-# ════════════════════════════════════════════
-elif page == "Pipeline Stats":
+def _page_pipeline_stats() -> None:
     from components.pipeline_stats import render_pipeline_stats_page
     render_pipeline_stats_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
-# ════════════════════════════════════════════
-# PAGE: Report Comparison
-# ════════════════════════════════════════════
-elif page == "Report Comparison":
+def _page_report_comparison() -> None:
     from components.report_comparison import render_report_comparison_page
     render_report_comparison_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
-# ════════════════════════════════════════════
-# PAGE: Terminology — methodology & formulas reference
-# ════════════════════════════════════════════
-elif page == "Terminology":
+def _page_terminology() -> None:
     from components.terminology import render_terminology_page
     render_terminology_page()
+
+
+# ── Native navigation ──
+# st.navigation gives each page a real URL (/briefing, /watchlist, …) so deep
+# links, browser refresh, AND back/forward all work natively. position="hidden"
+# suppresses Streamlit's own nav chrome — the masthead radio below is the
+# visible navigation, mirroring into st.switch_page.
+_PAGES = {
+    "Briefing": st.Page(_page_briefing, title="Briefing", url_path="briefing", default=True),
+    "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
+    "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
+    "Pipeline Stats": st.Page(_page_pipeline_stats, title="Pipeline Stats", url_path="pipeline-stats"),
+    "Scenario Log": st.Page(_page_scenario_log, title="Scenario Log", url_path="scenario-log"),
+    "Report Comparison": st.Page(_page_report_comparison, title="Report Comparison", url_path="report-comparison"),
+    "Terminology": st.Page(_page_terminology, title="Terminology", url_path="terminology"),
+}
+_pg = st.navigation(list(_PAGES.values()), position="hidden")
+
+
+# ── Masthead + top nav ──
+page = render_masthead_and_nav(_pg.title)
+if page != _pg.title:
+    st.switch_page(_PAGES[page])
+
+
+# ── Sidebar: status summary ──
+# Only the latest report's snapshot is needed here — load it lazily rather than
+# parsing every report just to read one signal_counts block.
+_report_dates = list_report_dates()
+_latest_date = _report_dates[-1] if _report_dates else "—"
+_latest_rpt = load_report(_latest_date) if _report_dates else {}
+
+# ── Body-level data refresh + freshness indicator ──
+# The sidebar holds a "Refresh Data" button, but on mobile/narrow viewports the
+# Streamlit chrome that carries the sidebar-expand arrow is hidden, leaving the
+# sidebar (and its refresh) unreachable. Surface a compact refresh here in the
+# main flow so every viewport can reload the latest data. Mirrors the sidebar
+# button's clear-cache + rerun behaviour.
+_fresh_col, _refresh_col = st.columns([4, 1])
+with _fresh_col:
+    st.markdown(
+        f'<div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);'
+        f'padding-top:6px;">Data as of <span style="color:var(--ink-2);">'
+        f'{_latest_date}</span></div>',
+        unsafe_allow_html=True,
+    )
+with _refresh_col:
+    if st.button("↻ Refresh", use_container_width=True,
+                 help=f"Reload the latest data (showing {_latest_date})"):
+        st.cache_data.clear()
+        st.rerun()
+_sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
+
+_status_html = '<div class="sidebar-status">'
+_status_html += (
+    '<div class="status-row">'
+    '<span class="status-label">Latest report</span>'
+    f'<span class="status-value">{_latest_date}</span></div>'
+)
+_status_html += (
+    '<div class="status-row">'
+    '<span class="status-label">Tickers</span>'
+    f'<span class="status-value">{sum(_sig_counts.values())}</span></div>'
+)
+_sig_dots = ""
+for _sig in SIGNAL_ORDER:
+    _cnt = _sig_counts.get(_sig, 0)
+    if _cnt:
+        _sig_dots += (
+            f'<span style="color:{signal_text_color(_sig)};font-weight:700;margin-right:8px;">'
+            f'●{_cnt}</span>'
+        )
+_status_html += (
+    '<div class="status-row" style="margin-top:4px;">'
+    '<span class="status-label">Signals</span>'
+    f'<span>{_sig_dots}</span></div>'
+)
+_status_html += '</div>'
+st.sidebar.markdown(_status_html, unsafe_allow_html=True)
+
+st.sidebar.divider()
+
+
+# ── Sidebar: date range filter ──
+_default_end = date.today()
+_default_start = _default_end - timedelta(days=30)
+_range_presets = {"30 days": 30, "7 days": 7, "All": None}
+_preset = st.sidebar.radio("Range", list(_range_presets.keys()), horizontal=True, key="range_preset")
+_preset_days = _range_presets[_preset]
+if _preset_days is not None:
+    _pre_start = _default_end - timedelta(days=_preset_days)
+else:
+    _pre_start = date(2020, 1, 1)  # effectively "all time"
+date_range = st.sidebar.date_input(
+    "Date range", value=(_pre_start, _default_end), key="date_range"
+)
+if isinstance(date_range, tuple) and len(date_range) == 2:
+    DATE_START, DATE_END = date_range
+else:
+    DATE_START, DATE_END = _pre_start, _default_end
+
+
+st.sidebar.divider()
+
+
+# ── Sidebar: signal legend ──
+# Built from the canonical catalog (colors + verbs) so the palette and verbs
+# never drift from lib/catalog.py / assets/catalog.json.
+_legend_rows = "<br>".join(
+    f'<span style="color:{signal_text_color(_s)};font-weight:700;">● {_s}</span>'
+    f' — {SIGNAL_VERBS.get(_s, "")}'
+    for _s in SIGNAL_ORDER
+)
+st.sidebar.markdown(
+    f'<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">{_legend_rows}</div>',
+    unsafe_allow_html=True,
+)
+
+st.sidebar.divider()
+
+# ── Sidebar: density toggle ──
+# Radio holds the display label ("Relaxed"/"Compact"); on_change normalises to
+# the canonical lowercase value in st.session_state.density. The :root override
+# above watches that canonical value.
+st.sidebar.radio(
+    "Density",
+    options=["Relaxed", "Compact"],
+    index=0 if st.session_state.density == "relaxed" else 1,
+    horizontal=True,
+    key="density_radio",
+    on_change=lambda: st.session_state.update(density=st.session_state.density_radio.lower()),
+)
+
+st.sidebar.divider()
+LIVE_PRICES = st.sidebar.toggle(
+    "Live prices (Yahoo)",
+    value=True,
+    help="When on, benchmarks and watchlist Last/Δ show live Yahoo quotes "
+         "(60s cache). Snapshot fields like RSI / 1mo / SMA stay frozen at the "
+         "report date. Historical reports are never overlaid.",
+)
+
+if st.sidebar.button("↻ Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
+
+
+# ── Run the active page ──
+_pg.run()
