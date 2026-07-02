@@ -8,7 +8,7 @@ Streamlit calls. Drives the click-to-expand watchlist grid in
 from __future__ import annotations
 
 from components.watchlist.drilldown import render_drilldown_detail_html
-from lib.catalog import CLUSTER_MAP, TICKER_DISPLAY
+from lib.catalog import CLUSTER_MAP
 from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
@@ -18,6 +18,7 @@ from lib.formatters import (
     _fmt_num,
     _sign,
     _writeup_for_render,
+    display_ticker,
 )
 from lib.pills import _signal_pill_html
 
@@ -30,7 +31,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
     target it (gated by ``.watchlist-route[data-first-mount="true"]``).
     """
     sig = d.get("signal", "HOLD")
-    display_tk = _escape_dollars(TICKER_DISPLAY.get(tk, tk))
+    display_tk = _escape_dollars(display_ticker(tk))
     ccy = d.get("currency", "USD")
     pfx = _ccy_prefix(ccy)
     dec = _ccy_decimals(ccy)

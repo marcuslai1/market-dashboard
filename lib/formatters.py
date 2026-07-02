@@ -10,6 +10,20 @@ import html
 
 import pandas as pd
 
+from lib.catalog import TICKER_DISPLAY
+
+
+def display_ticker(tk: str) -> str:
+    """Human display form of a watchlist key, e.g. ``000660_KS`` -> ``000660.KS``.
+
+    ``TICKER_DISPLAY`` is a *sparse* override map — it only lists tickers whose
+    display needs special glyphs (``CL_F`` -> ``CL=F``, ``VIX`` -> ``^VIX``). It
+    does **not** carry the plain underscore-for-dot names, so a raw
+    ``TICKER_DISPLAY.get(tk, tk)`` leaks the munged key into the UI for those.
+    Prefer the override, then fall back to restoring the dot.
+    """
+    return TICKER_DISPLAY.get(tk) or str(tk).replace("_", ".")
+
 
 def _escape_attr(text) -> str:
     """Escape a value destined for an HTML *attribute* value.
