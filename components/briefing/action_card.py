@@ -17,6 +17,7 @@ from lib.catalog import (
     SIGNAL_TINTS,
     SIGNAL_VERBS,
 )
+from lib.charts import INK_FALLBACK, STATUS_WARN, STATUS_WARN_SOFT
 from lib.formatters import (
     _escape_dollars,
     _fmt_num,
@@ -52,7 +53,7 @@ def render_action_card(wl: dict, events: list) -> None:
         # Nothing actionable today — render nothing per design.
         return
     sig = d.get("signal", "WATCH")
-    color = SIGNAL_COLORS.get(sig, "#9F988B")
+    color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
     display_tk = _escape_dollars(display_ticker(tk))
     cluster = _escape_dollars(CLUSTER_MAP.get(tk, ""))
     price = d.get("price")
@@ -76,7 +77,7 @@ def render_action_card(wl: dict, events: list) -> None:
 
     block_html = (
         f'<div style="margin-top:10px;font-family:var(--mono);font-size:11.5px;'
-        f'border-left:2px solid #f59e0b80;padding-left:10px;color:#fbb454;'
+        f'border-left:2px solid {STATUS_WARN}80;padding-left:10px;color:{STATUS_WARN_SOFT};'
         f'line-height:1.5;">{_escape_dollars(block)}</div>'
         if block else ""
     )

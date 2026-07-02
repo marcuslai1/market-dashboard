@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS, SIGNAL_ORDER
+from lib.charts import INK_FALLBACK, STATUS_NEG
 from lib.formatters import _escape_dollars
 
 
@@ -24,7 +25,7 @@ def stance_band_html(snapshot: dict, total_tracked: int) -> str:
     stance = snapshot.get("overall_stance", "—")
     posture = snapshot.get("risk_posture", "")
     counts = snapshot.get("signal_counts", {})
-    deck_color = SIGNAL_COLORS.get("CAUTION", "#ef4444")
+    deck_color = SIGNAL_COLORS.get("CAUTION", STATUS_NEG)
 
     # Card 1 — Stance deck (lede lane).
     stance_body = (
@@ -46,7 +47,7 @@ def stance_band_html(snapshot: dict, total_tracked: int) -> str:
     cells = ""
     for sig in SIGNAL_ORDER:
         n = counts.get(sig, 0)
-        color = SIGNAL_COLORS.get(sig, "#9F988B")
+        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         zero_class = "zero" if n == 0 else ""
         num_color = f"color:{color};" if n > 0 else ""
         cells += (

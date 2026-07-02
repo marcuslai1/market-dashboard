@@ -42,6 +42,14 @@ CHART_PALETTE = [
 STATUS_POS = "#22c55e"   # win / positive return / ✓
 STATUS_NEG = "#ef4444"   # loss / negative return / ✗
 STATUS_WARN = "#f59e0b"  # caution / missed / ⚠
+STATUS_INFO = "#3498db"       # informational / judgment-override blue (= --accumulate)
+STATUS_NEUTRAL = "#9ca3af"    # unknown / not-applicable / neutral-archetype gray
+STATUS_MUTED = "#6b7280"      # terminal / disabled / no-change gray
+STATUS_WARN_SOFT = "#fbb454"  # soft-warning amber (momentum chips, entry-block text)
+ACCENT_LINK = "#3b82f6"       # progress blue (graduation watch, scenario Base)
+ACCENT_WILDCARD = "#a855f7"   # scenario Wildcard violet
+INK_FALLBACK = "#9F988B"      # ink-3 equivalent for SIGNAL_COLORS.get(...) fallbacks
+SURFACE_2_FALLBACK = "#1e1e2e"  # var(--surface-2, …) fallback in inline HTML
 
 _AXIS = dict(
     gridcolor=_RULE,

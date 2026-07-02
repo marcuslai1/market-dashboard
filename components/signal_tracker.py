@@ -10,7 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
-from lib.charts import STATUS_NEG, STATUS_POS, STATUS_WARN
+from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import load_signal_log
 from lib.formatters import (
     _escape_attr,
@@ -368,7 +368,7 @@ def _calibration_band_html(acc_df: pd.DataFrame) -> str:
         sub = f"{label} · n={count}"
         if len(valid10) >= min_samples:
             sub += f" · 10d {valid10.mean():+.1f}%"
-        color = SIGNAL_COLORS.get(sig, "#9F988B")
+        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         cells += (
             f'<div class="calib-cell">'
             f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
