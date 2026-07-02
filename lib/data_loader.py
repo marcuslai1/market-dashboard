@@ -4,6 +4,14 @@ All loaders use ``@st.cache_data`` so repeat reads inside one Streamlit
 session are O(1). Cache keys are the function's qualified name + arg values
 + the function's source; keep signatures stable when moving files.
 
+Every loader is **mtime-keyed** (public wrapper stats the file/dir, cached
+impl takes ``(path, mtime)``): reruns pay a cheap ``stat()``, and a rewritten
+file busts its cache entry on the next rerun — so a fresh pipeline run is
+visible immediately, with no TTL lag and no manual Refresh (review P2-5).
+Two contract notes: the mtime param must NOT be ``_``-prefixed
+(``st.cache_data`` would drop it from the key and serve stale content), and
+caches carry ``max_entries`` so mtime churn can't grow memory unbounded.
+
 Paths are resolved relative to the project root (parent of ``lib/``).
 """
 from __future__ import annotations
@@ -20,7 +28,19 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = _PROJECT_ROOT / "data"
 
 
-@st.cache_data(show_spinner=False)
+def _mtime(path: Path) -> float:
+    """The file's mtime for cache keying, or ``0.0`` when it doesn't exist.
+
+    ``0.0`` (rather than raising) keeps missing-file handling in the cached
+    impls; when the file later appears its real mtime busts the stale entry.
+    """
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+@st.cache_data(show_spinner=False, max_entries=8)
 def _read_text_asset(path: str, mtime: float) -> str:
     """Read a UTF-8 text asset. Cached by (path, mtime).
 
@@ -61,11 +81,17 @@ def _safe_read_csv(csv_path: Path) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-@st.cache_data(ttl=300)
-def load_all_reports() -> dict[str, dict]:
-    """Load all morning_report JSON files, keyed by date string."""
+@st.cache_data(max_entries=2)
+def _load_all_reports_cached(fingerprint: tuple) -> dict[str, dict]:
+    """Parse every report path in *fingerprint* — ((path, mtime), …).
+
+    The fingerprint is both the cache key and the file list: any added,
+    removed, or rewritten report file produces a different tuple and re-parses
+    the corpus. ``max_entries=2`` because each entry holds ~9MB of parsed JSON.
+    """
     reports = {}
-    for f in sorted(DATA_DIR.glob("morning_report_*.json")):
+    for path_str, _unused_mtime in fingerprint:
+        f = Path(path_str)
         date_str = f.stem.replace("morning_report_", "")
         try:
             reports[date_str] = json.loads(f.read_text(encoding="utf-8"))
@@ -76,43 +102,61 @@ def load_all_reports() -> dict[str, dict]:
     return reports
 
 
-@st.cache_data(ttl=300)
+def load_all_reports() -> dict[str, dict]:
+    """Load all morning_report JSON files, keyed by date string."""
+    fingerprint = tuple(
+        (str(f), _mtime(f)) for f in sorted(DATA_DIR.glob("morning_report_*.json"))
+    )
+    return _load_all_reports_cached(fingerprint)
+
+
+@st.cache_data(max_entries=8)
+def _list_report_dates_cached(dir_str: str, dir_mtime: float) -> list[str]:
+    return sorted(
+        f.stem.replace("morning_report_", "")
+        for f in Path(dir_str).glob("morning_report_*.json")
+    )
+
+
 def list_report_dates() -> list[str]:
     """Ascending list of available report dates, from filenames only.
 
     Hot-path pages (masthead, Briefing, Watchlist) need the set of dates but not
     every report body. Reading directory entries avoids decoding ~9MB of JSON
-    just to learn which dates exist; callers then ``load_report`` the one or two
-    they actually render.
+    just to learn which dates exist. Keyed by the directory's mtime — creating
+    or deleting a report file updates it, so a new date appears on the next
+    rerun; callers then ``load_report`` the one or two they actually render.
     """
-    return sorted(
-        f.stem.replace("morning_report_", "")
-        for f in DATA_DIR.glob("morning_report_*.json")
-    )
+    return _list_report_dates_cached(str(DATA_DIR), _mtime(DATA_DIR))
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(max_entries=128)
+def _load_json_cached(path_str: str, mtime: float) -> dict:
+    """JSON-parse one file, ``{}`` on any failure. Cached by (path, mtime)."""
+    try:
+        return json.loads(Path(path_str).read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def load_report(date_str: str) -> dict:
     """Load a single morning_report JSON by date. ``{}`` if missing/malformed.
 
-    Cached per date, so pages needing only the latest one or two reports don't
-    pay to parse the whole corpus the way ``load_all_reports`` does. Fails soft
+    Cached per (date, mtime), so pages needing only the latest one or two
+    reports don't pay to parse the whole corpus the way ``load_all_reports``
+    does — and a regenerated file is picked up on the next rerun. Fails soft
     (returns ``{}``) exactly like the other loaders so a truncated file degrades
     to an empty view rather than crashing the page.
     """
     path = DATA_DIR / f"morning_report_{date_str}.json"
     if not path.exists():
         return {}
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return {}
+    return _load_json_cached(str(path), _mtime(path))
 
 
-@st.cache_data(ttl=300)
-def load_sqlite_prices() -> pd.DataFrame:
-    """Load price history from CSV export."""
-    df = _safe_read_csv(DATA_DIR / "market_data.csv")
+@st.cache_data(max_entries=4)
+def _load_sqlite_prices_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    df = _safe_read_csv(Path(path_str))
     if not df.empty and "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
         if "ticker" in df.columns:
@@ -120,10 +164,15 @@ def load_sqlite_prices() -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=300)
-def load_pipeline_stats() -> pd.DataFrame:
-    """Load pipeline article stats from CSV export."""
-    df = _safe_read_csv(DATA_DIR / "pipeline_stats.csv")
+def load_sqlite_prices() -> pd.DataFrame:
+    """Load price history from CSV export."""
+    path = DATA_DIR / "market_data.csv"
+    return _load_sqlite_prices_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
+def _load_pipeline_stats_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    df = _safe_read_csv(Path(path_str))
     if df.empty:
         return df
     extra_cols = ["yfinance_articles", "yfinance_chars", "tavily_articles",
@@ -139,19 +188,29 @@ def load_pipeline_stats() -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=300)
-def load_token_usage() -> pd.DataFrame:
-    """Load Claude API usage from CSV export."""
-    df = _safe_read_csv(DATA_DIR / "claude_analysis.csv")
+def load_pipeline_stats() -> pd.DataFrame:
+    """Load pipeline article stats from CSV export."""
+    path = DATA_DIR / "pipeline_stats.csv"
+    return _load_pipeline_stats_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
+def _load_token_usage_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    df = _safe_read_csv(Path(path_str))
     if not df.empty and "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
     return df
 
 
-@st.cache_data(ttl=300)
-def load_signal_log() -> pd.DataFrame:
-    """Load signal_evaluation_log export (paper-trade outcomes)."""
-    df = _safe_read_csv(DATA_DIR / "signal_log.csv")
+def load_token_usage() -> pd.DataFrame:
+    """Load Claude API usage from CSV export."""
+    path = DATA_DIR / "claude_analysis.csv"
+    return _load_token_usage_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
+def _load_signal_log_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    df = _safe_read_csv(Path(path_str))
     if df.empty or "date" not in df.columns:
         return df
     df["date"] = pd.to_datetime(df["date"])
@@ -166,7 +225,12 @@ def load_signal_log() -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=300)
+def load_signal_log() -> pd.DataFrame:
+    """Load signal_evaluation_log export (paper-trade outcomes)."""
+    path = DATA_DIR / "signal_log.csv"
+    return _load_signal_log_cached(str(path), _mtime(path))
+
+
 def load_report_memory() -> dict:
     """Load report_memory.json for narrative tracking."""
     mem_path = DATA_DIR / "report_memory.json"
@@ -175,7 +239,4 @@ def load_report_memory() -> dict:
         mem_path = _PROJECT_ROOT / "market_data" / "report_memory.json"
     if not mem_path.exists():
         return {}
-    try:
-        return json.loads(mem_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return {}
+    return _load_json_cached(str(mem_path), _mtime(mem_path))

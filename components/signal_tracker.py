@@ -9,10 +9,15 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS, TICKER_DISPLAY
+from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import load_signal_log
-from lib.formatters import _escape_attr, _escape_dollars, _legacy_rationale_from
+from lib.formatters import (
+    _escape_attr,
+    _escape_dollars,
+    _legacy_rationale_from,
+    display_ticker,
+)
 from lib.pills import _signal_pill_html
 
 
@@ -456,7 +461,7 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
         worst = rets.min() if len(rets) else None
         open_n = int(tk_eps["is_active"].sum())
 
-        display_tk = _escape_dollars(TICKER_DISPLAY.get(ticker, ticker))
+        display_tk = _escape_dollars(display_ticker(ticker))
         cur_sig = current_signal.get(ticker, "HOLD")
         cluster = _escape_dollars(CLUSTER_MAP.get(ticker, ""))
 
@@ -594,7 +599,7 @@ def render_signal_tracker_page(reports: dict, prices_df: pd.DataFrame) -> None:
             if prev["signal"] != curr["signal"]:
                 changes.append({
                     "Date": curr["date"].strftime("%Y-%m-%d"),
-                    "Ticker": TICKER_DISPLAY.get(ticker, ticker),
+                    "Ticker": display_ticker(ticker),
                     "From": prev["signal"],
                     "To": curr["signal"],
                     "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
@@ -684,8 +689,6 @@ def _render_paper_trade_outcomes() -> None:
                     "entry_price", "invalidation", "upside_target",
                     "price_after_5d", "price_after_10d",
                 ]].copy()
-                open_display["ticker"] = open_display["ticker"].map(
-                    lambda t: TICKER_DISPLAY.get(t, t)
-                )
+                open_display["ticker"] = open_display["ticker"].map(display_ticker)
                 open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
                 st.dataframe(open_display, width="stretch", hide_index=True)
