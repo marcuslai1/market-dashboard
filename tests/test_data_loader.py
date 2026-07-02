@@ -108,3 +108,30 @@ def test_load_sqlite_prices_reflects_rewritten_csv(tmp_path, monkeypatch):
     f.write_text("date,ticker\n2026-01-01,AMD\n", encoding="utf-8")
     _bump(f)
     assert list(dl.load_sqlite_prices()["ticker"]) == ["AMD"]
+
+
+# ── P7-2: data_fingerprint — the memoization cache key for derived frames ──
+def test_data_fingerprint_changes_on_report_mtime(tmp_path, monkeypatch):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    f = tmp_path / "morning_report_2026-01-01.json"
+    f.write_text("{}", encoding="utf-8")
+    fp1 = dl.data_fingerprint()
+    _bump(f)
+    fp2 = dl.data_fingerprint()
+    assert fp1 != fp2
+
+
+def test_data_fingerprint_changes_on_prices_csv(tmp_path, monkeypatch):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    csv = tmp_path / "market_data.csv"
+    csv.write_text("date,ticker\n", encoding="utf-8")
+    fp1 = dl.data_fingerprint()
+    _bump(csv)
+    fp2 = dl.data_fingerprint()
+    assert fp1 != fp2
+
+
+def test_data_fingerprint_stable_when_nothing_changes(tmp_path, monkeypatch):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    (tmp_path / "morning_report_2026-01-01.json").write_text("{}", encoding="utf-8")
+    assert dl.data_fingerprint() == dl.data_fingerprint()
