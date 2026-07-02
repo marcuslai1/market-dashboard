@@ -384,35 +384,47 @@ elif page == "Watchlist":
     selected_date = st.selectbox(
         "Report date", _dates_desc, index=0, key="watchlist_date"
     )
-    report = load_report(selected_date)
     _is_latest = selected_date == _dates_desc[0]
-    _live = fetch_live_quotes() if (LIVE_PRICES and _is_latest) else {}
-    if _live:
-        report = overlay_live(report, _live)
-    watchlist = report.get("watchlist", {})
-    benchmarks = report.get("benchmarks", {})
-
-    # Compute the signal-change diff vs the immediately-prior report date.
-    # Tickers that newly appeared / disappeared (signal "—") are excluded so we
-    # don't flash rows whose change is structural rather than analytical. Only
-    # the selected report + its predecessor are parsed, not the whole corpus.
     sel_idx = _dates_desc.index(selected_date)
     _prev_date = _dates_desc[sel_idx + 1] if sel_idx + 1 < len(_dates_desc) else None
-    prev_wl = load_report(_prev_date).get("watchlist", {}) if _prev_date else {}
-    changed = {
-        tk for tk in watchlist
-        if prev_wl.get(tk, {}).get("signal", "—") != watchlist.get(tk, {}).get("signal", "—")
-        and prev_wl.get(tk, {}).get("signal", "—") != "—"
-        and watchlist.get(tk, {}).get("signal", "—") != "—"
-    }
 
-    sub_label = f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · click any row to expand"
-    if selected_date != _dates_desc[0]:
-        sub_label += f" · viewing {selected_date}"
-    render_section_head("The Watchlist", sub_label)
-    _render_live_caption(_live, LIVE_PRICES and _is_latest)
-    render_pulse(benchmarks)
-    render_watchlist(watchlist, changed_tickers=changed)
+    # Same treatment the Briefing body got in the perf pass: the Yahoo fetch
+    # runs inside a fragment, so a live-quote cache miss can't block the
+    # masthead/sidebar paint, and live prices auto-refresh every 60s in
+    # isolation. The selectbox stays on the main run so picking a date
+    # redefines the fragment with the right run_every (historical dates never
+    # fetch or auto-refresh).
+    @st.fragment(run_every=(60 if (LIVE_PRICES and _is_latest) else None))
+    def _render_watchlist_body() -> None:
+        report = load_report(selected_date)
+        _live = fetch_live_quotes() if (LIVE_PRICES and _is_latest) else {}
+        if _live:
+            report = overlay_live(report, _live)
+        watchlist = report.get("watchlist", {})
+        benchmarks = report.get("benchmarks", {})
+
+        # Compute the signal-change diff vs the immediately-prior report date.
+        # Tickers that newly appeared / disappeared (signal "—") are excluded so
+        # we don't flash rows whose change is structural rather than analytical.
+        # Only the selected report + its predecessor are parsed, not the whole
+        # corpus.
+        prev_wl = load_report(_prev_date).get("watchlist", {}) if _prev_date else {}
+        changed = {
+            tk for tk in watchlist
+            if prev_wl.get(tk, {}).get("signal", "—") != watchlist.get(tk, {}).get("signal", "—")
+            and prev_wl.get(tk, {}).get("signal", "—") != "—"
+            and watchlist.get(tk, {}).get("signal", "—") != "—"
+        }
+
+        sub_label = f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · click any row to expand"
+        if not _is_latest:
+            sub_label += f" · viewing {selected_date}"
+        render_section_head("The Watchlist", sub_label)
+        _render_live_caption(_live, LIVE_PRICES and _is_latest)
+        render_pulse(benchmarks)
+        render_watchlist(watchlist, changed_tickers=changed)
+
+    _render_watchlist_body()
 
 
 # ════════════════════════════════════════════
