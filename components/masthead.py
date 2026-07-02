@@ -10,7 +10,7 @@ from datetime import date
 
 import streamlit as st
 
-from lib.data_loader import load_all_reports
+from lib.data_loader import list_report_dates, load_report
 from lib.formatters import _escape_dollars
 
 _NAV_PAGES = [
@@ -26,8 +26,10 @@ _NAV_PAGES = [
 
 def render_masthead_and_nav() -> str:
     """Render the masthead + top-nav radio. Returns the selected page name."""
-    reports = load_all_reports()
-    dates = sorted(reports.keys()) if reports else []
+    # The masthead renders on every page/rerun but only needs the date list
+    # (from filenames) and the latest report's market_date — so it reads dates
+    # cheaply and loads just the one report, never the whole corpus.
+    dates = list_report_dates()
     latest = dates[-1] if dates else "—"
     first = dates[0] if dates else None
     issue = "—"
@@ -39,7 +41,7 @@ def render_masthead_and_nav() -> str:
         except ValueError:
             pass
     market_date = _escape_dollars(
-        reports.get(latest, {}).get("meta", {}).get("market_date", "—")
+        load_report(latest).get("meta", {}).get("market_date", "—")
     )
     try:
         long_date = date.fromisoformat(latest).strftime("%A, %B %d, %Y")
