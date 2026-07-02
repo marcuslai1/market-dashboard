@@ -120,6 +120,39 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
             f'data anomaly · {_escape_dollars(_anom)}</span>'
         )
+    # News-sentiment skew chip (P1-2 slice) — the pipeline's per-name read of
+    # the day's headlines, colored by lean. Absent on ~half the corpus → silent.
+    _skew = d.get("news_sentiment_skew")
+    _skew_colors = {
+        "bullish": STATUS_POS,
+        "bearish": STATUS_NEG,
+        "mixed": STATUS_WARN,
+        "neutral": STATUS_NEUTRAL,
+    }
+    if _skew in _skew_colors:
+        status_chips.append(
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.10em;text-transform:uppercase;'
+            f'background:rgba(255,255,255,0.05);color:{_skew_colors[_skew]};'
+            f'padding:3px 8px;border-radius:3px;">news · {_skew}</span>'
+        )
+    # Premarket chip (P1-2 slice) — the pipeline-authored phrase captured at
+    # report generation ("premarket -0.9% vs prior close"), colored by the
+    # move's sign. Snapshot-time context, deliberately not a live quote.
+    _pm_phrase = (d.get("premarket") or {}).get("phrase")
+    if _pm_phrase:
+        _pm_chg = (d.get("premarket") or {}).get("pm_chg_pct")
+        _pm_color = (
+            STATUS_POS if (_pm_chg or 0) > 0
+            else STATUS_NEG if (_pm_chg or 0) < 0
+            else STATUS_NEUTRAL
+        )
+        status_chips.append(
+            f'<span style="font-family:var(--mono);font-size:10.5px;'
+            f'letter-spacing:0.06em;background:rgba(255,255,255,0.05);'
+            f'color:{_pm_color};padding:3px 8px;border-radius:3px;">'
+            f'{_escape_dollars(_pm_phrase)}</span>'
+        )
     if status_chips:
         parts.append(
             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
@@ -447,6 +480,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
 
     parts.append(_drilldown_section_html("Technicals"))
     drawdown_3mo = d.get("drawdown_3mo_pct")
+    vs_cluster = d.get("vs_cluster_chg_pct")
     tech_metrics = [
         ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
         ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
@@ -460,6 +494,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
          f"{_sign(chg5)}{_fmt_num(chg5, 1)}%" if chg5 is not None else "—"),
         ("1-month return",
          f"{_sign(m1)}{_fmt_num(m1, 1)}%" if m1 is not None else "—"),
+        # P1-2 slice: the day's move relative to the cluster median — the
+        # pipeline's relative-strength read, rendered nowhere until 2026-07-02.
+        ("vs cluster (1d)",
+         f"{_sign(vs_cluster)}{_fmt_num(vs_cluster, 2)}%" if vs_cluster is not None else "—"),
         ("3mo drawdown",
          f"{_fmt_num(drawdown_3mo, 1)}%" if drawdown_3mo is not None else "—"),
     ]
