@@ -46,6 +46,24 @@ def _fmt_delta(label: str, d: dict) -> str:
     return f"{arrow}{abs(chg):g}{unit}"
 
 
+# Upstream computes age_days from the FRED *observation* date (1st of the
+# observation month), so a monthly print is ~40d "old" the day it's released
+# and the upstream is_stale flag fires on perfectly fresh data. Per series:
+# the age (days from observation date) past which the NEXT release should
+# already exist — only beyond that is the row genuinely stale. Monthly rows
+# also hide the raw day-count, which reads as staleness when it isn't.
+_SERIES_FRESHNESS = {
+    "CPIAUCSL":     ("monthly", 78),   # next CPI ~71-76d after obs date
+    "PCEPILFE":     ("monthly", 95),   # PCE lags ~90d (May print → Jun 25)
+    "UNRATE":       ("monthly", 68),   # jobs report ~61-67d after obs date
+    "PAYEMS":       ("monthly", 68),
+    "DFF":          ("daily", 7),
+    "DFII10":       ("daily", 7),
+    "T5YIE":        ("daily", 7),
+    "BAMLH0A0HYM2": ("daily", 7),
+}
+
+
 def _fmt_freshness(d: dict) -> str:
     asof = d.get("asof", "")
     month = ""
@@ -55,8 +73,16 @@ def _fmt_freshness(d: dict) -> str:
         except (ValueError, TypeError):
             month = asof
     age = d.get("age_days")
-    age_s = f"{age}d" if isinstance(age, int) else ""
-    stale = " · STALE" if d.get("is_stale") else ""
+    meta = _SERIES_FRESHNESS.get(d.get("series_id"))
+    if meta:
+        cadence, supersede_days = meta
+        show_age = cadence == "daily"
+        is_stale = isinstance(age, int) and age > supersede_days
+    else:
+        show_age = True
+        is_stale = bool(d.get("is_stale"))
+    age_s = f"{age}d" if show_age and isinstance(age, int) else ""
+    stale = " · STALE" if is_stale else ""
     bits = " · ".join(b for b in [month, age_s] if b)
     return f"{bits}{stale}"
 
