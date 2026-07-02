@@ -24,8 +24,13 @@ _NAV_PAGES = [
 ]
 
 
-def render_masthead_and_nav() -> str:
-    """Render the masthead + top-nav radio. Returns the selected page name."""
+def render_masthead_and_nav(current: str) -> str:
+    """Render the masthead + top-nav radio. Returns the selected page title.
+
+    ``current`` is the active ``st.navigation`` page title. The caller compares
+    the returned selection against it and issues ``st.switch_page`` — the radio
+    is a mirror of the navigation state, not the state itself.
+    """
     # The masthead renders on every page/rerun but only needs the date list
     # (from filenames) and the latest report's market_date — so it reads dates
     # cheaply and loads just the one report, never the whole corpus.
@@ -67,12 +72,14 @@ def render_masthead_and_nav() -> str:
         unsafe_allow_html=True,
     )
 
-    # Deep-linking: seed the nav radio from ?page=… exactly once (before the
-    # widget key exists), and mirror the selection back so a browser refresh
-    # or a shared URL restores the active page instead of resetting to Briefing.
-    _qp_page = st.query_params.get("page")
-    if "page_nav" not in st.session_state and _qp_page in _NAV_PAGES:
-        st.session_state.page_nav = _qp_page
+    # The radio mirrors st.navigation. When navigation changed OUTSIDE the
+    # radio (deep link, browser back/forward, first load of a pathed URL),
+    # resync the widget to the real page. When the change came FROM the radio
+    # (user click), leave the widget value alone so the click isn't clobbered —
+    # the caller sees selection != current and switches page.
+    if st.session_state.get("_nav_last") != current:
+        st.session_state.page_nav = current
+        st.session_state._nav_last = current
 
     st.markdown('<div class="topnav-wrap">', unsafe_allow_html=True)
     page = st.radio(
@@ -83,6 +90,4 @@ def render_masthead_and_nav() -> str:
         key="page_nav",
     )
     st.markdown('</div>', unsafe_allow_html=True)
-    if st.query_params.get("page") != page:
-        st.query_params["page"] = page
     return page
