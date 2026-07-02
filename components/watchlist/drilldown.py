@@ -6,6 +6,16 @@ embedded inside a ``<details>`` element rendered by ``components.watchlist.row``
 from __future__ import annotations
 
 from lib.catalog import CLUSTER_MAP
+from lib.charts import (
+    ACCENT_LINK,
+    STATUS_INFO,
+    STATUS_MUTED,
+    STATUS_NEG,
+    STATUS_NEUTRAL,
+    STATUS_POS,
+    STATUS_WARN,
+    STATUS_WARN_SOFT,
+)
 from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
@@ -72,19 +82,19 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
     momentum_reasons = d.get("momentum_warn_reasons") or []
     signal = d.get("signal", "")
     cs_labels = {
-        "hard_block": ("Mechanical hard block", "#ef4444"),
-        "claude_override": ("Judgment override", "#f59e0b"),
-        "base_scorer": ("Soft caution (base scorer)", "#f59e0b"),
-        "rr_gate_fail": ("R:R gate failed", "#ef4444"),
-        "catalyst_override": ("Catalyst override", "#3498db"),
-        "rcp_terminal": ("RCP terminal", "#ef4444"),
-        "fragility_single_leg": ("Fragility gate — single leg", "#f59e0b"),
-        "avoid_source_missing": ("AVOID unsourced", "#f59e0b"),
+        "hard_block": ("Mechanical hard block", STATUS_NEG),
+        "claude_override": ("Judgment override", STATUS_WARN),
+        "base_scorer": ("Soft caution (base scorer)", STATUS_WARN),
+        "rr_gate_fail": ("R:R gate failed", STATUS_NEG),
+        "catalyst_override": ("Catalyst override", STATUS_INFO),
+        "rcp_terminal": ("RCP terminal", STATUS_NEG),
+        "fragility_single_leg": ("Fragility gate — single leg", STATUS_WARN),
+        "avoid_source_missing": ("AVOID unsourced", STATUS_WARN),
     }
     status_chips: list[str] = []
     if caution_source and signal not in {"BUY", "HOLD"}:
         label, color = cs_labels.get(
-            caution_source, (caution_source, "#9ca3af")
+            caution_source, (caution_source, STATUS_NEUTRAL)
         )
         status_chips.append(
             f'<span style="font-family:var(--mono);font-size:10.5px;'
@@ -98,7 +108,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         status_chips.append(
             f'<span style="font-family:var(--mono);font-size:10.5px;'
             f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
-            f'color:#fbb454;padding:3px 8px;border-radius:3px;">'
+            f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
             f'momentum_warn · {_escape_dollars(reason_str)}</span>'
         )
     data_anomaly = d.get("data_anomaly")
@@ -107,7 +117,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         status_chips.append(
             f'<span style="font-family:var(--mono);font-size:10.5px;'
             f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
-            f'color:#fbb454;padding:3px 8px;border-radius:3px;">'
+            f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
             f'data anomaly · {_escape_dollars(_anom)}</span>'
         )
     if status_chips:
@@ -137,16 +147,16 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         rcp_path_b = rcp.get("path_b_level")
         _TERMINAL_PHASES = {"failed", "expired", "invalidated"}
         _rcp_phase_colors = {
-            "gap_day": "#ef4444",
-            "cooling_off": "#f59e0b",
-            "graduation_watch": "#3b82f6",
-            "path_a_confirmed": "#22c55e",
-            "path_b_confirmed": "#22c55e",
-            "failed": "#6b7280",
-            "expired": "#6b7280",
-            "invalidated": "#6b7280",
+            "gap_day": STATUS_NEG,
+            "cooling_off": STATUS_WARN,
+            "graduation_watch": ACCENT_LINK,
+            "path_a_confirmed": STATUS_POS,
+            "path_b_confirmed": STATUS_POS,
+            "failed": STATUS_MUTED,
+            "expired": STATUS_MUTED,
+            "invalidated": STATUS_MUTED,
         }
-        rcp_color = _rcp_phase_colors.get(rcp_phase, "#9ca3af")
+        rcp_color = _rcp_phase_colors.get(rcp_phase, STATUS_NEUTRAL)
         rcp_phase_label = rcp_phase.replace("_", " ").title()
         sessions_note = (
             f"  ·  {rcp_sessions} sessions since gap" if rcp_sessions is not None else ""
@@ -177,7 +187,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                     f'{_escape_dollars(rcp_terminal_outcome)}</div>'
                 )
             parts.append(
-                '<div class="dd-line" style="color:#6b7280;font-size:12px;">'
+                f'<div class="dd-line" style="color:{STATUS_MUTED};font-size:12px;">'
                 'New step-function catalyst required before re-entry.</div>'
             )
 
@@ -301,9 +311,9 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         for gkey, glabel in gate_labels.items():
             gate_val = gates.get(gkey)
             if gate_val is True:
-                bg, fg, mark = "rgba(34,197,94,0.18)", "#22c55e", "✓"
+                bg, fg, mark = "rgba(34,197,94,0.18)", STATUS_POS, "✓"
             elif gate_val is False:
-                bg, fg, mark = "rgba(239,68,68,0.18)", "#ef4444", "✗"
+                bg, fg, mark = "rgba(239,68,68,0.18)", STATUS_NEG, "✗"
             else:
                 bg, fg, mark = "rgba(255,255,255,0.05)", "var(--ink-3)", "—"
             chip_html_list.append(
@@ -314,8 +324,8 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
                 f'<span style="font-size:13px;">{mark}</span>{glabel}</span>'
             )
         summary_color = (
-            "#22c55e" if all_pass is True
-            else "#ef4444" if all_pass is False
+            STATUS_POS if all_pass is True
+            else STATUS_NEG if all_pass is False
             else "var(--ink-3)"
         )
         summary_text = (
@@ -373,10 +383,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             "neutral": "Neutral",
         }.get(archetype, archetype or "—")
         archetype_color = {
-            "priced_for_perfection": "#ef4444",
-            "low_bar_underdog": "#22c55e",
-            "neutral": "#9ca3af",
-        }.get(archetype, "#9ca3af")
+            "priced_for_perfection": STATUS_NEG,
+            "low_bar_underdog": STATUS_POS,
+            "neutral": STATUS_NEUTRAL,
+        }.get(archetype, STATUS_NEUTRAL)
         section_label = f"Earnings setup — {temporal_phrase}" if temporal_phrase else "Earnings setup"
         parts.append(_drilldown_section_html(section_label))
         if archetype:
@@ -512,10 +522,10 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         parts.append(_drilldown_section_html("Thesis pillars"))
         if is_fragility:
             parts.append(
-                '<div class="dd-line" style="color:#f59e0b;font-size:12.5px;">'
+                f'<div class="dd-line" style="color:{STATUS_WARN};font-size:12.5px;">'
                 'Single-leg fragility gate triggered — signal capped to WATCH.</div>'
             )
-        leg_color = "#ef4444" if is_fragility else "#22c55e"
+        leg_color = STATUS_NEG if is_fragility else STATUS_POS
         for _leg in (support_legs or []):
             parts.append(
                 f'<div class="dd-line" style="display:flex;align-items:baseline;gap:8px;">'

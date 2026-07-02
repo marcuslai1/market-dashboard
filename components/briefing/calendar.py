@@ -13,6 +13,7 @@ from __future__ import annotations
 from datetime import datetime as _dt
 
 from lib.cards import card_container
+from lib.charts import SURFACE_2_FALLBACK
 from lib.formatters import _escape_dollars
 
 
@@ -87,7 +88,7 @@ def _group_html(group: list, muted: bool = False) -> str:
             if tickers:
                 tags = "".join(
                     f'<span style="font-family:var(--mono);font-size:10px;'
-                    f'background:var(--surface-2,#1e1e2e);border-radius:3px;'
+                    f'background:var(--surface-2,{SURFACE_2_FALLBACK});border-radius:3px;'
                     f'padding:1px 5px;margin-right:3px;color:var(--ink-2);">'
                     f'{_escape_dollars(t)}</span>'
                     for t in tickers[:5]

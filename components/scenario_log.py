@@ -11,7 +11,16 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from lib.charts import PLOTLY_CONFIG, chart_data_table, style_fig
+from lib.charts import (
+    ACCENT_LINK,
+    ACCENT_WILDCARD,
+    PLOTLY_CONFIG,
+    STATUS_MUTED,
+    STATUS_NEG,
+    STATUS_POS,
+    chart_data_table,
+    style_fig,
+)
 from lib.formatters import _escape_dollars
 
 _SCENARIO_NORMALIZE = {
@@ -145,7 +154,7 @@ def _render_move_log(moves: list[dict], colors: dict[str, str]) -> str:
         n = len(day_moves)
         rows = []
         for m in day_moves:
-            color = colors.get(m["scenario"], "#6b7280")
+            color = colors.get(m["scenario"], STATUS_MUTED)
             delta = m["delta"]
             arrow = "▲" if delta > 0 else "▼"
             desc = m["description"].strip()
@@ -198,10 +207,10 @@ def render_scenario_log_page(reports: dict) -> None:
         st.stop()
 
     scenario_colors = {
-        "Base":        "#3b82f6",
-        "Optimistic":  "#22c55e",
-        "Pessimistic": "#ef4444",
-        "Wildcard":    "#a855f7",
+        "Base":        ACCENT_LINK,
+        "Optimistic":  STATUS_POS,
+        "Pessimistic": STATUS_NEG,
+        "Wildcard":    ACCENT_WILDCARD,
     }
     st_color_names = {
         "Base": "blue", "Optimistic": "green",
@@ -217,7 +226,7 @@ def render_scenario_log_page(reports: dict) -> None:
             fig.add_trace(go.Scatter(
                 x=sc_data["date"], y=sc_data["probability_mid"],
                 mode="lines+markers", name=sc_name,
-                line=dict(color=scenario_colors.get(sc_name, "#6b7280"), width=2),
+                line=dict(color=scenario_colors.get(sc_name, STATUS_MUTED), width=2),
                 hovertemplate=f"<b>{sc_name}</b><br>%{{x|%b %d}}: %{{customdata}}<extra></extra>",
                 customdata=sc_data["probability_str"],
             ))
