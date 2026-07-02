@@ -34,6 +34,7 @@ from components.watchlist import render_watchlist
 from lib.cards import render_section_head
 from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
 from lib.data_loader import (
+    data_fingerprint,
     list_report_dates,
     load_all_reports,
     load_report,
@@ -435,6 +436,9 @@ elif page == "Signal Tracker":
     render_signal_tracker_page(
         filter_reports(load_all_reports(), DATE_START, DATE_END),
         filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
+        # Cheap corpus signature so the page's derived frames memoize across
+        # filter/toggle reruns instead of recomputing O(reports × tickers).
+        cache_key=(data_fingerprint(), DATE_START, DATE_END),
     )
 
 
