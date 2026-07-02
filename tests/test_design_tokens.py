@@ -77,3 +77,45 @@ def test_theme_signal_tints_match_catalog():
         want = SIGNAL_TINTS[sig].replace(" ", "")
         got = _theme_token(var).replace(" ", "")
         assert got == want, f"{var} in theme.css drifted from catalog.json {sig} tint"
+
+
+# ── P6-1: components must not carry raw hex literals ──
+# The palette pass routed every inline hex through lib/charts constants (or
+# SIGNAL_COLORS). terminology.py is the one sanctioned exception — its colors
+# live inside a large static HTML/CSS block where f-string conversion would
+# fight the CSS braces — so its literals are drift-checked instead.
+_COMPONENTS_DIR = Path(__file__).resolve().parent.parent / "components"
+_HEX_RE = re.compile(r"#[0-9a-fA-F]{6}\b")
+
+
+def _sanctioned_palette() -> set:
+    import lib.charts as charts
+
+    sanctioned = {v.lower() for v in SIGNAL_COLORS.values()}
+    sanctioned |= {
+        v.lower()
+        for name in dir(charts)
+        if isinstance((v := getattr(charts, name)), str) and _HEX_RE.fullmatch(v)
+    }
+    return sanctioned
+
+
+def test_no_raw_hex_literals_in_components():
+    offenders = []
+    for py in _COMPONENTS_DIR.rglob("*.py"):
+        if py.name == "terminology.py":
+            continue
+        for i, line in enumerate(py.read_text(encoding="utf-8").splitlines(), 1):
+            if _HEX_RE.search(line):
+                offenders.append(f"{py.relative_to(_COMPONENTS_DIR)}:{i}: {line.strip()}")
+    assert not offenders, "raw hex literals crept back in:\n" + "\n".join(offenders)
+
+
+def test_terminology_hex_literals_match_sanctioned_palette():
+    """terminology.py keeps inline hexes (static HTML block) — they must stay
+    byte-identical to the canonical palette so the reference page can't drift."""
+    src = (_COMPONENTS_DIR / "terminology.py").read_text(encoding="utf-8")
+    used = {m.group(0).lower() for m in _HEX_RE.finditer(src)}
+    assert used, "expected terminology.py to carry its static palette hexes"
+    unsanctioned = used - _sanctioned_palette()
+    assert not unsanctioned, f"terminology.py colors drifted from the palette: {unsanctioned}"

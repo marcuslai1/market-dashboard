@@ -110,6 +110,21 @@ def load_all_reports() -> dict[str, dict]:
     return _load_all_reports_cached(fingerprint)
 
 
+def data_fingerprint() -> tuple:
+    """Cheap ``(path, mtime)`` fingerprint of the report corpus + price CSV.
+
+    Changes whenever any report file or ``market_data.csv`` is added, removed,
+    or rewritten. Pages use it as the ``st.cache_data`` key for expensive
+    derived frames (Signal Tracker episodes/accuracy — review P7-2) so the
+    heavy inputs themselves never need hashing.
+    """
+    prices_csv = DATA_DIR / "market_data.csv"
+    return (
+        *((str(f), _mtime(f)) for f in sorted(DATA_DIR.glob("morning_report_*.json"))),
+        (str(prices_csv), _mtime(prices_csv)),
+    )
+
+
 @st.cache_data(max_entries=8)
 def _list_report_dates_cached(dir_str: str, dir_mtime: float) -> list[str]:
     return sorted(

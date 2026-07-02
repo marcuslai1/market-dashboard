@@ -49,30 +49,18 @@ def test_page_renders_without_exception(page):
     assert len(at.markdown) > 0  # something actually rendered
 
 
-# ── Nav persistence: ?page= deep links survive a browser refresh ──
-def test_query_param_deep_links_to_page():
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_file("dashboard.py", default_timeout=30)
-    at.query_params["page"] = "Signal Tracker"
-    at.run()
-    assert not at.exception
-    assert at.radio(key="page_nav").value == "Signal Tracker"
-
-
-def test_invalid_query_param_falls_back_to_briefing():
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_file("dashboard.py", default_timeout=30)
-    at.query_params["page"] = "NotAPage"
-    at.run()
-    assert not at.exception
-    assert at.radio(key="page_nav").value == "Briefing"
-
-
-def test_nav_selection_written_back_to_query_params():
+# ── Nav round-trip through st.navigation ──
+# The masthead radio mirrors st.navigation and issues st.switch_page; deep
+# links / back-forward are Streamlit-native URL paths (verified live — AppTest
+# cannot boot function pages at a path). This pins the radio→switch_page→radio
+# loop in both directions without the widget clobbering the click.
+def test_nav_radio_round_trip_switches_pages():
     at = _boot()
+    assert at.radio(key="page_nav").value == "Briefing"
     at.radio(key="page_nav").set_value("Terminology").run()
     assert not at.exception
-    # AppTest surfaces query params in their multi-valued form (a list).
-    assert at.query_params.get("page") in ("Terminology", ["Terminology"])
+    assert at.radio(key="page_nav").value == "Terminology"
+    assert any("Terminology" in str(m.value) for m in at.markdown)
+    at.radio(key="page_nav").set_value("Briefing").run()
+    assert not at.exception
+    assert at.radio(key="page_nav").value == "Briefing"
