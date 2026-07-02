@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from lib.charts import PLOTLY_CONFIG, style_fig
+from lib.charts import PLOTLY_CONFIG, chart_data_table, style_fig
 from lib.formatters import _escape_dollars
 
 _SCENARIO_NORMALIZE = {
@@ -230,6 +230,10 @@ def render_scenario_log_page(reports: dict) -> None:
     st.caption(
         "Line chart — each macro scenario's probability (%) over the selected "
         "window; the dated ledger below lists the exact shifts."
+    )
+    chart_data_table(
+        sc_df.sort_values(["date", "scenario"])[["date", "scenario", "probability_str"]]
+        .rename(columns={"probability_str": "probability"})
     )
 
     # ── Days when probabilities actually moved ──

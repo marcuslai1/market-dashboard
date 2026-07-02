@@ -12,6 +12,7 @@ from lib.charts import (
     CHART_MUTED,
     CHART_PALETTE,
     PLOTLY_CONFIG,
+    chart_data_table,
     style_fig,
 )
 from lib.data_loader import load_pipeline_stats, load_token_usage
@@ -58,6 +59,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
     )
     st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
     st.caption("Bar chart — total tokens per report over time. Summary stats below.")
+    chart_data_table(token_df[["date", "token_count"]])
 
     # Generation time
     fig2 = go.Figure()
@@ -72,6 +74,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
     )
     st.plotly_chart(style_fig(fig2), use_container_width=True, config=PLOTLY_CONFIG)
     st.caption("Line chart — report generation time (seconds) per run over time.")
+    chart_data_table(token_df[["date", "generation_time_seconds"]])
 
     # Summary stats
     cols = st.columns(4)
@@ -157,6 +160,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
         st.plotly_chart(style_fig(fig_cost), use_container_width=True, config=PLOTLY_CONFIG)
+        chart_data_table(cost_df[["date", "cost_usd", "cost_7d_avg"]])
 
         # Cumulative cost
         fig_cum = go.Figure()
@@ -171,6 +175,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             margin=dict(l=0, r=0, t=30, b=0),
         )
         st.plotly_chart(style_fig(fig_cum), use_container_width=True, config=PLOTLY_CONFIG)
+        chart_data_table(cost_df[["date", "cumulative_cost"]])
 
     # ── Prompt Cache Telemetry ──
     st.subheader("Prompt Cache")
@@ -234,6 +239,9 @@ def render_pipeline_stats_page(reports: dict) -> None:
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
         st.plotly_chart(style_fig(fig_cache), use_container_width=True, config=PLOTLY_CONFIG)
+        chart_data_table(
+            cdf[["date", "cache_hit_tokens", "cache_miss_tokens", "hit_ratio"]]
+        )
 
         st.caption(
             "If hit ratio sits near 0%, the user prompt's first dynamic block "
@@ -279,6 +287,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
         )
         st.plotly_chart(style_fig(fig_art), use_container_width=True, config=PLOTLY_CONFIG)
         st.caption("Stacked bars — article count fed to the prompt by source (Tavily, yFinance) over time.")
+        chart_data_table(ps_df[["date", "articles_after_filter", "yfinance_articles"]])
 
         # ── Prompt Size Breakdown ──
         has_breakdown = ps_df["total_prompt_chars"].notna().any()
@@ -318,3 +327,6 @@ def render_pipeline_stats_page(reports: dict) -> None:
                 )
                 st.plotly_chart(style_fig(fig_pb), use_container_width=True, config=PLOTLY_CONFIG)
                 st.caption("Stacked bars — prompt size (chars) by component over time.")
+                chart_data_table(
+                    breakdown_df[["date", *(col for col, _n, _c in components)]]
+                )

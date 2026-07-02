@@ -52,6 +52,22 @@ _AXIS = dict(
 )
 
 
+def chart_data_table(df, label: str = "View data as table") -> None:
+    """Render a chart's source data as a collapsed real table (review P8-4).
+
+    Screen readers can't traverse a Plotly canvas; the descriptive captions
+    added earlier summarise the shape but not the values. Placing the exact
+    frame that fed the figure behind an expander gives full data parity
+    without costing sighted readers any vertical space.
+    """
+    import streamlit as st
+
+    if df is None or len(df) == 0:
+        return
+    with st.expander(label):
+        st.dataframe(df, width="stretch", hide_index=True)
+
+
 def style_fig(fig, **layout_overrides):
     """Apply the dark editorial look to a Plotly figure in place; return it.
 
