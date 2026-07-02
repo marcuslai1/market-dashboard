@@ -67,6 +67,13 @@ def render_masthead_and_nav() -> str:
         unsafe_allow_html=True,
     )
 
+    # Deep-linking: seed the nav radio from ?page=… exactly once (before the
+    # widget key exists), and mirror the selection back so a browser refresh
+    # or a shared URL restores the active page instead of resetting to Briefing.
+    _qp_page = st.query_params.get("page")
+    if "page_nav" not in st.session_state and _qp_page in _NAV_PAGES:
+        st.session_state.page_nav = _qp_page
+
     st.markdown('<div class="topnav-wrap">', unsafe_allow_html=True)
     page = st.radio(
         "Navigate",
@@ -76,4 +83,6 @@ def render_masthead_and_nav() -> str:
         key="page_nav",
     )
     st.markdown('</div>', unsafe_allow_html=True)
+    if st.query_params.get("page") != page:
+        st.query_params["page"] = page
     return page

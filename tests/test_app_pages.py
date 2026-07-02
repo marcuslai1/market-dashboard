@@ -47,3 +47,32 @@ def test_page_renders_without_exception(page):
         at.radio(key="page_nav").set_value(page).run()
     assert not at.exception, f"{page}: {[e.value for e in at.exception]}"
     assert len(at.markdown) > 0  # something actually rendered
+
+
+# ── Nav persistence: ?page= deep links survive a browser refresh ──
+def test_query_param_deep_links_to_page():
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_file("dashboard.py", default_timeout=30)
+    at.query_params["page"] = "Signal Tracker"
+    at.run()
+    assert not at.exception
+    assert at.radio(key="page_nav").value == "Signal Tracker"
+
+
+def test_invalid_query_param_falls_back_to_briefing():
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_file("dashboard.py", default_timeout=30)
+    at.query_params["page"] = "NotAPage"
+    at.run()
+    assert not at.exception
+    assert at.radio(key="page_nav").value == "Briefing"
+
+
+def test_nav_selection_written_back_to_query_params():
+    at = _boot()
+    at.radio(key="page_nav").set_value("Terminology").run()
+    assert not at.exception
+    # AppTest surfaces query params in their multi-valued form (a list).
+    assert at.query_params.get("page") in ("Terminology", ["Terminology"])
