@@ -4,8 +4,7 @@ from __future__ import annotations
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.catalog import TICKER_DISPLAY
-from lib.formatters import _escape_dollars, _fmt_num
+from lib.formatters import _escape_dollars, _fmt_num, display_ticker
 
 
 def render_contrarian_candidates(contrarians: list) -> None:
@@ -26,7 +25,7 @@ def render_contrarian_candidates(contrarians: list) -> None:
         if not isinstance(c, dict):
             continue
         ticker = c.get("ticker", "—")
-        display = _escape_dollars(TICKER_DISPLAY.get(ticker, ticker))
+        display = _escape_dollars(display_ticker(ticker))
         rsi = c.get("rsi")
         rsi_str = f"RSI {_fmt_num(rsi, 0)}" if rsi is not None else ""
         thesis = c.get("thesis") or c.get("rationale") or ""

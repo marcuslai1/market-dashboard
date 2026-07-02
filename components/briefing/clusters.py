@@ -14,8 +14,8 @@ from collections import Counter
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.catalog import SIGNAL_ORDER, TICKER_DISPLAY
-from lib.formatters import _escape_dollars, _fmt_num, _sign
+from lib.catalog import SIGNAL_ORDER
+from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
 from lib.pills import _signal_pill_html
 
 
@@ -70,7 +70,7 @@ def _anchor_table_html(cluster: dict, watchlist: dict) -> str:
         rsi = a.get("rsi_14")
         vs50_str = f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"
         rows.append(
-            f"<tr><td>{_escape_dollars(TICKER_DISPLAY.get(_norm(tk), tk))}</td>"
+            f"<tr><td>{_escape_dollars(display_ticker(_norm(tk)))}</td>"
             f"<td>{pill}</td>"
             f'<td class="num">{vs50_str}</td>'
             f'<td class="num">{_fmt_num(rsi, 0)}</td></tr>'

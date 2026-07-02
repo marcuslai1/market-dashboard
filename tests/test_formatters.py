@@ -10,6 +10,7 @@ from lib.formatters import (
     _escape_attr,
     _price_str,
     _safe_href,
+    display_ticker,
 )
 
 
@@ -92,3 +93,21 @@ def test_price_str_sgd_two_decimals():
 
 def test_price_str_none_is_dash():
     assert _price_str(None, "USD") == "—"
+
+
+# ── Ticker display form ──
+def test_display_ticker_uses_override_map():
+    # Overrides carry the glyphs a plain replace can't restore (= ^ -).
+    assert display_ticker("CL_F") == "CL=F"
+    assert display_ticker("VIX") == "^VIX"
+    assert display_ticker("DX_Y_NYB") == "DX-Y.NYB"
+
+
+def test_display_ticker_restores_dots_for_unmapped_keys():
+    # TICKER_DISPLAY is sparse: plain underscore-for-dot names aren't listed,
+    # so the raw .get(tk, tk) pattern used to leak `000660_KS` into the UI.
+    assert display_ticker("000660_KS") == "000660.KS"
+
+
+def test_display_ticker_plain_ticker_unchanged():
+    assert display_ticker("NVDA") == "NVDA"

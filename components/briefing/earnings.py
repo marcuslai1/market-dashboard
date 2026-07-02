@@ -12,8 +12,7 @@ from __future__ import annotations
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.catalog import TICKER_DISPLAY
-from lib.formatters import _escape_dollars, _fmt_num, _sign
+from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
 
 
 def _pct(value, decimals: int = 1) -> str:
@@ -21,19 +20,6 @@ def _pct(value, decimals: int = 1) -> str:
     if value is None:
         return "—"
     return f"{_sign(value)}{_fmt_num(value, decimals)}%"
-
-
-def _display_ticker(tk: str) -> str:
-    """Human display form of a watchlist key, e.g. ``000660_KS`` -> ``000660.KS``.
-
-    ``TICKER_DISPLAY`` is a *sparse* override map — it only lists tickers whose
-    display needs special glyphs (``CL_F`` -> ``CL=F``, ``VIX`` -> ``^VIX``). It
-    does **not** carry the plain underscore-for-dot names (``000660_KS``), so the
-    codebase-wide ``TICKER_DISPLAY.get(tk, tk)`` leaks the munged key into the UI
-    for those. Prefer the override, then fall back to restoring the dot — giving
-    the clean dotted ticker the cluster band already shows.
-    """
-    return TICKER_DISPLAY.get(tk) or str(tk).replace("_", ".")
 
 
 def _eps_rows(watchlist: dict) -> list:
@@ -54,7 +40,7 @@ def _eps_rows(watchlist: dict) -> list:
         latest = surprises[-1] if surprises else None
         beats = sum(1 for s in surprises if s is not None and s > 0)
         rows.append({
-            "ticker": _display_ticker(tk),
+            "ticker": display_ticker(tk),
             "surprises": surprises,
             "latest": latest,
             "beats": beats,

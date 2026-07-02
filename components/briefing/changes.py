@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from lib.catalog import SIGNAL_BULLISHNESS, SIGNAL_COLORS, TICKER_DISPLAY
-from lib.formatters import _escape_dollars, _writeup_for_render
+from lib.catalog import SIGNAL_BULLISHNESS, SIGNAL_COLORS
+from lib.formatters import _escape_dollars, _writeup_for_render, display_ticker
 from lib.pills import _signal_pill_html
 
 
@@ -26,7 +26,7 @@ def render_changes(today_wl: dict, prev_wl: dict) -> None:
             continue
         direction = "up" if SIGNAL_BULLISHNESS.get(new, 0) > SIGNAL_BULLISHNESS.get(old, 0) else "down"
         arrow_color = SIGNAL_COLORS.get(new, "#9F988B")
-        display_tk = TICKER_DISPLAY.get(tk, tk)
+        display_tk = display_ticker(tk)
         items.append(
             f'<span style="display:inline-flex;align-items:center;gap:8px;">'
             f'<strong style="color:var(--ink);">{_escape_dollars(display_tk)}</strong>'
