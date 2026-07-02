@@ -16,7 +16,6 @@ from lib.catalog import (
     SIGNAL_COLORS,
     SIGNAL_TINTS,
     SIGNAL_VERBS,
-    TICKER_DISPLAY,
 )
 from lib.formatters import (
     _escape_dollars,
@@ -24,6 +23,7 @@ from lib.formatters import (
     _price_str,
     _sign,
     _writeup_for_render,
+    display_ticker,
 )
 
 
@@ -53,7 +53,7 @@ def render_action_card(wl: dict, events: list) -> None:
         return
     sig = d.get("signal", "WATCH")
     color = SIGNAL_COLORS.get(sig, "#9F988B")
-    display_tk = _escape_dollars(TICKER_DISPLAY.get(tk, tk))
+    display_tk = _escape_dollars(display_ticker(tk))
     cluster = _escape_dollars(CLUSTER_MAP.get(tk, ""))
     price = d.get("price")
     ccy = d.get("currency", "USD")

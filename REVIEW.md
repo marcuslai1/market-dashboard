@@ -17,6 +17,12 @@
 > holds. Nothing
 > else was both worth-doing and doable without a product (P1-2) or machine (P0-1)
 > decision, so the rest is left as-is. **Review complete.**
+>
+> **Post-close addendum (2026-07-02):** two passes shipped after the ledger closed
+> and are reconciled in *Post-close addendum* below — the performance pass (merge
+> `2746889`) and the review-gap pass (this one: **P2-5 fixed**, the P5-2 page-walk
+> committed as a real test, Watchlist fragment parity, app-wide `display_ticker`
+> cleanup, nav deep-linking). Suite now **138 passing**.
 
 Standing record for the phased full-codebase review. Resume-friendly: each phase
 has a status, and every finding has a stable ID, severity, and fix.
@@ -166,8 +172,9 @@ back-recaps), and `macro_trigger_map` is confirmed consumed (`dashboard.py:250`�
 gotchas surfaced during TDD: `watchlist` is a **dict keyed by ticker** (not a list), and
 `TICKER_DISPLAY` is a **sparse** override map that omits plain underscore-for-dot keys
 (`000660_KS`) — so a local `_display_ticker` fallback restores the dotted `000660.KS` the cluster
-band already shows (note: the sibling `changes` band still leaks the underscore key — a small
-app-wide display cleanup for later). **Remaining unconsumed (~8):** `scheduled_tech_events`
+band already shows (note: the sibling `changes` band still leaked the underscore key — fixed
+2026-07-02 by promoting the helper to `lib.formatters.display_ticker` and routing all 8 raw
+`TICKER_DISPLAY.get(tk, tk)` callsites through it; see the addendum). **Remaining unconsumed (~8):** `scheduled_tech_events`
 (sparse — forward-events dead-end), `macro_context_line`, `news_sentiment_skew`,
 `thesis_highlights`, `vs_cluster_chg_pct/5d/1mo`, `premarket`/`pm_*`/`market_state`,
 `eps_surprise`, `structural_conviction`.
@@ -241,11 +248,15 @@ correct (SGD→S$, KRW→₩, …). It shallow-copies before mutating, so the ca
 object isn't corrupted, and unmatched keys fall back per-key. No corruption path
 found. (After P1-1, `SNDK` now overlays live too.)
 
-### P2-5 · minor · report/price cache TTL lag — OPEN (accept or tune)
-All file loaders use `ttl=300`; a fresh pipeline run is invisible for up to 5 min
-unless the user hits a Refresh button (which clears all caches). Fine for a
-once-per-session pipeline, but document the expectation or lower the TTL if faster
-pickup is wanted.
+### P2-5 · minor · report/price cache TTL lag — ✅ FIXED (2026-07-02)
+All file loaders used `ttl=300`; a fresh pipeline run was invisible for up to 5 min
+unless the user hit a Refresh button (which clears all caches). **Fixed:** every
+loader is now mtime-keyed (stat()-ing wrapper over a cached impl taking
+`(path, mtime)`, the pattern `_read_text_asset` proved) — a regenerated file busts
+its entry on the next rerun, no TTL, no manual refresh needed. `load_all_reports`
+keys on a whole-corpus (path, mtime) fingerprint; `list_report_dates` keys on the
+data dir's mtime; all caches carry `max_entries`. Staleness pinned by 4 tests in
+`test_data_loader.py`.
 
 ### P2-6 · info · caching mutation safety (reviewed clean)
 Callers `.copy()` cached frames before mutating (`pipeline_stats`), and the analytics
@@ -257,6 +268,9 @@ corrupted across reruns.
 (`as_completed(timeout=…)` + `shutdown(wait=False, cancel_futures=True)`), returning
 partial results instead of blocking the render. `overlay_live` / `_safe_read_csv`
 now have tests (P2-3 ✅). P2-2 (st.* in cached fns) and P2-5 (TTL lag) remain open.
+*(Post-close: the perf pass tightened the deadline to **4s** and moved the Briefing
+fetch into a fragment; the 2026-07-02 gap pass gave the Watchlist the same fragment
+treatment and fixed P2-5 — see the addendum.)*
 
 ---
 
@@ -306,6 +320,10 @@ keys skipped, empty passthrough). Also removed the now-unused `pandas` import fr
 `AppTest` drives every page (initial + all 7 nav targets) with no exception, across
 live-on default, after the filter refactor and the `mark_mounted` relocation. Widget
 keys are unique; first-mount gating flips before any `st.stop()` (earlier fix).
+*(Post-close correction: that drive was ad-hoc and never landed in the suite — CI
+couldn't catch a crash in the render-only components. Fixed 2026-07-02:
+`tests/test_app_pages.py` walks all 7 pages with live quotes stubbed, and the guard
+was verified to bite via an injected crash.)*
 
 ### P5-3 · minor · `date_input` single-date state — OPEN (low risk)
 Mid-selection Streamlit can return a 1-tuple from the range picker; the code falls
@@ -407,8 +425,52 @@ fallback for full screen-reader parity.
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer),
 P6-1 remainder (context-specific shades).
 
-**Accepted / monitor:** P2-5 (TTL lag), P3-3 (row-offset), P5-3 (date_input tuple),
-P7-2 (recompute at scale).
+**Accepted / monitor:** P3-3 (row-offset), P5-3 (date_input tuple),
+P7-2 (recompute at scale). *(P2-5 was on this list; fixed 2026-07-02 — see addendum.)*
+
+---
+
+## Post-close addendum (2026-07-02)
+
+Two passes shipped after the ledger closed. Recorded here so this file stays the
+source of truth.
+
+### A. Performance pass (merge `2746889`, not previously in the ledger)
+Cost model: Streamlit reruns the whole script per interaction. Three fixes:
+- **Briefing body in `st.fragment(run_every=60)`** — the Yahoo fetch left the main
+  script run; masthead/nav/sidebar paint immediately and live prices refresh in
+  isolation. `_FETCH_DEADLINE_S` tightened **8s → 4s** (supersedes the P2-1 text).
+- **`load_text_asset`** — mtime-keyed cached read of the ~49KB `theme.css` (a
+  `stat()` per rerun instead of a full decode; edits still hot-reload).
+- **Lazy report loaders** — `list_report_dates` / `load_report` so hot-path pages
+  (masthead, Briefing, Watchlist) stop parsing all ~80 reports. Suite 75 → 121.
+
+### B. Review-gap pass (this branch)
+An audit of this ledger against the tree found four real gaps; all fixed:
+- **P2-5 → ✅ FIXED** — every loader mtime-keyed; TTL removed (details at P2-5).
+- **P5-2 page-walk → committed** — `tests/test_app_pages.py` (the ledger cited an
+  AppTest drive that was never in the suite); guard verified to bite.
+- **Watchlist fragment parity** — the perf pass fragmented only the Briefing; the
+  Watchlist page's live fetch blocked its render and never auto-refreshed.
+- **`display_ticker` centralized** (`lib/formatters.py`) — the 8 raw
+  `TICKER_DISPLAY.get(tk, tk)` callsites (changes ribbon, watchlist row, action
+  card, contrarians, cluster anchors, Signal Tracker ×3) leaked underscore keys
+  like `000660_KS`; flagged in the P1-2 third-slice note, now routed.
+- Plus one small feature: **nav deep-linking** — the active page persists in
+  `?page=`, so browser refresh / shared URLs no longer reset to the Briefing.
+
+Suite after this pass: **138 passing**; `ruff check .` clean.
+
+### Skipped knowingly (unchanged status, with reasons)
+- **P0-1** — local env is base Anaconda (not a venv); upgrading pandas/plotly there
+  is a machine-level call only the user should make. CI still proves 2.x compat.
+- **P0-2** — lockfile needs a tooling decision (uv / pip-tools) from the user.
+- **P7-2** — transforms still <100 ms on the full corpus; memoization complexity
+  not yet paid for. Monitor stands.
+- **P6-1 remainder / P8-4 remainder** — need visual review / are niceties.
+- **P1-2 remaining ~8 fields** — product decisions (next natural slices:
+  `vs_cluster_chg_pct` in the drilldown, `news_sentiment_skew` chips,
+  `premarket`/`market_state` masthead indicator; or document-and-drop).
 
 ---
 
@@ -450,6 +512,7 @@ P2-1, P2-3, P3-1, P5-1, plus the escaping/analytics/currency fixes from the earl
 merged pass. Remaining work is captured in **Final synthesis — open backlog** above,
 and is entirely **decisions** (P0-1 local-env upgrade — machine-side; P1-2
 surface-or-drop) plus explicitly **deferred/accepted/monitor** items (P0-2 lockfile,
-P1-4, P2-2, P2-5, P3-3, P5-3, P6-1 remainder, P7-2, P8-2, P8-4 remainder) — none of
+P1-4, P2-2, P3-3, P5-3, P6-1 remainder, P7-2, P8-2, P8-4 remainder) — none of
 which is newly actionable in-repo without your input. Review verified and complete
-(see *Resume verification* at top).
+(see *Resume verification* at top; post-close work is reconciled in the
+*Post-close addendum*, which also fixed P2-5).
