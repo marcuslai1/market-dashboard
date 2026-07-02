@@ -128,7 +128,7 @@ everywhere (`CLUSTER_MAP.get("SNDK","")`). **Fixed:** added `SNDK` → `Semis`
 (`test_every_active_ticker_has_cluster_and_yahoo`) that fails if any non-retired
 watchlist ticker is missing from the cluster or yahoo maps.
 
-### P1-2 · minor · large "produced but never consumed" surface — OPEN (product call · 3rd slice shipped 2026-07-02)
+### P1-2 · minor · large "produced but never consumed" surface — ✅ CLOSED (2026-07-02, six slices surfaced + remainder documented-dropped)
 Report fields the pipeline emits that **no code reads** (grep-confirmed, refs=0):
 `clusters` (top-level, 100%), `calibration_insights` (43%), `extension_regime`
 (40%), `scheduled_tech_events` (25%), `macro_context_line` (23%),
@@ -191,6 +191,23 @@ band already shows (note: the sibling `changes` band still leaked the underscore
 `eps_surprise`, `structural_conviction`. Design + plan:
 `docs/superpowers/specs/2026-07-02-earnings-scorecard-band-design.md`,
 `docs/superpowers/plans/2026-07-02-earnings-scorecard-band.md`.
+
+**Final update (2026-07-02, slices pass — CLOSED):** three more slices shipped into
+the watchlist **drill-down** (`vs_cluster_chg_pct` → "vs cluster (1d)" Technicals
+cell, 659 entries corpus-wide; `news_sentiment_skew` → lean-colored status chip,
+933; `premarket.phrase` → sign-colored status chip, 85 — snapshot-time context by
+design). The remainder is **documented-dropped**, each with a reason:
+- `thesis_highlights` — sparse (~6 names/day), partially duplicates the writeup,
+  and the strings carry `�` encoding artifacts (pipeline-side bug; fix there first).
+- `eps_surprise` — absent from current reports (superseded by `eps_trajectory`,
+  which is fully consumed by the earnings band).
+- `structural_conviction` — 2 entries in the latest report; too thin to design for.
+- `macro_context_line` — caveat prose; the macro card already carries
+  `macro_indicators` and the summary. Adding a second caveat line dilutes it.
+- `scheduled_tech_events` — only 2–3/82 reports carry a forward-dated event.
+- `vs_cluster_5d/1mo` — not emitted by the current pipeline (only `chg_pct` is);
+  wire the drilldown cells if the pipeline starts producing them.
+Every remaining unconsumed field is now an intentional, documented drop — P1-2 done.
 
 ### P1-3 · minor · legacy format paths are LIVE — must stay tested — ✅ FIXED
 Dual-format handling is genuinely exercised, not dead code: **548 entries** still
@@ -443,7 +460,9 @@ behind a collapsed expander, applied to all 7 charts for full data parity.
   fields — three slices shipped 2026-07-02: the `clusters` cluster band (merge `9efe4e7`,
   also consuming `extension_regime.blocked_tickers`), the `calibration_insights`
   signal-calibration band (merge `59b32e5`), and the `eps_trajectory` earnings-scorecard
-  band (merge `193d09c`).
+  band (merge `193d09c`). *(Closed later the same day by the slices pass: three drill-down
+  slices shipped + every remaining field documented-dropped with a reason — see the
+  P1-2 final update.)*
 
 **Deferred (churn / low value):** P8-2 (editorial-table builder — no 2nd consumer).
 *(P6-1 remainder was here; fixed in the closeout pass.)*
@@ -511,6 +530,13 @@ User-approved "do all of it" pass over the skip list:
   native `st.navigation`/`st.Page` — real URL per page (`/briefing`, …), browser
   back/forward and refresh are Streamlit-native; the masthead radio mirrors the
   navigation state and issues `st.switch_page`.
+
+### D. P1-2 slices pass (2026-07-02, branch `p12-slices-2026-07-02`)
+Final P1-2 work: `vs_cluster_chg_pct` / `news_sentiment_skew` / `premarket.phrase`
+surfaced in the watchlist drill-down (tests in `test_drilldown.py`); the remaining
+unconsumed fields documented-dropped with reasons (see the P1-2 final update).
+**With this, every finding in this ledger is either fixed, consciously accepted, or
+documented-dropped — nothing is left open.** Suite: 151 passing.
 
 ---
 
