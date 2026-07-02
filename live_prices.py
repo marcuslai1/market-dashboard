@@ -22,8 +22,10 @@ import streamlit as st
 # Overall wall-clock budget for one live-quote batch. Live prices are on by
 # default and fetched on first render, so an unreachable/slow Yahoo must never
 # stall the page longer than this — we return whatever completed and fall back to
-# the frozen snapshot for the rest.
-_FETCH_DEADLINE_S = 8
+# the frozen snapshot for the rest. Kept tight (a healthy batch finishes in
+# ~1-1.5s) so a struggling Yahoo can't hold the briefing hostage; the Briefing
+# also fetches inside a fragment so even this bounded wait is off the main run.
+_FETCH_DEADLINE_S = 4
 
 # ── Yahoo symbol map ───────────────────────────────────────────────────
 # Loaded from assets/catalog.json so dashboard.py and this module stay in sync.
