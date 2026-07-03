@@ -91,7 +91,16 @@ Strong and honest — a probability time-series (a distinct marker per series fo
 - **Nuance (may be deliberate):** the Scenario chart is thoughtfully colour-blind-aware (distinct markers; comment `:215-217`), and blue/green/red/purple are four maximally-distinct hues. If intentional, consider aligning the Briefing wildcard to purple (or documenting the divergence) rather than changing the chart. Your call — hence a proposal, not a fix.
 
 ### Report Comparison
-_(pending)_
+
+The signal-diff table, coloured summary tiles (recent commit — green Upgrades / red Downgrades / sign-coloured Net, neutral at zero), and "volatile signals" list all read well, and the counts tie out (3 up, 6 down, net -3) (`screens/report-comparison-top.png`). Direction arrows are colour-coded (▲ green / ▼ red).
+
+**[RC-1] Foreign tickers render as underscore keys (AIXA_DE) instead of AIXA.DE** — `P2` · S · ✅ auto-fix · Report Comparison
+- **Saw:** the table and the "Volatile signals" line show **AIXA_DE, D05_SI, O39_SI, U11_SI, IFX_DE** — the raw sanitized watchlist keys. Every other page shows AIXA.DE / D05.SI / IFX.DE via `display_ticker()`.
+- **Cause:** `report_comparison.py` is the only page component that never imports or calls `display_ticker`; it renders the raw key (`:206, :288, :382` for the tables; `:199` for the volatile list). `display_ticker(tk)` maps `AIXA_DE → AIXA.DE` (`formatters.py:16-25`).
+- **Why it matters:** the on-screen symbol is wrong (AIXA_DE isn't a real ticker) and inconsistent with the rest of the app. The 5 `.DE`/`.SI`/`.KS`/`.PA` listings are affected.
+- **Fix:** wrap the ticker in `display_ticker()` in the three comparison tables and the volatile-signals line. Purely cosmetic, zero risk.
+
+**Not deeply reviewed:** sections below the signal-diff table (scenario/interconnected diffs) were not opened this pass.
 
 ### Terminology
 _(pending)_
