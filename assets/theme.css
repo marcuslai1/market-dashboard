@@ -705,6 +705,21 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
     left: 0;
     max-width: calc(100vw - 42px);
   }
+  /* Right-edge fade: phones show no scrollbar, so the swipeable ledger reads
+     as page overflow instead of a contained scroller. Overlay a paper-colored
+     fade as the "more this way" affordance. Anchored on the markdown container
+     via :has() (same trick as the top nav) — an absolutely-positioned child of
+     the scroller itself would scroll away with the content. Suppressed while a
+     drill-down is open so the fade never sits over prose. */
+  [data-testid="stMarkdownContainer"]:has(> .tk-scroll) { position: relative; }
+  [data-testid="stMarkdownContainer"]:has(> .tk-scroll):not(:has(details[open]))::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 28px;
+    background: linear-gradient(to left, var(--paper) 10%, rgba(20, 20, 15, 0));
+    pointer-events: none;
+  }
 }
 
 /* Pulse tape reflow — 8 fluid cells shrank below their price width on phones and
