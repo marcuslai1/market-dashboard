@@ -372,6 +372,53 @@ def build_chips(capex: dict, fund_df: pd.DataFrame, today: date) -> list[dict]:
             _fragile_chip(capex)]
 
 
+_VERDICT = {
+    "intact": ("INTACT", "good",
+               "Revenue is keeping pace with the spending it's built on — cycle looks intact."),
+    "digesting": ("DIGESTING", "watch",
+                  "Spending is outrunning the revenue it produces — the cycle is still "
+                  "growing, but the gap bears watching."),
+    "cracking": ("CRACKING", "stress",
+                 "The spend/revenue gap is opening while demand or the fragile name is "
+                 "under stress — treat as an early crack."),
+    "insufficient": ("INSUFFICIENT DATA", "neutral",
+                     "Not enough complete capex quarters yet — showing the signals we have."),
+}
+
+
+def pulse_verdict(gap_available: bool, gap_pp: float,
+                  rev_falling: bool, fragile_red: bool) -> dict:
+    """One headline read for the band, from the digestion axis (gap + revenue +
+    fragile). Valuation is narrated in the band copy but never sets the state.
+
+    A documented presentation rule, NOT a calibrated signal — nothing here feeds
+    the scenario odds.
+    """
+    if not gap_available:
+        state = "insufficient"
+    elif fragile_red or (gap_pp < 0 and rev_falling):
+        state = "cracking"
+    elif gap_pp >= 0 and not rev_falling and not fragile_red:
+        state = "intact"
+    else:
+        state = "digesting"
+    label, tone, gloss = _VERDICT[state]
+    return {"state": state, "label": label, "tone": tone, "gloss": gloss}
+
+
+def compute_verdict(capex: dict, fund_df: pd.DataFrame, chips: list) -> dict:
+    """Wire the band's own chips into ``pulse_verdict`` — the single testable
+    entry point. Reuses the rev/fragile chip tones so the verdict can never
+    disagree with the chips it summarizes.
+    """
+    gaps = coverage_gap_series(capex, fund_df)
+    gap_pp = gaps[-1]["gap_pp"] if gaps else 0.0
+    by_key = {c["key"]: c for c in chips}
+    rev_falling = by_key.get("rev", {}).get("tone") == "watch"
+    fragile_red = by_key.get("fragile", {}).get("tone") == "stress"
+    return pulse_verdict(bool(gaps), gap_pp, rev_falling, fragile_red)
+
+
 def curation_age_days(capex: dict, today: date) -> int | None:
     """Days since the newest *core-spender* ``reported`` date; None if no rows.
 
