@@ -1,6 +1,6 @@
 # PROGRESS — read me first on resume
 
-**Last updated:** 2026-07-04 06:06 · Phase 1 COMPLETE (7/7); starting Phase 2 fixes
+**Last updated:** 2026-07-04 06:20 · ✅ COMPLETE — review + 3 safe fixes + visual Artifact
 **Branch (docs/screens):** `ux-review/overnight-2026-07-04`
 **Server:** `http://localhost:8501` — launched in background.
 
@@ -14,8 +14,8 @@
 ## Phase
 - [x] Phase 0 — scaffolding, branch, server, task list
 - [x] Phase 1 — page-by-page review (7/7 done)
-- [~] Phase 2 — implement objectively-safe fixes on `ux-fix/*` branches
-- [ ] Phase 3 — capstone: rank backlog, write summary, build visual Artifact
+- [x] Phase 2 — 3 safe fixes shipped on `ux-fix/*` branches (RC-1, BR-1, BR-2 drilldown); BR-3 verified as no-clean-fix
+- [x] Phase 3 — capstone: ranked morning summary, before/after screenshots, visual Artifact
 
 ## Pages reviewed
 - [x] briefing — findings BR-1..BR-6 logged (BR-1 truncated risk tag + BR-2 distorted R:R = P1)
@@ -29,11 +29,9 @@
 ## Fix branches created
 _(none yet — fix queue for Phase 2: BR-1 safe · BR-2 logic · BR-3 routing)_
 
-## Next action (Phase 2 — each fix on its own `ux-fix/*` branch off main, with tests)
-Safe-fix queue, easiest first:
-1. RC-1 — `display_ticker()` in report_comparison (cosmetic, zero risk)
-2. BR-1 — robust risk-tag heuristic in macro.py (no mid-word truncation)
-3. BR-2/WL-1/TM-1 — surface `sizing_rr` (corrected R:R) where `rr_distorted`; drilldown wide-stop falls back to sizing_rr
-4. BR-3 — `/briefing` deep-link (default-page url_path)
-Then Phase 3 capstone: rank top findings + build visual Artifact.
-Leave as proposals (do NOT auto-apply): ST-1, SC-1, BR-4, BR-5, BR-6, PS-1, PS-2, CC-2, CC-3.
+## DONE — awaiting your triage
+- **Read first:** `docs/ux-review/BACKLOG.md` (ranked summary at top) or the **Artifact** (visual before/after).
+- **Fixes** (off `main`, 222 tests green, not pushed): `ux-fix/rc1-display-ticker`, `ux-fix/br1-risk-tag`, `ux-fix/br2-drilldown-sizing-rr` — also merged into this branch for one-look review.
+- **Proposals left for your judgment:** BR-2 (headline), ST-1, SC-1, BR-4, PS-2, CC-2, BR-6.
+- **Note:** local Streamlit servers left running on :8501 (pre-fix) and :8502 (fixed) — kill when done.
+- The octopus merge of the 3 fixes landed on THIS review branch (an aborted branch-create); `main` is clean, individual fix branches are intact.
