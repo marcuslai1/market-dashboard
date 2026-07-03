@@ -77,6 +77,41 @@ def parse_capex(raw) -> dict:
     return out
 
 
+_FUND_FIELDS = ["revenue_growth_pct", "fcf_yield_pct", "forward_pe", "peg_ratio"]
+_FUND_COLUMNS = ["date", "ticker", "cluster"] + _FUND_FIELDS + ["earnings_growth_pct"]
+
+
+def _num_or_nan(v) -> float:
+    return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else float("nan")
+
+
+def fundamentals_history(reports: dict) -> pd.DataFrame:
+    """One row per (report date, ticker) of valuation fundamentals.
+
+    The daily reports snapshot ``valuation`` per ticker, so walking the corpus
+    yields the beneficiary time-series for free (the Scenario-Log trick).
+    Entries without a valuation dict (benchmarks-only names, pre-valuation
+    reports) are skipped; missing numerics become NaN so pandas medians just
+    work. Ticker keys stay in raw watchlist form (``000660_KS``).
+    """
+    rows = []
+    for date_str in sorted(reports):
+        wl = (reports[date_str] or {}).get("watchlist") or {}
+        for tk, entry in wl.items():
+            val = (entry or {}).get("valuation") if isinstance(entry, dict) else None
+            if not isinstance(val, dict):
+                continue
+            row = {"date": date_str, "ticker": tk,
+                   "cluster": val.get("cluster_name") or ""}
+            for f in _FUND_FIELDS:
+                row[f] = _num_or_nan(val.get(f))
+            consensus = val.get("analyst_consensus")
+            eg = consensus.get("earnings_growth_pct") if isinstance(consensus, dict) else None
+            row["earnings_growth_pct"] = _num_or_nan(eg)
+            rows.append(row)
+    return pd.DataFrame(rows, columns=_FUND_COLUMNS)
+
+
 def _prior_cq(cq: str) -> str:
     """Same calendar quarter one year earlier: '2026Q1' -> '2025Q1'."""
     return f"{int(cq[:4]) - 1}{cq[4:]}"
