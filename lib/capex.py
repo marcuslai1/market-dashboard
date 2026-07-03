@@ -163,6 +163,73 @@ def pending_quarter(capex: dict) -> dict | None:
             "missing": [tk for tk in core if newest not in by_tk[tk]]}
 
 
+def _median_rev_growth(fund_df: pd.DataFrame, beneficiaries: list,
+                       on_or_after: str | None = None):
+    """(report_date_used, median revenue_growth_pct across *beneficiaries*).
+
+    Per spec: the first report on/after *on_or_after* (ISO date strings compare
+    lexicographically), falling back to the latest available report; None when
+    there is no usable data. Median is per-ticker across the beneficiaries
+    list — deliberately NOT a cluster median.
+    """
+    if fund_df.empty or not beneficiaries:
+        return None
+    df = fund_df[fund_df["ticker"].isin(beneficiaries)].dropna(
+        subset=["revenue_growth_pct"])
+    if df.empty:
+        return None
+    dates = sorted(df["date"].unique())
+    use = None
+    if on_or_after is not None:
+        after = [d for d in dates if d >= on_or_after]
+        use = after[0] if after else None
+    if use is None:
+        use = dates[-1]
+    med = df[df["date"] == use]["revenue_growth_pct"].median()
+    return use, float(med)
+
+
+def coverage_gap_series(capex: dict, fund_df: pd.DataFrame) -> list[dict]:
+    """The digestion signal: beneficiary revenue growth − core capex YoY, per
+    quarter. Positive = revenue outrunning capex = healthy (ideas doc §4).
+
+    Revenue is anchored at the first report on/after the date the quarter's
+    LAST core spender reported (when the aggregate became knowable). Quarters
+    whose anchor predates the report corpus all fall back to the earliest
+    corpus dates — the revenue side is only as old as the corpus; the band's
+    caption says so.
+    """
+    out = []
+    for r in core_capex_yoy(capex):
+        if r["yoy_pct"] is None:
+            continue
+        reported = [row["reported"] for tk in capex["core"]
+                    for row in capex["series"].get(tk, []) if row["cq"] == r["cq"]]
+        anchor = max(reported).isoformat() if reported else None
+        med = _median_rev_growth(fund_df, capex["beneficiaries"], on_or_after=anchor)
+        if med is None:
+            continue
+        rev_asof, rev = med
+        out.append({"cq": r["cq"], "capex_yoy_pct": r["yoy_pct"],
+                    "rev_growth_pct": round(rev, 1),
+                    "gap_pp": round(rev - r["yoy_pct"], 1),
+                    "rev_asof": rev_asof})
+    return out
+
+
+def current_read(capex: dict, fund_df: pd.DataFrame) -> dict | None:
+    """Today's beneficiary median vs the latest complete capex quarter."""
+    yoy_rows = [r for r in core_capex_yoy(capex) if r["yoy_pct"] is not None]
+    med = _median_rev_growth(fund_df, capex["beneficiaries"])
+    if not yoy_rows or med is None:
+        return None
+    latest = yoy_rows[-1]
+    rev_asof, rev = med
+    return {"capex_cq": latest["cq"], "capex_yoy_pct": latest["yoy_pct"],
+            "rev_asof": rev_asof, "rev_growth_pct": round(rev, 1),
+            "gap_pp": round(rev - latest["yoy_pct"], 1)}
+
+
 def curation_age_days(capex: dict, today: date) -> int | None:
     """Days since the newest *core-spender* ``reported`` date; None if no rows.
 
