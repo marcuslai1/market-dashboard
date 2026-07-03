@@ -42,8 +42,28 @@ def _delta_cell(s: str) -> str:
     if not s or s == "—":
         return '<span style="color:var(--ink-3);">—</span>'
     t = s.strip()
-    cls = "down" if t.startswith("-") else "up" if t.startswith("+") else "flat"
+    # A zero magnitude ('+0.0') is no change — keep it neutral, not green.
+    try:
+        is_zero = float(t.lstrip("+-").rstrip("%pP ")) == 0.0
+    except ValueError:
+        is_zero = False
+    cls = "flat" if is_zero else "down" if t.startswith("-") else "up" if t.startswith("+") else "flat"
     return f'<span class="{cls}">{s}</span>'
+
+
+def _stat_tile(label: str, value: str, color: str = "var(--ink)") -> str:
+    """One editorial stat tile mirroring the themed st.metric look, but with a
+    colour-able value. st.metric forces its value to --ink, so the Upgrades /
+    Downgrades / Net counts couldn't carry the green-up · red-down scent the
+    rest of this page (see _DIRECTION_STYLE) already relies on."""
+    return (
+        '<div style="background:var(--paper-2);border:1px solid var(--rule);padding:12px 14px;">'
+        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.12em;'
+        f'text-transform:uppercase;color:var(--ink-3);">{label}</div>'
+        '<div style="font-family:var(--serif);font-size:1.6rem;font-weight:500;'
+        f'color:{color};margin-top:2px;">{value}</div>'
+        '</div>'
+    )
 
 
 def _editorial_table(headers: list[str], rows: list[list[str]],
@@ -157,10 +177,23 @@ def render_report_comparison_page(reports: dict) -> None:
             # Summary stats
             net = upgrades - downgrades
             net_label = f"net {'+' if net >= 0 else ''}{net}"
-            tcols = st.columns(3)
-            tcols[0].metric("Upgrades", upgrades)
-            tcols[1].metric("Downgrades", downgrades)
-            tcols[2].metric("Net", net_label)
+            # Colour the counts like the direction cells below: green upgrades,
+            # red downgrades, net by sign. A zero count stays neutral (0
+            # downgrades is good news, not red; 0 upgrades isn't green).
+            up_color = "var(--buy)" if upgrades > 0 else "var(--ink)"
+            dn_color = "var(--caution)" if downgrades > 0 else "var(--ink)"
+            net_color = ("var(--buy)" if net > 0
+                         else "var(--caution)" if net < 0 else "var(--ink)")
+            st.markdown(
+                '<div style="display:grid;'
+                'grid-template-columns:repeat(auto-fit,minmax(140px,1fr));'
+                'gap:16px;margin-bottom:10px;">'
+                + _stat_tile("Upgrades", str(upgrades), up_color)
+                + _stat_tile("Downgrades", str(downgrades), dn_color)
+                + _stat_tile("Net", net_label, net_color)
+                + '</div>',
+                unsafe_allow_html=True,
+            )
 
             if volatile_tickers:
                 volatile_str = ", ".join(f"**{tk}** ({n}x)" for tk, n in sorted(volatile_tickers, key=lambda x: -x[1]))
