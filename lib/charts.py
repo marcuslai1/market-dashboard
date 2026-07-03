@@ -17,7 +17,9 @@ _RULE_STRONG = "rgba(255, 255, 255, 0.20)"
 _MONO = "JetBrains Mono, ui-monospace, monospace"
 
 # Hide the Plotly modebar — the editorial surface has no use for it.
-PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True}
+# doubleClick off: with dragmode disabled there is no zoom state to reset, and
+# double-tap-to-zoom is the other gesture that hijacks mobile scrolling.
+PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True, "doubleClick": False}
 
 # ── Editorial chart palette ──────────────────────────────────────────────────
 # Deliberately distinct from the signal tokens (--buy #22c55e / --caution
@@ -92,6 +94,11 @@ def style_fig(fig, **layout_overrides):
         hoverlabel=dict(font=dict(family=_MONO, color=_INK), bgcolor="#1B1B16"),
         xaxis=_AXIS,
         yaxis=_AXIS,
+        # No drag-zoom/pan: charts are read-only, and Plotly's default
+        # dragmode="zoom" traps one-finger scrolling on mobile. Tap/hover
+        # tooltips are unaffected; re-enable per-chart via
+        # style_fig(fig, dragmode="zoom") if one ever needs it.
+        dragmode=False,
     )
     if layout_overrides:
         fig.update_layout(**layout_overrides)
