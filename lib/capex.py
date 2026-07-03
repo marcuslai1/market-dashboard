@@ -77,6 +77,57 @@ def parse_capex(raw) -> dict:
     return out
 
 
+def _prior_cq(cq: str) -> str:
+    """Same calendar quarter one year earlier: '2026Q1' -> '2025Q1'."""
+    return f"{int(cq[:4]) - 1}{cq[4:]}"
+
+
+def core_capex_yoy(capex: dict) -> list[dict]:
+    """Aggregate core-spender capex per quarter with YoY growth, ascending.
+
+    A quarter appears only when EVERY core spender has its row — a partial sum
+    would understate the aggregate and fake a deceleration. ``yoy_pct`` is None
+    until the prior-year quarter is also complete.
+    """
+    core = capex["core"]
+    if not core:
+        return []
+    by_tk = {tk: {r["cq"]: r["capex_usd_b"] for r in capex["series"].get(tk, [])}
+             for tk in core}
+    out = []
+    for cq in sorted({cq for m in by_tk.values() for cq in m}):
+        if any(cq not in by_tk[tk] for tk in core):
+            continue
+        total = sum(by_tk[tk][cq] for tk in core)
+        p = _prior_cq(cq)
+        prior = (sum(by_tk[tk][p] for tk in core)
+                 if all(p in by_tk[tk] for tk in core) else None)
+        yoy = (total - prior) / prior * 100.0 if prior else None
+        out.append({"cq": cq, "total_b": round(total, 2),
+                    "prior_b": round(prior, 2) if prior is not None else None,
+                    "yoy_pct": round(yoy, 1) if yoy is not None else None})
+    return out
+
+
+def pending_quarter(capex: dict) -> dict | None:
+    """The newest quarter some-but-not-all core spenders have reported.
+
+    Feeds the 'awaiting N of M spenders' copy so a half-entered earnings season
+    reads as in-progress rather than silently shifting the aggregate.
+    """
+    core = capex["core"]
+    by_tk = {tk: {r["cq"] for r in capex["series"].get(tk, [])} for tk in core}
+    all_cqs = sorted({cq for s in by_tk.values() for cq in s})
+    if not all_cqs:
+        return None
+    newest = all_cqs[-1]
+    have = [tk for tk in core if newest in by_tk[tk]]
+    if len(have) == len(core):
+        return None
+    return {"cq": newest, "have": have,
+            "missing": [tk for tk in core if newest not in by_tk[tk]]}
+
+
 def curation_age_days(capex: dict, today: date) -> int | None:
     """Days since the newest *core-spender* ``reported`` date; None if no rows.
 
