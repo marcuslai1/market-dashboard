@@ -318,6 +318,12 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   top: 0;
   z-index: 50;
   background: var(--paper);
+  /* Span the full content width so the sticky background + baseline rule cover
+     the whole strip. Without this the stElementContainer shrinks to the tab
+     row's own width (~924px vs ~1130px of content), leaving the rightmost
+     table columns to scroll visibly past the nav's right edge. */
+  width: 100% !important;
+  align-self: stretch !important;
   margin-bottom: 22px;
   padding-top: 6px;
 }
@@ -337,6 +343,11 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border: none !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;  /* quiet hairline — let the amber active marker carry the strip */
   overflow-x: auto;
+  /* Horizontal scroll only. Leaving overflow-y at its default lets CSS compute
+     it to `auto` (when one axis is clipped the other's `visible` becomes
+     `auto`), so the ~2px of extra height from the raised folio numerals spawns
+     a phantom vertical scrollbar with up/down arrows at the strip's right edge. */
+  overflow-y: hidden;
   /* Keep the active tab off the flush edge when it scrolls into view, so the
      :focus/checked underline never clips a neighbour to nothing. */
   scroll-padding-inline: 22px;
