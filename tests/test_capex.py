@@ -340,3 +340,47 @@ def test_fragile_red_is_stress_tone():
         {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 9.9, "flag": "red"}]}))
     c = _chip(build_chips(capex, fundamentals_history({}), _date(2026, 7, 3)), "fragile")
     assert c["tone"] == "stress"
+
+
+from lib.capex import pulse_verdict, compute_verdict
+
+
+def test_verdict_insufficient_when_no_gap():
+    v = pulse_verdict(False, 0.0, False, False)
+    assert v["state"] == "insufficient" and v["label"] == "INSUFFICIENT DATA"
+
+
+def test_verdict_intact_when_gap_nonneg_and_calm():
+    assert pulse_verdict(True, 0.0, False, False)["state"] == "intact"   # boundary gap == 0
+    assert pulse_verdict(True, 5.0, False, False)["state"] == "intact"
+
+
+def test_verdict_digesting_when_gap_negative_but_revenue_holds():
+    v = pulse_verdict(True, -18.6, False, False)
+    assert v["state"] == "digesting" and v["tone"] == "watch"
+
+
+def test_verdict_cracking_via_fragile_red():
+    assert pulse_verdict(True, 5.0, False, True)["state"] == "cracking"
+
+
+def test_verdict_cracking_via_negative_gap_and_falling_revenue():
+    assert pulse_verdict(True, -3.0, True, False)["state"] == "cracking"
+
+
+def test_compute_verdict_fragile_red_forces_cracking():
+    fund = fundamentals_history(GAP_REPORTS)
+    capex = parse_capex({
+        "core_spenders": ["MSFT", "GOOG"], "fragile_tier": ["CRWV"],
+        "beneficiaries": ["NVDA", "MU"],
+        "series": {
+            "MSFT": [{"cq": "2025Q1", "reported": "2025-04-30", "capex_usd_b": 10.0},
+                     {"cq": "2026Q1", "reported": "2026-05-01", "capex_usd_b": 15.0}],
+            "GOOG": [{"cq": "2025Q1", "reported": "2025-04-24", "capex_usd_b": 10.0},
+                     {"cq": "2026Q1", "reported": "2026-04-28", "capex_usd_b": 19.0}],
+            "CRWV": [{"cq": "2026Q1", "reported": "2026-05-14", "capex_usd_b": 9.9,
+                      "flag": "red"}],
+        },
+    })
+    chips = build_chips(capex, fund, _date(2026, 7, 3))
+    assert compute_verdict(capex, fund, chips)["state"] == "cracking"
