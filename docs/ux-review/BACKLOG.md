@@ -103,7 +103,26 @@ The signal-diff table, coloured summary tiles (recent commit — green Upgrades 
 **Not deeply reviewed:** sections below the signal-diff table (scenario/interconnected diffs) were not opened this pass.
 
 ### Terminology
-_(pending)_
+
+Excellent, thorough methodology reference — the six signals (meaning + trigger), the three-tier wait gradient, R:R formulas with a quality-band table, and technical-indicator cutoffs, all plain-language-first (`screens/terminology-top.png`). Notable for *documenting* the exact R:R pitfalls behind BR-2.
+
+**[TM-1] Docs promise "both R:R numbers in the drill-down," but the wide-stop R:R is blank for `sizing_rr` names — and `sizing_rr` is undocumented** — `P2` · S · ✅ folds into BR-2/WL-1 · Terminology ↔ Drilldown
+- **Saw:** Terminology (`:188`) states *"Headline is the default cited on the Briefing; both are shown in the Watchlist drill-down."* But the drilldown's "Wide-stop R:R" reads only `wide_stop_rr` (`drilldown.py:297,320`), so names carrying the equivalent `sizing_rr` (NVDA + the other tight-stop names) show **"—"** — the promised second number is missing exactly where it matters most.
+- **Also:** Terminology documents `headline_rr` / `wide_stop_rr` / `structural_support` but never mentions `sizing_rr`, though the data and the writeups use it ("the sizing R:R … is 4.4:1"). NVDA's `sizing_rr.invalidation` (190.82) *is* its `structural_support` — so `sizing_rr` and `wide_stop_rr` look like the same deep-stop concept under two field names. Docs + drilldown should unify them.
+- **Ties to:** BR-2 / WL-1 — fixing the drilldown to fall back to `sizing_rr` makes the docs true again.
+
+### Cross-cutting (nav, theme, responsive, a11y)
+
+**Strong overall:** masthead, folio nav (01–07), sidebar controls, and the dark editorial theme are consistent across all seven pages; type system and spacing hold up page to page.
+
+**[CC-1] Every deep-loaded page logs `_stcore/health` + `_stcore/host-config` 404s** — `P3` · console noise · benign
+- Each sub-page hard-load logs 2 console errors (`GET /<page>/_stcore/health` → 404, `…/_stcore/host-config` → 404): the browser requesting Streamlit's core endpoints relative to the sub-path before falling back. Harmless (pages render), but it's noise on every load and shares a root with BR-3. Worth a look if you ever front the app with a reverse proxy / base-path.
+
+**[CC-2] Heading hierarchy is slightly uneven across pages** — `P3` · S · 🧑‍⚖️ proposal
+- Pipeline / Scenario / Report-Comparison open with an `<h1>` page title, but Terminology starts at `<h2>` (no page-level h1) and the Briefing's only h1 is the masthead "The Market Report" (its bands are h2s, incl. the 60-word verdict h2 — BR-4). Minor screen-reader-outline inconsistency; consider exactly one h1 per page.
+
+**[CC-3] Desktop-first; narrow viewport is not a target** — observation
+- At ~390px the sidebar overlays the content (likely Streamlit's UA-gated mobile collapse not firing under the headless desktop UA). The app is clearly built for desktop — dense tables, wide editorial columns — so this is noted, not filed as a bug.
 
 ### Cross-cutting (nav, theme, responsive, a11y)
 _(pending)_
