@@ -18,7 +18,7 @@ from lib.capex import (CURATION_OVERDUE_DAYS, build_chips, coverage_gap_series,
                        curation_age_days, current_read, fundamentals_history,
                        parse_capex)
 from lib.cards import render_section_head
-from lib.charts import (CHART_ACCENT, CHART_MUTED, CHART_PALETTE, INK_FALLBACK,
+from lib.charts import (CHART_ACCENT, CHART_LINE, CHART_PALETTE, INK_FALLBACK,
                         PLOTLY_CONFIG, STATUS_NEG, STATUS_POS, STATUS_WARN,
                         chart_data_table, style_fig)
 from lib.data_loader import data_fingerprint, load_all_reports, load_capex_quarterly
@@ -89,7 +89,10 @@ def _gap_fig(df: pd.DataFrame):
                               for v in df["gap_pp"]])
     fig.add_scatter(x=df["quarter"], y=df["capex_yoy_pct"],
                     name="Core capex YoY %", mode="lines+markers",
-                    line=dict(color=CHART_MUTED))
+                    # CHART_LINE (ink-3, ~5.4:1) not CHART_MUTED (ink-4, ~2.68:1):
+                    # the muted tone fell below the 3:1 floor for graphical objects
+                    # and the reference line was near-invisible on --paper.
+                    line=dict(color=CHART_LINE))
     fig.add_scatter(x=df["quarter"], y=df["rev_growth_pct"],
                     name="Beneficiary revenue growth %", mode="lines+markers",
                     line=dict(color=CHART_ACCENT))

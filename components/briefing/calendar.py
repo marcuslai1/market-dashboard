@@ -15,7 +15,35 @@ from datetime import datetime as _dt
 
 from lib.cards import card_container
 from lib.charts import STATUS_NEG, STATUS_POS, SURFACE_2_FALLBACK
-from lib.formatters import _escape_dollars, display_ticker
+from lib.formatters import _escape_attr, _escape_dollars, display_ticker
+
+
+def _ticker_chips_html(tickers: list, *, limit: int = 3, size: str = "10px",
+                       pad: str = "1px 5px", gap: str = "margin-right:3px") -> str:
+    """Up to ``limit`` ticker chips, then a single ``+N`` overflow chip.
+
+    Dense catalyst rows used to fan out into a wall of 5–6 tickers. Capping the
+    visible chips keeps the row scannable; the overflow chip carries a native
+    ``title`` tooltip listing the hidden tickers, so the full set stays
+    reachable on hover without any JS. Returns "" for an empty list.
+    """
+    disp = [display_ticker(t) for t in tickers]
+    if not disp:
+        return ""
+    base = (f'font-family:var(--mono);font-size:{size};'
+            f'background:var(--surface-2,{SURFACE_2_FALLBACK});border-radius:3px;'
+            f'padding:{pad};{gap}')
+    chips = "".join(
+        f'<span style="{base};color:var(--ink-2);">{_escape_dollars(t)}</span>'
+        for t in disp[:limit]
+    )
+    extra = disp[limit:]
+    if extra:
+        chips += (
+            f'<span title="{_escape_attr(", ".join(extra))}" '
+            f'style="{base};color:var(--ink-3);cursor:default;">+{len(extra)}</span>'
+        )
+    return chips
 
 
 def _bucket_pill_html(e: dict) -> str:
@@ -91,13 +119,9 @@ def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
             d = cfg.get(side) or {}
             if not d.get("read"):
                 continue
-            chips = "".join(
-                f'<span style="font-family:var(--mono);font-size:9px;'
-                f'background:var(--surface-2,{SURFACE_2_FALLBACK});'
-                f'border-radius:3px;padding:1px 4px;margin-left:3px;'
-                f'color:var(--ink-2);">{_escape_dollars(display_ticker(t))}</span>'
-                for t in (d.get("tickers") or [])[:6]
-            )
+            chips = _ticker_chips_html(
+                d.get("tickers") or [], limit=3, size="9px",
+                pad="1px 4px", gap="margin-left:3px")
             hint = f' · {d["scenario_hint"]}' if d.get("scenario_hint") else ""
             rows += (
                 f'<div style="margin-top:3px;padding-left:8px;'
@@ -136,13 +160,8 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
             tickers = e.get("tickers_affected") or []
             ticker_html = ""
             if tickers:
-                tags = "".join(
-                    f'<span style="font-family:var(--mono);font-size:10px;'
-                    f'background:var(--surface-2,{SURFACE_2_FALLBACK});border-radius:3px;'
-                    f'padding:1px 5px;margin-right:3px;color:var(--ink-2);">'
-                    f'{_escape_dollars(t)}</span>'
-                    for t in tickers[:5]
-                )
+                tags = _ticker_chips_html(tickers, limit=3, size="10px",
+                                          pad="1px 5px", gap="margin-right:3px")
                 ticker_html = f'<div style="margin-top:3px;{style}">{tags}</div>'
             # Bucket pill + timing line live INSIDE the .cal-text (1fr) column so
             # they stay aligned under the title — the .cal-event grid has a fixed
