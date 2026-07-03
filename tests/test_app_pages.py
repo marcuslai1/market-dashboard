@@ -70,3 +70,11 @@ def test_briefing_renders_capex_pulse_band():
     at = _boot()
     assert not at.exception
     assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)
+
+
+def test_briefing_capex_pulse_shows_a_verdict():
+    at = _boot()
+    assert not at.exception
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert any(v in page for v in
+               ("INTACT", "DIGESTING", "CRACKING", "INSUFFICIENT DATA"))
