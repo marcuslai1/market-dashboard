@@ -246,6 +246,26 @@ def load_signal_log() -> pd.DataFrame:
     return _load_signal_log_cached(str(path), _mtime(path))
 
 
+def load_capex_quarterly() -> dict:
+    """Hand-maintained quarterly capex file for the AI Capex Pulse band.
+
+    ``{}`` when missing/malformed (band degrades, never crashes); validation
+    and row-dropping live in ``lib.capex.parse_capex``, not here.
+    """
+    path = DATA_DIR / "capex_quarterly.json"
+    if not path.exists():
+        return {}
+    return _load_json_cached(str(path), _mtime(path))
+
+
+def load_earnings_cascades() -> dict:
+    """Hand-maintained earnings-cascade config (pre-wired bull/bear reads)."""
+    path = DATA_DIR / "earnings_cascades.json"
+    if not path.exists():
+        return {}
+    return _load_json_cached(str(path), _mtime(path))
+
+
 def load_report_memory() -> dict:
     """Load report_memory.json for narrative tracking."""
     mem_path = DATA_DIR / "report_memory.json"

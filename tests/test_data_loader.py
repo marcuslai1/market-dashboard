@@ -135,3 +135,22 @@ def test_data_fingerprint_stable_when_nothing_changes(tmp_path, monkeypatch):
     monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
     (tmp_path / "morning_report_2026-01-01.json").write_text("{}", encoding="utf-8")
     assert dl.data_fingerprint() == dl.data_fingerprint()
+
+# ── Capex Pulse loaders (hand-maintained data files) ──
+def test_load_capex_quarterly_returns_seeded_dict():
+    d = dl.load_capex_quarterly()
+    assert d.get("core_spenders") == ["MSFT", "GOOG", "AMZN", "META"]
+    assert "MSFT" in d.get("series", {})
+
+
+def test_load_earnings_cascades_returns_seeded_dict():
+    d = dl.load_earnings_cascades()
+    assert "MU" in d
+    assert d["MU"]["bull"]["read"]
+    assert isinstance(d["MU"]["aliases"], list)
+
+
+def test_capex_loaders_missing_file_returns_empty(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    assert dl.load_capex_quarterly() == {}
+    assert dl.load_earnings_cascades() == {}
