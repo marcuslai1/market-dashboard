@@ -1,0 +1,56 @@
+{
+  "core_spenders": ["MSFT", "GOOG", "AMZN", "META"],
+  "fragile_tier": ["CRWV"],
+  "beneficiaries": ["NVDA", "AMD", "AVGO", "TSM", "MU", "000660_KS", "LITE"],
+  "methodology": "Capex = purchases of PP&E as reported; MSFT rows include finance leases (their reported total capex framing). What counts as AI capex is a curation judgment — record it in note when it matters. cq is the CALENDAR quarter; fiscal_label is display-only.",
+  "series": {
+    "MSFT": [
+      {"cq": "2024Q1", "fiscal_label": "FY24Q3", "reported": "2024-04-25", "capex_usd_b": 14.0, "source": "FY24Q3 earnings", "note": ""},
+      {"cq": "2024Q2", "fiscal_label": "FY24Q4", "reported": "2024-07-30", "capex_usd_b": 19.0, "source": "FY24Q4 earnings", "note": ""},
+      {"cq": "2024Q3", "fiscal_label": "FY25Q1", "reported": "2024-10-30", "capex_usd_b": 20.0, "source": "FY25Q1 earnings", "note": ""},
+      {"cq": "2024Q4", "fiscal_label": "FY25Q2", "reported": "2025-01-29", "capex_usd_b": 22.6, "source": "FY25Q2 earnings", "note": ""},
+      {"cq": "2025Q1", "fiscal_label": "FY25Q3", "reported": "2025-04-30", "capex_usd_b": 21.4, "source": "FY25Q3 earnings", "note": ""},
+      {"cq": "2025Q2", "fiscal_label": "FY25Q4", "reported": "2025-07-30", "capex_usd_b": 24.2, "source": "FY25Q4 earnings", "note": ""},
+      {"cq": "2025Q3", "fiscal_label": "FY26Q1", "reported": "2025-10-29", "capex_usd_b": 34.9, "source": "FY26Q1 earnings", "note": ""},
+      {"cq": "2025Q4", "fiscal_label": "FY26Q2", "reported": "2026-01-28", "capex_usd_b": 37.5, "source": "FY26Q2 earnings (web-verified 2026-07-03)", "note": ""},
+      {"cq": "2026Q1", "fiscal_label": "FY26Q3", "reported": "2026-04-29", "capex_usd_b": 30.88, "guide": "CY2026 tracking ~$190B", "source": "FY26Q3 earnings (web-verified 2026-07-03)", "note": ""}
+    ],
+    "GOOG": [
+      {"cq": "2024Q1", "reported": "2024-04-25", "capex_usd_b": 12.0, "source": "Q1'24 earnings", "note": ""},
+      {"cq": "2024Q2", "reported": "2024-07-23", "capex_usd_b": 13.2, "source": "Q2'24 earnings", "note": ""},
+      {"cq": "2024Q3", "reported": "2024-10-29", "capex_usd_b": 13.1, "source": "Q3'24 earnings", "note": ""},
+      {"cq": "2024Q4", "reported": "2025-02-04", "capex_usd_b": 14.3, "source": "Q4'24 earnings", "note": ""},
+      {"cq": "2025Q1", "reported": "2025-04-24", "capex_usd_b": 17.2, "source": "Q1'25 earnings", "note": ""},
+      {"cq": "2025Q2", "reported": "2025-07-23", "capex_usd_b": 22.4, "source": "Q2'25 earnings", "note": ""},
+      {"cq": "2025Q3", "reported": "2025-10-28", "capex_usd_b": 24.0, "source": "Q3'25 earnings", "note": ""},
+      {"cq": "2025Q4", "reported": "2026-02-04", "capex_usd_b": 27.9, "source": "Q4'25 earnings, FY25 total $91.4B (web-verified 2026-07-03)", "note": ""},
+      {"cq": "2026Q1", "reported": "2026-04-28", "capex_usd_b": 35.67, "guide": "FY26 $180-190B (raised at Q1)", "source": "Q1'26 earnings (web-verified 2026-07-03)", "note": ""}
+    ],
+    "AMZN": [
+      {"cq": "2024Q1", "reported": "2024-04-30", "capex_usd_b": 15.0, "source": "Q1'24 earnings", "note": ""},
+      {"cq": "2024Q2", "reported": "2024-08-01", "capex_usd_b": 17.6, "source": "Q2'24 earnings", "note": ""},
+      {"cq": "2024Q3", "reported": "2024-10-31", "capex_usd_b": 22.6, "source": "Q3'24 earnings", "note": ""},
+      {"cq": "2024Q4", "reported": "2025-02-06", "capex_usd_b": 27.8, "source": "Q4'24 earnings", "note": ""},
+      {"cq": "2025Q1", "reported": "2025-05-01", "capex_usd_b": 25.0, "source": "Q1'25 earnings", "note": ""},
+      {"cq": "2025Q2", "reported": "2025-07-31", "capex_usd_b": 31.4, "source": "Q2'25 earnings", "note": ""},
+      {"cq": "2025Q3", "reported": "2025-10-30", "capex_usd_b": 34.2, "source": "Q3'25 earnings", "note": ""},
+      {"cq": "2025Q4", "reported": "2026-02-05", "capex_usd_b": 41.2, "source": "derived: verified FY25 capex $131.8B (earnings call, web-verified 2026-07-03) minus Q1-Q3 rows", "note": ""},
+      {"cq": "2026Q1", "reported": "2026-04-30", "capex_usd_b": 44.20, "guide": "FY26 ~$200B", "source": "Q1'26 earnings (web-verified 2026-07-03)", "note": ""}
+    ],
+    "META": [
+      {"cq": "2024Q1", "reported": "2024-04-24", "capex_usd_b": 6.7, "source": "Q1'24 earnings", "note": ""},
+      {"cq": "2024Q2", "reported": "2024-07-31", "capex_usd_b": 8.5, "source": "Q2'24 earnings", "note": ""},
+      {"cq": "2024Q3", "reported": "2024-10-30", "capex_usd_b": 9.2, "source": "Q3'24 earnings", "note": ""},
+      {"cq": "2024Q4", "reported": "2025-01-29", "capex_usd_b": 14.8, "source": "Q4'24 earnings", "note": ""},
+      {"cq": "2025Q1", "reported": "2025-04-30", "capex_usd_b": 13.7, "source": "Q1'25 earnings", "note": ""},
+      {"cq": "2025Q2", "reported": "2025-07-30", "capex_usd_b": 17.0, "source": "Q2'25 earnings", "note": ""},
+      {"cq": "2025Q3", "reported": "2025-10-29", "capex_usd_b": 19.4, "source": "Q3'25 earnings", "note": ""},
+      {"cq": "2025Q4", "reported": "2026-01-28", "capex_usd_b": 22.1, "source": "derived: verified FY25 $72.2B minus Q1-Q3", "note": ""},
+      {"cq": "2026Q1", "reported": "2026-04-29", "capex_usd_b": 19.8, "guide": "FY26 $125-145B (raised from 115-135)", "source": "Q1'26 earnings (web-verified 2026-07-03)", "note": ""}
+    ],
+    "CRWV": [
+      {"cq": "2025Q4", "reported": "2026-02-10", "capex_usd_b": 8.2, "flag": "amber", "source": "Q4'25 earnings (web-verified 2026-07-03)", "note": "FY25 capex $14.9B total; debt-funded ramp"},
+      {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 6.8, "flag": "amber", "source": "Q1'26 earnings (web-verified 2026-07-03)", "note": "FY26 capex guide $31-35B, debt-funded; Q2 guide $7-9B — circularity node (NVDA investee & customer)"}
+    ]
+  }
+}
