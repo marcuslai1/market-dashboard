@@ -384,3 +384,42 @@ def test_compute_verdict_fragile_red_forces_cracking():
     })
     chips = build_chips(capex, fund, _date(2026, 7, 3))
     assert compute_verdict(capex, fund, chips)["state"] == "cracking"
+
+
+from lib.capex import forward_revenue_note
+
+
+def test_forward_note_risen_since_quarter_says_narrow():
+    reports = {
+        "2026-05-02": _report({"NVDA": {"valuation": {"revenue_growth_pct": 55.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 45.0}}}),
+        "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 95.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 75.0}}}),
+    }
+    note = forward_revenue_note(_capex_with_yoy(), fundamentals_history(reports))
+    assert note["direction"] == "risen" and note["hint"] == "narrow"
+    assert note["now_asof"] == "2026-07-01" and note["now_pct"] == 85.0  # median(95,75)
+
+
+def test_forward_note_fallen_since_quarter_says_widen():
+    # GAP_REPORTS: anchored median at 05-02 is 60; latest 07-01 median is 50 → fell
+    note = forward_revenue_note(_capex_with_yoy(), fundamentals_history(GAP_REPORTS))
+    assert note["direction"] == "fallen" and note["hint"] == "widen"
+
+
+def test_forward_note_none_when_no_fresher_report():
+    reports = {
+        "2026-05-02": _report({"NVDA": {"valuation": {"revenue_growth_pct": 80.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 40.0}}}),
+    }
+    assert forward_revenue_note(_capex_with_yoy(), fundamentals_history(reports)) is None
+
+
+def test_forward_note_none_when_move_is_flat():
+    reports = {
+        "2026-05-02": _report({"NVDA": {"valuation": {"revenue_growth_pct": 80.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 40.0}}}),
+        "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 80.2}},
+                               "MU": {"valuation": {"revenue_growth_pct": 40.1}}}),
+    }
+    assert forward_revenue_note(_capex_with_yoy(), fundamentals_history(reports)) is None

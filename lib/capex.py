@@ -230,6 +230,40 @@ def current_read(capex: dict, fund_df: pd.DataFrame) -> dict | None:
             "gap_pp": round(rev - latest["yoy_pct"], 1)}
 
 
+def forward_revenue_note(capex: dict, fund_df: pd.DataFrame) -> dict | None:
+    """Where beneficiary revenue has moved SINCE the quarter's anchored figure —
+    a forward hint, not a gap.
+
+    The coverage gap anchors revenue to the date the quarter's capex was reported.
+    This reports the latest beneficiary median relative to that anchor, so the
+    band can say "revenue has since risen/fallen — next gap may narrow/widen"
+    without subtracting today's revenue from a quarter-old capex number (which is
+    what produced the old, contradictory second gap). ``None`` when there is no
+    fresher report or the move is within ``±REV_FLAT_PP``.
+    """
+    gaps = coverage_gap_series(capex, fund_df)
+    if not gaps:
+        return None
+    anchor_pct = gaps[-1]["rev_growth_pct"]
+    anchor_date = gaps[-1]["rev_asof"]
+    live = _median_rev_growth(fund_df, capex["beneficiaries"])
+    if live is None:
+        return None
+    now_date, now_med = live
+    if now_date <= anchor_date:
+        return None
+    now_med = round(now_med, 1)
+    delta = now_med - anchor_pct
+    if delta >= REV_FLAT_PP:
+        direction, hint = "risen", "narrow"
+    elif delta <= -REV_FLAT_PP:
+        direction, hint = "fallen", "widen"
+    else:
+        return None
+    return {"now_pct": now_med, "now_asof": now_date,
+            "direction": direction, "hint": hint}
+
+
 def _capex_chip(capex: dict) -> dict:
     names = "/".join(capex["core"]) or "core-spender"
     sub = f"combined {names} capex, year-over-year"
