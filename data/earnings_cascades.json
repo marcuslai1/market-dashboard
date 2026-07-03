@@ -1,0 +1,92 @@
+{
+  "MU": {
+    "aliases": ["Micron", "MU"],
+    "why": "MU + SK Hynix are the memory cycle; HBM ASPs proxy AI demand intensity.",
+    "bull": {"read": "Beat + HBM guide raise confirms Layer-2 demand; reinforces the NVDA/AVGO datacenter thesis.",
+             "tickers": ["000660_KS", "NVDA", "AVGO", "TSM"],
+             "scenario_hint": "base/optimistic firm"},
+    "bear": {"read": "Guide miss or softening HBM ASPs — earliest crack in the coverage gap; pressures the whole semis cluster.",
+             "tickers": ["000660_KS", "NVDA", "AVGO", "TSM"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "NVDA": {
+    "aliases": ["Nvidia", "NVDA"],
+    "why": "The center of the capex loop: hyperscaler capex is NVDA revenue; its gross margin is the cycle's canary.",
+    "bull": {"read": "Datacenter beat with gross margin held — spend is landing as sales; cycle intact.",
+             "tickers": ["AMD", "AVGO", "TSM", "MU", "LITE"],
+             "scenario_hint": "base holds"},
+    "bear": {"read": "Datacenter deceleration or margin compression — demand air-pocket forming; hits the entire supply chain.",
+             "tickers": ["AMD", "AVGO", "TSM", "MU", "000660_KS", "LITE", "CRWV"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "TSM": {
+    "aliases": ["TSMC", "Taiwan Semiconductor", "TSM"],
+    "why": "The physical bottleneck: CoWoS/advanced packaging capacity gates every accelerator roadmap.",
+    "bull": {"read": "AI revenue guide up and capex raised — foundry sees sustained orders; confirms chip demand.",
+             "tickers": ["NVDA", "AMD", "ASML", "AVGO"],
+             "scenario_hint": "base/optimistic firm"},
+    "bear": {"read": "Capex trimmed or AI order digestion flagged — the most credible early-cycle-top signal there is.",
+             "tickers": ["NVDA", "AMD", "ASML", "AVGO"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "ASML": {
+    "aliases": ["ASML"],
+    "why": "Book-to-bill is the equipment-layer leading indicator for the whole foundry chain.",
+    "bull": {"read": "Bookings beat — foundry expansion demand intact one layer upstream.",
+             "tickers": ["TSM", "AIXA_DE"],
+             "scenario_hint": "base holds"},
+    "bear": {"read": "Bookings miss / push-outs — foundries hesitating on expansion; leads TSM capex cuts.",
+             "tickers": ["TSM", "NVDA", "AIXA_DE"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "AVGO": {
+    "aliases": ["Broadcom", "AVGO"],
+    "why": "Custom-ASIC + networking read: the non-NVDA share of AI silicon spend.",
+    "bull": {"read": "AI revenue guide raised — hyperscaler custom-silicon programs expanding; capex breadth confirmed.",
+             "tickers": ["NVDA", "TSM", "LITE"],
+             "scenario_hint": "base/optimistic firm"},
+    "bear": {"read": "AI order push-outs — a hyperscaler trimming a program; first budget-cut evidence.",
+             "tickers": ["NVDA", "TSM", "LITE"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "MSFT": {
+    "aliases": ["Microsoft", "MSFT"],
+    "why": "Largest self-funded spender; Azure growth is the demand its capex is spent against.",
+    "bull": {"read": "Azure accelerates + capex guide held/raised — Layer-1 demand real, spend durable.",
+             "tickers": ["NVDA", "AMD", "AVGO", "CRWV"],
+             "scenario_hint": "base/optimistic firm"},
+    "bear": {"read": "Azure decelerates while capex still climbs — the coverage gap widening at the source; watch depreciation commentary.",
+             "tickers": ["NVDA", "AMD", "AVGO", "CRWV"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "GOOG": {
+    "aliases": ["Google", "Alphabet", "GOOG"],
+    "why": "Self-funded spender; GCP growth + capex guide are the demand-vs-spend read.",
+    "bull": {"read": "GCP growth holds with capex guide intact — cloud demand supporting the spend.",
+             "tickers": ["NVDA", "AVGO", "TSM"],
+             "scenario_hint": "base holds"},
+    "bear": {"read": "Capex guide raised again while cloud growth slows — spend outrunning demand.",
+             "tickers": ["NVDA", "AVGO"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "AMZN": {
+    "aliases": ["Amazon", "AMZN"],
+    "why": "Largest 2026 spender ($200B guide); its thesis-break condition is capex-shaped (delay/cancel).",
+    "bull": {"read": "AWS reaccelerates + capex on track — the biggest budget confirmed.",
+             "tickers": ["NVDA", "AVGO", "MU"],
+             "scenario_hint": "base/optimistic firm"},
+    "bear": {"read": "AI capex plan delayed or trimmed — AMZN's own thesis-break condition; systemic demand signal.",
+             "tickers": ["NVDA", "AVGO", "MU", "CRWV"],
+             "scenario_hint": "pessimistic up"}
+  },
+  "CRWV": {
+    "aliases": ["CoreWeave", "CRWV"],
+    "why": "The fragile debt-funded tier and circular-financing node (NVDA investee & customer) — first place stress shows.",
+    "bull": {"read": "Backlog grows with financing costs contained — fragile tier still funding the ramp.",
+             "tickers": ["NVDA"],
+             "scenario_hint": "base holds"},
+    "bear": {"read": "Guide cut, financing strain, or covenant noise — the late-cycle tell firing; de-risk the fragile tier first.",
+             "tickers": ["NVDA", "MU"],
+             "scenario_hint": "pessimistic up, wildcard watch"}
+  }
+}
