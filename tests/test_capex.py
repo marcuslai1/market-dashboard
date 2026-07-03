@@ -219,6 +219,86 @@ def test_current_read_none_without_yoy():
     assert current_read(capex, fundamentals_history(GAP_REPORTS)) is None
 
 
+from datetime import date as _date
+
+from lib.capex import build_chips
+
+
+def _chip(chips, key):
+    return next(c for c in chips if c["key"] == key)
+
+
+def _capex_three_yoy(y1, y2):
+    """core=[MSFT,GOOG]; two YoY points: 2025Q4 (y1%) and 2026Q1 (y2%)."""
+    def q(cq, rep, v):
+        return {"cq": cq, "reported": rep, "capex_usd_b": v}
+    base = 10.0
+    return parse_capex(_raw({
+        "MSFT": [q("2024Q4", "2025-01-29", base), q("2025Q1", "2025-04-30", base),
+                 q("2025Q4", "2026-01-29", base * (1 + y1 / 100)),
+                 q("2026Q1", "2026-04-29", base * (1 + y2 / 100))],
+        "GOOG": [q("2024Q4", "2025-02-04", base), q("2025Q1", "2025-04-24", base),
+                 q("2025Q4", "2026-02-03", base * (1 + y1 / 100)),
+                 q("2026Q1", "2026-04-28", base * (1 + y2 / 100))],
+    }))
+
+
+def test_chips_always_five_in_order_even_on_empty_inputs():
+    chips = build_chips(parse_capex({}), fundamentals_history({}), _date(2026, 7, 3))
+    assert [c["key"] for c in chips] == ["capex", "gap", "rev", "val", "fragile"]
+    assert all(c["state"] == "na" for c in chips)
+    assert _chip(chips, "gap")["detail"] == "needs capex data"
+
+
+def test_capex_chip_accelerating_at_threshold():
+    chips = build_chips(_capex_three_yoy(50.0, 52.0), fundamentals_history({}),
+                        _date(2026, 7, 3))
+    assert _chip(chips, "capex")["state"] == "accel"       # +2.0pp = ACCEL_PP
+
+
+def test_capex_chip_decelerating_warns():
+    chips = build_chips(_capex_three_yoy(60.0, 40.0), fundamentals_history({}),
+                        _date(2026, 7, 3))
+    c = _chip(chips, "capex")
+    assert c["state"] == "warn" and "decelerating" in c["detail"]
+
+
+def test_gap_chip_warns_when_negative():
+    fund = fundamentals_history(GAP_REPORTS)          # medians 60/50 range
+    chips = build_chips(_capex_three_yoy(60.0, 70.0), fund, _date(2026, 7, 3))
+    assert _chip(chips, "gap")["state"] == "warn"     # rev ~60 < capex 70
+
+
+def test_rev_chip_falling_warns():
+    reports = {
+        "2026-04-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 90.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 60.0}}}),
+        "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 70.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 30.0}}}),
+    }
+    chips = build_chips(parse_capex(_raw()), fundamentals_history(reports),
+                        _date(2026, 7, 3))
+    c = _chip(chips, "rev")
+    assert c["state"] == "warn" and "falling" in c["detail"]
+
+
+def test_valuation_chip_needs_five_reports():
+    chips = build_chips(parse_capex(_raw()), fundamentals_history(SYNTH_REPORTS),
+                        _date(2026, 7, 3))
+    assert _chip(chips, "val")["state"] == "na"
+
+
+def test_fragile_chip_surfaces_flag_and_note():
+    capex = parse_capex(_raw({"CRWV": [
+        {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 6.8,
+         "flag": "amber", "note": "debt-funded ramp"},
+    ]}))
+    c = _chip(build_chips(capex, fundamentals_history({}), _date(2026, 7, 3)),
+              "fragile")
+    assert c["state"] == "warn"
+    assert "CRWV" in c["detail"] and "amber" in c["detail"] and "debt-funded ramp" in c["detail"]
+
+
 def test_seed_file_parses_clean():
     raw = json.loads(Path("data/capex_quarterly.json").read_text(encoding="utf-8"))
     out = parse_capex(raw)
