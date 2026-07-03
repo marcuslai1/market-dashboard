@@ -80,8 +80,11 @@ Two new hand-maintained files + one corpus derivation. All loading goes through
 
 - Hand-maintained: the ex-ante judgment **is** the content. Initial coverage: the
   key reporters (MU, NVDA, TSM, ASML, AVGO, the four hyperscalers, CRWV).
-- Joined to `scheduled_tech_events` earnings entries by reporter ticker at render
-  time. Entries with no cascade config render exactly as today.
+- Joined to the Week-Ahead calendar's ``events_this_week`` entries at render
+  time: an entry matches when its free text mentions earnings and hits a curated
+  whole-word alias (the entries carry no ticker field; ``scheduled_tech_events``
+  turned out to hold no earnings entries). Unmatched entries render exactly as
+  today.
 
 ### Beneficiary time-series (no new data)
 
@@ -128,9 +131,9 @@ on the corpus fingerprint (P7-2 pattern). Per date/ticker, extract from
   through `lib`, data-table fallback per the P8-4 convention) → expander
   **"Cluster fundamentals over time"** with small-multiple trends (revenue growth,
   earnings growth, FCF yield, forward PE) per cluster, so the band stays lean.
-- **Cascades get no new surface**: `components/briefing/earnings.py` renders the
-  bull/bear reads + affected-ticker chips on earnings entries that match the
-  cascade config.
+- **Cascades get no new surface**: `components/briefing/calendar.py` renders the
+  bull/bear reads + affected-ticker chips under Week-Ahead earnings entries that
+  match the cascade config.
 - Chart work follows the dataviz skill at implementation time.
 
 ## 4 · Honesty & degradation
