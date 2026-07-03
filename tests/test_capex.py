@@ -160,7 +160,7 @@ def test_fundamentals_history_empty_input():
     assert df.empty and "revenue_growth_pct" in df.columns
 
 
-from lib.capex import coverage_gap_series, current_read
+from lib.capex import coverage_gap_series
 
 
 def _capex_with_yoy(rep_2026q1="2026-05-01"):
@@ -206,19 +206,6 @@ def test_gap_empty_when_no_beneficiary_data():
     assert gaps == []
 
 
-def test_current_read_uses_latest_report():
-    fund = fundamentals_history(GAP_REPORTS)
-    cr = current_read(_capex_with_yoy(), fund)
-    assert cr["rev_asof"] == "2026-07-01"
-    assert cr["rev_growth_pct"] == 50.0         # median(70, 30)
-    assert cr["capex_cq"] == "2026Q1" and cr["gap_pp"] == -20.0
-
-
-def test_current_read_none_without_yoy():
-    capex = _two_spender_capex({"2026Q1": 15.0}, {"2026Q1": 19.0})  # no prior year
-    assert current_read(capex, fundamentals_history(GAP_REPORTS)) is None
-
-
 from datetime import date as _date
 
 from lib.capex import build_chips
@@ -246,27 +233,28 @@ def _capex_three_yoy(y1, y2):
 def test_chips_always_five_in_order_even_on_empty_inputs():
     chips = build_chips(parse_capex({}), fundamentals_history({}), _date(2026, 7, 3))
     assert [c["key"] for c in chips] == ["capex", "gap", "rev", "val", "fragile"]
-    assert all(c["state"] == "na" for c in chips)
+    assert all(c["tone"] == "na" for c in chips)
     assert _chip(chips, "gap")["detail"] == "needs capex data"
 
 
 def test_capex_chip_accelerating_at_threshold():
     chips = build_chips(_capex_three_yoy(50.0, 52.0), fundamentals_history({}),
                         _date(2026, 7, 3))
-    assert _chip(chips, "capex")["state"] == "accel"       # +2.0pp = ACCEL_PP
+    c = _chip(chips, "capex")
+    assert c["tone"] == "neutral" and c["arrow"] == "up"   # +2.0pp = ACCEL_PP
 
 
 def test_capex_chip_decelerating_warns():
     chips = build_chips(_capex_three_yoy(60.0, 40.0), fundamentals_history({}),
                         _date(2026, 7, 3))
     c = _chip(chips, "capex")
-    assert c["state"] == "warn" and "decelerating" in c["detail"]
+    assert c["tone"] == "neutral" and c["arrow"] == "down" and "decelerating" in c["detail"]
 
 
 def test_gap_chip_warns_when_negative():
     fund = fundamentals_history(GAP_REPORTS)          # medians 60/50 range
     chips = build_chips(_capex_three_yoy(60.0, 70.0), fund, _date(2026, 7, 3))
-    assert _chip(chips, "gap")["state"] == "warn"     # rev ~60 < capex 70
+    assert _chip(chips, "gap")["tone"] == "watch"     # rev ~60 < capex 70
 
 
 def test_rev_chip_falling_warns():
@@ -279,13 +267,13 @@ def test_rev_chip_falling_warns():
     chips = build_chips(parse_capex(_raw()), fundamentals_history(reports),
                         _date(2026, 7, 3))
     c = _chip(chips, "rev")
-    assert c["state"] == "warn" and "falling" in c["detail"]
+    assert c["tone"] == "watch" and "falling" in c["detail"]
 
 
 def test_valuation_chip_needs_five_reports():
     chips = build_chips(parse_capex(_raw()), fundamentals_history(SYNTH_REPORTS),
                         _date(2026, 7, 3))
-    assert _chip(chips, "val")["state"] == "na"
+    assert _chip(chips, "val")["tone"] == "na"
 
 
 def test_fragile_chip_surfaces_flag_and_note():
@@ -295,7 +283,7 @@ def test_fragile_chip_surfaces_flag_and_note():
     ]}))
     c = _chip(build_chips(capex, fundamentals_history({}), _date(2026, 7, 3)),
               "fragile")
-    assert c["state"] == "warn"
+    assert c["tone"] == "watch"
     assert "CRWV" in c["detail"] and "amber" in c["detail"] and "debt-funded ramp" in c["detail"]
 
 
