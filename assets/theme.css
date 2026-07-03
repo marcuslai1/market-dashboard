@@ -325,6 +325,12 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   display: none !important;
 }
 .st-key-page_nav [role="radiogroup"] {
+  /* Containing block for the sr-only absolute inputs below. Without this their
+     containing block is the sticky .st-key-page_nav (nearest positioned
+     ancestor), so they sit at their static offsets OUTSIDE this scroll
+     container and stretch stMain's scrollWidth to ~1000px — the whole page
+     panned horizontally on phones. */
+  position: relative;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   gap: 10px !important;   /* tightened so all 7 tabs fit (no scrollbar) when the sidebar is collapsed */
@@ -427,6 +433,15 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
    fade the right edge to hint that the off-screen tabs are reachable by scroll. */
 @media (max-width: 820px) {
   .st-key-page_nav [role="radiogroup"] { gap: 13px !important; }
+  /* The fixed sidebar-expand chip (top:6 left:8, z-index 61) sits ON TOP of the
+     sticky nav once the page scrolls, hiding the "01 Briefing" tab behind it.
+     When the chip exists (sidebar collapsed — the phone default), indent the
+     strip so the first tab clears it. :has() is the gate; browsers without it
+     keep today's behavior. */
+  body:has([data-testid="stExpandSidebarButton"]) .st-key-page_nav [role="radiogroup"],
+  body:has([data-testid="stSidebarCollapsedControl"]) .st-key-page_nav [role="radiogroup"] {
+    padding-left: 44px;
+  }
   .st-key-page_nav [role="radiogroup"] > label {
     font-size: 10.5px !important;
     letter-spacing: 0.06em !important;
@@ -607,10 +622,23 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 }
 
 .count-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  /* 3×2, not one row: SIGNAL_ORDER has SIX cells (BUY…AVOID) — the old
+     repeat(5) always wrapped AVOID onto a lonely second row and the four
+     unfilled tracks showed the --rule-strong backdrop as a grey slab. Three
+     columns divide six exactly at every width, so the hairline-gap grid is
+     always fully tiled. minmax(0,1fr) lets tracks shrink below the widest
+     label instead of overflowing the card on narrow lanes. */
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;
   background: var(--rule-strong);
   border: 1px solid var(--rule-strong);
   margin-top: 18px; margin-bottom: 8px;
+}
+/* Below 1100px the ledger lane narrows to ~1/3 of the page — compact the
+   label so ACCUMULATE fits its ~83px track instead of bleeding across the
+   hairline into the neighbouring cell. */
+@media (max-width: 1099px) {
+  .count-cell { padding: 12px 6px; }
+  .count-cell .clabel { font-size: 9px; letter-spacing: 0.06em; }
 }
 .count-cell { background: var(--paper); padding: 14px 10px; text-align: center; }
 .count-cell .clabel {
@@ -666,6 +694,17 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   .tk-scroll > details.tk-details,
   .tk-scroll > .led-head,
   .tk-scroll > details.led-details { min-width: 680px; }
+  /* The drilldown must NOT inherit the row ledger's 680px canvas — prose laid
+     out 680px wide inside a 348px scrollport forces a horizontal swipe per
+     line of text. Cap it at the scrollport width (100vw minus the block
+     container's chrome) and pin it with sticky so it stays in view even when
+     the summary row above is swiped. */
+  .tk-scroll > details.tk-details > .tk-drilldown,
+  .tk-scroll > details.led-details > .tk-drilldown {
+    position: sticky;
+    left: 0;
+    max-width: calc(100vw - 42px);
+  }
 }
 
 /* Pulse tape reflow — 8 fluid cells shrank below their price width on phones and
@@ -1350,4 +1389,34 @@ details.led-details[open] > summary {
   font-size: 12px;
   letter-spacing: 0.07em;
   color: var(--caution);
+}
+
+/* ── Phone-width reflow for the editorial grids ─────────────────────────────
+   Every rule here collapses a fixed side-by-side layout that starves or
+   overflows its content column below ~720px (measured at a 390px viewport).
+   This block must stay LAST in the file: the overrides share specificity with
+   their base rules above, so source order is what makes them win. */
+@media (max-width: 719px) {
+  /* Card head: eyebrow + headline sat on one flex row; a long headline
+     squeezed the eyebrow to min-content and it wrapped one word per line. */
+  .card-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+
+  /* Four metric columns don't fit the phone-width (pinned) drilldown. */
+  .tk-drilldown .dd-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Week-ahead calendar: the 110px date rail left ~165px for events, but one
+     event row (impact chip + nowrap SG-bucket pill) needs ~250px — entries
+     were clipped at the viewport edge with no way to reach the text. Stack
+     the date above its events and let the text column shrink-and-wrap. */
+  .cal-day { grid-template-columns: 1fr; gap: 8px; }
+  .cal-day .cal-date .dow { display: inline; margin-left: 8px; }
+  .cal-event { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; }
+  .cal-text { min-width: 0; }
+
+  /* Signal-Tracker calibration band: 4-across tiles overflowed the viewport
+     (each needs ~100px of ~87 available). 2×2 with re-drawn hairlines. */
+  .calib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calib-cell { padding: 14px; }
+  .calib-cell:nth-child(even) { border-right: 0; }
+  .calib-cell:nth-child(n + 3) { border-top: 1px solid var(--rule); }
 }
