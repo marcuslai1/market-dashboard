@@ -71,7 +71,15 @@ Rich and honest — a direction-aware calibration hero (BUY/ACC/WATCH = win rate
 **Not deeply reviewed this pass:** the "Signal changes (155) — what flipped, and why" and "Paper trade outcomes — realised returns" drawers were left collapsed; worth a dedicated look.
 
 ### Pipeline Stats
-_(pending)_
+
+Clean pipeline telemetry — token usage, generation time, and cache-aware API cost per report, with an honest cutover note (pre-2026-05-05 Claude rates excluded as ~10× overstated; now `deepseek-v4-pro`). Reads well (`screens/pipeline-stats-top.png`).
+
+**[PS-1] API Cost chart's date span looks inconsistent with the 30-day filter — needs confirmation** — `P3` · S · 🔎 verify · Pipeline → API Cost
+- **Saw:** with the sidebar on "30 days" (Jun 4 – Jul 4), the token & gen-time charts start ~Jun 4, but the **API Cost** chart's x-axis starts **May 10** (~55 days, outside the window).
+- **Checked:** the page clips cost via `_clip(load_pipeline_stats())` (`pipeline_stats.py:91`), and a standalone repro of that same clip returns only in-window rows (25 rows, from Jun 4) — so it *should* limit cost to the window, yet the live chart shows May bars. There's also a design tension: the cost section's own comment wants to show the pre/post-**cutover** step-change (`:88-89`), which needs pre-cutover (< May 5) data that a 30-day clip would remove.
+- **Why flagged, not asserted:** couldn't reconcile statically — either the clip isn't taking effect on the cost frame in the live render, or the active range differed at capture. Verify by toggling the Range control and watching whether the cost chart's start date moves. Low severity (telemetry page).
+
+**[PS-2] The stats page silently inherits the global date range** — `P3` · — · observation. "Total Reports 25 / Avg Tokens / Avg Gen Time" reflect the 30-day window, not all-time (82 reports). Reasonable, but a first-time reader may expect all-time on a page titled "Statistics" — a small "(last 30 days)" qualifier would remove the ambiguity.
 
 ### Scenario Log
 _(pending)_
