@@ -30,6 +30,7 @@ _(to be populated as the review progresses)_
 **[BR-2] R:R is displayed as the very value the data flags as *distorted*** — `P1` · M · logic ✅ / treatment 🧑‍⚖️ · Action card + Watchlist row + Drilldown
 - **Saw:** the "If you only do one thing today" card headlines **"R:R 46.5:1"** for NVDA while its own body says that ratio is *"distorted by a tight 0.2% stop … the sizing R:R … is 4.4:1."* The Watchlist R:R column and the drilldown show the same 46.5:1.
 - **Cause:** the report's `risk_reward` object already carries `rr_distorted: true`, `tight_invalidation: true`, and a corrected `sizing_rr.ratio_label = "4.4:1"` — but **no component reads them.** `action_card.py:66`, `drilldown.py:298`, and `row.py:43/58` all use the raw `ratio_label`/`ratio`. The action card even *ranks* the "one thing" candidate by that raw ratio (`action_card.py:45`), so a tiny-stop 46.5:1 can win the slot.
+- **Also (drilldown):** the drilldown *has* a dedicated "Wide-stop R:R" row (`drilldown.py:320`) built to contextualize a distorted headline — but it reads only the older `wide_stop_rr` key. `wide_stop_rr` and the newer `sizing_rr` coexist per-ticker across reports; NVDA today carries `sizing_rr` (4.4) and no `wide_stop_rr`, so the row shows **"—"** and the distorted 46.5:1 stands alone. `sizing_rr` is surfaced **nowhere** in the UI.
 - **Why it matters:** the sharpest does-it-make-sense issue found. A headline stat overstates reward:risk ~10× vs the value the report itself says is real — on the single most prominent call of the day. 3 of 29 names carry `tight_invalidation` today, so it recurs.
 - **Fix:** a shared helper that prefers `sizing_rr.ratio_label` when `rr_distorted` (with a subtle "tight-stop" marker), used by all three sites; rank action candidates by the corrected ratio. Exact visual treatment is yours to tune.
 
@@ -51,7 +52,10 @@ _(to be populated as the review progresses)_
 - **Saw:** the Briefing benchmark strip read "● LIVE · FETCH FAILED — showing snapshot" while the Watchlist (same session, seconds later) read "● LIVE · 05:34 · 37/37 QUOTES." Per-page fetch + cache means freshness can diverge across pages. Low impact; inherent to the design — a glance only.
 
 ### Watchlist (+ drilldown)
-_(pending)_
+
+The table and drilldown are **strong** — click-to-expand, report-date picker, per-name ACCUMULATE gates, thesis-break condition, and news pills all read clearly (`screens/watchlist-desktop-1440.png`, `screens/watchlist-nvda-drilldown.png`). The one substantive issue is the R:R display, tracked as **[BR-2]** — the Watchlist R:R column (`row.py:58`) and the drilldown "Headline R:R" both show the distorted 46.5:1, and the corrective "Wide-stop R:R" row shows "—" for `sizing_rr` names. No other blocking issues on this page.
+
+**[WL-1] drilldown "Wide-stop R:R" misses the `sizing_rr` variant** — `P2` · S · ✅ auto-fix · folded into **BR-2** (make the corrective row recognize `sizing_rr`, not just `wide_stop_rr`).
 
 ### Signal Tracker
 _(pending)_

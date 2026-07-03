@@ -1,6 +1,6 @@
 # PROGRESS — read me first on resume
 
-**Last updated:** 2026-07-04 05:38 · reviewing (1/7 pages done)
+**Last updated:** 2026-07-04 05:42 · reviewing (2/7 pages done)
 **Branch (docs/screens):** `ux-review/overnight-2026-07-04`
 **Server:** `http://localhost:8501` — launched in background.
 
@@ -13,13 +13,13 @@
 
 ## Phase
 - [x] Phase 0 — scaffolding, branch, server, task list
-- [~] Phase 1 — page-by-page review (1/7: Briefing done)
+- [~] Phase 1 — page-by-page review (2/7: Briefing, Watchlist done)
 - [ ] Phase 2 — implement objectively-safe fixes on `ux-fix/*` branches
 - [ ] Phase 3 — capstone: rank backlog, write summary, build visual Artifact
 
 ## Pages reviewed
 - [x] briefing — findings BR-1..BR-6 logged (BR-1 truncated risk tag + BR-2 distorted R:R = P1)
-- [ ] watchlist (+ drilldown)
+- [x] watchlist — strong; R:R distortion folded into BR-2 (WL-1)
 - [ ] signal-tracker
 - [ ] pipeline-stats
 - [ ] scenario-log
@@ -30,4 +30,4 @@
 _(none yet — fix queue for Phase 2: BR-1 safe · BR-2 logic · BR-3 routing)_
 
 ## Next action
-Watchlist: expand a drilldown row, capture, log findings. Then Signal Tracker (largest page, 734 lines).
+Signal Tracker (largest page, 734 lines): capture + review. Then Pipeline, Scenario, Compare, Terminology.
