@@ -64,3 +64,9 @@ def test_nav_radio_round_trip_switches_pages():
     at.radio(key="page_nav").set_value("Briefing").run()
     assert not at.exception
     assert at.radio(key="page_nav").value == "Briefing"
+
+
+def test_briefing_renders_capex_pulse_band():
+    at = _boot()
+    assert not at.exception
+    assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)

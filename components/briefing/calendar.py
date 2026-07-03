@@ -10,11 +10,12 @@ string-returning helper so the Briefing band can be composed as a single
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime as _dt
 
 from lib.cards import card_container
-from lib.charts import SURFACE_2_FALLBACK
-from lib.formatters import _escape_dollars
+from lib.charts import STATUS_NEG, STATUS_POS, SURFACE_2_FALLBACK
+from lib.formatters import _escape_dollars, display_ticker
 
 
 def _bucket_pill_html(e: dict) -> str:
@@ -67,7 +68,56 @@ def _timing_line_html(e: dict) -> str:
     )
 
 
-def _group_html(group: list, muted: bool = False) -> str:
+def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
+    """Pre-wired bull/bear reads for an earnings event ('' when unmatched).
+
+    Match rule: the event text mentions earnings AND a whole-word,
+    case-insensitive hit on a curated alias. Matching is alias-based because
+    ``events_this_week`` entries are free text ("TSMC Earnings") with no ticker
+    field — the aliases are part of the hand-maintained cascade config.
+    """
+    text = event_text or ""
+    if not cascades or "earning" not in text.lower():
+        return ""
+    for cfg in cascades.values():
+        cfg = cfg or {}
+        aliases = cfg.get("aliases") or []
+        if not any(re.search(rf"\b{re.escape(a)}\b", text, re.IGNORECASE)
+                   for a in aliases):
+            continue
+        rows = ""
+        for side, color, mark in (("bull", STATUS_POS, "▲"),
+                                  ("bear", STATUS_NEG, "▼")):
+            d = cfg.get(side) or {}
+            if not d.get("read"):
+                continue
+            chips = "".join(
+                f'<span style="font-family:var(--mono);font-size:9px;'
+                f'background:var(--surface-2,{SURFACE_2_FALLBACK});'
+                f'border-radius:3px;padding:1px 4px;margin-left:3px;'
+                f'color:var(--ink-2);">{_escape_dollars(display_ticker(t))}</span>'
+                for t in (d.get("tickers") or [])[:6]
+            )
+            hint = f' · {d["scenario_hint"]}' if d.get("scenario_hint") else ""
+            rows += (
+                f'<div style="margin-top:3px;padding-left:8px;'
+                f'border-left:2px solid {color};font-size:11px;'
+                f'color:var(--ink-3);line-height:1.45;">'
+                f'<span style="color:{color};font-family:var(--mono);">'
+                f'{mark} {side.upper()}</span> {_escape_dollars(d["read"])}'
+                f'{_escape_dollars(hint)}{chips}</div>'
+            )
+        if not rows:
+            return ""
+        why = cfg.get("why") or ""
+        why_html = (f'<div style="margin-top:3px;font-size:10.5px;'
+                    f'color:var(--ink-3);font-style:italic;">'
+                    f'{_escape_dollars(why)}</div>') if why else ""
+        return f'<div style="margin-top:4px;">{why_html}{rows}</div>'
+    return ""
+
+
+def _group_html(group: list, muted: bool = False, cascades: dict | None = None) -> str:
     """Return day-grouped events markup as a string."""
     grouped: dict[str, list] = {}
     for e in group:
@@ -101,6 +151,7 @@ def _group_html(group: list, muted: bool = False) -> str:
                 f'{_escape_dollars(e.get("event", ""))}'
                 f'{_bucket_pill_html(e)}'
                 f'{_timing_line_html(e)}'
+                f'{_cascade_block_html(e.get("event", ""), cascades)}'
             )
             events_html += (
                 f'<div class="cal-event" style="{style}">'
@@ -117,7 +168,8 @@ def _group_html(group: list, muted: bool = False) -> str:
     return out
 
 
-def calendar_card_html(events: list, lane: str = "ledger") -> str:
+def calendar_card_html(events: list, lane: str = "ledger",
+                       cascades: dict | None = None) -> str:
     """Return the Week-Ahead card markup.
 
     Body contains the day-grouped this-week events plus a Forward Catalysts
@@ -140,7 +192,7 @@ def calendar_card_html(events: list, lane: str = "ledger") -> str:
     this_week = [e for e in events if (e.get("type") or "this_week") != "forward_catalyst"]
     forward = [e for e in events if (e.get("type") or "") == "forward_catalyst"]
 
-    body = _group_html(this_week)
+    body = _group_html(this_week, cascades=cascades)
 
     if forward:
         body += (
@@ -149,7 +201,7 @@ def calendar_card_html(events: list, lane: str = "ledger") -> str:
             'text-transform:uppercase;color:var(--ink-3);padding-top:8px;">'
             'Forward Catalysts</div>'
         )
-        body += _group_html(forward, muted=True)
+        body += _group_html(forward, muted=True, cascades=cascades)
 
     return card_container(
         eyebrow="THE WEEK AHEAD",
