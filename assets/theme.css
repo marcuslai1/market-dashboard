@@ -707,12 +707,20 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   }
   /* Right-edge fade: phones show no scrollbar, so the swipeable ledger reads
      as page overflow instead of a contained scroller. Overlay a paper-colored
-     fade as the "more this way" affordance. Anchored on the markdown container
-     via :has() (same trick as the top nav) — an absolutely-positioned child of
-     the scroller itself would scroll away with the content. Suppressed while a
-     drill-down is open so the fade never sits over prose. */
-  [data-testid="stMarkdownContainer"]:has(> .tk-scroll) { position: relative; }
-  [data-testid="stMarkdownContainer"]:has(> .tk-scroll):not(:has(details[open]))::after {
+     fade as the "more this way" affordance. Anchored on the .tk-scroll's
+     direct parent via :has() (same trick as the top nav) — an absolutely-
+     positioned child of the scroller itself would scroll away with the
+     content. Suppressed while a drill-down is open so the fade never sits
+     over prose. Anchors are listed explicitly, NOT *:has(> .tk-scroll): the
+     cluster-anchor tables (.cl-body) fit at phone width, and a fade on a
+     table that doesn't scroll is a false cue. A new band body whose table
+     genuinely overflows must opt in here. */
+  [data-testid="stMarkdownContainer"]:has(> .tk-scroll),
+  .eps-body:has(> .tk-scroll),
+  .cal-body:has(> .tk-scroll) { position: relative; }
+  [data-testid="stMarkdownContainer"]:has(> .tk-scroll):not(:has(details[open]))::after,
+  .eps-body:has(> .tk-scroll):not(:has(details[open]))::after,
+  .cal-body:has(> .tk-scroll):not(:has(details[open]))::after {
     content: "";
     position: absolute;
     top: 0; right: 0; bottom: 0;
