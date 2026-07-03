@@ -475,7 +475,12 @@ LIVE_PRICES = st.sidebar.toggle(
          "report date. Historical reports are never overlaid.",
 )
 
-if st.sidebar.button("↻ Refresh Data"):
+if st.sidebar.button(
+    "↻ Refresh Data",
+    help="Clear the data cache and refetch reports + live prices. Same action as "
+         "the ↻ Refresh button in the main column (surfaced there for narrow "
+         "viewports where the sidebar is collapsed).",
+):
     st.cache_data.clear()
     st.rerun()
 

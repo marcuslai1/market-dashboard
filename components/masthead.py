@@ -23,6 +23,20 @@ _NAV_PAGES = [
     "Terminology",
 ]
 
+# Shorter labels shown in the top-nav strip. The st.radio *options* stay the full
+# page titles (routing + st.switch_page key on those), but the full labels don't
+# all fit on one line at desktop width with the sidebar open — they overflowed by
+# ~180px and clipped "Report Comparison" behind a scrollbar. format_func only
+# changes the displayed text node, so routing and the folio numerals are untouched.
+# "Terminology" is left in full because the Briefing footer cross-references it by
+# name ("see the Terminology tab").
+_NAV_LABELS = {
+    "Signal Tracker": "Tracker",
+    "Pipeline Stats": "Pipeline",
+    "Scenario Log": "Scenarios",
+    "Report Comparison": "Compare",
+}
+
 
 def render_masthead_and_nav(current: str) -> str:
     """Render the masthead + top-nav radio. Returns the selected page title.
@@ -85,6 +99,7 @@ def render_masthead_and_nav(current: str) -> str:
     page = st.radio(
         "Navigate",
         _NAV_PAGES,
+        format_func=lambda p: _NAV_LABELS.get(p, p),
         horizontal=True,
         label_visibility="collapsed",
         key="page_nav",
