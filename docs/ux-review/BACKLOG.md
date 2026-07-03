@@ -82,7 +82,13 @@ Clean pipeline telemetry — token usage, generation time, and cache-aware API c
 **[PS-2] The stats page silently inherits the global date range** — `P3` · — · observation. "Total Reports 25 / Avg Tokens / Avg Gen Time" reflect the 30-day window, not all-time (82 reports). Reasonable, but a first-time reader may expect all-time on a page titled "Statistics" — a small "(last 30 days)" qualifier would remove the ambiguity.
 
 ### Scenario Log
-_(pending)_
+
+Strong and honest — a probability time-series (a distinct marker per series for colour-blind safety) plus a dated "days when probabilities moved" ledger with each shift's before→after and full narrative (`screens/scenario-log-top.png`). I verified the internal math: each day's shifts net to zero, and chaining Jul 2→3→4 lands exactly on the Briefing's current odds (Base 55 / Opt 20 / Pess 20 / Wild 5) — cross-page consistent. Clear disclaimer that these are uncalibrated narrative leans.
+
+**[SC-1] "Wildcard" uses a different colour here than on the Briefing** — `P3` · S · 🧑‍⚖️ proposal · cross-page
+- **Saw:** Base/Optimistic/Pessimistic read as the same blue/green/red on both pages, but **Wildcard is amber on the Briefing odds bar** (`macro.py:161`, `SIGNAL_COLORS["WATCH"]`) and **purple on the Scenario Log** chart + ledger (`scenario_log.py:213`, `ACCENT_WILDCARD`). The two pages source scenario colours from different constant sets.
+- **Why it matters:** the same four scenarios ideally carry one colour language across the app; a reader cross-referencing sees wildcard flip amber→purple.
+- **Nuance (may be deliberate):** the Scenario chart is thoughtfully colour-blind-aware (distinct markers; comment `:215-217`), and blue/green/red/purple are four maximally-distinct hues. If intentional, consider aligning the Briefing wildcard to purple (or documenting the divergence) rather than changing the chart. Your call — hence a proposal, not a fix.
 
 ### Report Comparison
 _(pending)_
