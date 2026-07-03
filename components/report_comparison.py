@@ -8,7 +8,7 @@ import streamlit as st
 from components.scenario_log import _get_probs
 from lib.cards import render_section_head
 from lib.catalog import SIGNAL_BULLISHNESS
-from lib.formatters import _escape_dollars, _legacy_rationale_from, _price_str
+from lib.formatters import _escape_dollars, _legacy_rationale_from, _price_str, display_ticker
 from lib.pills import _signal_pill_html
 
 # ── Editorial table helpers ──────────────────────────────────────────────────
@@ -196,14 +196,14 @@ def render_report_comparison_page(reports: dict) -> None:
             )
 
             if volatile_tickers:
-                volatile_str = ", ".join(f"**{tk}** ({n}x)" for tk, n in sorted(volatile_tickers, key=lambda x: -x[1]))
+                volatile_str = ", ".join(f"**{display_ticker(tk)}** ({n}x)" for tk, n in sorted(volatile_tickers, key=lambda x: -x[1]))
                 st.caption(f"Volatile signals: {volatile_str}")
 
             if trend_changes:
                 h = ["Ticker", f"Signal ({start_date})", f"Signal ({end_date})",
                      "Direction", "Price Chg"]
                 rows = [
-                    [_escape_dollars(tc["Ticker"]), _sig_cell(tc[h[1]]), _sig_cell(tc[h[2]]),
+                    [_escape_dollars(display_ticker(tc["Ticker"])), _sig_cell(tc[h[1]]), _sig_cell(tc[h[2]]),
                      _dir_cell(tc["Direction"]), _delta_cell(tc["Price Chg"])]
                     for tc in trend_changes
                 ]
@@ -285,7 +285,7 @@ def render_report_comparison_page(reports: dict) -> None:
     if sig_changes:
         h = ["Ticker", f"Signal ({date_a})", f"Signal ({date_b})", "Direction", "Rationale"]
         rows = [
-            [_escape_dollars(sc["Ticker"]), _sig_cell(sc[h[1]]), _sig_cell(sc[h[2]]),
+            [_escape_dollars(display_ticker(sc["Ticker"])), _sig_cell(sc[h[1]]), _sig_cell(sc[h[2]]),
              _dir_cell(sc["Direction"]),
              f'<span style="color:var(--ink-3);">{_escape_dollars(sc["Rationale"])}</span>']
             for sc in sig_changes
@@ -379,7 +379,7 @@ def render_report_comparison_page(reports: dict) -> None:
         h = ["Ticker", f"Price ({date_a})", f"Price ({date_b})",
              "Price Chg", "RSI Chg", "vs SMA50 Chg"]
         rows = [
-            [_escape_dollars(m["Ticker"]), m[h[1]], m[h[2]], _delta_cell(m["Price Chg"]),
+            [_escape_dollars(display_ticker(m["Ticker"])), m[h[1]], m[h[2]], _delta_cell(m["Price Chg"]),
              _delta_cell(m["RSI Chg"]), _delta_cell(m["vs SMA50 Chg"])]
             for m in metric_rows
         ]
