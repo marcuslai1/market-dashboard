@@ -295,6 +295,12 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
     structural = rr_obj.get("structural_support")
     struct_pct = rr_obj.get("structural_support_pct")
     wide_stop = rr_obj.get("wide_stop_rr")
+    if wide_stop is None:
+        # Newer reports carry the same deeper-stop ratio under `sizing_rr`
+        # (R:R sized to structural support). Surface it here so the corrective
+        # "wide-stop" number isn't blank for tight-invalidation names — exactly
+        # where it matters and the headline R:R is distorted (UX-BR-2/WL-1/TM-1).
+        wide_stop = (rr_obj.get("sizing_rr") or {}).get("ratio")
     rr_label = rr_obj.get("ratio_label", "")
     rr_quality = rr_obj.get("rr_quality", "")
 

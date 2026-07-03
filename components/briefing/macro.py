@@ -277,7 +277,12 @@ def risks_card_html(geo: dict) -> str:
         # Prefer a real "Category: …" prefix as the tag; otherwise fall back to
         # the severity itself (HIGH/MED/LOW) rather than a redundant "Risk"
         # label on every row. The tag colour is keyed off data-severity in CSS.
-        tag = text.split(":", 1)[0][:24] if ":" in text else sev
+        # Only treat the pre-colon text as a category when it is genuinely
+        # tag-like (short, a few words). Ordinary prose that merely contains a
+        # colon — e.g. "US-China tech tensions persist: …" — must fall back to
+        # the severity badge, not be sliced into a truncated fragment.
+        prefix = text.split(":", 1)[0] if ":" in text else ""
+        tag = prefix if (0 < len(prefix) <= 24 and prefix.count(" ") <= 2) else sev
         body += (
             f'<div class="risk-card" data-severity="{sev}">'
             f'<div class="tag">{_escape_dollars(tag)}</div>'
