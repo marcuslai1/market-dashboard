@@ -217,19 +217,6 @@ def coverage_gap_series(capex: dict, fund_df: pd.DataFrame) -> list[dict]:
     return out
 
 
-def current_read(capex: dict, fund_df: pd.DataFrame) -> dict | None:
-    """Today's beneficiary median vs the latest complete capex quarter."""
-    yoy_rows = [r for r in core_capex_yoy(capex) if r["yoy_pct"] is not None]
-    med = _median_rev_growth(fund_df, capex["beneficiaries"])
-    if not yoy_rows or med is None:
-        return None
-    latest = yoy_rows[-1]
-    rev_asof, rev = med
-    return {"capex_cq": latest["cq"], "capex_yoy_pct": latest["yoy_pct"],
-            "rev_asof": rev_asof, "rev_growth_pct": round(rev, 1),
-            "gap_pp": round(rev - latest["yoy_pct"], 1)}
-
-
 def forward_revenue_note(capex: dict, fund_df: pd.DataFrame) -> dict | None:
     """Where beneficiary revenue has moved SINCE the quarter's anchored figure —
     a forward hint, not a gap.
@@ -272,18 +259,18 @@ def _capex_chip(capex: dict) -> dict:
         pend = pending_quarter(capex)
         detail = (f"awaiting {len(pend['missing'])} of {len(capex['core'])} spenders for {pend['cq']}"
                   if pend else "needs two quarters of complete core capex")
-        return {"key": "capex", "label": "Capex", "sub": sub, "state": "na",
+        return {"key": "capex", "label": "Capex", "sub": sub,
                 "tone": "na", "arrow": "none", "detail": detail,
                 "asof": yoy[-1]["cq"] if yoy else "—"}
     cur, prev = yoy[-1], yoy[-2]
     delta = cur["yoy_pct"] - prev["yoy_pct"]
     if delta >= ACCEL_PP:
-        state, arrow, word = "accel", "up", "accelerating"
+        arrow, word = "up", "accelerating"
     elif delta <= -ACCEL_PP:
-        state, arrow, word = "warn", "down", "decelerating"
+        arrow, word = "down", "decelerating"
     else:
-        state, arrow, word = "ok", "none", "steady"
-    return {"key": "capex", "label": "Capex", "sub": sub, "state": state,
+        arrow, word = "none", "steady"
+    return {"key": "capex", "label": "Capex", "sub": sub,
             "tone": "neutral", "arrow": arrow,
             "detail": (f"core YoY {cur['yoy_pct']:+.1f}% vs "
                        f"{prev['yoy_pct']:+.1f}% prior — {word}"),
@@ -295,19 +282,19 @@ def _gap_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
            "negative = spend outrunning sales")
     gaps = coverage_gap_series(capex, fund_df)
     if not gaps:
-        return {"key": "gap", "label": "Coverage gap", "sub": sub, "state": "na",
+        return {"key": "gap", "label": "Coverage gap", "sub": sub,
                 "tone": "na", "arrow": "none", "detail": "needs capex data",
                 "asof": "—"}
     g = gaps[-1]
     widening = len(gaps) >= 2 and (g["gap_pp"] - gaps[-2]["gap_pp"]) <= -GAP_WIDEN_PP
     if g["gap_pp"] < 0:
-        state, tone = "warn", "watch"
+        tone = "watch"
         word = "negative and widening" if widening else "capex outrunning revenue"
     elif widening:
-        state, tone, word = "warn", "watch", "narrowing fast"
+        tone, word = "watch", "narrowing fast"
     else:
-        state, tone, word = "ok", "good", "revenue keeping pace"
-    return {"key": "gap", "label": "Coverage gap", "sub": sub, "state": state,
+        tone, word = "good", "revenue keeping pace"
+    return {"key": "gap", "label": "Coverage gap", "sub": sub,
             "tone": tone, "arrow": "none",
             "detail": (f"{g['gap_pp']:+.1f}pp (rev {g['rev_growth_pct']:+.1f}% − "
                        f"capex {g['capex_yoy_pct']:+.1f}%) — {word}"),
@@ -319,7 +306,7 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     now = _median_rev_growth(fund_df, capex["beneficiaries"])
     if now is None:
         return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
-                "state": "na", "tone": "na", "arrow": "none",
+                "tone": "na", "arrow": "none",
                 "detail": "no revenue-growth data in reports", "asof": "—"}
     now_date, now_med = now
     cutoff = (datetime.strptime(now_date, "%Y-%m-%d").date()
@@ -329,7 +316,7 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     older = sorted(d for d in bdf["date"].unique() if d <= cutoff)
     if not older:
         return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
-                "state": "ok", "tone": "good", "arrow": "none",
+                "tone": "good", "arrow": "none",
                 "detail": (f"median {now_med:+.1f}% — corpus younger than "
                            f"{REV_TREND_WINDOW_DAYS}d, no trend yet"),
                 "asof": now_date}
@@ -337,13 +324,13 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     ref_med = float(bdf[bdf["date"] == ref_date]["revenue_growth_pct"].median())
     delta = now_med - ref_med
     if delta >= REV_FLAT_PP:
-        state, tone, arrow, word = "ok", "good", "up", "rising"
+        tone, arrow, word = "good", "up", "rising"
     elif delta <= -REV_FLAT_PP:
-        state, tone, arrow, word = "warn", "watch", "down", "falling"
+        tone, arrow, word = "watch", "down", "falling"
     else:
-        state, tone, arrow, word = "ok", "good", "none", "flat"
+        tone, arrow, word = "good", "none", "flat"
     return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
-            "state": state, "tone": tone, "arrow": arrow,
+            "tone": tone, "arrow": arrow,
             "detail": f"median {now_med:+.1f}% vs {ref_med:+.1f}% on {ref_date} — {word}",
             "asof": now_date}
 
@@ -353,7 +340,7 @@ def _val_chip(fund_df: pd.DataFrame) -> dict:
     sem = fund_df[fund_df["cluster"] == SEMIS_CLUSTER]
     pe = sem.dropna(subset=["forward_pe"]).groupby("date")["forward_pe"].median()
     if len(pe) < 5:
-        return {"key": "val", "label": "Valuation", "sub": sub, "state": "na",
+        return {"key": "val", "label": "Valuation", "sub": sub,
                 "tone": "na", "arrow": "none",
                 "detail": "needs ≥5 reports with Semis valuations", "asof": "—"}
     peg = sem.dropna(subset=["peg_ratio"]).groupby("date")["peg_ratio"].median()
@@ -364,7 +351,6 @@ def _val_chip(fund_df: pd.DataFrame) -> dict:
                                and peg_now > peg_hot)
     peg_s = f" · PEG {peg_now:.2f}" if peg_now == peg_now else ""
     return {"key": "val", "label": "Valuation", "sub": sub,
-            "state": "warn" if rich else "ok",
             "tone": "watch" if rich else "good", "arrow": "none",
             "detail": (f"Semis median fwd PE {pe_now:.1f} "
                        f"(80th pct {pe_hot:.1f}){peg_s} — "
@@ -377,7 +363,7 @@ def _fragile_chip(capex: dict) -> dict:
     frows = [(tk, capex["series"][tk][-1]) for tk in capex["fragile"]
              if capex["series"].get(tk)]
     if not frows:
-        return {"key": "fragile", "label": "Fragile tier", "sub": sub, "state": "na",
+        return {"key": "fragile", "label": "Fragile tier", "sub": sub,
                 "tone": "na", "arrow": "none", "detail": "no fragile-tier rows",
                 "asof": "—"}
     severity = {"red": 2, "amber": 1}
@@ -386,7 +372,6 @@ def _fragile_chip(capex: dict) -> dict:
     note = f" — {row['note']}" if row.get("note") else ""
     tone = {"red": "stress", "amber": "watch"}.get(flag, "good")
     return {"key": "fragile", "label": "Fragile tier", "sub": sub,
-            "state": "warn" if flag in severity else "ok",
             "tone": tone, "arrow": "none",
             "detail": f"{tk} {row['cq']} capex ${row['capex_usd_b']:.1f}B · {flag}{note}",
             "asof": row["cq"]}
