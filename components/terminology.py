@@ -474,6 +474,6 @@ VIX down = green) since rising volatility is the risk-off direction.
 <li><b>Not a backtest.</b> The calibration tables are forward-only — they evaluate signals as they were issued in real time, with no look-ahead. Sample sizes are small until ~3 months of post-cutover data accrue.</li>
 <li><b>Not high-frequency.</b> Reports are produced once per session (pre-open SGT). Intraday moves are not reflected until the next run.</li>
 <li><b>R:R is geometry, not probability.</b> A high R:R does not mean a trade is likely to work — it means the math is favourable <i>if</i> it does.</li>
-<li><b>Macro odds are subjective.</b> The scenario probabilities are a structured read of evidence, not a market-implied distribution.</li>
+<li><b>Macro odds are subjective.</b> The scenario probabilities are an uncalibrated narrative lean, not measured forecasts — no outcome scoring exists for them. They are a structured read of evidence, not a market-implied distribution.</li>
 </ul>
 """, unsafe_allow_html=True)

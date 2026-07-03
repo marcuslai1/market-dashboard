@@ -212,6 +212,15 @@ def render_scenario_log_page(reports: dict) -> None:
         "Pessimistic": STATUS_NEG,
         "Wildcard":    ACCENT_WILDCARD,
     }
+    # A distinct marker per series so identity never rests on colour alone —
+    # Optimistic (green) + Pessimistic (red) are the classic colour-blind
+    # confusable pair. The shapes double as meaning: ▲ optimistic, ▼ pessimistic.
+    scenario_symbols = {
+        "Base":        "circle",
+        "Optimistic":  "triangle-up",
+        "Pessimistic": "triangle-down",
+        "Wildcard":    "diamond",
+    }
     st_color_names = {
         "Base": "blue", "Optimistic": "green",
         "Pessimistic": "red", "Wildcard": "violet",
@@ -227,6 +236,7 @@ def render_scenario_log_page(reports: dict) -> None:
                 x=sc_data["date"], y=sc_data["probability_mid"],
                 mode="lines+markers", name=sc_name,
                 line=dict(color=scenario_colors.get(sc_name, STATUS_MUTED), width=2),
+                marker=dict(symbol=scenario_symbols.get(sc_name, "circle"), size=7),
                 hovertemplate=f"<b>{sc_name}</b><br>%{{x|%b %d}}: %{{customdata}}<extra></extra>",
                 customdata=sc_data["probability_str"],
             ))
@@ -238,7 +248,8 @@ def render_scenario_log_page(reports: dict) -> None:
     st.plotly_chart(style_fig(fig), use_container_width=True, config=PLOTLY_CONFIG)
     st.caption(
         "Line chart — each macro scenario's probability (%) over the selected "
-        "window; the dated ledger below lists the exact shifts."
+        "window; the dated ledger below lists the exact shifts. These are "
+        "Claude's uncalibrated narrative lean, not measured or scored forecasts."
     )
     chart_data_table(
         sc_df.sort_values(["date", "scenario"])[["date", "scenario", "probability_str"]]
