@@ -160,6 +160,65 @@ def test_fundamentals_history_empty_input():
     assert df.empty and "revenue_growth_pct" in df.columns
 
 
+from lib.capex import coverage_gap_series, current_read
+
+
+def _capex_with_yoy(rep_2026q1="2026-05-01"):
+    """core=[MSFT,GOOG]; 2026Q1 complete with YoY (2025Q1 present)."""
+    return parse_capex(_raw({
+        "MSFT": [{"cq": "2025Q1", "reported": "2025-04-30", "capex_usd_b": 10.0},
+                 {"cq": "2026Q1", "reported": rep_2026q1, "capex_usd_b": 15.0}],
+        "GOOG": [{"cq": "2025Q1", "reported": "2025-04-24", "capex_usd_b": 10.0},
+                 {"cq": "2026Q1", "reported": "2026-04-28", "capex_usd_b": 19.0}],
+    }))
+
+
+GAP_REPORTS = {
+    "2026-04-15": _report({"NVDA": {"valuation": {"revenue_growth_pct": 90.0}},
+                           "MU": {"valuation": {"revenue_growth_pct": 50.0}}}),
+    "2026-05-02": _report({"NVDA": {"valuation": {"revenue_growth_pct": 80.0}},
+                           "MU": {"valuation": {"revenue_growth_pct": 40.0}}}),
+    "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 70.0}},
+                           "MU": {"valuation": {"revenue_growth_pct": 30.0}}}),
+}
+
+
+def test_gap_anchors_revenue_at_first_report_after_quarter_complete():
+    fund = fundamentals_history(GAP_REPORTS)
+    gaps = coverage_gap_series(_capex_with_yoy(), fund)
+    assert len(gaps) == 1
+    g = gaps[0]
+    # quarter complete 2026-05-01 (last core report) → first report on/after = 05-02
+    assert g["rev_asof"] == "2026-05-02"
+    assert g["rev_growth_pct"] == 60.0          # median(80, 40)
+    assert g["capex_yoy_pct"] == 70.0
+    assert g["gap_pp"] == -10.0                 # 60 − 70: capex outrunning revenue
+
+
+def test_gap_falls_back_to_latest_report_when_none_after_anchor():
+    fund = fundamentals_history(GAP_REPORTS)
+    gaps = coverage_gap_series(_capex_with_yoy(rep_2026q1="2026-08-01"), fund)
+    assert gaps[0]["rev_asof"] == "2026-07-01"  # latest available
+
+
+def test_gap_empty_when_no_beneficiary_data():
+    gaps = coverage_gap_series(_capex_with_yoy(), fundamentals_history({}))
+    assert gaps == []
+
+
+def test_current_read_uses_latest_report():
+    fund = fundamentals_history(GAP_REPORTS)
+    cr = current_read(_capex_with_yoy(), fund)
+    assert cr["rev_asof"] == "2026-07-01"
+    assert cr["rev_growth_pct"] == 50.0         # median(70, 30)
+    assert cr["capex_cq"] == "2026Q1" and cr["gap_pp"] == -20.0
+
+
+def test_current_read_none_without_yoy():
+    capex = _two_spender_capex({"2026Q1": 15.0}, {"2026Q1": 19.0})  # no prior year
+    assert current_read(capex, fundamentals_history(GAP_REPORTS)) is None
+
+
 def test_seed_file_parses_clean():
     raw = json.loads(Path("data/capex_quarterly.json").read_text(encoding="utf-8"))
     out = parse_capex(raw)
