@@ -43,6 +43,13 @@ def test_hero_gap_html_omits_note_when_none():
     assert "↳" not in _hero_gap_html(GAP_CHIP, None)
 
 
+def test_hero_gap_html_escapes_forward_note_fields():
+    note = {"now_pct": 85.2, "now_asof": "2026-07-03<script>",
+            "direction": "risen", "hint": "narrow"}
+    html = _hero_gap_html(GAP_CHIP, note)
+    assert "<script>" not in html and "&lt;script&gt;" in html
+
+
 def test_signals_html_renders_arrows_labels_sublabels_and_key():
     html = _signals_html(SIGNALS)
     assert "Capex" in html and "▲" in html
