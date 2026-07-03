@@ -19,6 +19,7 @@ import streamlit as st
 from components.briefing import (
     render_action_card,
     render_calibration,
+    render_capex_pulse,
     render_catalyst_playbook,
     render_changes,
     render_clusters,
@@ -37,6 +38,7 @@ from lib.data_loader import (
     data_fingerprint,
     list_report_dates,
     load_all_reports,
+    load_earnings_cascades,
     load_report,
     load_sqlite_prices,
     load_text_asset,
@@ -220,6 +222,7 @@ def _page_briefing() -> None:
         render_action_card(watchlist, events)
         render_catalyst_playbook(trigger_map)
         render_contrarian_candidates(contrarians)
+        render_capex_pulse()
 
         # Context band: Macro note (lede) + Active Risks (ledger) on row 1, then
         # the Week-Ahead calendar as a full-width strip on row 2. Placing the
@@ -232,7 +235,8 @@ def _page_briefing() -> None:
                               report.get("commodities_note", ""),
                               report.get("macro_indicators", {}))
             + risks_card_html(geo)
-            + calendar_card_html(events, lane="strip")
+            + calendar_card_html(events, lane="strip",
+                                 cascades=load_earnings_cascades())
             + '</div>'
         )
         st.markdown(band_html, unsafe_allow_html=True)
