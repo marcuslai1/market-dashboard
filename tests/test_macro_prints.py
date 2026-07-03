@@ -1,5 +1,5 @@
 """Tests for components.briefing.macro.macro_prints_html — FRED Core-5 strip."""
-from components.briefing.macro import macro_prints_html
+from components.briefing.macro import macro_prints_html, risks_card_html
 
 
 def _ind():
@@ -98,3 +98,24 @@ def test_unknown_series_falls_back_to_upstream_flag_and_age():
     html = macro_prints_html(_row("CPI (YoY)", "NEW_SERIES_XYZ", 40, True))
     assert "STALE" in html
     assert "40d" in html
+
+
+# --- Active-risks tag heuristic (UX-BR-1) -----------------------------------
+# The tag slot shows a short "Category:" prefix when one exists, else the
+# severity badge. A plain sentence that merely contains a colon must NOT be
+# sliced into a truncated fragment (the old `[:24]` bug produced tags like
+# "US-China tech tensions p").
+
+def test_risk_prose_colon_falls_back_to_severity_tag():
+    geo = {"active_risks": [
+        "US-China tech tensions persist: Pentagon blacklist aims at China's AI."
+    ]}
+    html = risks_card_html(geo)
+    assert '<div class="tag">LOW</div>' in html
+    assert '<div class="tag">US-China tech tensions p</div>' not in html
+
+
+def test_risk_short_category_prefix_becomes_tag():
+    geo = {"active_risks": ["Iran-Hormuz: WTI spikes back above 90 on failed talks."]}
+    html = risks_card_html(geo)
+    assert '<div class="tag">Iran-Hormuz</div>' in html
