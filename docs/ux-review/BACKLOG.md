@@ -20,7 +20,35 @@ _(to be populated as the review progresses)_
 ## Findings by page
 
 ### Briefing
-_(pending)_
+
+**[BR-1] Active-risks: a plain-sentence risk loses its severity badge and shows a mid-word–truncated fragment** — `P1` · S · ✅ auto-fix · Briefing → Active Risks
+- **Saw:** the 3rd risk renders its tag as **"US‑China tech tensions p"** (see `screens/briefing-desktop-1440.png`) where every other row shows a `LOW` severity chip — and it's cut off mid-word.
+- **Cause:** `components/briefing/macro.py:280` — `tag = text.split(":", 1)[0][:24] if ":" in text else sev`. The risk text *"US‑China tech tensions persist: Pentagon…"* is an ordinary sentence that happens to contain a colon, so the heuristic mistakes the 30-char first clause for a `Category:` tag and hard-truncates it to 24 chars. Only 1 of 4 risks today has an inline colon, so it's the lone broken-looking row.
+- **Why it matters:** reads as a rendering bug, and the row silently loses its severity signal (should read `LOW`).
+- **Fix:** only use the pre-colon text as a tag when it's genuinely tag-like (short — e.g. ≤ ~16 chars / ≤ 2 words, no trailing truncation); otherwise fall back to the severity badge.
+
+**[BR-2] R:R is displayed as the very value the data flags as *distorted*** — `P1` · M · logic ✅ / treatment 🧑‍⚖️ · Action card + Watchlist row + Drilldown
+- **Saw:** the "If you only do one thing today" card headlines **"R:R 46.5:1"** for NVDA while its own body says that ratio is *"distorted by a tight 0.2% stop … the sizing R:R … is 4.4:1."* The Watchlist R:R column and the drilldown show the same 46.5:1.
+- **Cause:** the report's `risk_reward` object already carries `rr_distorted: true`, `tight_invalidation: true`, and a corrected `sizing_rr.ratio_label = "4.4:1"` — but **no component reads them.** `action_card.py:66`, `drilldown.py:298`, and `row.py:43/58` all use the raw `ratio_label`/`ratio`. The action card even *ranks* the "one thing" candidate by that raw ratio (`action_card.py:45`), so a tiny-stop 46.5:1 can win the slot.
+- **Why it matters:** the sharpest does-it-make-sense issue found. A headline stat overstates reward:risk ~10× vs the value the report itself says is real — on the single most prominent call of the day. 3 of 29 names carry `tight_invalidation` today, so it recurs.
+- **Fix:** a shared helper that prefers `sizing_rr.ratio_label` when `rr_distorted` (with a subtle "tight-stop" marker), used by all three sites; rank action candidates by the corrected ratio. Exact visual treatment is yours to tune.
+
+**[BR-3] Deep-linking to the default page `/briefing` shows a "Page not found" dialog and falls back to `/`** — `P2` · S–M · ✅ auto-fix · routing
+- **Saw:** a hard load of `localhost:8501/briefing` (cold *and* warm) pops Streamlit's **"Page not found — Running the app's main page"** dialog and rewrites the URL to `/` (see `screens/briefing-desktop-1440.png`; console logs a `/briefing/_stcore/health` 404). `/watchlist`, `/signal-tracker`, … all deep-link cleanly.
+- **Cause:** Briefing is the `default=True` page, which Streamlit serves canonically at `/`; also giving it `url_path="briefing"` (`dashboard.py:344`) creates a path the router won't accept as an entry point. In-app nav uses `st.radio` + `st.switch_page` (`masthead.py`), so clicking around is unaffected — only external/bookmarked/guessed `/briefing` links break.
+- **Why it matters:** the module docstring sells "real URL per page so deep links work"; 6 of 7 pages honor it, the flagship page doesn't — and a shared `/briefing` link greets a colleague with an error dialog.
+- **Fix:** drop `url_path="briefing"` on the default (accept `/` as its canonical URL), or otherwise make `/briefing` resolve; leave nav numerals/labels unchanged.
+
+**[BR-4] The posture verdict is marked up as a single ~60-word `<h2>`** — `P3` · S · 🧑‍⚖️ proposal · Stance band
+- **Saw:** the entire "7 of 29 names are hard-blocked … cluster resets." verdict is one `heading level=2`, producing a sentence-length heading anchor (`#7-of-29-names-are-hard-blocked-…`).
+- **Why it matters:** leading with the verdict is great and deliberate — but as an `<h2>` it bloats the screen-reader headings outline and the anchor id. Consider a styled `<p>` for the big verdict plus a short real heading (e.g. "Today's posture") for the outline. Purely semantic; visual unchanged.
+
+**[BR-5] Narrative counts don't tie to the computed distribution** — `P3` · — · 🧑‍⚖️ upstream · Stance
+- **Saw:** the verdict says "7 … hard-blocked … another 15 are in CAUTION," directly above a Signal Distribution reading WATCH 3 / HOLD 2 / **CAUTION 24** (7+15 ≠ the grid).
+- **Note:** the verdict text is authored upstream (report narrative); the grid is computed. The dashboard juxtaposes them, so the mismatch is visible even though its root is the report. Flagging for awareness — a reader can be briefly confused. Not a dashboard bug per se.
+
+**[BR-6] Live-freshness caption differs between pages loaded seconds apart** — `P3` · — · observation · cross-page
+- **Saw:** the Briefing benchmark strip read "● LIVE · FETCH FAILED — showing snapshot" while the Watchlist (same session, seconds later) read "● LIVE · 05:34 · 37/37 QUOTES." Per-page fetch + cache means freshness can diverge across pages. Low impact; inherent to the design — a glance only.
 
 ### Watchlist (+ drilldown)
 _(pending)_
