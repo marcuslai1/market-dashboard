@@ -58,7 +58,17 @@ The table and drilldown are **strong** — click-to-expand, report-date picker, 
 **[WL-1] drilldown "Wide-stop R:R" misses the `sizing_rr` variant** — `P2` · S · ✅ auto-fix · folded into **BR-2** (make the corrective row recognize `sizing_rr`, not just `wide_stop_rr`).
 
 ### Signal Tracker
-_(pending)_
+
+Rich and honest — a direction-aware calibration hero (BUY/ACC/WATCH = win rate, CAUTION = avoid rate), a per-name track-record ledger with episode drill-downs, and clear methodology notes (`screens/signal-tracker-desktop-1440.png`). The calibration cards deliberately keep the numeral neutral and ride performance on a meter (`signal_tracker.py:357-360`) — a thoughtful fix so "CAUTION-red" doesn't read as bad. One finding, plus two drawers left for a follow-up.
+
+**[ST-1] By-name Avg/Best/Worst returns are colored by raw sign, so correct CAUTION calls render red/"bad"** — `P2` · S · treatment 🧑‍⚖️ (has in-file precedent) · Signal Tracker → By Name
+- **Saw (rendered colors, from the live DOM):** every CAUTION name's returns are painted red `rgb(239,68,68)` — NVTS Avg **-34.8%**, Worst **-53.1%**; CRWV -21.4%; LITE -18.8%. But for a CAUTION ("trim/avoid") call a *fall* is the call being **right**. BE shows a green "100% trades won" bar next to red -3.4% / -18.5% returns in the *same row*. The coloring is in fact **inverted** for CAUTION: INTC (CAUTION, **+6.8%**) is green though a *rise* means the avoid-call was wrong so far, while NVTS (CAUTION, **-34.8%**) is red though the fall made it a great call. Today's list is mostly CAUTION, so the Avg column reads as a "sea of red" that mostly represents *correct* calls (`screens/signal-tracker-byname-table.png`).
+- **Cause:** `_ret_num_cell` → `_ret_color` (`signal_tracker.py:326-329, 393-396`) = `STATUS_POS if v>0 else STATUS_NEG`, applied to all three columns regardless of signal direction. `avg` also blends BUY+CAUTION episodes for a name (`:459`), so one sign-colored number spans outcomes whose "good" direction differs.
+- **Why it matters:** the page exists to give an honest read of how signals performed; coloring a correct CAUTION call red inverts that read. The author already solved this on the calibration cards — the ledger just wasn't brought in line.
+- **Fix (matches the calibration-card precedent):** make Avg/Best/Worst numerals neutral (`--ink`) and let the direction-aware "Trades won" bar carry performance; or color by signal-correctness, not raw sign.
+- **Counter-view considered:** if these columns are meant purely as "which way did the stock move" (factual), sign-coloring is internally defensible — but that conflicts with the correctness-colored winbar beside them and the blended average. Flagging for your call.
+
+**Not deeply reviewed this pass:** the "Signal changes (155) — what flipped, and why" and "Paper trade outcomes — realised returns" drawers were left collapsed; worth a dedicated look.
 
 ### Pipeline Stats
 _(pending)_
