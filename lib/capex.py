@@ -316,7 +316,7 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     older = sorted(d for d in bdf["date"].unique() if d <= cutoff)
     if not older:
         return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
-                "tone": "good", "arrow": "none",
+                "tone": "neutral", "arrow": "none",
                 "detail": (f"median {now_med:+.1f}% — corpus younger than "
                            f"{REV_TREND_WINDOW_DAYS}d, no trend yet"),
                 "asof": now_date}
@@ -398,11 +398,14 @@ _VERDICT = {
                   "Spending is outrunning the revenue it produces — the cycle is still "
                   "growing, but the gap bears watching."),
     "cracking": ("CRACKING", "stress",
-                 "The spend/revenue gap is opening while demand or the fragile name is "
-                 "under stress — treat as an early crack."),
+                 "The spend/revenue gap is opening as revenue rolls over — "
+                 "treat as an early crack."),
     "insufficient": ("INSUFFICIENT DATA", "neutral",
                      "Not enough complete capex quarters yet — showing the signals we have."),
 }
+
+_CRACKING_FRAGILE_GLOSS = ("The fragile, debt-funded name is under stress — "
+                           "treat as an early crack.")
 
 
 def pulse_verdict(gap_available: bool, gap_pp: float,
@@ -417,11 +420,16 @@ def pulse_verdict(gap_available: bool, gap_pp: float,
         state = "insufficient"
     elif fragile_red or (gap_pp < 0 and rev_falling):
         state = "cracking"
-    elif gap_pp >= 0 and not rev_falling and not fragile_red:
+    elif gap_pp >= 0 and not rev_falling:
         state = "intact"
     else:
         state = "digesting"
     label, tone, gloss = _VERDICT[state]
+    # Trigger-aware CRACKING copy: only claim the gap is opening when the crack
+    # is actually gap-driven; a fragile-only crack must not contradict a
+    # positive/green gap hero.
+    if state == "cracking" and not (gap_pp < 0 and rev_falling):
+        gloss = _CRACKING_FRAGILE_GLOSS
     return {"state": state, "label": label, "tone": tone, "gloss": gloss}
 
 

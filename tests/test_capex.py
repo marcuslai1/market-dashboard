@@ -356,6 +356,23 @@ def test_verdict_cracking_via_negative_gap_and_falling_revenue():
     assert pulse_verdict(True, -3.0, True, False)["state"] == "cracking"
 
 
+def test_verdict_cracking_fragile_only_does_not_claim_gap_opening():
+    v = pulse_verdict(True, 5.0, False, True)   # fragile red, gap positive
+    assert v["state"] == "cracking"
+    assert "gap is opening" not in v["gloss"]
+    assert "fragile" in v["gloss"].lower()
+
+
+def test_verdict_cracking_gap_driven_mentions_gap_opening():
+    v = pulse_verdict(True, -5.0, True, False)  # gap negative + revenue falling
+    assert v["state"] == "cracking"
+    assert "gap is opening" in v["gloss"]
+
+
+def test_verdict_digesting_when_gap_nonneg_but_revenue_falling():
+    assert pulse_verdict(True, 5.0, True, False)["state"] == "digesting"
+
+
 def test_compute_verdict_fragile_red_forces_cracking():
     fund = fundamentals_history(GAP_REPORTS)
     capex = parse_capex({
