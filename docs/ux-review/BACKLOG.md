@@ -12,8 +12,37 @@ Each finding: **[ID] Title** — severity · effort · fix-safety · page/band
 
 ---
 
-## ★ Top findings (ranked) — filled during capstone
-_(to be populated as the review progresses)_
+## ★ Good morning — start here
+
+I reviewed all **7 pages** by running the real dashboard and looking at every band, cross-checking what it displays against the underlying report data. **13 findings.** The dashboard is in genuinely good shape — most of what I found is polish, and several "issues" turned out to be *deliberate and documented* (I left those alone). Three were clear, objective defects, and I **fixed all three on branches, with tests** — you can review and merge, or bin them.
+
+There's a **visual before/after summary** too (Artifact) — easier to skim than this doc.
+
+### ✅ Fixed tonight — on branches, 222 tests green, verified live
+| # | What was wrong | Fix | Branch |
+|---|---|---|---|
+| **BR-2/WL-1/TM-1** | The drilldown's "Wide-stop R:R" showed **"—"** for tight-stop names, so NVDA's headline **46.5:1** (which the data itself flags `rr_distorted`) stood alone — even though Terminology promises "both R:R numbers." | Drilldown now falls back to `sizing_rr` → shows **4.40:1** beside the headline. | `ux-fix/br2-drilldown-sizing-rr` |
+| **BR-1** | A plain-sentence risk rendered a mid-word–truncated tag **"US‑China tech tensions p"** instead of its severity badge. | Robust tag heuristic → now shows **LOW**, like its siblings. | `ux-fix/br1-risk-tag` |
+| **RC-1** | Report Comparison showed raw keys **AIXA_DE / D05_SI / IFX_DE** — the only page that skipped `display_ticker()`. | Wrapped in `display_ticker()` → **AIXA.DE / D05.SI / IFX.DE**. | `ux-fix/rc1-display-ticker` |
+
+*(All three are also merged together into `ux-review/overnight-2026-07-04` for one-look review.)*
+
+### 🧑‍⚖️ Your call — ranked proposals I did NOT touch (design judgment)
+1. **BR-2 (headline half)** — the *action card* + watchlist column still headline the distorted 46.5:1. Whether to show 4.4:1 there, or both, or a "tight-stop" marker, is an editorial call. Recommend: prefer `sizing_rr` when `rr_distorted`, with a small marker.
+2. **ST-1** (P2) — Signal Tracker's Avg/Best/Worst are coloured by raw sign, so a *correct* CAUTION call (price fell) shows **red**, and a wrong one (rose) shows **green** — inverted. You already neutralised this on the calibration cards; the ledger wasn't brought in line.
+3. **SC-1** (P3) — "Wildcard" is **amber** on the Briefing but **purple** on the Scenario Log. May be a deliberate colour-blind choice; align if not.
+4. **BR-4** (P3) — the posture verdict is one ~60-word `<h2>`; consider a styled `<p>` + short real heading (semantics only).
+5. Smaller: **PS-2** (stats page silently date-filtered), **CC-2** (uneven h1s), **BR-6** (cross-page freshness caption).
+
+### 🔎 Verified / no action needed
+- **BR-3** (`/briefing` "Page not found" dialog): in-app nav uses `/` and is fine — only a *typed* `/briefing` hits it, and Streamlit reserves `/` for the default page, so there's **no clean fix**. Optional truthfulness cleanup noted.
+- **PS-1** (cost-chart date span): flagged to **verify** interactively — my static repro couldn't reproduce it.
+- **BR-5** (narrative counts vs grid) & **CC-1** (`_stcore` 404 console noise): upstream / benign.
+- **CC-3** (mobile): the app is deliberately desktop-first — noted, not filed.
+
+---
+
+## ★ Top findings (ranked)
 
 ---
 
@@ -34,11 +63,12 @@ _(to be populated as the review progresses)_
 - **Why it matters:** the sharpest does-it-make-sense issue found. A headline stat overstates reward:risk ~10× vs the value the report itself says is real — on the single most prominent call of the day. 3 of 29 names carry `tight_invalidation` today, so it recurs.
 - **Fix:** a shared helper that prefers `sizing_rr.ratio_label` when `rr_distorted` (with a subtle "tight-stop" marker), used by all three sites; rank action candidates by the corrected ratio. Exact visual treatment is yours to tune.
 
-**[BR-3] Deep-linking to the default page `/briefing` shows a "Page not found" dialog and falls back to `/`** — `P2` · S–M · ✅ auto-fix · routing
+**[BR-3] Deep-linking to the default page `/briefing` shows a "Page not found" dialog and falls back to `/`** — `P2` · S · 🧑‍⚖️ verified — no clean fix · routing
 - **Saw:** a hard load of `localhost:8501/briefing` (cold *and* warm) pops Streamlit's **"Page not found — Running the app's main page"** dialog and rewrites the URL to `/` (see `screens/briefing-desktop-1440.png`; console logs a `/briefing/_stcore/health` 404). `/watchlist`, `/signal-tracker`, … all deep-link cleanly.
 - **Cause:** Briefing is the `default=True` page, which Streamlit serves canonically at `/`; also giving it `url_path="briefing"` (`dashboard.py:344`) creates a path the router won't accept as an entry point. In-app nav uses `st.radio` + `st.switch_page` (`masthead.py`), so clicking around is unaffected — only external/bookmarked/guessed `/briefing` links break.
 - **Why it matters:** the module docstring sells "real URL per page so deep links work"; 6 of 7 pages honor it, the flagship page doesn't — and a shared `/briefing` link greets a colleague with an error dialog.
-- **Fix:** drop `url_path="briefing"` on the default (accept `/` as its canonical URL), or otherwise make `/briefing` resolve; leave nav numerals/labels unchanged.
+- **Verified (overnight):** clicking Briefing in-app navigates to `/`, **not** `/briefing` — so in-app nav and refresh are fine; only a *typed/bookmarked* `/briefing` hits the dialog. Streamlit reserves `/` for the `default=True` page, so `/briefing` can't be made to resolve, and removing its `url_path` wouldn't stop the typed-path dialog either (that's Streamlit's built-in behaviour for unknown paths). **No clean code fix** — left unimplemented by design.
+- **Optional truthfulness cleanup (your call):** drop the dead `url_path="briefing"` from the default page (`dashboard.py:344`) and soften the module docstring's "deep links work" claim to "each *non-default* page has a real URL; Briefing is served at `/`." Registry/docs only; does not change the typed-`/briefing` behaviour.
 
 **[BR-4] The posture verdict is marked up as a single ~60-word `<h2>`** — `P3` · S · 🧑‍⚖️ proposal · Stance band
 - **Saw:** the entire "7 of 29 names are hard-blocked … cluster resets." verdict is one `heading level=2`, producing a sentence-length heading anchor (`#7-of-29-names-are-hard-blocked-…`).
@@ -130,4 +160,10 @@ _(pending)_
 ---
 
 ## Branches created
-_(none yet)_
+
+All off `main`, tested (**222 pass**, +4 new), verified live, **not pushed**, `main` untouched:
+- `ux-fix/rc1-display-ticker` — RC-1 · `display_ticker()` in report_comparison (±5 lines)
+- `ux-fix/br1-risk-tag` — BR-1 · robust risk-tag heuristic + 2 regression tests
+- `ux-fix/br2-drilldown-sizing-rr` — BR-2/WL-1/TM-1 drilldown · `sizing_rr` fallback + 2 regression tests
+
+`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the three fixes merged in, for one-look review. Cherry-pick/merge the fixes from here or from the individual branches above.
