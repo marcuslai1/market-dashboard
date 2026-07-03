@@ -306,3 +306,37 @@ def test_seed_file_parses_clean():
     assert out["fragile"] == ["CRWV"]
     assert out["warnings"] == []
     assert all(len(out["series"][tk]) == 9 for tk in out["core"])
+
+
+def test_chips_carry_tone_arrow_and_sub():
+    chips = build_chips(_capex_three_yoy(50.0, 52.0),
+                        fundamentals_history(GAP_REPORTS), _date(2026, 7, 3))
+    capex = _chip(chips, "capex")
+    assert capex["tone"] == "neutral" and capex["arrow"] == "up"   # accel = direction only
+    assert all(c["sub"] for c in chips)                            # every chip self-labels
+
+
+def test_capex_tone_neutral_even_when_decelerating():
+    chips = build_chips(_capex_three_yoy(60.0, 40.0), fundamentals_history({}),
+                        _date(2026, 7, 3))
+    c = _chip(chips, "capex")
+    assert c["tone"] == "neutral" and c["arrow"] == "down"
+
+
+def test_rev_falling_is_watch_tone_and_down_arrow():
+    reports = {
+        "2026-04-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 90.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 60.0}}}),
+        "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 70.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 30.0}}}),
+    }
+    c = _chip(build_chips(parse_capex(_raw()), fundamentals_history(reports),
+                          _date(2026, 7, 3)), "rev")
+    assert c["tone"] == "watch" and c["arrow"] == "down"
+
+
+def test_fragile_red_is_stress_tone():
+    capex = parse_capex(_raw({"CRWV": [
+        {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 9.9, "flag": "red"}]}))
+    c = _chip(build_chips(capex, fundamentals_history({}), _date(2026, 7, 3)), "fragile")
+    assert c["tone"] == "stress"
