@@ -87,9 +87,9 @@ def _hero_gap_html(gap: dict, note: dict | None) -> str:
     fwd = ""
     if note is not None:
         fwd = (f'<div style="margin-top:4px;font-size:11.5px;color:var(--ink-3);">'
-               f'↳ revenue has since {note["direction"]} to {note["now_pct"]:+.1f}% '
-               f'({note["now_asof"]}); the matching capex quarter is not reported '
-               f'yet, so the next gap may {note["hint"]}.</div>')
+               f'↳ revenue has since {_escape_dollars(note["direction"])} to {note["now_pct"]:+.1f}% '
+               f'({_escape_dollars(note["now_asof"])}); the matching capex quarter is not reported '
+               f'yet, so the next gap may {_escape_dollars(note["hint"])}.</div>')
     return (
         f'<div style="padding:10px 12px;border:1px solid var(--rule);'
         f'border-left:3px solid {color};margin:0 0 8px;">'
@@ -145,6 +145,9 @@ def _gap_fig(df: pd.DataFrame):
                               for v in df["gap_pp"]])
     fig.add_scatter(x=df["quarter"], y=df["capex_yoy_pct"],
                     name="Core capex YoY %", mode="lines+markers",
+                    # CHART_LINE (ink-3, ~5.4:1) not CHART_MUTED (ink-4, ~2.68:1):
+                    # the muted tone fell below the 3:1 floor for graphical objects
+                    # and the reference line was near-invisible on --paper.
                     line=dict(color=CHART_LINE))
     fig.add_scatter(x=df["quarter"], y=df["rev_growth_pct"],
                     name="Beneficiary revenue growth %", mode="lines+markers",
