@@ -111,6 +111,55 @@ def test_pending_quarter_none_when_complete():
     assert pending_quarter(capex) is None
 
 
+import math
+
+from lib.capex import fundamentals_history
+
+
+def _report(entries):
+    return {"watchlist": entries}
+
+
+SYNTH_REPORTS = {
+    "2026-06-01": _report({
+        "NVDA": {"valuation": {"revenue_growth_pct": 80.0, "fcf_yield_pct": 1.0,
+                               "forward_pe": 30.0, "peg_ratio": 0.6,
+                               "cluster_name": "Semis",
+                               "analyst_consensus": {"earnings_growth_pct": 200.0}}},
+        "MU": {"valuation": {"revenue_growth_pct": 40.0, "forward_pe": 12.0,
+                             "cluster_name": "Semis"}},
+        "D05_SI": {"no_valuation_here": True},
+    }),
+    "2026-07-01": _report({
+        "NVDA": {"valuation": {"revenue_growth_pct": 85.2, "forward_pe": 15.5,
+                               "cluster_name": "Semis"}},
+    }),
+}
+
+
+def test_fundamentals_history_shape_and_order():
+    df = fundamentals_history(SYNTH_REPORTS)
+    assert list(df.columns) == ["date", "ticker", "cluster", "revenue_growth_pct",
+                                "fcf_yield_pct", "forward_pe", "peg_ratio",
+                                "earnings_growth_pct"]
+    assert len(df) == 3  # D05_SI has no valuation dict → skipped
+    assert list(df["date"]) == sorted(df["date"])
+
+
+def test_fundamentals_history_values_and_nans():
+    df = fundamentals_history(SYNTH_REPORTS)
+    nvda_jun = df[(df["ticker"] == "NVDA") & (df["date"] == "2026-06-01")].iloc[0]
+    assert nvda_jun["earnings_growth_pct"] == 200.0
+    mu = df[df["ticker"] == "MU"].iloc[0]
+    assert math.isnan(mu["peg_ratio"]) and math.isnan(mu["earnings_growth_pct"])
+    assert mu["cluster"] == "Semis"
+
+
+def test_fundamentals_history_empty_input():
+    df = fundamentals_history({})
+    assert df.empty and "revenue_growth_pct" in df.columns
+
+
 def test_seed_file_parses_clean():
     raw = json.loads(Path("data/capex_quarterly.json").read_text(encoding="utf-8"))
     out = parse_capex(raw)
