@@ -16,13 +16,29 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from lib.capex import (CURATION_OVERDUE_DAYS, build_chips, compute_verdict,
-                       coverage_gap_series, curation_age_days,
-                       forward_revenue_note, fundamentals_history, parse_capex)
+from lib.capex import (
+    CURATION_OVERDUE_DAYS,
+    build_chips,
+    compute_verdict,
+    coverage_gap_series,
+    curation_age_days,
+    forward_revenue_note,
+    fundamentals_history,
+    parse_capex,
+)
 from lib.cards import render_section_head
-from lib.charts import (CHART_ACCENT, CHART_LINE, CHART_PALETTE, INK_FALLBACK,
-                        PLOTLY_CONFIG, STATUS_NEG, STATUS_POS, STATUS_WARN,
-                        chart_data_table, style_fig)
+from lib.charts import (
+    CHART_ACCENT,
+    CHART_LINE,
+    CHART_PALETTE,
+    INK_FALLBACK,
+    PLOTLY_CONFIG,
+    STATUS_NEG,
+    STATUS_POS,
+    STATUS_WARN,
+    chart_data_table,
+    style_fig,
+)
 from lib.data_loader import data_fingerprint, load_all_reports, load_capex_quarterly
 from lib.formatters import _escape_dollars
 

@@ -78,7 +78,7 @@ def parse_capex(raw) -> dict:
 
 
 _FUND_FIELDS = ["revenue_growth_pct", "fcf_yield_pct", "forward_pe", "peg_ratio"]
-_FUND_COLUMNS = ["date", "ticker", "cluster"] + _FUND_FIELDS + ["earnings_growth_pct"]
+_FUND_COLUMNS = ["date", "ticker", "cluster", *_FUND_FIELDS, "earnings_growth_pct"]
 
 
 def _num_or_nan(v) -> float:

@@ -1,11 +1,15 @@
 """Tests for the AI Capex Pulse band's pure HTML/frame helpers."""
 import pandas as pd
 
-from components.briefing.capex_pulse import (_cluster_medians, _gap_chart_frame,
-                                             _hero_gap_html, _overdue_html,
-                                             _signals_html, _verdict_html)
+from components.briefing.capex_pulse import (
+    _cluster_medians,
+    _gap_chart_frame,
+    _hero_gap_html,
+    _overdue_html,
+    _signals_html,
+    _verdict_html,
+)
 from lib.capex import CURATION_OVERDUE_DAYS
-
 
 GAP_CHIP = {"key": "gap", "label": "Coverage gap",
             "sub": "beneficiary revenue growth minus capex growth",

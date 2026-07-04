@@ -8,9 +8,11 @@ import pandas as pd
 
 from components.signal_tracker import (
     _classify_episode_verdict,
+    _ret_num_cell,
     build_signal_episodes,
     compute_signal_accuracy,
 )
+from lib.charts import STATUS_NEG, STATUS_POS
 
 
 def _sig_df(rows):
@@ -138,3 +140,19 @@ def test_accuracy_insufficient_forward_rows_is_none():
     prices = _prices_df([("2026-01-05", "AMD", 100.0), ("2026-01-06", "AMD", 101.0)])
     acc = compute_signal_accuracy(sig, prices)
     assert pd.isna(acc.iloc[0]["return_5d"])  # <5 forward rows
+
+
+# ── Ledger return colouring is neutral, not sign-based (UX-ST-1) ──
+def test_ledger_returns_are_not_sign_coloured():
+    # A correct CAUTION call (price fell) must NOT render red, and a gain must
+    # NOT render green — the direction-aware "Trades won" winbar carries
+    # performance, mirroring the calibration cards. The +/- sign still shows
+    # direction; only the misleading valence colour is removed.
+    neg = _ret_num_cell(-34.8)
+    pos = _ret_num_cell(12.5)
+    assert "-34.8%" in neg and STATUS_NEG not in neg
+    assert "+12.5%" in pos and STATUS_POS not in pos
+
+
+def test_ledger_missing_return_renders_dash():
+    assert "—" in _ret_num_cell(None)

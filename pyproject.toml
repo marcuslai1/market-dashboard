@@ -34,6 +34,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "dashboard.py" = ["E402"]  # top-level st.set_page_config must precede imports of theme
+"tests/test_capex.py" = ["E402"]  # deliberate sectioned imports — each test group imports what it needs just before it
 
 [tool.ruff.format]
 quote-style = "double"
