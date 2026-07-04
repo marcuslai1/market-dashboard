@@ -330,7 +330,7 @@ def test_fragile_red_is_stress_tone():
     assert c["tone"] == "stress"
 
 
-from lib.capex import pulse_verdict, compute_verdict
+from lib.capex import compute_verdict, pulse_verdict
 
 
 def test_verdict_insufficient_when_no_gap():
