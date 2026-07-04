@@ -42,29 +42,29 @@ def _content_height(page) -> int:
     ))
 
 
-def goto_and_settle(page, url: str) -> None:
-    """Navigate, wait until Streamlit has finished its script run, then grow the
-    viewport so a full-page screenshot captures the whole app."""
-    page.goto(url, wait_until="networkidle")
-    page.wait_for_selector("text=The Market Report", timeout=30_000)
-    # Streamlit shows a "Running..." status while a script runs; wait it out.
-    page.wait_for_selector('[data-testid="stStatusWidget"]', state="detached",
-                           timeout=30_000)
-    # Re-assert animation kill (survives reruns) and let layout settle.
-    page.add_style_tag(content="*{animation:none!important;transition:none!important}")
-    page.wait_for_timeout(600)
-    # Streamlit scrolls its body INSIDE <section data-testid="stMain">, so the
-    # document itself stays viewport-height and Playwright's full_page screenshot
-    # would otherwise capture only the first fold. Grow the viewport to the full
-    # content height so full_page captures the entire page (below-the-fold Plotly
-    # charts included). Width is preserved so the responsive layout is unchanged.
-    #
-    # Grow-until-stable: Streamlit lazy-mounts content near the viewport, so a
-    # large page (e.g. Signal Tracker) can render MORE once the viewport enlarges
-    # and exceed the height measured at 900px — silently truncating its tail,
-    # identically every run (a coverage gap with no flake to catch it). So after
-    # each resize we re-measure and grow again until the content fits, capped at
-    # 4 iterations so a page that never converges can't loop forever.
+def grow_viewport_to_content(page) -> None:
+    """Grow the viewport height until it holds the app's full content height, so
+    Playwright's full_page screenshot captures the whole app.
+
+    Streamlit scrolls its body INSIDE <section data-testid="stMain">, so the
+    document itself stays viewport-height and a full_page screenshot would
+    otherwise capture only the first fold. Growing the viewport to the full
+    content height makes full_page capture the entire page (below-the-fold Plotly
+    charts included). Width is preserved so the responsive layout is unchanged.
+
+    Grow-until-stable: Streamlit lazy-mounts content near the viewport, so a
+    large page (e.g. Signal Tracker) can render MORE once the viewport enlarges
+    and exceed the height measured at 900px — silently truncating its tail,
+    identically every run (a coverage gap with no flake to catch it). So after
+    each resize we re-measure and grow again until the content fits, capped at
+    4 iterations so a page that never converges can't loop forever.
+
+    Monotonic + idempotent: the loop only ever GROWS the viewport (it breaks the
+    moment content already fits). That is what lets a caller run it a SECOND time
+    after an interaction (expanding a drill-down row adds height): the extra
+    content simply re-triggers the grow, while an already-tall default page is
+    left untouched — so ``goto_and_settle``'s behavior is unchanged by the split.
+    """
     width = page.viewport_size["width"]
     for _ in range(4):
         content_h = _content_height(page)
@@ -76,6 +76,20 @@ def goto_and_settle(page, url: str) -> None:
         # Let the taller layout settle — Plotly canvases redraw on the resize and
         # newly-revealed content mounts before the next measurement.
         page.wait_for_timeout(800)
+
+
+def goto_and_settle(page, url: str) -> None:
+    """Navigate, wait until Streamlit has finished its script run, then grow the
+    viewport so a full-page screenshot captures the whole app."""
+    page.goto(url, wait_until="networkidle")
+    page.wait_for_selector("text=The Market Report", timeout=30_000)
+    # Streamlit shows a "Running..." status while a script runs; wait it out.
+    page.wait_for_selector('[data-testid="stStatusWidget"]', state="detached",
+                           timeout=30_000)
+    # Re-assert animation kill (survives reruns) and let layout settle.
+    page.add_style_tag(content="*{animation:none!important;transition:none!important}")
+    page.wait_for_timeout(600)
+    grow_viewport_to_content(page)
 
 
 def assert_snapshot(page, name: str, *, mask: list | None = None) -> None:
