@@ -31,7 +31,7 @@ _(none yet — fix queue for Phase 2: BR-1 safe · BR-2 logic · BR-3 routing)_
 
 ## DONE — awaiting your triage
 - **Read first:** `docs/ux-review/BACKLOG.md` (ranked summary at top) or the **Artifact** (visual before/after).
-- **Fixes** (off `main`, 222 tests green, not pushed): `ux-fix/rc1-display-ticker`, `ux-fix/br1-risk-tag`, `ux-fix/br2-drilldown-sizing-rr` — also merged into this branch for one-look review.
-- **Proposals left for your judgment:** BR-2 (headline), ST-1, SC-1, BR-4, PS-2, CC-2, BR-6.
-- **Note:** local Streamlit servers left running on :8501 (pre-fix) and :8502 (fixed) — kill when done.
+- **Fixes** (off `main`, 227 tests green, not pushed): `ux-fix/rc1-display-ticker`, `ux-fix/br1-risk-tag`, `ux-fix/br2-drilldown-sizing-rr`, `ux-fix/br2-action-card-rr` — all merged into this branch. BR-2 now fixed across all 3 R:R surfaces + ranking (per your "do what you recommend").
+- **Proposals left for your judgment:** ST-1 (my next pick), SC-1, BR-4, PS-2, CC-2, BR-6.
+- **Note:** local servers running — :8501 (pre-fix), :8503 (all fixes), :8600 (Artifact). Kill when done (command in final message).
 - The octopus merge of the 3 fixes landed on THIS review branch (an aborted branch-create); `main` is clean, individual fix branches are intact.
