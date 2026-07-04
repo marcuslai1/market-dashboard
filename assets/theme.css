@@ -1454,3 +1454,31 @@ details.led-details[open] > summary {
   .calib-cell:nth-child(even) { border-right: 0; }
   .calib-cell:nth-child(n + 3) { border-top: 1px solid var(--rule); }
 }
+
+/* ── Signal Tracker: scorecard plain-language + what-we've-changed strip ── */
+.calib-cell .sc-verb {
+  font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+  letter-spacing: 0.04em; margin: 3px 0 9px; text-transform: uppercase;
+}
+.calib-cell .sc-flag {
+  font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 7px;
+}
+.calib-cell .sc-flag.thin { color: #f59e0b; }
+
+.chg-log { border-top: 1px solid var(--rule); margin-top: 4px; }
+.chg-item {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px;
+  padding: 11px 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+}
+.chg-date { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.chg-body { min-width: 0; }
+.chg-title {
+  display: block; font-family: var(--mono); font-size: 12px;
+  color: var(--ink); letter-spacing: 0.02em; margin-bottom: 3px;
+}
+.chg-note {
+  font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
+}
+@media (max-width: 720px) {
+  .chg-item { grid-template-columns: 1fr; gap: 3px; }
+}

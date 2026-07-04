@@ -11,7 +11,7 @@ import streamlit as st
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
-from lib.data_loader import load_signal_log
+from lib.data_loader import load_changelog
 from lib.formatters import (
     _escape_attr,
     _escape_dollars,
@@ -323,53 +323,90 @@ def _rate_color(rate: float | None) -> str:
     return "var(--ink-2)"
 
 
-def _calibration_band_html(acc_df: pd.DataFrame) -> str:
-    """The hero strip: one calibration cell per signal type.
+# Matured samples below this floor -> flag the cell "thin" (mirrors the
+# pipeline's DECISION_GRADE_MIN_ALPHA_N). Below MIN_SAMPLES a rate is noise.
+DECISION_GRADE_MIN = 10
+MIN_SAMPLES = 3
 
-    BUY/ACCUMULATE/WATCH show 5d win rate; CAUTION shows 5d avoid rate.
-    Sub-line carries sample size and the 10d average move.
+_SCORECARD_SPECS = [
+    ("BUY", "win", "Enter now"),
+    ("ACCUMULATE", "win", "Starter position"),
+    ("WATCH", "win", "Wait for the trigger"),
+    ("CAUTION", "avoid", "Wait weeks · price wrong"),
+    ("AVOID", "avoid", "Wait quarters · story broken"),
+]
+
+
+def _scorecard_html(acc_df: pd.DataFrame) -> str:
+    """Plain-language signal scorecard: one cell per signal, showing how often
+    the call went the right way 5 sessions out, with an honest small-sample
+    flag.
+
+    BUY/ACCUMULATE/WATCH score a rise as right; CAUTION/AVOID score a drop as
+    right (you avoided it). `thin` mirrors the pipeline's decision-grade floor —
+    a rate resting on fewer than DECISION_GRADE_MIN calls is not to be trusted,
+    however tidy it looks.
     """
-    min_samples = 3
-    specs = [
-        ("BUY", "win", "should we have bought"),
-        ("ACCUMULATE", "win", "did adds pay off"),
-        ("WATCH", "win", "did the setups fire"),
-        ("CAUTION", "avoid", "right to stay away"),
-        ("AVOID", "avoid", "right to stay out"),
-    ]
     cells = ""
-    for sig, mode, _gloss in specs:
+    for sig, mode, verb in _SCORECARD_SPECS:
         data = acc_df[acc_df["signal"] == sig] if not acc_df.empty else pd.DataFrame()
-        count = len(data)
-        valid5 = data["return_5d"].dropna() if "return_5d" in data.columns else pd.Series(dtype=float)
-        valid10 = data["return_10d"].dropna() if "return_10d" in data.columns else pd.Series(dtype=float)
-        label = "5d avoid rate" if mode == "avoid" else "5d win rate"
+        valid5 = (data["return_5d"].dropna()
+                  if "return_5d" in data.columns else pd.Series(dtype=float))
+        n = len(valid5)
+        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
 
-        if len(valid5) >= min_samples:
-            rate = (valid5 <= 0).mean() * 100 if mode == "avoid" else (valid5 > 0).mean() * 100
+        if n >= MIN_SAMPLES:
+            right = int((valid5 <= 0).sum() if mode == "avoid" else (valid5 > 0).sum())
+            rate = right / n * 100
             col = _rate_color(rate)
-            # Numeral stays --ink (neutral). Performance (good/weak) rides a thin
-            # meter below it — so a low ACCUMULATE win-rate no longer renders in
-            # CAUTION-red and read as a signal. The meter matches the by-name
-            # winbars, keeping "rate = a bar" consistent across the page.
             val_html = (
                 f'<div class="cval">{rate:.0f}%</div>'
                 f'<div class="cbar"><i style="width:{rate:.0f}%;background:{col};"></i></div>'
             )
+            sub = f"right {right} of {n} · 5d"
+            if n < DECISION_GRADE_MIN:
+                flag = f'<div class="sc-flag thin">⚠ thin — only {n} calls</div>'
+            else:
+                flag = f'<div class="sc-flag">n={n} · holding up</div>'
         else:
-            val_html = f'<div class="cval muted">{"Pending" if count else "—"}</div>'
+            val_html = f'<div class="cval muted">{"Pending" if n else "—"}</div>'
+            sub = f"{n} of {MIN_SAMPLES}+ needed"
+            flag = '<div class="sc-flag">not enough yet</div>'
 
-        sub = f"{label} · n={count}"
-        if len(valid10) >= min_samples:
-            sub += f" · 10d {valid10.mean():+.1f}%"
-        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         cells += (
             f'<div class="calib-cell">'
             f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
-            f'{val_html}<div class="csub">{sub}</div>'
+            f'<div class="sc-verb">{verb}</div>'
+            f'{val_html}'
+            f'<div class="csub">{sub}</div>'
+            f'{flag}'
             f'</div>'
         )
     return f'<div class="calib-grid">{cells}</div>'
+
+
+def _changelog_strip_html(entries: list) -> str:
+    """Compact dated strip of recent methodology changes — the 'what we've
+    changed' view. Empty list -> '' so the caller can skip the whole section.
+    """
+    if not entries:
+        return ""
+    items = ""
+    for e in entries[:10]:
+        if not isinstance(e, dict):
+            continue
+        date = _escape_dollars(str(e.get("date", "")))
+        title = _escape_dollars(str(e.get("title", "")))
+        note = _escape_dollars(str(e.get("note", "")))
+        items += (
+            f'<div class="chg-item">'
+            f'<div class="chg-date">{date}</div>'
+            f'<div class="chg-body">'
+            f'<span class="chg-title">{title}</span>'
+            f'<span class="chg-note">{note}</span>'
+            f'</div></div>'
+        )
+    return f'<div class="chg-log">{items}</div>' if items else ""
 
 
 def _winbar_html(rate: float | None) -> str:
@@ -578,57 +615,68 @@ def render_signal_tracker_page(
         st.info("Select at least one name in the filter.")
         st.stop()
 
-    # ── 1. Calibration band (across ALL tickers — the headline sanity check) ──
+    # ── 1. Scorecard — the one clear read: how often each signal was right ──
     acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
     st.caption(
-        "Forward-return calibration across **all** tracked names, deduped to the "
-        "first day of each signal streak. BUY/ACCUMULATE/WATCH: % that rose 5 "
-        "sessions later. CAUTION: % that fell (loss avoided)."
+        "How often each signal went the right way, 5 sessions later. "
+        "BUY / ACCUMULATE / WATCH count a **rise** as right; CAUTION / AVOID "
+        "count a **drop** as right (you avoided it)."
     )
     if acc_df.empty:
-        st.caption("No signals tracked yet — calibration populates as signals accumulate.")
+        st.caption("No signals tracked yet — the scorecard fills in as calls accumulate.")
     else:
-        st.markdown(_calibration_band_html(acc_df), unsafe_allow_html=True)
+        st.markdown(_scorecard_html(acc_df), unsafe_allow_html=True)
+        st.caption(
+            "⚠ Nearly all of this history comes from a single market regime "
+            "(a steady uptrend since April). Until a downturn or a choppy market "
+            "tests these calls, treat every number here as directional, not "
+            "proven — that's what the *thin* flags and low sample counts mean."
+        )
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         if hold_count:
             st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
 
-    # ── 2. By-name performance ledger (replaces 27 stacked tables) ──
-    st.markdown(
-        '<div class="section-head" style="margin-top:26px;"><h2>By Name</h2>'
-        '<span class="sub">Click a row for its episodes</span></div>',
-        unsafe_allow_html=True,
-    )
-    st.caption(
-        "One row per name. *Trades won* = share of closed BUY/ACCUMULATE/CAUTION "
-        "episodes that worked out (profit, or loss avoided). Return uses trade-"
-        "economics: BUY/ACCUMULATE is held through HOLD/WATCH and closes on the "
-        "next CAUTION; CAUTION runs until the next BUY/ACCUMULATE. Names with no "
-        "closed trades sort last."
-    )
-
-    if cache_key is not None:
-        episodes = _episodes_cached(
-            cache_key, tuple(sorted(selected_tickers)), sig_df, prices_df
+    # ── 2. What we've changed — recent methodology updates ──
+    strip = _changelog_strip_html(load_changelog())
+    if strip:
+        st.markdown(
+            '<div class="section-head" style="margin-top:30px;">'
+            "<h2>What we've changed</h2>"
+            '<span class="sub">Recent updates to how these signals are built</span>'
+            "</div>",
+            unsafe_allow_html=True,
         )
-    else:
-        episodes = build_signal_episodes(
-            sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
-        )
-    if not episodes.empty:
-        actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION", "AVOID"])
-        watch_triggered = (episodes["signal"] == "WATCH") & (
-            episodes["run_during_pct"].fillna(0) >= 5
-        )
-        episodes = episodes[actionable_mask | watch_triggered]
+        st.markdown(strip, unsafe_allow_html=True)
 
-    if episodes.empty:
-        st.info("No actionable episodes for the selected names yet.")
-    else:
-        latest = sig_df.sort_values("date").groupby("ticker")["signal"].last().to_dict()
-        st.markdown(_name_ledger_html(episodes, latest), unsafe_allow_html=True)
+    # ── 3. Detail drawers (collapsed — the page leads with the scorecard) ──
+    with st.expander("By name — each name's track record + episodes", expanded=False):
+        st.caption(
+            "One row per name. *Trades won* = share of closed BUY/ACCUMULATE/"
+            "CAUTION episodes that worked out (profit, or loss avoided). "
+            "BUY/ACCUMULATE is held through HOLD/WATCH and closes on the next "
+            "CAUTION; CAUTION runs until the next BUY/ACCUMULATE. Names with no "
+            "closed trades sort last."
+        )
+        if cache_key is not None:
+            episodes = _episodes_cached(
+                cache_key, tuple(sorted(selected_tickers)), sig_df, prices_df
+            )
+        else:
+            episodes = build_signal_episodes(
+                sig_df[sig_df["ticker"].isin(selected_tickers)], prices_df
+            )
+        if not episodes.empty:
+            actionable_mask = episodes["signal"].isin(["BUY", "ACCUMULATE", "CAUTION", "AVOID"])
+            watch_triggered = (episodes["signal"] == "WATCH") & (
+                episodes["run_during_pct"].fillna(0) >= 5
+            )
+            episodes = episodes[actionable_mask | watch_triggered]
+        if episodes.empty:
+            st.info("No actionable episodes for the selected names yet.")
+        else:
+            latest = sig_df.sort_values("date").groupby("ticker")["signal"].last().to_dict()
+            st.markdown(_name_ledger_html(episodes, latest), unsafe_allow_html=True)
 
-    # ── 3. Secondary detail (collapsed by default) ──
     filtered = sig_df[sig_df["ticker"].isin(selected_tickers)]
     changes = []
     for ticker in selected_tickers:
@@ -643,91 +691,16 @@ def render_signal_tracker_page(
                     "To": curr["signal"],
                     "Rationale": curr["rationale"][:200] if curr["rationale"] else "",
                 })
-
     with st.expander(f"Signal changes ({len(changes)}) — what flipped, and why", expanded=False):
         if changes:
             st.dataframe(pd.DataFrame(changes), width="stretch", hide_index=True)
         else:
             st.caption("No signal changes in the selected names / date range.")
 
-    _render_paper_trade_outcomes()
 
 
-def _render_paper_trade_outcomes() -> None:
-    """Pipeline paper-trade log — a separate data source, kept collapsed."""
-    sig_log = load_signal_log()
-    title = "Paper trade outcomes — realised returns from the pipeline log"
-    with st.expander(title, expanded=False):
-        st.caption(
-            "Realised returns from the pipeline's own log — `entry_price` and "
-            "`invalidation` are what the pipeline saw at signal time, not "
-            "reconstructed after the fact. Outcomes fill in as trading days elapse."
-        )
-        if sig_log.empty:
-            st.info("No signal log data yet — `signal_log.csv` appears after the next pipeline run.")
-            return
-
-        post_cutover_only = st.checkbox(
-            "Post-cutover only (≥ 2026-04-19)",
-            value=True,
-            help="Pre-cutover rows are too sparse to drive behavior. Uncheck to include them.",
-            key="paper_trade_post_cutover",
-        )
-        if post_cutover_only:
-            sig_log = sig_log[sig_log["date"] >= pd.Timestamp("2026-04-19")].copy()
-        if sig_log.empty:
-            st.info("No post-cutover signals logged yet.")
-            return
-
-        total_rows = len(sig_log)
-        by_type = sig_log["entry_type"].value_counts().to_dict()
-        summary_cols = st.columns(3)
-        summary_cols[0].metric("Total Signals Logged", total_rows)
-        summary_cols[1].metric("Standard Entries", by_type.get("standard", 0))
-        summary_cols[2].metric("Monitor (non-entry)", by_type.get("monitor", 0))
-
-        finalised = sig_log.dropna(subset=["price_after_20d"])
-        if not finalised.empty:
-            hit_inv = int(finalised["hit_invalidation"].fillna(0).sum())
-            hit_up = int(finalised["hit_upside_target"].fillna(0).sum())
-            hr_cols = st.columns(3)
-            hr_cols[0].metric("Rows with 20d Outcome", len(finalised))
-            hr_cols[1].metric(
-                "Hit Invalidation", f"{hit_inv} ({hit_inv / len(finalised) * 100:.0f}%)"
-            )
-            hr_cols[2].metric(
-                "Hit Upside Target", f"{hit_up} ({hit_up / len(finalised) * 100:.0f}%)"
-            )
-        else:
-            st.caption("No signals have aged 20 trading sessions yet — hit-rate stats pending.")
-
-        st.markdown("**Realised Return by Signal × Entry Type**")
-        breakdown_rows = []
-        for (sig_type, etype), group in sig_log.groupby(["signal", "entry_type"]):
-            row = {"Signal": sig_type, "Entry Type": etype, "Count": len(group)}
-            for h in ["5d", "10d", "20d"]:
-                valid = group[f"return_{h}"].dropna()
-                if len(valid) >= 1:
-                    row[f"{h} Avg"] = f"{valid.mean():+.1f}%"
-                    row[f"{h} N"] = len(valid)
-                else:
-                    row[f"{h} Avg"] = "—"
-                    row[f"{h} N"] = 0
-            breakdown_rows.append(row)
-        if breakdown_rows:
-            bd_df = pd.DataFrame(breakdown_rows).sort_values(
-                ["Entry Type", "Signal"]
-            ).reset_index(drop=True)
-            st.dataframe(bd_df, width="stretch", hide_index=True)
-
-        open_rows = sig_log[sig_log["price_after_20d"].isna()].copy()
-        if not open_rows.empty:
-            with st.expander(f"Open positions ({len(open_rows)}) — outcomes still resolving"):
-                open_display = open_rows[[
-                    "date", "ticker", "signal", "entry_type",
-                    "entry_price", "invalidation", "upside_target",
-                    "price_after_5d", "price_after_10d",
-                ]].copy()
-                open_display["ticker"] = open_display["ticker"].map(display_ticker)
-                open_display["date"] = open_display["date"].dt.strftime("%Y-%m-%d")
-                st.dataframe(open_display, width="stretch", hide_index=True)
+# The paper-trade-outcomes block (a second scoring system: entry types, hit-
+# invalidation, realised return by signal x entry type) was CUT 2026-07-04 —
+# it duplicated the scorecard's job and was the densest thing on the page.
+# Its pipeline-log data (signal_log.csv) is still exported; if we want realised
+# P&L back, fold one line into the scorecard rather than re-adding this table.

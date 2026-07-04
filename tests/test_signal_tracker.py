@@ -7,8 +7,10 @@ dashboard's track record rests on.
 import pandas as pd
 
 from components.signal_tracker import (
+    _changelog_strip_html,
     _classify_episode_verdict,
     _ret_num_cell,
+    _scorecard_html,
     build_signal_episodes,
     compute_signal_accuracy,
 )
@@ -156,3 +158,51 @@ def test_ledger_returns_are_not_sign_coloured():
 
 def test_ledger_missing_return_renders_dash():
     assert "—" in _ret_num_cell(None)
+
+
+# ── Scorecard: plain-language, honest small-sample flags (redesign) ──
+
+def _acc_df(signal, returns_5d):
+    return pd.DataFrame([{"signal": signal, "return_5d": r} for r in returns_5d])
+
+
+def test_scorecard_shows_avoid_rate_and_flags_thin_for_caution():
+    """CAUTION is scored on the AVOID direction (a drop = right), and a cell
+    resting on fewer than the decision-grade floor is flagged thin."""
+    # 4 CAUTION: 3 fell (right), 1 rose (wrong) -> avoid rate 75%, n=4 -> thin
+    html = _scorecard_html(_acc_df("CAUTION", [-3.0, -1.0, -2.0, 4.0]))
+    assert "CAUTION" in html
+    assert "75%" in html
+    assert "thin" in html.lower()
+
+
+def test_scorecard_win_rate_for_buy_and_not_thin_at_floor():
+    """BUY scored on the WIN direction (a rise = right); 10 samples clears the
+    thin floor, so no thin flag anywhere."""
+    html = _scorecard_html(_acc_df("BUY", [1.0] * 10))
+    assert "100%" in html
+    assert "thin" not in html.lower()
+
+
+def test_scorecard_pending_below_min_samples():
+    html = _scorecard_html(_acc_df("BUY", [1.0, 2.0]))  # n=2 < 3 -> Pending
+    assert "Pending" in html
+
+
+def test_scorecard_empty_frame_does_not_crash():
+    html = _scorecard_html(pd.DataFrame())
+    assert "BUY" in html and "CAUTION" in html  # all cells render, all Pending
+
+
+# ── What-we've-changed strip ──
+
+def test_changelog_strip_renders_entries():
+    html = _changelog_strip_html(
+        [{"date": "2026-07-04", "title": "Honest flags", "note": "small-sample"}]
+    )
+    assert "2026-07-04" in html
+    assert "Honest flags" in html
+
+
+def test_changelog_strip_empty_is_blank():
+    assert _changelog_strip_html([]) == ""
