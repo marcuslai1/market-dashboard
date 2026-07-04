@@ -136,6 +136,11 @@ def test_rr_display_distorted_without_sizing_keeps_headline():
     assert (label, ratio, adjusted) == ("9.0:1", 9.0, False)
 
 
+def test_rr_display_synthesizes_label_when_missing():
+    # ratio present but no ratio_label → synthesize, don't return blank.
+    assert rr_display({"ratio": 2.4}) == ("2.4:1", 2.4, False)
+
+
 def test_rr_display_empty_is_safe():
     assert rr_display(None) == ("", 0.0, False)
     assert rr_display({}) == ("", 0.0, False)

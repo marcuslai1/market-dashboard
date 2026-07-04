@@ -43,7 +43,9 @@ def rr_display(rr_obj: dict | None) -> tuple[str, float, bool]:
         if ratio is not None:
             label = sz.get("ratio_label") or f"{ratio:.1f}:1"
             return label, float(ratio), True
-    return rr_obj.get("ratio_label", ""), float(rr_obj.get("ratio") or 0), False
+    ratio = rr_obj.get("ratio")
+    label = rr_obj.get("ratio_label") or (f"{ratio:.1f}:1" if ratio is not None else "")
+    return label, float(ratio or 0), False
 
 
 def _escape_attr(text) -> str:
