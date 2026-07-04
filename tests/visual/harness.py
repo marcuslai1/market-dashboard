@@ -76,6 +76,16 @@ def grow_viewport_to_content(page) -> None:
         # Let the taller layout settle — Plotly canvases redraw on the resize and
         # newly-revealed content mounts before the next measurement.
         page.wait_for_timeout(800)
+    # A page that never converges within the cap would otherwise capture a
+    # truncated tail deterministically (no flake to reveal the loss). Re-measure
+    # after the loop and fail loud instead of silently clipping.
+    content_h = _content_height(page)
+    vh = page.viewport_size["height"]
+    if content_h > vh:
+        raise RuntimeError(
+            f"page did not fit after 4 grows: content {content_h}px > "
+            f"viewport {vh}px — increase the cap or investigate lazy-mounting"
+        )
 
 
 def goto_and_settle(page, url: str) -> None:
@@ -99,9 +109,17 @@ def assert_snapshot(page, name: str, *, mask: list | None = None) -> None:
     actual = page.screenshot(full_page=True, animations="disabled",
                              mask=mask or [], scale="css", type="png")
     baseline_path = BASELINE_DIR / f"{name}.png"
-    if os.environ.get("VISUAL_UPDATE") == "1" or not baseline_path.exists():
+    if os.environ.get("VISUAL_UPDATE") == "1":
         baseline_path.write_bytes(actual)
         return
+    if not baseline_path.exists():
+        # Compare mode: a missing baseline is a hard error, NOT a silent
+        # write-and-pass. Auto-writing here would let an uncommitted snapshot
+        # pass forever in an ephemeral CI container, testing nothing.
+        raise AssertionError(
+            f"baseline '{name}.png' missing — generate it with VISUAL_UPDATE=1 "
+            f"(make visual-update) and commit it"
+        )
     ok, diff = compare_png(actual, baseline_path.read_bytes())
     if not ok:
         DIFF_DIR.mkdir(exist_ok=True)
