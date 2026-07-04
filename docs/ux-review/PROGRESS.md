@@ -29,9 +29,9 @@
 ## Fix branches created
 _(none yet — fix queue for Phase 2: BR-1 safe · BR-2 logic · BR-3 routing)_
 
-## DONE — awaiting your triage
-- **Read first:** `docs/ux-review/BACKLOG.md` (ranked summary at top) or the **Artifact** (visual before/after).
-- **Fixes** (off `main`, 229 tests green, **pushed to origin**): `ux-fix/rc1-display-ticker`, `ux-fix/br1-risk-tag`, `ux-fix/br2-drilldown-sizing-rr`, `ux-fix/br2-action-card-rr`, `ux-fix/st1-tracker-coloring`, `ux-fix/minor-polish` — all merged into this branch. **7 findings fixed** (RC-1, BR-1, BR-2, ST-1, SC-1, CC-2, PS-2).
+## DONE — merged to `main`, CI green
+- **Merged:** the review branch is merged into `main` (merge commit `fa00129`) and pushed. **CI on main is green** — test (3.10), test (3.12), lint all pass. (The two prior main runs were red on pre-existing capex ruff; this merge fixed them.)
+- **7 findings fixed** (RC-1, BR-1, BR-2, ST-1, SC-1, CC-2, PS-2), 229 tests green, all verified live. Detail: `docs/ux-review/BACKLOG.md`.
+- **Branches on origin:** `main`, `ux-review/overnight-2026-07-04`, and the six `ux-fix/*` (kept for granular history).
 - **Still open (deliberately):** BR-4 (verdict `<h2>` — needs theme CSS to keep the signature look), BR-6 (freshness caption — inherent to per-page fetch). Both genuine judgment calls.
-- **Note:** a local server may be running on :8501 (all fixes). Kill when done (command in final message).
-- The octopus merge of the 3 fixes landed on THIS review branch (an aborted branch-create); `main` is clean, individual fix branches are intact.
+- **Note:** a local server may be running on :8501; kill when done (command in the chat).
