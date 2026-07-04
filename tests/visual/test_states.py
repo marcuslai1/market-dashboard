@@ -78,6 +78,19 @@ def test_signal_tracker_ledger(streamlit_server, vpage):
     """
     goto_and_settle(vpage, f"{streamlit_server}/signal-tracker")
 
+    # The by-name ledger now lives inside a COLLAPSED st.expander (added in
+    # 7eab190 "simplify to one plain scorecard" — the page leads with the
+    # scorecard and tucks the per-name history into a drawer). Its
+    # <details class=led-details> rows are in the DOM but hidden until the
+    # expander is opened, so open it first. Streamlit expanders are native
+    # <details>/<summary> that toggle client-side (no rerun), same as the
+    # ledger rows. has_text disambiguates it from the "Signal changes" expander;
+    # .first picks the expander's OWN summary, which precedes the 29 nested
+    # ledger-row <summary>s in DOM order (without it, strict mode sees 30).
+    vpage.locator(
+        '[data-testid="stExpander"]', has_text="By name"
+    ).locator("summary").first.click()
+
     # Open the top ledger row (deterministic: the ledger is sorted scored-names-
     # first by win-rate, so row 0 is stable under the frozen corpus). Any row
     # exposes its episode table; the first is the simplest deterministic target.
