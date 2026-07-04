@@ -2,6 +2,7 @@
 network-blocked, animation-disabled Playwright page."""
 from __future__ import annotations
 
+import os
 import socket
 import subprocess
 import sys
@@ -19,6 +20,27 @@ def _free_port() -> int:
         return s.getsockname()[1]
 
 
+# Determinism: the `vpage` fixture blocks the *browser's* non-localhost requests,
+# but the live-price quote fetch (live_prices.fetch_live_quotes → Yahoo) runs in
+# THIS Streamlit *server* process, which Playwright cannot intercept — so without
+# this the pulse strip renders live, per-second-changing market prices and the
+# snapshot flakes. Point outbound HTTP(S) at a dead port so every Yahoo fetch
+# fails fast; the app falls back to its frozen report-JSON snapshot (the caption
+# reads "FETCH FAILED — showing snapshot"). NO_PROXY keeps the server's own
+# localhost socket + health check direct. This finishes the job the vpage
+# network-block comment set out to do ("kills live-price fetches so the app
+# renders its static snapshot data").
+_DETERMINISTIC_ENV = {
+    **os.environ,
+    "HTTP_PROXY": "http://127.0.0.1:9",
+    "HTTPS_PROXY": "http://127.0.0.1:9",
+    "http_proxy": "http://127.0.0.1:9",
+    "https_proxy": "http://127.0.0.1:9",
+    "NO_PROXY": "127.0.0.1,localhost",
+    "no_proxy": "127.0.0.1,localhost",
+}
+
+
 @pytest.fixture(scope="session")
 def streamlit_server() -> str:
     port = _free_port()
@@ -27,6 +49,7 @@ def streamlit_server() -> str:
          "--server.headless", "true", "--server.port", str(port),
          "--server.address", _HOST, "--browser.gatherUsageStats", "false"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        env=_DETERMINISTIC_ENV,
     )
     base = f"http://{_HOST}:{port}"
     deadline = time.time() + 60

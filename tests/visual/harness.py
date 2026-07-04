@@ -32,7 +32,8 @@ def compare_png(actual: bytes, baseline: bytes, *, max_diff_ratio: float = 0.002
 
 
 def goto_and_settle(page, url: str) -> None:
-    """Navigate and wait until Streamlit has finished its script run."""
+    """Navigate, wait until Streamlit has finished its script run, then grow the
+    viewport so a full-page screenshot captures the whole app."""
     page.goto(url, wait_until="networkidle")
     page.wait_for_selector("text=The Market Report", timeout=30_000)
     # Streamlit shows a "Running..." status while a script runs; wait it out.
@@ -41,6 +42,21 @@ def goto_and_settle(page, url: str) -> None:
     # Re-assert animation kill (survives reruns) and let layout settle.
     page.add_style_tag(content="*{animation:none!important;transition:none!important}")
     page.wait_for_timeout(600)
+    # Streamlit scrolls its body INSIDE <section data-testid="stMain"> — the
+    # document itself stays viewport-height, so Playwright's full_page screenshot
+    # would otherwise capture only the first fold. Grow the viewport to the full
+    # content height so full_page captures the entire page (the below-the-fold
+    # capex-pulse Plotly charts included). Width is preserved so the responsive
+    # layout is unchanged.
+    content_h = page.evaluate(
+        "() => {const m = document.querySelector('[data-testid=\"stMain\"]');"
+        " return Math.max(document.body.scrollHeight,"
+        " document.documentElement.scrollHeight, m ? m.scrollHeight : 0);}"
+    )
+    width = page.viewport_size["width"]
+    page.set_viewport_size({"width": width, "height": int(content_h) + 48})
+    # Let the taller layout settle — Plotly canvases redraw on the resize.
+    page.wait_for_timeout(800)
 
 
 def assert_snapshot(page, name: str, *, mask: list | None = None) -> None:
