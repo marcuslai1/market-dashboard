@@ -32,6 +32,11 @@ def _free_port() -> int:
 # renders its static snapshot data").
 _DETERMINISTIC_ENV = {
     **os.environ,
+    # Freeze lib.clock.today() so the today-anchored date filter (dashboard.py's
+    # default range → Signal Tracker / Pipeline / Scenario Log / Report Comparison)
+    # renders a fixed window; otherwise those baselines rot as the wall clock moves.
+    # 2026-07-04 = latest report date = today's real date, so existing baselines hold.
+    "TEST_DATE": "2026-07-04",
     "HTTP_PROXY": "http://127.0.0.1:9",
     "HTTPS_PROXY": "http://127.0.0.1:9",
     "http_proxy": "http://127.0.0.1:9",
