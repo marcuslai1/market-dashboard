@@ -18,18 +18,18 @@ I reviewed all **7 pages** by running the real dashboard and looking at every ba
 
 There's a **visual before/after summary** too (Artifact) — easier to skim than this doc.
 
-### ✅ Fixed tonight — on branches, 222 tests green, verified live
+### ✅ Fixed tonight — on branches, 227 tests green, verified live
 | # | What was wrong | Fix | Branch |
 |---|---|---|---|
-| **BR-2/WL-1/TM-1** | The drilldown's "Wide-stop R:R" showed **"—"** for tight-stop names, so NVDA's headline **46.5:1** (which the data itself flags `rr_distorted`) stood alone — even though Terminology promises "both R:R numbers." | Drilldown now falls back to `sizing_rr` → shows **4.40:1** beside the headline. | `ux-fix/br2-drilldown-sizing-rr` |
+| **BR-2/WL-1/TM-1** | NVDA's headline **46.5:1** (flagged `rr_distorted` — a 0.2% stop) was shown on the action card, watchlist column, and drilldown, ignoring the report's corrected **4.4:1**. | Shows the corrected **4.4:1** on all three surfaces — card ("tight-stop adj." marker), table (raw on hover), drilldown (both figures) — and ranks by it. | `ux-fix/br2-*` ×2 |
 | **BR-1** | A plain-sentence risk rendered a mid-word–truncated tag **"US‑China tech tensions p"** instead of its severity badge. | Robust tag heuristic → now shows **LOW**, like its siblings. | `ux-fix/br1-risk-tag` |
 | **RC-1** | Report Comparison showed raw keys **AIXA_DE / D05_SI / IFX_DE** — the only page that skipped `display_ticker()`. | Wrapped in `display_ticker()` → **AIXA.DE / D05.SI / IFX.DE**. | `ux-fix/rc1-display-ticker` |
 
-*(All three are also merged together into `ux-review/overnight-2026-07-04` for one-look review.)*
+*(All four fix branches are also merged into `ux-review/overnight-2026-07-04` for one-look review.)*
 
-### 🧑‍⚖️ Your call — ranked proposals I did NOT touch (design judgment)
-1. **BR-2 (headline half)** — the *action card* + watchlist column still headline the distorted 46.5:1. Whether to show 4.4:1 there, or both, or a "tight-stop" marker, is an editorial call. Recommend: prefer `sizing_rr` when `rr_distorted`, with a small marker.
-2. **ST-1** (P2) — Signal Tracker's Avg/Best/Worst are coloured by raw sign, so a *correct* CAUTION call (price fell) shows **red**, and a wrong one (rose) shows **green** — inverted. You already neutralised this on the calibration cards; the ledger wasn't brought in line.
+### 🧑‍⚖️ Your call — ranked proposals (design judgment)
+1. ~~**BR-2 (headline half)**~~ — ✅ **now done** (you asked me to pick one; this was my pick). The action card + watchlist column show the corrected **4.4:1** (raw on hover / marker), and ranking uses it. Verified across all three surfaces.
+2. **ST-1** (P2) — *my next pick if you want another built.* Signal Tracker's Avg/Best/Worst are coloured by raw sign, so a *correct* CAUTION call (price fell) shows **red**, a wrong one (rose) **green** — inverted. You already neutralised this on the calibration cards, so there's a clear precedent to follow; the ledger just wasn't brought in line.
 3. **SC-1** (P3) — "Wildcard" is **amber** on the Briefing but **purple** on the Scenario Log. May be a deliberate colour-blind choice; align if not.
 4. **BR-4** (P3) — the posture verdict is one ~60-word `<h2>`; consider a styled `<p>` + short real heading (semantics only).
 5. Smaller: **PS-2** (stats page silently date-filtered), **CC-2** (uneven h1s), **BR-6** (cross-page freshness caption).
@@ -56,7 +56,7 @@ There's a **visual before/after summary** too (Artifact) — easier to skim than
 - **Why it matters:** reads as a rendering bug, and the row silently loses its severity signal (should read `LOW`).
 - **Fix:** only use the pre-colon text as a tag when it's genuinely tag-like (short — e.g. ≤ ~16 chars / ≤ 2 words, no trailing truncation); otherwise fall back to the severity badge.
 
-**[BR-2] R:R is displayed as the very value the data flags as *distorted*** — `P1` · M · logic ✅ / treatment 🧑‍⚖️ · Action card + Watchlist row + Drilldown
+**[BR-2] R:R is displayed as the very value the data flags as *distorted*** — `P1` · ✅ **FIXED** (all 3 surfaces + ranking) · Action card + Watchlist row + Drilldown
 - **Saw:** the "If you only do one thing today" card headlines **"R:R 46.5:1"** for NVDA while its own body says that ratio is *"distorted by a tight 0.2% stop … the sizing R:R … is 4.4:1."* The Watchlist R:R column and the drilldown show the same 46.5:1.
 - **Cause:** the report's `risk_reward` object already carries `rr_distorted: true`, `tight_invalidation: true`, and a corrected `sizing_rr.ratio_label = "4.4:1"` — but **no component reads them.** `action_card.py:66`, `drilldown.py:298`, and `row.py:43/58` all use the raw `ratio_label`/`ratio`. The action card even *ranks* the "one thing" candidate by that raw ratio (`action_card.py:45`), so a tiny-stop 46.5:1 can win the slot.
 - **Also (drilldown):** the drilldown *has* a dedicated "Wide-stop R:R" row (`drilldown.py:320`) built to contextualize a distorted headline — but it reads only the older `wide_stop_rr` key. `wide_stop_rr` and the newer `sizing_rr` coexist per-ticker across reports; NVDA today carries `sizing_rr` (4.4) and no `wide_stop_rr`, so the row shows **"—"** and the distorted 46.5:1 stands alone. `sizing_rr` is surfaced **nowhere** in the UI.
@@ -161,9 +161,10 @@ _(pending)_
 
 ## Branches created
 
-All off `main`, tested (**222 pass**, +4 new), verified live, **not pushed**, `main` untouched:
+All off `main`, tested (**227 pass**, +9 new), verified live, **not pushed**, `main` untouched:
 - `ux-fix/rc1-display-ticker` — RC-1 · `display_ticker()` in report_comparison (±5 lines)
 - `ux-fix/br1-risk-tag` — BR-1 · robust risk-tag heuristic + 2 regression tests
 - `ux-fix/br2-drilldown-sizing-rr` — BR-2/WL-1/TM-1 drilldown · `sizing_rr` fallback + 2 regression tests
+- `ux-fix/br2-action-card-rr` — BR-2 headline · new `rr_display()` helper; action card + watchlist column show the corrected R:R and rank by it · +5 tests
 
-`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the three fixes merged in, for one-look review. Cherry-pick/merge the fixes from here or from the individual branches above.
+`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the four fixes merged in, for one-look review. Cherry-pick/merge from here or from the individual branches above.
