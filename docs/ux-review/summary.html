@@ -138,7 +138,7 @@
   <div class="stats">
     <div class="stat"><div class="n">7</div><div class="l">pages reviewed</div></div>
     <div class="stat"><div class="n">13</div><div class="l">findings logged</div></div>
-    <div class="stat"><div class="n good">4</div><div class="l">findings fixed</div></div>
+    <div class="stat"><div class="n good">7</div><div class="l">findings fixed</div></div>
     <div class="stat"><div class="n good">229</div><div class="l">tests green</div></div>
   </div>
   <p class="note mono" style="font-size:12px;color:var(--ink-4);margin-top:12px;letter-spacing:.02em;">
@@ -244,21 +244,28 @@
     </div>
   </div>
 
+  <!-- Also shipped &#8212; minor polish (no before/after cards) -->
+  <div style="background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--green-dim);padding:16px 22px;margin-bottom:22px;">
+    <div class="mono" style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">&#10003; Also shipped &#8212; minor polish</div>
+    <div style="font-size:14px;color:var(--ink-2);line-height:1.65;">
+      <b>SC-1</b> &#8212; Scenario-log colours now come from the shared <span class="mono">SIGNAL_COLORS</span>, so &ldquo;Wildcard&rdquo; is amber everywhere (was purple here) &#183;
+      <b>CC-2</b> &#8212; Terminology now opens with an <span class="mono">&lt;h1&gt;</span>, like the other pages &#183;
+      <b>PS-2</b> &#8212; the Pipeline stats now say they cover the selected date range, not all-time.
+      <span style="color:var(--ink-4)">All on <span class="mono">ux-fix/minor-polish</span>.</span>
+    </div>
+  </div>
+
   <!-- &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; PROPOSALS &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; -->
   <div class="sec">
-    <div class="ey">Your call &#8212; the open ones</div>
-    <h2>Ranked proposals</h2>
-    <p class="note">Design judgment, not defects. Your UI choices are deliberate, so these stay proposals &#8212; ranked by impact.</p>
+    <div class="ey">Still open &#8212; left deliberately</div>
+    <h2>Two judgment calls</h2>
+    <p class="note">Genuine design decisions, not oversights &#8212; so I didn&rsquo;t auto-change them.</p>
   </div>
   <ol class="rank">
-    <li><div class="t"><s>BR-2 headline &amp; ST-1 colouring</s> <span class="chip fixed" style="margin-left:6px">&#10003; both built</span></div>
-      <div class="m">The two I built at your go-ahead &#8212; now in &ldquo;Fixed tonight&rdquo; above.</div></li>
-    <li><div class="t">SC-1 &#8212; &ldquo;Wildcard&rdquo; is a different colour across pages <span class="chip p3" style="margin-left:6px">P3</span></div>
-      <div class="m"><span style="color:var(--amber)">Amber</span> on the Briefing odds bar, <span style="color:#9b7ad6">purple</span> on the Scenario Log. May be a deliberate colour-blind choice &#8212; align if not.</div></li>
     <li><div class="t">BR-4 &#8212; the posture verdict is one ~60-word <span class="mono">&lt;h2&gt;</span> <span class="chip p3" style="margin-left:6px">P3</span></div>
-      <div class="m">Leading with the verdict is great; as a heading it bloats the screen-reader outline. A styled <span class="mono">&lt;p&gt;</span> + a short real heading keeps the look, fixes the semantics.</div></li>
-    <li><div class="t">Smaller notes <span class="chip p3" style="margin-left:6px">P3</span></div>
-      <div class="m"><b>PS-2</b> stats page is silently date-filtered &#183; <b>CC-2</b> uneven <span class="mono">&lt;h1&gt;</span> use across pages &#183; <b>BR-6</b> cross-page freshness caption.</div></li>
+      <div class="m">A clean fix needs theme CSS so a styled <span class="mono">&lt;p&gt;</span> keeps the <i>exact</i> big-verdict look &#8212; and that&rsquo;s your signature &ldquo;lead with the verdict&rdquo; element, so I wouldn&rsquo;t risk it for a P3 outline nicety.</div></li>
+    <li><div class="t">BR-6 &#8212; cross-page freshness caption <span class="chip p3" style="margin-left:6px">P3</span></div>
+      <div class="m">Inherent to per-page fetch + caching; no clean fix without reworking the fetch model. An observation, not a defect.</div></li>
   </ol>
 
   <!-- &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; VERIFIED &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; -->
@@ -284,10 +291,10 @@
       <tr><td class="pg">briefing</td><td>Flagship; leads with the verdict, honest degradation</td><td>BR-1&nbsp;<span class="v">fixed</span> &#183; BR-2&nbsp;<span class="v">fixed</span> &#183; BR-3/4/5/6</td></tr>
       <tr><td class="pg">watchlist</td><td>Strong table + drilldown</td><td>WL-1&nbsp;<span class="v">fixed</span> (R:R)</td></tr>
       <tr><td class="pg">signal-tracker</td><td>Rich, honest calibration</td><td>ST-1&nbsp;<span class="v">fixed</span></td></tr>
-      <tr><td class="pg">pipeline-stats</td><td>Clean telemetry</td><td>PS-1&nbsp;<span class="vw">verify</span> &#183; PS-2</td></tr>
-      <tr><td class="pg">scenario-log</td><td>Math cross-checks to the Briefing</td><td>SC-1&nbsp;<span class="vw">proposal</span></td></tr>
+      <tr><td class="pg">pipeline-stats</td><td>Clean telemetry</td><td>PS-2&nbsp;<span class="v">fixed</span> &#183; PS-1&nbsp;<span class="vw">verify</span></td></tr>
+      <tr><td class="pg">scenario-log</td><td>Math cross-checks to the Briefing</td><td>SC-1&nbsp;<span class="v">fixed</span></td></tr>
       <tr><td class="pg">report-comparison</td><td>Good; counts tie out</td><td>RC-1&nbsp;<span class="v">fixed</span></td></tr>
-      <tr><td class="pg">terminology</td><td>Excellent methodology reference</td><td>TM-1&nbsp;<span class="v">fixed</span> (via BR-2)</td></tr>
+      <tr><td class="pg">terminology</td><td>Excellent methodology reference</td><td>TM-1&nbsp;<span class="v">fixed</span> &#183; CC-2&nbsp;<span class="v">fixed</span></td></tr>
     </tbody>
   </table></div>
 
@@ -296,7 +303,7 @@
     plan: <code>docs/ux-review/00-plan.md</code><br>
     Fixes: <code>ux-fix/rc1-display-ticker</code> &#183; <code>ux-fix/br1-risk-tag</code> &#183;
     <code>ux-fix/br2-drilldown-sizing-rr</code> &#183; <code>ux-fix/br2-action-card-rr</code> &#183;
-    <code>ux-fix/st1-tracker-coloring</code> &#8212; all merged into
+    <code>ux-fix/st1-tracker-coloring</code> &#183; <code>ux-fix/minor-polish</code> &#8212; all merged into
     <code>ux-review/overnight-2026-07-04</code> for one-look review.
     <div class="caveat">Guardrails held: only branches + docs, never main, nothing pushed, nothing deleted. Everything reversible.</div>
   </footer>
