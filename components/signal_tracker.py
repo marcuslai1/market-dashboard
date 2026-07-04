@@ -323,12 +323,6 @@ def _rate_color(rate: float | None) -> str:
     return "var(--ink-2)"
 
 
-def _ret_color(v: float | None) -> str:
-    if v is None or pd.isna(v) or v == 0:
-        return "var(--ink-3)"
-    return STATUS_POS if v > 0 else STATUS_NEG
-
-
 def _calibration_band_html(acc_df: pd.DataFrame) -> str:
     """The hero strip: one calibration cell per signal type.
 
@@ -391,9 +385,14 @@ def _winbar_html(rate: float | None) -> str:
 
 
 def _ret_num_cell(v: float | None) -> str:
+    # Neutral numeral (no sign colour), matching the Episodes cell and the
+    # calibration cards. For CAUTION names — most of the ledger — a negative
+    # return is a *correct* call (loss avoided), so red/green by raw sign inverts
+    # the meaning. The direction-aware "Trades won" winbar carries performance;
+    # the +/- sign still shows direction. (UX-ST-1)
     if v is None or pd.isna(v):
         return '<div class="led-num led-empty">—</div>'
-    return f'<div class="led-num" style="color:{_ret_color(v)};">{v:+.1f}%</div>'
+    return f'<div class="led-num">{v:+.1f}%</div>'
 
 
 def _episode_table_html(eps: pd.DataFrame) -> str:
@@ -424,7 +423,7 @@ def _episode_table_html(eps: pd.DataFrame) -> str:
             f'<td>{e["start"].strftime("%Y-%m-%d")} → {exit_lbl}</td>'
             f'<td class="num">{int(e["duration_days"])}d</td>'
             f'<td class="num">{entry_p} → {exit_p}</td>'
-            f'<td class="num" style="color:{_ret_color(ret)};">{ret_s}</td>'
+            f'<td class="num">{ret_s}</td>'
             f'<td class="num">{peak_s}</td>'
             f'<td style="color:{vcol};">{verdict}</td>'
             f'</tr>'
