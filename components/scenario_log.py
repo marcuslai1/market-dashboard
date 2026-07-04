@@ -11,13 +11,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from lib.catalog import SIGNAL_COLORS
 from lib.charts import (
-    ACCENT_LINK,
-    ACCENT_WILDCARD,
     PLOTLY_CONFIG,
     STATUS_MUTED,
-    STATUS_NEG,
-    STATUS_POS,
     chart_data_table,
     style_fig,
 )
@@ -206,11 +203,15 @@ def render_scenario_log_page(reports: dict) -> None:
         st.warning("No scenario data available yet.")
         st.stop()
 
+    # One scenario colour language across the app — the same SIGNAL_COLORS the
+    # Briefing odds bar uses (see macro.py), so Wildcard et al. don't change hue
+    # between pages. Colour-blind safety rides the per-series markers below,
+    # not the hue alone. (UX-SC-1)
     scenario_colors = {
-        "Base":        ACCENT_LINK,
-        "Optimistic":  STATUS_POS,
-        "Pessimistic": STATUS_NEG,
-        "Wildcard":    ACCENT_WILDCARD,
+        "Base":        SIGNAL_COLORS["ACCUMULATE"],
+        "Optimistic":  SIGNAL_COLORS["BUY"],
+        "Pessimistic": SIGNAL_COLORS["CAUTION"],
+        "Wildcard":    SIGNAL_COLORS["WATCH"],
     }
     # A distinct marker per series so identity never rests on colour alone —
     # Optimistic (green) + Pessimistic (red) are the classic colour-blind
@@ -223,7 +224,7 @@ def render_scenario_log_page(reports: dict) -> None:
     }
     st_color_names = {
         "Base": "blue", "Optimistic": "green",
-        "Pessimistic": "red", "Wildcard": "violet",
+        "Pessimistic": "red", "Wildcard": "orange",
     }
 
     # ── Compact time-series (small chart) ──
