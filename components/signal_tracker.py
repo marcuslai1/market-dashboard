@@ -409,6 +409,54 @@ def _changelog_strip_html(entries: list) -> str:
     return f'<div class="chg-log">{items}</div>' if items else ""
 
 
+_REGIME_UNIVERSE = 3  # trend_up / chop / trend_down — the weather we need to see
+
+
+def _readiness_html(calibration_insights) -> str:
+    """The trust meter: how close the track record is to being decision-grade,
+    read from the pipeline's own calibration_insights (regimes seen, matured
+    calls, and how many signals clear the >=10-matured / >=2-regime bar). Frames
+    the scorecard so a single-regime record can't be mistaken for proof. Returns
+    '' when there is nothing scored yet."""
+    perf = (calibration_insights or {}).get("signal_performance") or {}
+    if not perf:
+        return ""
+    regimes: set = set()
+    total_matured = 0
+    decision_grade = 0
+    scored = 0
+    for cell in perf.values():
+        if not isinstance(cell, dict):
+            continue
+        scored += 1
+        regimes.update(cell.get("regimes_present") or [])
+        total_matured += int(cell.get("n_matured_10d") or 0)
+        if (int(cell.get("n_alpha_10d") or 0) >= DECISION_GRADE_MIN
+                and not cell.get("single_regime")):
+            decision_grade += 1
+    n_regimes = len(regimes)
+    if decision_grade > 0 and n_regimes >= 2:
+        verdict = ("Some signals now have cross-regime evidence — still read the "
+                   "per-signal sample sizes below before leaning on any one.")
+        tone = ""
+    else:
+        verdict = ("Read the scorecard as directional, not proven. A second market "
+                   "regime — a downturn or a choppy stretch — is what turns this "
+                   "into a real verdict.")
+        tone = " warn"
+    stats = (
+        f'<div class="rd-stat"><b>{n_regimes} of {_REGIME_UNIVERSE}</b>'
+        f"<span>market regimes seen</span></div>"
+        f'<div class="rd-stat"><b>{total_matured}</b>'
+        f"<span>matured calls</span></div>"
+        f'<div class="rd-stat"><b>{decision_grade} of {scored}</b>'
+        f"<span>signals decision-grade</span></div>"
+    )
+    return (f'<div class="rd-meter{tone}">'
+            f'<div class="rd-stats">{stats}</div>'
+            f'<div class="rd-verdict">{verdict}</div></div>')
+
+
 def _winbar_html(rate: float | None) -> str:
     if rate is None:
         return ('<div class="winbar-wrap"><div class="winbar"></div>'
@@ -615,23 +663,24 @@ def render_signal_tracker_page(
         st.info("Select at least one name in the filter.")
         st.stop()
 
-    # ── 1. Scorecard — the one clear read: how often each signal was right ──
+    # ── 1. Readiness meter + scorecard — the one clear read, framed by trust ──
+    latest_report = reports.get(max(reports)) if reports else {}
+    readiness = _readiness_html(latest_report.get("calibration_insights"))
+    if readiness:
+        st.markdown(readiness, unsafe_allow_html=True)
+
     acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
     st.caption(
         "How often each signal went the right way, 5 sessions later. "
         "BUY / ACCUMULATE / WATCH count a **rise** as right; CAUTION / AVOID "
-        "count a **drop** as right (you avoided it)."
+        "count a **drop** as right (you avoided it). This is **raw price "
+        "direction** — the benchmark-relative view (alpha vs the market) is on "
+        "the Briefing's calibration band."
     )
     if acc_df.empty:
         st.caption("No signals tracked yet — the scorecard fills in as calls accumulate.")
     else:
         st.markdown(_scorecard_html(acc_df), unsafe_allow_html=True)
-        st.caption(
-            "⚠ Nearly all of this history comes from a single market regime "
-            "(a steady uptrend since April). Until a downturn or a choppy market "
-            "tests these calls, treat every number here as directional, not "
-            "proven — that's what the *thin* flags and low sample counts mean."
-        )
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         if hold_count:
             st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
