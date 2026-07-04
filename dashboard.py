@@ -34,6 +34,7 @@ from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
 from lib.cards import render_section_head
 from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
+from lib.clock import today as clock_today
 from lib.data_loader import (
     data_fingerprint,
     list_report_dates,
@@ -417,7 +418,10 @@ st.sidebar.divider()
 
 
 # ── Sidebar: date range filter ──
-_default_end = date.today()
+# clock_today() == date.today() in production (TEST_DATE unset); the visual-
+# regression harness sets TEST_DATE to freeze this today-anchored default range,
+# which drives the date-filtered pages' content (keeps pixel baselines stable).
+_default_end = clock_today()
 _default_start = _default_end - timedelta(days=30)
 _range_presets = {"30 days": 30, "7 days": 7, "All": None}
 _preset = st.sidebar.radio("Range", list(_range_presets.keys()), horizontal=True, key="range_preset")

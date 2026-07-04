@@ -9,8 +9,6 @@ here feeds the odds mechanically.
 """
 from __future__ import annotations
 
-from datetime import date as _date
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -38,6 +36,7 @@ from lib.charts import (
     chart_data_table,
     style_fig,
 )
+from lib.clock import today as clock_today
 from lib.data_loader import data_fingerprint, load_all_reports, load_capex_quarterly
 from lib.formatters import _escape_dollars
 
@@ -200,7 +199,7 @@ def render_capex_pulse() -> None:
     fund_df = _fundamentals_cached(data_fingerprint(), load_all_reports())
     if not capex["series"] and fund_df.empty:
         return
-    today = _date.today()
+    today = clock_today()  # == date.today() unless TEST_DATE frozen (visual-regression)
     render_section_head(
         "AI Capex Pulse",
         "Digestion cross-check — human-read, not a wired signal")
