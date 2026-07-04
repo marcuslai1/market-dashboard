@@ -14,26 +14,29 @@ Each finding: **[ID] Title** — severity · effort · fix-safety · page/band
 
 ## ★ Good morning — start here
 
-I reviewed all **7 pages** by running the real dashboard and looking at every band, cross-checking what it displays against the underlying report data. **13 findings.** The dashboard is in genuinely good shape — most of what I found is polish, and several "issues" turned out to be *deliberate and documented* (I left those alone). Three were clear, objective defects, and I **fixed all three on branches, with tests** — you can review and merge, or bin them.
+I reviewed all **7 pages** by running the real dashboard and looking at every band, cross-checking what it displays against the underlying report data. **13 findings.** The dashboard is in genuinely good shape — most of what I found is polish, and several "issues" turned out to be *deliberate and documented* (I left those alone). **Seven are now fixed on branches** (with tests where they apply) — the two P1s plus five smaller items — all verified live. Review and merge, or bin them.
 
 There's a **visual before/after summary** too (Artifact) — easier to skim than this doc.
 
-### ✅ Fixed tonight — on branches, 227 tests green, verified live
+### ✅ Fixed — on branches, 229 tests green, verified live
 | # | What was wrong | Fix | Branch |
 |---|---|---|---|
 | **BR-2/WL-1/TM-1** | NVDA's headline **46.5:1** (flagged `rr_distorted` — a 0.2% stop) was shown on the action card, watchlist column, and drilldown, ignoring the report's corrected **4.4:1**. | Shows the corrected **4.4:1** on all three surfaces — card ("tight-stop adj." marker), table (raw on hover), drilldown (both figures) — and ranks by it. | `ux-fix/br2-*` ×2 |
 | **BR-1** | A plain-sentence risk rendered a mid-word–truncated tag **"US‑China tech tensions p"** instead of its severity badge. | Robust tag heuristic → now shows **LOW**, like its siblings. | `ux-fix/br1-risk-tag` |
 | **RC-1** | Report Comparison showed raw keys **AIXA_DE / D05_SI / IFX_DE** — the only page that skipped `display_ticker()`. | Wrapped in `display_ticker()` → **AIXA.DE / D05.SI / IFX.DE**. | `ux-fix/rc1-display-ticker` |
 | **ST-1** | Signal Tracker coloured returns by raw sign, so a *correct* CAUTION call (price fell) rendered **red** — inverted, on the honest-calibration page. | Returns now **neutral** (matching your calibration cards); the direction-aware "Trades won" winbar carries performance. | `ux-fix/st1-tracker-coloring` |
+| **SC-1** | "Wildcard" was **amber** on the Briefing but **purple** on the Scenario Log (different constant sources). | Scenario colours now come from the shared `SIGNAL_COLORS` → wildcard amber everywhere; markers still carry colour-blind safety. | `ux-fix/minor-polish` |
+| **CC-2** | Terminology opened with an `<h2>`; the other content pages open with an `<h1>` title. | `st.title()` → Terminology's title is now an `<h1>`, consistent with the others. | `ux-fix/minor-polish` |
+| **PS-2** | "Total Reports" etc. reflect the date filter but read as all-time on a "Statistics" page. | Caption spells out the window ("…25 reports in the selected date range…, not all-time"). | `ux-fix/minor-polish` |
 
-*(All five fix branches are also merged into `ux-review/overnight-2026-07-04` for one-look review.)*
+*(All six fix branches are also merged into `ux-review/overnight-2026-07-04` for one-look review.)*
 
-### 🧑‍⚖️ Your call — ranked proposals (design judgment)
-1. ~~**BR-2 (headline half)**~~ — ✅ **now done** (you asked me to pick one; this was my pick). The action card + watchlist column show the corrected **4.4:1** (raw on hover / marker), and ranking uses it. Verified across all three surfaces.
-2. ~~**ST-1** (P2)~~ — ✅ **now done too.** The by-name ledger + episode returns are neutral (no more red for correct CAUTION calls); the direction-aware "Trades won" winbar carries performance, mirroring your calibration cards.
-3. **SC-1** (P3) — "Wildcard" is **amber** on the Briefing but **purple** on the Scenario Log. May be a deliberate colour-blind choice; align if not.
-4. **BR-4** (P3) — the posture verdict is one ~60-word `<h2>`; consider a styled `<p>` + short real heading (semantics only).
-5. Smaller: **PS-2** (stats page silently date-filtered), **CC-2** (uneven h1s), **BR-6** (cross-page freshness caption).
+### 🧑‍⚖️ Still open — left deliberately (your call)
+Both are genuine judgment calls, not oversights:
+- **BR-4** (P3) — the posture verdict is one ~60-word `<h2>`. A clean fix needs theme CSS so a styled `<p>` keeps the *exact* big-verdict look — and that's your signature "lead with the verdict" element, so I wouldn't risk it for a P3 outline nicety. Left for a deliberate design pass.
+- **BR-6** (P3) — the cross-page live-freshness caption is inherent to per-page fetch + caching; no clean fix without reworking the fetch model. An observation, not a defect.
+
+*(RC-1, BR-1, BR-2, ST-1, SC-1, CC-2, PS-2 are all done — see "Fixed" above.)*
 
 ### 🔎 Verified / no action needed
 - **BR-3** (`/briefing` "Page not found" dialog): in-app nav uses `/` and is fine — only a *typed* `/briefing` hits it, and Streamlit reserves `/` for the default page, so there's **no clean fix**. Optional truthfulness cleanup noted.
@@ -110,13 +113,13 @@ Clean pipeline telemetry — token usage, generation time, and cache-aware API c
 - **Checked:** the page clips cost via `_clip(load_pipeline_stats())` (`pipeline_stats.py:91`), and a standalone repro of that same clip returns only in-window rows (25 rows, from Jun 4) — so it *should* limit cost to the window, yet the live chart shows May bars. There's also a design tension: the cost section's own comment wants to show the pre/post-**cutover** step-change (`:88-89`), which needs pre-cutover (< May 5) data that a 30-day clip would remove.
 - **Why flagged, not asserted:** couldn't reconcile statically — either the clip isn't taking effect on the cost frame in the live render, or the active range differed at capture. Verify by toggling the Range control and watching whether the cost chart's start date moves. Low severity (telemetry page).
 
-**[PS-2] The stats page silently inherits the global date range** — `P3` · — · observation. "Total Reports 25 / Avg Tokens / Avg Gen Time" reflect the 30-day window, not all-time (82 reports). Reasonable, but a first-time reader may expect all-time on a page titled "Statistics" — a small "(last 30 days)" qualifier would remove the ambiguity.
+**[PS-2] The stats page silently inherits the global date range** — `P3` · ✅ **FIXED** · Pipeline. "Total Reports 25 / Avg Tokens / Avg Gen Time" reflect the date window, not all-time (82 reports), which read as ambiguous on a page titled "Statistics". Now a caption spells it out: *"Totals above cover the 25 reports in the selected date range (… → …), not all-time."*
 
 ### Scenario Log
 
 Strong and honest — a probability time-series (a distinct marker per series for colour-blind safety) plus a dated "days when probabilities moved" ledger with each shift's before→after and full narrative (`screens/scenario-log-top.png`). I verified the internal math: each day's shifts net to zero, and chaining Jul 2→3→4 lands exactly on the Briefing's current odds (Base 55 / Opt 20 / Pess 20 / Wild 5) — cross-page consistent. Clear disclaimer that these are uncalibrated narrative leans.
 
-**[SC-1] "Wildcard" uses a different colour here than on the Briefing** — `P3` · S · 🧑‍⚖️ proposal · cross-page
+**[SC-1] "Wildcard" uses a different colour here than on the Briefing** — `P3` · ✅ **FIXED** (scenario colours now from shared `SIGNAL_COLORS`) · cross-page
 - **Saw:** Base/Optimistic/Pessimistic read as the same blue/green/red on both pages, but **Wildcard is amber on the Briefing odds bar** (`macro.py:161`, `SIGNAL_COLORS["WATCH"]`) and **purple on the Scenario Log** chart + ledger (`scenario_log.py:213`, `ACCENT_WILDCARD`). The two pages source scenario colours from different constant sets.
 - **Why it matters:** the same four scenarios ideally carry one colour language across the app; a reader cross-referencing sees wildcard flip amber→purple.
 - **Nuance (may be deliberate):** the Scenario chart is thoughtfully colour-blind-aware (distinct markers; comment `:215-217`), and blue/green/red/purple are four maximally-distinct hues. If intentional, consider aligning the Briefing wildcard to purple (or documenting the divergence) rather than changing the chart. Your call — hence a proposal, not a fix.
@@ -149,7 +152,7 @@ Excellent, thorough methodology reference — the six signals (meaning + trigger
 **[CC-1] Every deep-loaded page logs `_stcore/health` + `_stcore/host-config` 404s** — `P3` · console noise · benign
 - Each sub-page hard-load logs 2 console errors (`GET /<page>/_stcore/health` → 404, `…/_stcore/host-config` → 404): the browser requesting Streamlit's core endpoints relative to the sub-path before falling back. Harmless (pages render), but it's noise on every load and shares a root with BR-3. Worth a look if you ever front the app with a reverse proxy / base-path.
 
-**[CC-2] Heading hierarchy is slightly uneven across pages** — `P3` · S · 🧑‍⚖️ proposal
+**[CC-2] Heading hierarchy is slightly uneven across pages** — `P3` · ✅ **FIXED** (Terminology title → `<h1>`, consistent with other pages)
 - Pipeline / Scenario / Report-Comparison open with an `<h1>` page title, but Terminology starts at `<h2>` (no page-level h1) and the Briefing's only h1 is the masthead "The Market Report" (its bands are h2s, incl. the 60-word verdict h2 — BR-4). Minor screen-reader-outline inconsistency; consider exactly one h1 per page.
 
 **[CC-3] Desktop-first; narrow viewport is not a target** — observation
@@ -162,11 +165,12 @@ _(pending)_
 
 ## Branches created
 
-All off `main`, tested (**229 pass**, +11 new), verified live, **not pushed**, `main` untouched:
+All off `main`, tested (**229 pass**), verified live, pushed to `origin`, `main` untouched:
 - `ux-fix/rc1-display-ticker` — RC-1 · `display_ticker()` in report_comparison (±5 lines)
 - `ux-fix/br1-risk-tag` — BR-1 · robust risk-tag heuristic + 2 regression tests
 - `ux-fix/br2-drilldown-sizing-rr` — BR-2/WL-1/TM-1 drilldown · `sizing_rr` fallback + 2 regression tests
 - `ux-fix/br2-action-card-rr` — BR-2 headline · new `rr_display()` helper; action card + watchlist column show the corrected R:R and rank by it · +5 tests
 - `ux-fix/st1-tracker-coloring` — ST-1 · neutral ledger/episode returns (correct CAUTION calls no longer red); removes dead `_ret_color` · +2 tests
+- `ux-fix/minor-polish` — SC-1 (shared scenario colours) · CC-2 (Terminology `<h1>`) · PS-2 (date-range caption); visual/caption changes, covered by the page-walk test
 
-`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the five fixes merged in, for one-look review. Cherry-pick/merge from here or from the individual branches above.
+`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the six fixes merged in, for one-look review. Cherry-pick/merge from here or from the individual branches above.
