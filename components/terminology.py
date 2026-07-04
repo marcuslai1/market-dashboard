@@ -8,10 +8,10 @@ from lib.cards import render_section_head
 
 def render_terminology_page() -> None:
     """Render the Terminology page."""
-    render_section_head(
-        "Terminology & Methodology",
-        "How every number on this site is computed",
-    )
+    # Page-level h1 (matches Pipeline / Scenario / Report Comparison, which open
+    # with st.title) so every page has exactly one top-level heading. (UX-CC-2)
+    st.title("Terminology & Methodology")
+    st.caption("How every number on this site is computed")
 
     st.markdown(
         '<div style="font-family:var(--sans);color:var(--ink-2);'
