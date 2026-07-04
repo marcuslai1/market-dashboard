@@ -82,6 +82,13 @@ def render_pipeline_stats_page(reports: dict) -> None:
     cols[1].metric("Avg Tokens", f"{token_df['token_count'].mean():,.0f}")
     cols[2].metric("Avg Gen Time", f"{token_df['generation_time_seconds'].mean():.0f}s")
     cols[3].metric("Model", token_df["model_used"].iloc[-1] if len(token_df) else "—")
+    # These totals reflect the sidebar's date range, not all-time — spell that out
+    # so a reader doesn't take "Total Reports" as the whole corpus. (UX-PS-2)
+    _lo, _hi = token_df["date"].min(), token_df["date"].max()
+    st.caption(
+        f"Totals above cover the {len(token_df)} reports in the selected date "
+        f"range ({_lo:%Y-%m-%d} → {_hi:%Y-%m-%d}), not all-time."
+    )
 
     # ── API Cost (authoritative — read from pipeline_stats.computed_cost_usd) ──
     # Pre-2026-05-05 rows used Sonnet+Haiku rates and overstate spend by ~10x.
