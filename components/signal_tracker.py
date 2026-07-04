@@ -354,6 +354,10 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
                   if "return_5d" in data.columns else pd.Series(dtype=float))
         n = len(valid5)
         color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
+        # A shown rate below the decision-grade floor ghosts the whole cell (see
+        # .calib-cell.thin) so a thin sample can't read as confidently as a solid
+        # one — the small ⚠ flag alone is too easy to skim past.
+        cell_thin = False
 
         if n >= MIN_SAMPLES:
             right = int((valid5 <= 0).sum() if mode == "avoid" else (valid5 > 0).sum())
@@ -365,6 +369,7 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
             )
             sub = f"right {right} of {n} · 5d"
             if n < DECISION_GRADE_MIN:
+                cell_thin = True
                 flag = f'<div class="sc-flag thin">⚠ thin — only {n} calls</div>'
             else:
                 flag = f'<div class="sc-flag">n={n} · holding up</div>'
@@ -374,7 +379,7 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
             flag = '<div class="sc-flag">not enough yet</div>'
 
         cells += (
-            f'<div class="calib-cell">'
+            f'<div class="calib-cell{" thin" if cell_thin else ""}">'
             f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
             f'<div class="sc-verb">{verb}</div>'
             f'{val_html}'

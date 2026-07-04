@@ -185,6 +185,17 @@ def test_scorecard_win_rate_for_buy_and_not_thin_at_floor():
     assert "thin" not in html.lower()
 
 
+def test_scorecard_thin_cell_marks_whole_cell_for_ghosting():
+    """A rate resting on a thin sample (3 <= n < 10) tags the whole cell `thin`,
+    not just the small flag text, so CSS can visually recede the numeral and bar
+    — a shaky rate must not render with the same confidence as a solid one. A
+    decision-grade cell (n >= 10) stays solid."""
+    thin = _scorecard_html(_acc_df("CAUTION", [-3.0, -1.0, -2.0, 4.0]))  # n=4
+    assert 'class="calib-cell thin"' in thin
+    solid = _scorecard_html(_acc_df("BUY", [1.0] * 10))  # n=10, clears floor
+    assert 'class="calib-cell thin"' not in solid
+
+
 def test_scorecard_pending_below_min_samples():
     html = _scorecard_html(_acc_df("BUY", [1.0, 2.0]))  # n=2 < 3 -> Pending
     assert "Pending" in html

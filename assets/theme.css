@@ -1464,6 +1464,13 @@ details.led-details[open] > summary {
   font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 7px;
 }
 .calib-cell .sc-flag.thin { color: #f59e0b; }
+/* Thin sample (rate shown but below the decision-grade floor): recede the whole
+   read so a shaky rate can't masquerade as a confident one. Ghost the numeral
+   and hollow the bar (opacity/border keep it theme-agnostic); the amber ⚠ flag
+   stays full-strength as the explanation. */
+.calib-cell.thin .cval { opacity: 0.4; }
+.calib-cell.thin .cbar { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); }
+.calib-cell.thin .cbar > i { opacity: 0.32; }
 
 .chg-log { border-top: 1px solid var(--rule); margin-top: 4px; }
 .chg-item {
