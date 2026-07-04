@@ -484,6 +484,22 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         ]
         parts.append(_drilldown_metrics_html(band_metrics))
 
+    # ── Thesis highlights ──
+    # Pipeline-emitted guardrail bullets that matched the day's news (~5/29 names);
+    # e.g. MSFT "~45% of $625B RPO is OpenAI-linked". Surfaced as an amber-bordered
+    # list above Technicals — closes the one live surfacing gap (2026-07-04).
+    _thesis_highlights = [
+        str(b).strip() for b in (d.get("thesis_highlights") or []) if b and str(b).strip()
+    ]
+    if _thesis_highlights:
+        parts.append(_drilldown_section_html("Thesis highlights"))
+        for _hl in _thesis_highlights:
+            parts.append(
+                f'<div class="dd-line" style="border-left:2px solid {STATUS_WARN};'
+                f'padding-left:10px;margin:0 0 6px;color:var(--ink-2);">'
+                f'{_escape_dollars(_hl)}</div>'
+            )
+
     parts.append(_drilldown_section_html("Technicals"))
     drawdown_3mo = d.get("drawdown_3mo_pct")
     vs_cluster = d.get("vs_cluster_chg_pct")
