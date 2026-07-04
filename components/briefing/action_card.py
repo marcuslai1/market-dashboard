@@ -25,6 +25,7 @@ from lib.formatters import (
     _sign,
     _writeup_for_render,
     display_ticker,
+    rr_display,
 )
 
 
@@ -42,7 +43,9 @@ def _pick_action_ticker(wl: dict) -> tuple[str | None, dict | None]:
         return None, None
     candidates.sort(key=lambda x: (
         priority.get(x[1].get("signal"), 99),
-        -((x[1].get("risk_reward") or {}).get("ratio") or 0),
+        # Rank by the tight-stop-corrected ratio, so a distorted 46.5:1 (a 0.2%
+        # stop) can't jump a name to the top of "one thing to do" (UX-BR-2).
+        -rr_display(x[1].get("risk_reward"))[1],
     ))
     return candidates[0]
 
@@ -63,7 +66,7 @@ def render_action_card(wl: dict, events: list) -> None:
     headline = wu["headline"] or ""
     body = wu["what_to_do"] or ""
     block = wu["entry_block"]
-    rr_label = (d.get("risk_reward") or {}).get("ratio_label", "")
+    rr_label, _, rr_adjusted = rr_display(d.get("risk_reward"))
 
     price_str = _price_str(price, ccy)
     delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
@@ -82,8 +85,17 @@ def render_action_card(wl: dict, events: list) -> None:
         if block else ""
     )
 
+    # When the report flags the headline R:R as distorted by a too-tight stop,
+    # rr_display() returns the deeper-stop sizing ratio the writeup itself cites
+    # (e.g. 4.4:1, vs a 46.5:1 a 0.2% stop inflates); mark it so the corrected
+    # figure isn't mistaken for the raw one. Full detail stays in the drilldown.
+    rr_adj_note = (
+        '<div style="font-size:9.5px;color:var(--ink-4);letter-spacing:0.02em;">'
+        'tight-stop adj.</div>'
+        if rr_adjusted else ""
+    )
     rr_html = (
-        f'<div style="margin-top:8px;">R:R {rr_label}</div>'
+        f'<div style="margin-top:8px;">R:R {rr_label}</div>{rr_adj_note}'
         if rr_label else ""
     )
 
