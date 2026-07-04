@@ -25,6 +25,27 @@ def display_ticker(tk: str) -> str:
     return TICKER_DISPLAY.get(tk) or str(tk).replace("_", ".")
 
 
+def rr_display(rr_obj: dict | None) -> tuple[str, float, bool]:
+    """Risk:reward for display + ranking, correcting a distorted headline.
+
+    When the report flags the headline R:R as ``rr_distorted`` (a too-tight
+    invalidation inflates it — e.g. a 0.2% stop yielding 46.5:1), prefer the
+    deeper-stop ``sizing_rr`` — the ratio the writeup itself cites (4.4:1) — and
+    report it as adjusted. Falls back to the plain headline otherwise.
+
+    Returns ``(label, ratio, adjusted)`` so callers can render the label *and*
+    rank by a ratio that isn't inflated by a tight stop.
+    """
+    rr_obj = rr_obj or {}
+    if rr_obj.get("rr_distorted"):
+        sz = rr_obj.get("sizing_rr") or {}
+        ratio = sz.get("ratio")
+        if ratio is not None:
+            label = sz.get("ratio_label") or f"{ratio:.1f}:1"
+            return label, float(ratio), True
+    return rr_obj.get("ratio_label", ""), float(rr_obj.get("ratio") or 0), False
+
+
 def _escape_attr(text) -> str:
     """Escape a value destined for an HTML *attribute* value.
 
