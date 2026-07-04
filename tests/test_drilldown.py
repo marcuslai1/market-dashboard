@@ -100,3 +100,36 @@ def test_wide_stop_rr_prefers_explicit_field_over_sizing():
     html = render_drilldown_detail_html("NVDA", d)
     assert "2.5" in html
     assert "4.4" not in html        # explicit wide_stop_rr wins over the fallback
+
+
+# ── Thesis highlights — news-matched guardrail bullets (surfacing gap closed 2026-07-04) ──
+# The pipeline emits thesis_highlights on ~5/29 names/day (thesis guardrails that fired
+# on the day's news, e.g. MSFT's OpenAI-RPO caveat); previously rendered nowhere. Surface
+# them as an amber-bordered list above the Technicals section when present.
+def test_thesis_highlights_render_each_bullet():
+    d = {"thesis_highlights": [
+        "SK Hynix dominates HBM3E with >50% share",
+        "ADR/China delisting risk is a standing consideration",
+    ]}
+    html = render_drilldown_detail_html("000660_KS", d)
+    assert "Thesis highlights" in html
+    assert "SK Hynix dominates HBM3E with &gt;50% share" in html   # > HTML-escaped
+    assert "ADR/China delisting risk is a standing consideration" in html
+
+
+def test_thesis_highlights_absent_renders_no_section():
+    html = render_drilldown_detail_html("NVDA", {})
+    assert "Thesis highlights" not in html
+
+
+def test_thesis_highlights_empty_or_blank_items_stay_silent():
+    html = render_drilldown_detail_html("NVDA", {"thesis_highlights": ["", "  "]})
+    assert "Thesis highlights" not in html
+
+
+def test_thesis_highlights_escapes_dollars_and_markup():
+    d = {"thesis_highlights": ["~45% of MSFT $625B RPO is OpenAI-linked <risk>"]}
+    html = render_drilldown_detail_html("MSFT", d)
+    assert "&#36;625B" in html        # $ neutralized so Streamlit won't render LaTeX math
+    assert "<risk>" not in html        # raw markup escaped, not injected
+    assert "&lt;risk&gt;" in html
