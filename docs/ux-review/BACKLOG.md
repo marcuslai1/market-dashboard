@@ -24,12 +24,13 @@ There's a **visual before/after summary** too (Artifact) — easier to skim than
 | **BR-2/WL-1/TM-1** | NVDA's headline **46.5:1** (flagged `rr_distorted` — a 0.2% stop) was shown on the action card, watchlist column, and drilldown, ignoring the report's corrected **4.4:1**. | Shows the corrected **4.4:1** on all three surfaces — card ("tight-stop adj." marker), table (raw on hover), drilldown (both figures) — and ranks by it. | `ux-fix/br2-*` ×2 |
 | **BR-1** | A plain-sentence risk rendered a mid-word–truncated tag **"US‑China tech tensions p"** instead of its severity badge. | Robust tag heuristic → now shows **LOW**, like its siblings. | `ux-fix/br1-risk-tag` |
 | **RC-1** | Report Comparison showed raw keys **AIXA_DE / D05_SI / IFX_DE** — the only page that skipped `display_ticker()`. | Wrapped in `display_ticker()` → **AIXA.DE / D05.SI / IFX.DE**. | `ux-fix/rc1-display-ticker` |
+| **ST-1** | Signal Tracker coloured returns by raw sign, so a *correct* CAUTION call (price fell) rendered **red** — inverted, on the honest-calibration page. | Returns now **neutral** (matching your calibration cards); the direction-aware "Trades won" winbar carries performance. | `ux-fix/st1-tracker-coloring` |
 
-*(All four fix branches are also merged into `ux-review/overnight-2026-07-04` for one-look review.)*
+*(All five fix branches are also merged into `ux-review/overnight-2026-07-04` for one-look review.)*
 
 ### 🧑‍⚖️ Your call — ranked proposals (design judgment)
 1. ~~**BR-2 (headline half)**~~ — ✅ **now done** (you asked me to pick one; this was my pick). The action card + watchlist column show the corrected **4.4:1** (raw on hover / marker), and ranking uses it. Verified across all three surfaces.
-2. **ST-1** (P2) — *my next pick if you want another built.* Signal Tracker's Avg/Best/Worst are coloured by raw sign, so a *correct* CAUTION call (price fell) shows **red**, a wrong one (rose) **green** — inverted. You already neutralised this on the calibration cards, so there's a clear precedent to follow; the ledger just wasn't brought in line.
+2. ~~**ST-1** (P2)~~ — ✅ **now done too.** The by-name ledger + episode returns are neutral (no more red for correct CAUTION calls); the direction-aware "Trades won" winbar carries performance, mirroring your calibration cards.
 3. **SC-1** (P3) — "Wildcard" is **amber** on the Briefing but **purple** on the Scenario Log. May be a deliberate colour-blind choice; align if not.
 4. **BR-4** (P3) — the posture verdict is one ~60-word `<h2>`; consider a styled `<p>` + short real heading (semantics only).
 5. Smaller: **PS-2** (stats page silently date-filtered), **CC-2** (uneven h1s), **BR-6** (cross-page freshness caption).
@@ -91,7 +92,7 @@ The table and drilldown are **strong** — click-to-expand, report-date picker, 
 
 Rich and honest — a direction-aware calibration hero (BUY/ACC/WATCH = win rate, CAUTION = avoid rate), a per-name track-record ledger with episode drill-downs, and clear methodology notes (`screens/signal-tracker-desktop-1440.png`). The calibration cards deliberately keep the numeral neutral and ride performance on a meter (`signal_tracker.py:357-360`) — a thoughtful fix so "CAUTION-red" doesn't read as bad. One finding, plus two drawers left for a follow-up.
 
-**[ST-1] By-name Avg/Best/Worst returns are colored by raw sign, so correct CAUTION calls render red/"bad"** — `P2` · S · treatment 🧑‍⚖️ (has in-file precedent) · Signal Tracker → By Name
+**[ST-1] By-name Avg/Best/Worst returns are colored by raw sign, so correct CAUTION calls render red/"bad"** — `P2` · ✅ **FIXED** (ledger + episode returns neutral) · Signal Tracker → By Name
 - **Saw (rendered colors, from the live DOM):** every CAUTION name's returns are painted red `rgb(239,68,68)` — NVTS Avg **-34.8%**, Worst **-53.1%**; CRWV -21.4%; LITE -18.8%. But for a CAUTION ("trim/avoid") call a *fall* is the call being **right**. BE shows a green "100% trades won" bar next to red -3.4% / -18.5% returns in the *same row*. The coloring is in fact **inverted** for CAUTION: INTC (CAUTION, **+6.8%**) is green though a *rise* means the avoid-call was wrong so far, while NVTS (CAUTION, **-34.8%**) is red though the fall made it a great call. Today's list is mostly CAUTION, so the Avg column reads as a "sea of red" that mostly represents *correct* calls (`screens/signal-tracker-byname-table.png`).
 - **Cause:** `_ret_num_cell` → `_ret_color` (`signal_tracker.py:326-329, 393-396`) = `STATUS_POS if v>0 else STATUS_NEG`, applied to all three columns regardless of signal direction. `avg` also blends BUY+CAUTION episodes for a name (`:459`), so one sign-colored number spans outcomes whose "good" direction differs.
 - **Why it matters:** the page exists to give an honest read of how signals performed; coloring a correct CAUTION call red inverts that read. The author already solved this on the calibration cards — the ledger just wasn't brought in line.
@@ -161,10 +162,11 @@ _(pending)_
 
 ## Branches created
 
-All off `main`, tested (**227 pass**, +9 new), verified live, **not pushed**, `main` untouched:
+All off `main`, tested (**229 pass**, +11 new), verified live, **not pushed**, `main` untouched:
 - `ux-fix/rc1-display-ticker` — RC-1 · `display_ticker()` in report_comparison (±5 lines)
 - `ux-fix/br1-risk-tag` — BR-1 · robust risk-tag heuristic + 2 regression tests
 - `ux-fix/br2-drilldown-sizing-rr` — BR-2/WL-1/TM-1 drilldown · `sizing_rr` fallback + 2 regression tests
 - `ux-fix/br2-action-card-rr` — BR-2 headline · new `rr_display()` helper; action card + watchlist column show the corrected R:R and rank by it · +5 tests
+- `ux-fix/st1-tracker-coloring` — ST-1 · neutral ledger/episode returns (correct CAUTION calls no longer red); removes dead `_ret_color` · +2 tests
 
-`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the four fixes merged in, for one-look review. Cherry-pick/merge from here or from the individual branches above.
+`ux-review/overnight-2026-07-04` — this review (plan, backlog, screenshots, Artifact) **plus** the five fixes merged in, for one-look review. Cherry-pick/merge from here or from the individual branches above.
