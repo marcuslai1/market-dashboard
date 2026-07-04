@@ -31,6 +31,17 @@ def compare_png(actual: bytes, baseline: bytes, *, max_diff_ratio: float = 0.002
     return ok, buf.getvalue()
 
 
+def _content_height(page) -> int:
+    """Full scroll height of the Streamlit app (body/doc/stMain, whichever is
+    tallest). Streamlit scrolls its body INSIDE <section data-testid="stMain">,
+    so the document stays viewport-height and stMain carries the real height."""
+    return int(page.evaluate(
+        "() => {const m = document.querySelector('[data-testid=\"stMain\"]');"
+        " return Math.max(document.body.scrollHeight,"
+        " document.documentElement.scrollHeight, m ? m.scrollHeight : 0);}"
+    ))
+
+
 def goto_and_settle(page, url: str) -> None:
     """Navigate, wait until Streamlit has finished its script run, then grow the
     viewport so a full-page screenshot captures the whole app."""
@@ -42,21 +53,29 @@ def goto_and_settle(page, url: str) -> None:
     # Re-assert animation kill (survives reruns) and let layout settle.
     page.add_style_tag(content="*{animation:none!important;transition:none!important}")
     page.wait_for_timeout(600)
-    # Streamlit scrolls its body INSIDE <section data-testid="stMain"> — the
-    # document itself stays viewport-height, so Playwright's full_page screenshot
+    # Streamlit scrolls its body INSIDE <section data-testid="stMain">, so the
+    # document itself stays viewport-height and Playwright's full_page screenshot
     # would otherwise capture only the first fold. Grow the viewport to the full
-    # content height so full_page captures the entire page (the below-the-fold
-    # capex-pulse Plotly charts included). Width is preserved so the responsive
-    # layout is unchanged.
-    content_h = page.evaluate(
-        "() => {const m = document.querySelector('[data-testid=\"stMain\"]');"
-        " return Math.max(document.body.scrollHeight,"
-        " document.documentElement.scrollHeight, m ? m.scrollHeight : 0);}"
-    )
+    # content height so full_page captures the entire page (below-the-fold Plotly
+    # charts included). Width is preserved so the responsive layout is unchanged.
+    #
+    # Grow-until-stable: Streamlit lazy-mounts content near the viewport, so a
+    # large page (e.g. Signal Tracker) can render MORE once the viewport enlarges
+    # and exceed the height measured at 900px — silently truncating its tail,
+    # identically every run (a coverage gap with no flake to catch it). So after
+    # each resize we re-measure and grow again until the content fits, capped at
+    # 4 iterations so a page that never converges can't loop forever.
     width = page.viewport_size["width"]
-    page.set_viewport_size({"width": width, "height": int(content_h) + 48})
-    # Let the taller layout settle — Plotly canvases redraw on the resize.
-    page.wait_for_timeout(800)
+    for _ in range(4):
+        content_h = _content_height(page)
+        # +48px slack absorbs scrollbar width + subpixel rounding so the final
+        # row is never clipped; it also damps <48px reflow jitter into one grow.
+        if content_h <= page.viewport_size["height"]:
+            break
+        page.set_viewport_size({"width": width, "height": content_h + 48})
+        # Let the taller layout settle — Plotly canvases redraw on the resize and
+        # newly-revealed content mounts before the next measurement.
+        page.wait_for_timeout(800)
 
 
 def assert_snapshot(page, name: str, *, mask: list | None = None) -> None:
