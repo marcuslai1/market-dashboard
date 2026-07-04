@@ -1,0 +1,41 @@
+name: Visual
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    # Keep this image tag IDENTICAL to the Makefile's PW_IMAGE so CI and local
+    # `make visual` render pixel-for-pixel the same (fonts, anti-aliasing, and
+    # chromium version all come from the image).
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.60.0-jammy
+    steps:
+      - uses: actions/checkout@v4
+
+      # requirements.lock brings the app runtime the harness boots as a
+      # subprocess; playwright is PINNED to 1.60.0 to match the image's bundled
+      # chromium. TEST_DATE is NOT set here — conftest.py injects it into the
+      # Streamlit server subprocess, so the frozen clock is inherited.
+      - name: Install deps (app runtime + pinned playwright)
+        run: pip install -r requirements.lock playwright==1.60.0 pytest-playwright pixelmatch pillow
+
+      - name: Install chromium
+        run: python -m playwright install chromium
+
+      # `python -m pytest` (module form) puts the repo root on sys.path so the
+      # suite's lib.* / tests.visual.* imports resolve.
+      - name: Run visual regression
+        run: python -m pytest tests/visual -q
+
+      # On a diff, the harness writes <name>.actual.png + <name>.diff.png here;
+      # download the "visual-diffs" artifact to see exactly what moved.
+      - name: Upload diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: tests/visual/_diffs/
