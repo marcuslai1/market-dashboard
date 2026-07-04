@@ -19,6 +19,7 @@ from lib.formatters import (
     _sign,
     _writeup_for_render,
     display_ticker,
+    rr_display,
 )
 from lib.pills import _signal_pill_html
 
@@ -40,7 +41,12 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
     m1 = d.get("1mo_pct")
     vs50 = d.get("vs_sma50_pct")
     rsi = d.get("rsi_14")
-    rr = (d.get("risk_reward") or {}).get("ratio")
+    rr_label, _, rr_adjusted = rr_display(d.get("risk_reward"))
+    # Dense table: show the tight-stop-corrected ratio (matches the action card
+    # + drilldown); a hover title carries the raw headline for the few adjusted
+    # names, since there's no room for an inline marker (UX-BR-2).
+    _rr_raw = (d.get("risk_reward") or {}).get("ratio_label", "")
+    rr_title = f' title="tight-stop adjusted (raw {_escape_attr(_rr_raw)})"' if rr_adjusted else ""
 
     summary = (
         '<summary>'
@@ -55,7 +61,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
         f'{_sign(m1)}{_fmt_num(m1, 1)}%</div>'
         f'<div style="text-align:right;">{_sign(vs50)}{_fmt_num(vs50, 1)}%</div>'
         f'<div style="text-align:right;">{_fmt_num(rsi, 0)}</div>'
-        f'<div style="text-align:right;">{_fmt_num(rr, 1)}:1</div>'
+        f'<div style="text-align:right;"{rr_title}>{rr_label or "—"}</div>'
         '</summary>'
     )
 
