@@ -1482,3 +1482,23 @@ details.led-details[open] > summary {
 @media (max-width: 720px) {
   .chg-item { grid-template-columns: 1fr; gap: 3px; }
 }
+
+/* Readiness ("trust") meter above the scorecard */
+.rd-meter {
+  border: 1px solid var(--rule); border-left: 3px solid var(--ink-3);
+  background: var(--paper-2); padding: 14px 18px; margin: 4px 0 18px;
+  border-radius: 3px;
+}
+.rd-meter.warn { border-left-color: #f59e0b; }
+.rd-stats { display: flex; flex-wrap: wrap; gap: 26px; margin-bottom: 9px; }
+.rd-stat { display: flex; flex-direction: column; gap: 2px; }
+.rd-stat b {
+  font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
+}
+.rd-stat span {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.rd-verdict {
+  font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+}

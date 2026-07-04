@@ -9,6 +9,7 @@ import pandas as pd
 from components.signal_tracker import (
     _changelog_strip_html,
     _classify_episode_verdict,
+    _readiness_html,
     _ret_num_cell,
     _scorecard_html,
     build_signal_episodes,
@@ -206,3 +207,38 @@ def test_changelog_strip_renders_entries():
 
 def test_changelog_strip_empty_is_blank():
     assert _changelog_strip_html([]) == ""
+
+
+# ── Readiness ("trust") meter — how close to decision-grade ──
+
+def test_readiness_single_regime_is_not_decision_grade():
+    """One regime + every signal single-regime -> 0 decision-grade, and the
+    verdict tells the reader to treat it as directional."""
+    ci = {"signal_performance": {
+        "CAUTION": {"n_matured_10d": 96, "n_alpha_10d": 96,
+                    "single_regime": True, "regimes_present": ["trend_up"]},
+        "BUY": {"n_matured_10d": 10, "n_alpha_10d": 10,
+                "single_regime": True, "regimes_present": ["trend_up"]},
+    }}
+    html = _readiness_html(ci)
+    assert "1 of 3" in html            # regimes seen
+    assert "106" in html               # total matured calls
+    assert "0 of 2" in html            # decision-grade / scored
+    low = html.lower()
+    assert "directional" in low and "not proven" in low
+
+
+def test_readiness_multiregime_signal_counts_decision_grade():
+    """A signal with >=10 matured across 2 regimes counts as decision-grade."""
+    ci = {"signal_performance": {
+        "CAUTION": {"n_matured_10d": 40, "n_alpha_10d": 40, "single_regime": False,
+                    "regimes_present": ["trend_up", "trend_down"]},
+    }}
+    html = _readiness_html(ci)
+    assert "2 of 3" in html
+    assert "1 of 1" in html            # CAUTION is decision-grade
+
+
+def test_readiness_empty_is_blank():
+    assert _readiness_html({}) == ""
+    assert _readiness_html(None) == ""
