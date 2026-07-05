@@ -82,3 +82,105 @@ def test_verdict_seeded_when_returns_none():
                                "inception": "2026-04-19"})
     assert "seeded" in text
     assert tone == ""
+
+
+# ── renderers ──
+from components.paper_book import _positions_table_html, _stats_html, _verdict_html
+
+_BLOCK = {
+    "policy_id": "v1_flat10", "inception": "2026-04-19", "as_of": "2026-07-03",
+    "nav_pct": 104.2, "cash_pct": 38.0, "n_positions": 5,
+    "nav_return_pct": 4.2, "spy_return_pct": 6.1, "soxx_return_pct": 9.9,
+    "trade_counts": {"buy_signal": 12, "stop": 3},
+    "positions": [
+        {"ticker": "NVDA", "weight_pct": 10.4, "stop": 101.5, "tranches": 1,
+         "max_dd_pct": -8.3},
+        {"ticker": "000660_KS", "weight_pct": 9.1, "stop": None, "tranches": 2,
+         "max_dd_pct": -2.0},
+    ],
+    "trades_today": [{"date": "2026-07-03", "ticker": "AMD", "side": "buy",
+                      "reason": "buy_signal"}],
+    "banner": "Paper measurement only — single-regime window; "
+              "not a performance verdict.",
+}
+
+
+def test_verdict_html_escapes_and_tones():
+    html = _verdict_html(_BLOCK)
+    assert "trailing the benchmark" in html
+    assert 'class="pb-verdict"' in html
+
+
+def test_stats_html_carries_cash_positions_and_reasons():
+    html = _stats_html(_BLOCK)
+    assert "38" in html and "5" in html
+    assert "12" in html and "3" in html          # trade counts by reason
+
+
+def test_positions_table_lists_rows_and_skips_malformed():
+    html = _positions_table_html(_BLOCK["positions"] + ["not-a-dict", {}])
+    assert "NVDA" in html
+    assert "000660.KS" in html                    # display_ticker conversion
+    assert html.count("<tr>") >= 2                # malformed entries skipped
+
+
+def test_render_paper_book_absent_renders_nothing():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+        from components.paper_book import render_paper_book
+        render_paper_book({}, pd.DataFrame())
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    assert not at.markdown                        # band skipped entirely
+
+
+def test_render_paper_book_csv_only_renders_curve_only():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+        from components.paper_book import render_paper_book
+        nav = pd.DataFrame({
+            "policy_id": ["v1_flat10", "v1_flat10"],
+            "date": ["2026-04-19", "2026-04-20"],
+            "nav_units": [1_000_000, 1_004_500],
+            "cash_units": [1_000_000, 900_000],
+            "n_positions": [0, 1],
+            "spy_close": [500.0, 510.0],
+            "soxx_close": [200.0, 199.0],
+        })
+        render_paper_book({}, nav)   # report predates the block
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "Paper book" in joined                 # section head + curve…
+    assert "benchmark" not in joined              # …but no verdict line
+    assert "Paper measurement" not in joined      # …and no invented banner
+
+
+def test_render_paper_book_block_only_renders_summary():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+        from components.paper_book import render_paper_book
+        block = {"policy_id": "v1_flat10", "inception": "2026-04-19",
+                 "cash_pct": 38.0, "n_positions": 1, "nav_return_pct": 4.2,
+                 "spy_return_pct": 6.1, "trade_counts": {},
+                 "positions": [], "trades_today": [],
+                 "banner": "Paper measurement only."}
+        render_paper_book({"paper_portfolio": block}, pd.DataFrame())
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "Paper book" in joined
+    assert "trailing the benchmark" in joined
+    assert "Paper measurement only." in joined
