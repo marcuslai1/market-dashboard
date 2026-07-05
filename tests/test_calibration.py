@@ -4,6 +4,7 @@ from components.briefing.calibration import (
     _calibration_html,
     _is_low_confidence,
     _scorecard_rows,
+    _scorecard_table_html,
     _taxonomy_line,
     _today_signal_counts,
 )
@@ -143,3 +144,59 @@ def test_banner_and_ordering_escaped():
     assert "<script>" not in out
     assert "<img" not in out
     assert "&lt;script&gt;" in out
+
+
+# ── Thin/episodes adoption (spec 2026-07-05-paper-book-band-design) ──
+def test_is_low_confidence_pipeline_thin_flag_wins_over_local_floor():
+    # thin=False from the pipeline overrides the local n<30 floor…
+    assert _is_low_confidence(
+        {"single_regime": False, "n_matured_10d": 12, "thin": False}
+    ) is False
+    # …and thin=True flags even a large-n cell (episode floor not met).
+    assert _is_low_confidence(
+        {"single_regime": False, "n_matured_10d": 500, "thin": True}
+    ) is True
+
+
+def test_is_low_confidence_single_regime_still_gates_with_thin_false():
+    # Regime coverage is orthogonal to the pipeline's sample-size gate: a
+    # single-regime cell must never read "decision-grade" (it would
+    # contradict the pipeline's own banner two lines below).
+    assert _is_low_confidence(
+        {"single_regime": True, "n_matured_10d": 500, "thin": False}
+    ) is True
+
+
+def test_scorecard_rows_carry_episode_fields():
+    sp = {"CAUTION": {"n_matured_10d": 555, "win_rate_pct": 43.4,
+                      "avg_return_10d": 1.83, "alpha_10d": -3.22,
+                      "single_regime": False, "thin": False,
+                      "n_episodes": 12, "alpha_episode_mean_10d": -2.9}}
+    row = _scorecard_rows(sp, {})[0]
+    assert row["n_episodes"] == 12
+    assert row["ep_mean"] == -2.9
+    assert row["low_conf"] is False
+
+
+def test_table_shows_episode_column_only_when_fields_present():
+    from components.briefing.calibration import _scorecard_table_html
+    with_ep = _scorecard_table_html(_scorecard_rows(
+        {"CAUTION": {"n_matured_10d": 555, "win_rate_pct": 43.4,
+                     "avg_return_10d": 1.83, "alpha_10d": -3.22,
+                     "single_regime": True, "thin": False,
+                     "n_episodes": 12, "alpha_episode_mean_10d": -2.9}}, {}))
+    assert " ep</td>" in with_ep       # sample cell: "555 · 12 ep"
+    assert "α/ep" in with_ep           # new column header
+
+    without = _scorecard_table_html(_scorecard_rows(_SP, {}))
+    assert " ep</td>" not in without   # fallback sample cells unchanged
+    assert "α/ep" not in without
+
+
+def test_fallback_html_is_byte_identical_shape():
+    # Golden guard: a field-absent corpus renders exactly the pre-adoption
+    # markup (column count and headers), so visual baselines don't churn.
+    html = _scorecard_table_html(_scorecard_rows(_SP, {"CAUTION": 23}))
+    # Count closing header tags (</thead> is excluded — it ends with </thead>,
+    # not </th>) so this reflects the 6 column headers exactly, no more.
+    assert html.count("</th>") == 6    # Signal/Today/n/Win/Avg 10d/α — no more
