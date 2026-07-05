@@ -43,6 +43,26 @@ def test_overlay_empty_live_returns_report():
     assert overlay_live(rpt, {}) is rpt
 
 
+def test_fetch_live_quotes_disabled_by_env(monkeypatch):
+    """LIVE_QUOTES_DISABLED=1 must skip every fetch attempt entirely.
+
+    The visual harness relies on this: a dead proxy makes each fetch FAIL fast,
+    but yfinance's per-ticker fallback chain keeps the worker threads hot-looping
+    retries, starving the script thread and stalling first render past the
+    harness's settle timeout."""
+    import live_prices
+
+    calls = []
+    monkeypatch.setattr(live_prices, "_fetch_one", lambda sym: calls.append(sym))
+    monkeypatch.setenv("LIVE_QUOTES_DISABLED", "1")
+    live_prices.fetch_live_quotes.clear()  # st.cache_data — don't serve a stale entry
+    out = live_prices.fetch_live_quotes()
+    live_prices.fetch_live_quotes.clear()  # don't poison later tests' cache
+    assert calls == [], "a fetch was attempted despite LIVE_QUOTES_DISABLED"
+    assert out["__meta__"]["n_ok"] == 0
+    assert {k: v for k, v in out.items() if k != "__meta__"} == {}
+
+
 def test_safe_read_csv_missing_file_returns_empty(tmp_path):
     assert _safe_read_csv(tmp_path / "nope.csv").empty
 
