@@ -49,6 +49,63 @@ def test_tiny_difference_within_tolerance_passes():
     assert ok_strict is False and ok_loose is True
 
 
+def test_small_height_jitter_within_tolerance_passes():
+    """±2 rows of page-tail jitter (grow-until-stable wobble) must not fail a
+    pixel-identical page: gap rows spend the normal diff budget instead of
+    tripping a hard size gate. 2 rows / 1502 = 0.0013 < 0.002."""
+    ok, _ = compare_png(_png((10, 20, 30), (10, 1502)), _png((10, 20, 30), (10, 1500)))
+    assert ok is True
+
+
+def test_large_height_gap_fails():
+    """A real added band blows the same budget: 20 rows / 120 = 0.167."""
+    ok, _ = compare_png(_png((10, 20, 30), (10, 120)), _png((10, 20, 30), (10, 100)))
+    assert ok is False
+
+
+def test_width_mismatch_always_fails():
+    """The viewport width is pinned, so a width change is a real layout change —
+    no tolerance applies."""
+    ok, _ = compare_png(_png((10, 20, 30), (12, 100)), _png((10, 20, 30), (10, 100)),
+                        max_diff_ratio=0.5)
+    assert ok is False
+
+
+def test_visual_update_skips_rewriting_within_tolerance_baseline(tmp_path,
+                                                                 monkeypatch):
+    """VISUAL_UPDATE=1 must NOT rewrite a baseline the capture still matches:
+    within-tolerance rewrites churn binary jitter into commits that then diff
+    against CI."""
+    monkeypatch.setenv("VISUAL_UPDATE", "1")
+    baselines = tmp_path / "baselines"
+    baselines.mkdir()
+    monkeypatch.setattr(harness, "BASELINE_DIR", baselines)
+    monkeypatch.setattr(harness, "DIFF_DIR", tmp_path / "_diffs")
+    old = _png((10, 20, 30), (10, 1500))
+    (baselines / "steady.png").write_bytes(old)
+    page = _StubPage(_png((10, 20, 30), (10, 1502)))  # 2-row jitter only
+
+    harness.assert_snapshot(page, "steady")
+
+    assert (baselines / "steady.png").read_bytes() == old  # untouched
+
+
+def test_visual_update_rewrites_changed_baseline(tmp_path, monkeypatch):
+    """VISUAL_UPDATE=1 still rewrites when the capture genuinely changed."""
+    monkeypatch.setenv("VISUAL_UPDATE", "1")
+    baselines = tmp_path / "baselines"
+    baselines.mkdir()
+    monkeypatch.setattr(harness, "BASELINE_DIR", baselines)
+    monkeypatch.setattr(harness, "DIFF_DIR", tmp_path / "_diffs")
+    (baselines / "changed.png").write_bytes(_png((0, 0, 0)))
+    new = _png((255, 255, 255))
+    page = _StubPage(new)
+
+    harness.assert_snapshot(page, "changed")
+
+    assert (baselines / "changed.png").read_bytes() == new
+
+
 def test_missing_baseline_in_compare_mode_raises_and_writes_nothing(tmp_path,
                                                                     monkeypatch):
     """Compare mode (VISUAL_UPDATE unset) + missing baseline must FAIL LOUD and

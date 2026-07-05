@@ -17,6 +17,11 @@ Plotly canvas output all come from that image.
 `test_harness_unit.py` unit-tests the pure comparator (no browser); `test_smoke.py`
 asserts the app boots. Comparison is anti-aliasing-aware (`pixelmatch
 includeAA=False`) with a `max_diff_ratio=0.002` tolerance (see `harness.py`).
+A small page-height gap spends that same budget (the grow-until-stable capture
+wobbles the page tail by a row or two between runs) — only a width change or a
+height gap big enough to be a real band fails outright. `VISUAL_UPDATE=1` only
+rewrites baselines the capture no longer matches, so a regen run cannot churn
+within-tolerance jitter into commits.
 
 ## Run (compare against committed baselines)
 
@@ -66,21 +71,28 @@ The tag is pinned in three places that must stay in lockstep: the `Makefile`
 Screenshots only work as regression tests if two runs of unchanged code produce
 byte-identical pixels. Four mechanisms guarantee that:
 
-### 1. Two-layer network block (kills live-price flicker)
+### 1. Three-layer network block (kills live-price flicker)
 
 The dashboard fetches live quotes from Yahoo. Left alone, the pulse strip renders
-per-second-changing prices and every snapshot flakes. It is blocked at **two**
+per-second-changing prices and every snapshot flakes. It is blocked at **three**
 layers because the fetch happens in two different processes:
 
+- **Kill switch (primary)** — `conftest.py` sets `LIVE_QUOTES_DISABLED=1` in the
+  server subprocess's env; `live_prices.fetch_live_quotes` honors it and skips
+  the batch entirely (same pattern as `TEST_DATE`). This exists because the
+  dead-proxy layer below only makes each fetch *fail* fast, not *stop* fast:
+  yfinance's per-ticker fallback chain keeps the worker threads hot-looping curl
+  retries after the fetch deadline returns, starving the script thread — on
+  2026-07-05 that pushed first render to ~36s and every page past the 30s settle
+  timeout. The app falls back to its frozen report-JSON snapshot (caption:
+  "FETCH FAILED — showing snapshot").
 - **Browser layer** — `conftest.py`'s `vpage` fixture calls `page.route("**/*", …)`
   to abort every non-localhost request (remote fonts, telemetry, and any
   browser-side fetch).
-- **Server-subprocess layer** — the live-price fetch actually runs inside the
-  Streamlit *server* process, which Playwright cannot intercept. So `conftest.py`
-  launches that subprocess with `HTTP(S)_PROXY` pointed at a dead port (`127.0.0.1:9`)
-  and `NO_PROXY=127.0.0.1,localhost`. Every Yahoo fetch fails fast and the app
-  falls back to its frozen report-JSON snapshot (caption: "FETCH FAILED — showing
-  snapshot").
+- **Server-subprocess layer (defense-in-depth)** — `conftest.py` also launches
+  the server with `HTTP(S)_PROXY` pointed at a dead port (`127.0.0.1:9`) and
+  `NO_PROXY=127.0.0.1,localhost`, so any *other* outbound call fails rather than
+  introducing nondeterminism.
 
 ### 2. `TEST_DATE=2026-07-04` clock freeze
 
