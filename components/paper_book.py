@@ -164,7 +164,7 @@ def _positions_table_html(positions: list) -> str:
             f"<td>{_escape_dollars(display_ticker(str(p['ticker'])))}</td>"
             f'<td class="num">{p.get("weight_pct", 0):.1f}%</td>'
             f'<td class="num">{f"{stop:.2f}" if stop is not None else "—"}</td>'
-            f'<td class="num">{p.get("tranches", "—")}</td>'
+            f'<td class="num">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
             f'<td class="num">{f"{dd:+.1f}%" if dd is not None else "—"}</td>'
             "</tr>"
         )
