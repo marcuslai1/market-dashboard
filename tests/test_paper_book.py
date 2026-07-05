@@ -134,6 +134,7 @@ def test_render_paper_book_absent_renders_nothing():
 
     def app():
         import pandas as pd
+
         from components.paper_book import render_paper_book
         render_paper_book({}, pd.DataFrame())
 
@@ -148,6 +149,7 @@ def test_render_paper_book_csv_only_renders_curve_only():
 
     def app():
         import pandas as pd
+
         from components.paper_book import render_paper_book
         nav = pd.DataFrame({
             "policy_id": ["v1_flat10", "v1_flat10"],
@@ -174,6 +176,7 @@ def test_render_paper_book_block_only_renders_summary():
 
     def app():
         import pandas as pd
+
         from components.paper_book import render_paper_book
         block = {"policy_id": "v1_flat10", "inception": "2026-04-19",
                  "cash_pct": 38.0, "n_positions": 1, "nav_return_pct": 4.2,
