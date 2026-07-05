@@ -120,13 +120,17 @@ def test_stats_html_carries_cash_positions_and_reasons():
 def test_positions_table_lists_rows_and_skips_malformed():
     hostile = {"ticker": "AMD", "weight_pct": 5.0, "stop": None,
                "tranches": "<b>2</b>", "max_dd_pct": None}
-    html = _positions_table_html(_BLOCK["positions"] + [hostile,
+    weight_none = {"ticker": "INTC", "weight_pct": None, "stop": 30.0,
+                   "tranches": "1", "max_dd_pct": -2.0}
+    html = _positions_table_html(_BLOCK["positions"] + [hostile, weight_none,
                                                         "not-a-dict", {}])
     assert "NVDA" in html
     assert "000660.KS" in html                    # display_ticker conversion
-    assert html.count("<tr>") >= 3                # malformed entries skipped
+    assert html.count("<tr>") >= 4                # malformed entries skipped
     assert "<b>2</b>" not in html                 # tranches escaped, not raw
     assert "&lt;b&gt;2&lt;/b&gt;" in html
+    assert "INTC" in html                         # weight_pct None row renders
+    assert "—</td>" in html                       # ...with em-dash, not a crash
 
 
 def test_render_paper_book_absent_renders_nothing():

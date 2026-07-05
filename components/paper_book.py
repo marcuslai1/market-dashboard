@@ -55,8 +55,10 @@ def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
 
     Each series rebases to its own first valid value (the upstream summary
     computes benchmark returns first-row→last-row the same way — this is
-    presentation math, not measurement). Series that are absent, all-NaN, or
-    zero-based are omitted rather than plotted wrong.
+    presentation math, not measurement). NAV's first exported row is the
+    inception seed (nav_units == INCEPTION_UNITS upstream), so the curve's
+    endpoint agrees with the block's nav_return_pct. Series that are absent,
+    all-NaN, or zero-based are omitted rather than plotted wrong.
     """
     if df is None or df.empty:
         return pd.DataFrame()
@@ -157,12 +159,13 @@ def _positions_table_html(positions: list) -> str:
     for p in positions or []:
         if not isinstance(p, dict) or not p.get("ticker"):
             continue
+        wt = p.get("weight_pct")
         stop = p.get("stop")
         dd = p.get("max_dd_pct")
         rows += (
             "<tr>"
             f"<td>{_escape_dollars(display_ticker(str(p['ticker'])))}</td>"
-            f'<td class="num">{p.get("weight_pct", 0):.1f}%</td>'
+            f'<td class="num">{f"{wt:.1f}%" if wt is not None else "—"}</td>'
             f'<td class="num">{f"{stop:.2f}" if stop is not None else "—"}</td>'
             f'<td class="num">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
             f'<td class="num">{f"{dd:+.1f}%" if dd is not None else "—"}</td>'
