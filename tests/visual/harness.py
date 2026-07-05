@@ -13,19 +13,39 @@ from pixelmatch.contrib.PIL import pixelmatch
 BASELINE_DIR = Path(__file__).parent / "baselines"
 DIFF_DIR = Path(__file__).parent / "_diffs"
 
+# First-render budget. This exists to catch hangs, not to benchmark: CI paints
+# the masthead in ~2-3s, but a Docker-Desktop-on-Windows container has taken
+# 36s+ to first paint on heavy pages (observed 2026-07-05, all pages timing out
+# at the old 30s) — the suite must stay green on slow hosts too.
+SETTLE_TIMEOUT_MS = 120_000
+
 
 def compare_png(actual: bytes, baseline: bytes, *, max_diff_ratio: float = 0.002
                 ) -> tuple[bool, bytes]:
-    """Anti-aliasing-aware compare. Returns (ok, diff_png_bytes)."""
+    """Anti-aliasing-aware compare. Returns (ok, diff_png_bytes).
+
+    A width mismatch always fails: the viewport width is pinned, so it can only
+    mean a real layout change. A HEIGHT gap spends the normal diff budget
+    instead (every missing/extra row counts as a full row of differing pixels):
+    the grow-until-stable capture wobbles the page tail by a row or two between
+    runs — the b08f500 ledger baseline was 3782px vs a pixel-identical 3780px
+    CI render (run 28720778639), and the old hard size gate kept CI red on that
+    jitter through four regens. A genuinely added band exceeds the budget and
+    still fails.
+    """
     a = Image.open(io.BytesIO(actual)).convert("RGBA")
     b = Image.open(io.BytesIO(baseline)).convert("RGBA")
-    if a.size != b.size:  # size mismatch is always a fail; diff = the actual
+    if a.size[0] != b.size[0]:  # width mismatch is always a fail; diff = the actual
         return False, actual
-    diff = Image.new("RGBA", a.size)
+    overlap_h = min(a.size[1], b.size[1])
+    gap_px = abs(a.size[1] - b.size[1]) * a.size[0]
+    a_ov = a.crop((0, 0, a.size[0], overlap_h))
+    b_ov = b.crop((0, 0, b.size[0], overlap_h))
+    diff = Image.new("RGBA", (a.size[0], overlap_h))
     # includeAA=False -> anti-aliased pixels are detected and IGNORED (not counted
     # as diffs); critical for robustness against font/subpixel noise.
-    n = pixelmatch(a, b, diff, includeAA=False, threshold=0.1)
-    ok = n <= max_diff_ratio * (a.size[0] * a.size[1])
+    n = pixelmatch(a_ov, b_ov, diff, includeAA=False, threshold=0.1) + gap_px
+    ok = n <= max_diff_ratio * (a.size[0] * max(a.size[1], b.size[1]))
     buf = io.BytesIO()
     diff.save(buf, format="PNG")
     return ok, buf.getvalue()
@@ -92,10 +112,10 @@ def goto_and_settle(page, url: str) -> None:
     """Navigate, wait until Streamlit has finished its script run, then grow the
     viewport so a full-page screenshot captures the whole app."""
     page.goto(url, wait_until="networkidle")
-    page.wait_for_selector("text=The Market Report", timeout=30_000)
+    page.wait_for_selector("text=The Market Report", timeout=SETTLE_TIMEOUT_MS)
     # Streamlit shows a "Running..." status while a script runs; wait it out.
     page.wait_for_selector('[data-testid="stStatusWidget"]', state="detached",
-                           timeout=30_000)
+                           timeout=SETTLE_TIMEOUT_MS)
     # Re-assert animation kill (survives reruns) and let layout settle.
     page.add_style_tag(content="*{animation:none!important;transition:none!important}")
     page.wait_for_timeout(600)
@@ -110,6 +130,12 @@ def assert_snapshot(page, name: str, *, mask: list | None = None) -> None:
                              mask=mask or [], scale="css", type="png")
     baseline_path = BASELINE_DIR / f"{name}.png"
     if os.environ.get("VISUAL_UPDATE") == "1":
+        # Rewrite only on a REAL change. A within-tolerance rewrite commits
+        # capture jitter as a binary diff — which then diffs against CI's
+        # equally-jittered render, keeping CI red for no visual reason.
+        if (baseline_path.exists()
+                and compare_png(actual, baseline_path.read_bytes())[0]):
+            return
         baseline_path.write_bytes(actual)
         return
     if not baseline_path.exists():
