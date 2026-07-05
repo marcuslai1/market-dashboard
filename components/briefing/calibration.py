@@ -38,16 +38,21 @@ def _today_signal_counts(watchlist: dict) -> Counter:
 
 
 def _is_low_confidence(perf: dict) -> bool:
-    """True when a signal_performance bucket is single-regime or thin-n.
+    """True when a signal_performance bucket is single-regime or thin.
 
-    The block self-flags every bucket single_regime today, so this honestly
-    gates the whole card as low-confidence. ``_MIN_MATURED_N`` catches thin
-    samples once multiple regimes have accumulated.
+    Sample-size honesty: when the pipeline exports its own ``thin`` flag
+    (alpha-n floor AND ≥5 independent episodes — commit 5dc0fa3 upstream),
+    that flag replaces the local ``n < _MIN_MATURED_N`` floor; older reports
+    keep the local heuristic. ``single_regime`` stays a gate in both paths —
+    regime coverage is orthogonal to sample size, and a single-regime cell
+    reading "decision-grade" would contradict the pipeline's own banner.
     """
     if not perf:
         return True
     if perf.get("single_regime"):
         return True
+    if "thin" in perf:
+        return bool(perf["thin"])
     return (perf.get("n_matured_10d") or 0) < _MIN_MATURED_N
 
 
@@ -72,6 +77,8 @@ def _scorecard_rows(signal_performance: dict, today_counts) -> list:
             "win": perf.get("win_rate_pct"),
             "avg": perf.get("avg_return_10d"),
             "alpha": perf.get("alpha_10d"),
+            "n_episodes": perf.get("n_episodes"),
+            "ep_mean": perf.get("alpha_episode_mean_10d"),
             "low_conf": _is_low_confidence(perf),
         })
     return rows
@@ -127,28 +134,38 @@ def _window_caption(data_window: dict) -> str:
 def _scorecard_table_html(rows: list) -> str:
     """A .ep-table of signal → today-count, n, win%, avg-10d, alpha.
 
-    Low-confidence rows carry ``data-lowconf="1"`` for CSS muting. Returns ''
+    When any row carries the pipeline's episode fields, the sample cell
+    becomes "n · Nep" (overlapping daily rows can't pose as independent
+    observations) and an α/ep column shows the one-episode-one-vote mean.
+    Field-absent corpora render exactly the pre-adoption markup. Low-
+    confidence rows carry ``data-lowconf="1"`` for CSS muting. Returns ''
     when there are no rows.
     """
     if not rows:
         return ""
+    has_ep = any(r["n_episodes"] is not None for r in rows)
     trs = []
     for r in rows:
         lc = ' data-lowconf="1"' if r["low_conf"] else ""
         win = f'{_fmt_num(r["win"], 0)}%' if r["win"] is not None else "—"
+        n_cell = _fmt_num(r["n"], 0)
+        if has_ep and r["n_episodes"] is not None:
+            n_cell = f'{n_cell} · {int(r["n_episodes"])} ep'
+        ep_td = f'<td class="num">{_pct(r["ep_mean"])}</td>' if has_ep else ""
         trs.append(
             f"<tr{lc}><td>{_signal_pill_html(r['signal'], small=True)}</td>"
             f'<td class="num">{r["today"]}</td>'
-            f'<td class="num">{_fmt_num(r["n"], 0)}</td>'
+            f'<td class="num">{n_cell}</td>'
             f'<td class="num">{win}</td>'
             f'<td class="num">{_pct(r["avg"])}</td>'
-            f'<td class="num">{_pct(r["alpha"])}</td></tr>'
+            f'<td class="num">{_pct(r["alpha"])}</td>{ep_td}</tr>'
         )
+    ep_th = '<th class="num">α/ep</th>' if has_ep else ""
     return (
         '<div class="tk-scroll"><table class="ep-table cal-scorecard">'
         '<thead><tr><th>Signal</th><th class="num">Today</th>'
         '<th class="num">n</th><th class="num">Win</th>'
-        '<th class="num">Avg 10d</th><th class="num">α</th></tr></thead>'
+        f'<th class="num">Avg 10d</th><th class="num">α</th>{ep_th}</tr></thead>'
         f'<tbody>{"".join(trs)}</tbody></table></div>'
     )
 
