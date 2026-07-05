@@ -13,11 +13,22 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
+
+
+def _live_quotes_disabled() -> bool:
+    """Test hook (mirrors lib/clock.py's TEST_DATE): LIVE_QUOTES_DISABLED=1
+    skips the batch entirely. The visual harness needs this because its dead
+    proxy only makes each fetch FAIL fast — yfinance's per-ticker fallback
+    chain keeps the 12 worker threads hot-looping curl retries after the 4s
+    deadline returns, starving the script thread and stalling first render
+    past the harness's settle timeout."""
+    return os.environ.get("LIVE_QUOTES_DISABLED", "").strip() not in ("", "0")
 
 # Overall wall-clock budget for one live-quote batch. Live prices are on by
 # default and fetched on first render, so an unreachable/slow Yahoo must never
@@ -75,6 +86,13 @@ def fetch_live_quotes() -> dict:
     """
     out: dict[str, dict] = {}
     items = list(TICKER_TO_YAHOO.items())
+    if _live_quotes_disabled():
+        out["__meta__"] = {
+            "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "n_ok": 0,
+            "n_total": len(items),
+        }
+        return out
     # Not using the context manager: its __exit__ calls shutdown(wait=True), which
     # would block on stragglers and defeat the deadline. We cancel/return instead.
     pool = ThreadPoolExecutor(max_workers=12)

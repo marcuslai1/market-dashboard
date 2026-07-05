@@ -37,6 +37,13 @@ _DETERMINISTIC_ENV = {
     # renders a fixed window; otherwise those baselines rot as the wall clock moves.
     # 2026-07-04 = latest report date = today's real date, so existing baselines hold.
     "TEST_DATE": "2026-07-04",
+    # Skip the live-quote batch entirely (live_prices honors this). The dead
+    # proxy below only makes each fetch FAIL fast — yfinance's per-ticker
+    # fallback chain keeps the worker threads hot-looping curl retries after
+    # fetch_live_quotes' 4s deadline returns, starving the script thread and
+    # stalling first render past goto_and_settle's 30s masthead wait (observed
+    # 36s in the pinned image on 2026-07-05: every page timed out).
+    "LIVE_QUOTES_DISABLED": "1",
     "HTTP_PROXY": "http://127.0.0.1:9",
     "HTTPS_PROXY": "http://127.0.0.1:9",
     "http_proxy": "http://127.0.0.1:9",
