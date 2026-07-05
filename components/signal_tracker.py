@@ -9,9 +9,10 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from components.paper_book import render_paper_book
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
-from lib.data_loader import load_changelog
+from lib.data_loader import load_changelog, load_paper_nav
 from lib.formatters import (
     _escape_attr,
     _escape_dollars,
@@ -645,10 +646,12 @@ def render_signal_tracker_page(
 ) -> None:
     """Render the Signal Tracker page — the Performance Ledger.
 
-    Three tiers, verdict-first:
+    Four tiers, verdict-first:
       1. Readiness meter + scorecard — is the pipeline systematically any good?
          Corpus-wide by design: per-signal calibration is a property of the
          system, so the name filter deliberately does not touch it.
+      1c. Paper book — the pipeline's mechanical paper portfolio (NAV vs
+         SPY/SOXX), rendered from exports only; also corpus-wide.
       2. What we've changed — dated methodology strip.
       3. Detail drawers (collapsed) — by-name ledger + signal changes; the
          name filter lives here and scopes only these.
@@ -696,6 +699,12 @@ def render_signal_tracker_page(
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         if hold_count:
             st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
+
+    # ── 1c. Paper book — the pipeline's mechanical NAV lane. Corpus-scoped:
+    # the name filter below deliberately does not touch it (page contract,
+    # spec 2026-07-05-paper-book-band-design). Skips itself until the
+    # pipeline's paper_portfolio block / paper_nav.csv export first lands.
+    render_paper_book(latest_report, load_paper_nav())
 
     # ── 2. What we've changed — recent methodology updates ──
     changelog = load_changelog()
@@ -776,5 +785,7 @@ def render_signal_tracker_page(
 # The paper-trade-outcomes block (a second scoring system: entry types, hit-
 # invalidation, realised return by signal x entry type) was CUT 2026-07-04 —
 # it duplicated the scorecard's job and was the densest thing on the page.
-# Its pipeline-log data (signal_log.csv) is still exported; if we want realised
-# P&L back, fold one line into the scorecard rather than re-adding this table.
+# Its pipeline-log data (signal_log.csv) is still exported. The paper-book
+# band (tier 1c) is NOT that table returning: it renders the pipeline's own
+# paper_portfolio lane — one engine, exported numbers, zero dashboard math
+# (spec 2026-07-05-paper-book-band-design).
