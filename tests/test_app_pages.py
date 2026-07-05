@@ -66,6 +66,38 @@ def test_nav_radio_round_trip_switches_pages():
     assert at.radio(key="page_nav").value == "Briefing"
 
 
+def _tracker_page_app():
+    """Boot ONLY the Signal Tracker page. Widget interactions on a non-default
+    page can't be driven through dashboard.py under AppTest: st.navigation
+    resets to the default page on every rerun (an AppTest artifact — real
+    sessions persist it), so the masthead resyncs any interaction back to
+    Briefing. cache_key=None takes the uncached path."""
+    from components.signal_tracker import render_signal_tracker_page
+    from lib.data_loader import load_all_reports, load_sqlite_prices
+
+    render_signal_tracker_page(load_all_reports(), load_sqlite_prices())
+
+
+def test_tracker_scorecard_survives_empty_name_filter():
+    """The scorecard is corpus-wide calibration; the name filter scopes only the
+    by-name drawers. Emptying the filter must not blank the scorecard.
+
+    Asserts on 'class="calib-grid"' (the emitted HTML) — bare 'calib-grid' would
+    also match the injected theme.css on any page."""
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_tracker_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    assert 'class="calib-grid"' in " ".join(str(m.value) for m in at.markdown)
+
+    at.multiselect[0].set_value([]).run()
+    assert not at.exception, f"empty filter: {[e.value for e in at.exception]}"
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert 'class="calib-grid"' in page, \
+        "scorecard vanished when the name filter was emptied"
+
+
 def test_briefing_renders_capex_pulse_band():
     at = _boot()
     assert not at.exception

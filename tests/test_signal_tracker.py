@@ -8,6 +8,7 @@ import pandas as pd
 
 from components.signal_tracker import (
     _changelog_strip_html,
+    _changelog_sub,
     _classify_episode_verdict,
     _readiness_html,
     _ret_num_cell,
@@ -218,6 +219,23 @@ def test_changelog_strip_renders_entries():
 
 def test_changelog_strip_empty_is_blank():
     assert _changelog_strip_html([]) == ""
+
+
+def test_changelog_sub_shows_latest_entry_date():
+    """The section sub must surface the newest entry's date so a stale
+    hand-maintained changelog is visibly stale, order-independent."""
+    sub = _changelog_sub([
+        {"date": "2026-07-02", "title": "older"},
+        {"date": "2026-07-04", "title": "newer"},
+    ])
+    assert "latest 2026-07-04" in sub
+    assert "2026-07-02" not in sub
+
+
+def test_changelog_sub_without_dates_omits_latest():
+    sub = _changelog_sub([{"title": "undated"}])
+    assert "latest" not in sub
+    assert sub  # still returns the base description
 
 
 # ── Readiness ("trust") meter — how close to decision-grade ──

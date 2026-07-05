@@ -390,6 +390,21 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
     return f'<div class="calib-grid">{cells}</div>'
 
 
+def _changelog_sub(entries: list) -> str:
+    """Section-head sub for the change log, carrying the newest entry's date.
+
+    data/changelog.json is hand-maintained; surfacing "latest YYYY-MM-DD" makes
+    a rotting log visibly stale instead of silently posing as current.
+    Order-independent (takes the max date, ISO strings sort correctly).
+    """
+    base = "Recent updates to how these signals are built"
+    dates = [str(e.get("date")) for e in entries
+             if isinstance(e, dict) and e.get("date")]
+    if not dates:
+        return base
+    return f"{base} · latest {_escape_dollars(max(dates))}"
+
+
 def _changelog_strip_html(entries: list) -> str:
     """Compact dated strip of recent methodology changes — the 'what we've
     changed' view. Empty list -> '' so the caller can skip the whole section.
@@ -631,9 +646,12 @@ def render_signal_tracker_page(
     """Render the Signal Tracker page — the Performance Ledger.
 
     Three tiers, verdict-first:
-      1. Calibration band  — is the pipeline systematically any good?
-      2. By-name ledger    — which names' calls work, click to see episodes.
-      3. Secondary detail  — signal changes + paper-trade log (collapsed).
+      1. Readiness meter + scorecard — is the pipeline systematically any good?
+         Corpus-wide by design: per-signal calibration is a property of the
+         system, so the name filter deliberately does not touch it.
+      2. What we've changed — dated methodology strip.
+      3. Detail drawers (collapsed) — by-name ledger + signal changes; the
+         name filter lives here and scopes only these.
 
     Args:
         reports: filtered reports dict (date-keyed).
@@ -655,17 +673,6 @@ def render_signal_tracker_page(
 
     if sig_df.empty:
         st.warning("No signal data available yet.")
-        st.stop()
-
-    tickers = sorted(sig_df["ticker"].unique())
-
-    # Filter lives in a popover so the page no longer opens on a wall of chips.
-    with st.popover(f"Filter names · {len(tickers)} selected", use_container_width=False):
-        selected_tickers = st.multiselect(
-            "Names to include", tickers, default=tickers, label_visibility="collapsed",
-        )
-    if not selected_tickers:
-        st.info("Select at least one name in the filter.")
         st.stop()
 
     # ── 1. Readiness meter + scorecard — the one clear read, framed by trust ──
@@ -691,18 +698,31 @@ def render_signal_tracker_page(
             st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
 
     # ── 2. What we've changed — recent methodology updates ──
-    strip = _changelog_strip_html(load_changelog())
+    changelog = load_changelog()
+    strip = _changelog_strip_html(changelog)
     if strip:
         st.markdown(
             '<div class="section-head" style="margin-top:30px;">'
             "<h2>What we've changed</h2>"
-            '<span class="sub">Recent updates to how these signals are built</span>'
+            f'<span class="sub">{_changelog_sub(changelog)}</span>'
             "</div>",
             unsafe_allow_html=True,
         )
         st.markdown(strip, unsafe_allow_html=True)
 
     # ── 3. Detail drawers (collapsed — the page leads with the scorecard) ──
+    # The name filter sits HERE, not at the top: it scopes only the drawers
+    # below, and placing it above the corpus-wide scorecard read as if it
+    # filtered that too. Popover so the section doesn't open on a wall of chips.
+    tickers = sorted(sig_df["ticker"].unique())
+    with st.popover(f"Filter names · {len(tickers)} tracked", use_container_width=False):
+        selected_tickers = st.multiselect(
+            "Names to include", tickers, default=tickers, label_visibility="collapsed",
+        )
+    if not selected_tickers:
+        st.info("Select at least one name in the filter.")
+        return
+
     with st.expander("By name — each name's track record + episodes", expanded=False):
         st.caption(
             "One row per name. *Trades won* = share of closed BUY/ACCUMULATE/"
