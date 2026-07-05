@@ -154,3 +154,24 @@ def test_capex_loaders_missing_file_returns_empty(monkeypatch, tmp_path):
     monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
     assert dl.load_capex_quarterly() == {}
     assert dl.load_earnings_cascades() == {}
+
+
+# ── Paper-book band: load_paper_nav (spec 2026-07-05-paper-book-band) ──
+def test_load_paper_nav_missing_file_returns_empty(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    df = dl.load_paper_nav()
+    assert df.empty
+
+
+def test_load_paper_nav_reads_columns(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    (tmp_path / "paper_nav.csv").write_text(
+        "policy_id,date,nav_units,cash_units,n_positions,spy_close,soxx_close\n"
+        "v1_flat10,2026-04-19,1000000,1000000,0,522.1,201.3\n"
+        "v1_flat10,2026-04-20,1004500,900000,1,524.0,203.9\n",
+        encoding="utf-8",
+    )
+    df = dl.load_paper_nav()
+    assert list(df.columns) == ["policy_id", "date", "nav_units", "cash_units",
+                                "n_positions", "spy_close", "soxx_close"]
+    assert len(df) == 2
