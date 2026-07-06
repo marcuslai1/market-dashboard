@@ -161,6 +161,38 @@ def _banner_html(block: dict) -> str:
     return f'<p class="pb-banner">{_escape_dollars(banner)}</p>'
 
 
+# Variant policy_id → compact public label (the lanes the Telegram glance
+# abbreviates as "trail"/"nostop").
+_VARIANT_LABELS = {"v1_trail10": "trail", "v1_nostop10": "no-stop"}
+
+
+def _variants_html(variants: list) -> str:
+    """Advisory stop-rule lanes, one compact line under the stats.
+
+    Numbers only, framed as lanes of the same book — never a ranking: the
+    exported banner rendered directly beneath carries the single-regime
+    caveat. Malformed entries and lanes without a return yet are skipped.
+    """
+    parts = []
+    for v in variants or []:
+        if not isinstance(v, dict) or not v.get("policy_id"):
+            continue
+        nav = v.get("nav_return_pct")
+        if not isinstance(nav, (int, float)):
+            continue
+        label = (_VARIANT_LABELS.get(v["policy_id"])
+                 or _escape_dollars(str(v["policy_id"])))
+        stops = v.get("stops")
+        stop_txt = (f" · {int(stops)} stops"
+                    if isinstance(stops, (int, float)) else "")
+        parts.append(f"<b>{label}</b> {nav:+.1f}%{stop_txt}")
+    if not parts:
+        return ""
+    return ('<p class="pb-variants">Advisory stop-rule lanes: '
+            + " | ".join(parts)
+            + " — same book, only the stop rule differs.</p>")
+
+
 def _positions_table_html(positions: list) -> str:
     """Open-positions table for the drawer. Malformed rows skipped via .get."""
     rows = ""
@@ -243,7 +275,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
                         config=PLOTLY_CONFIG)
         chart_data_table(rebased)
     if block:
-        st.markdown(_banner_html(block), unsafe_allow_html=True)
+        st.markdown(_variants_html(block.get("variants")) + _banner_html(block),
+                    unsafe_allow_html=True)
         positions_html = _positions_table_html(block.get("positions"))
         trades_html = _trades_today_html(block.get("trades_today"))
         if positions_html or trades_html:
