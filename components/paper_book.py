@@ -31,12 +31,17 @@ from lib.formatters import _escape_dollars, display_ticker
 # the benchmarks the upstream summary already compares against.
 _REBASE_COLS = {"nav_units": "Paper book", "spy_close": "SPY", "soxx_close": "SOXX"}
 
+# The headline book. Stop-rule variants (v1_trail10 / v1_nostop10) share the
+# CSV since 2026-07-06 but are advisory lanes — never the default curve.
+_DEFAULT_POLICY = "v1_flat10"
+
 
 def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
     """Rows of *nav_df* for the policy the latest report block names.
 
-    Without a block, falls back to the sole distinct ``policy_id`` — but a
-    multi-policy CSV with no block to disambiguate yields an EMPTY frame:
+    Without a block, falls back to the headline book (``v1_flat10``) when the
+    CSV carries it, else to the sole distinct ``policy_id``. A multi-policy
+    CSV with neither a block nor the headline book yields an EMPTY frame:
     side-by-side policy variants must never blend into one curve.
     """
     if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
@@ -44,9 +49,12 @@ def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
     pid = (block or {}).get("policy_id")
     if pid is None:
         ids = nav_df["policy_id"].dropna().unique()
-        if len(ids) != 1:
+        if _DEFAULT_POLICY in ids:
+            pid = _DEFAULT_POLICY
+        elif len(ids) == 1:
+            pid = ids[0]
+        else:
             return pd.DataFrame()
-        pid = ids[0]
     return nav_df[nav_df["policy_id"] == pid].sort_values("date")
 
 

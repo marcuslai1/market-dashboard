@@ -29,8 +29,15 @@ def test_select_policy_sole_id_without_block():
     assert len(out) == 2
 
 
-def test_select_policy_multi_id_without_block_is_empty():
-    df = pd.concat([_nav_df("v1_flat10"), _nav_df("trim_on_caution")])
+def test_select_policy_multi_id_without_block_prefers_v1_flat10():
+    df = pd.concat([_nav_df("v1_flat10"), _nav_df("v1_trail10")])
+    out = select_policy(df, {})            # block-less report: headline book wins
+    assert set(out["policy_id"]) == {"v1_flat10"}
+    assert len(out) == 2
+
+
+def test_select_policy_multi_id_without_block_or_default_is_empty():
+    df = pd.concat([_nav_df("v1_trail10"), _nav_df("v1_nostop10")])
     assert select_policy(df, {}).empty     # never mix variants into one curve
 
 
