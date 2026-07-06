@@ -69,9 +69,14 @@ def test_nav_radio_round_trip_switches_pages():
 def _tracker_page_app():
     """Boot ONLY the Signal Tracker page. Widget interactions on a non-default
     page can't be driven through dashboard.py under AppTest: st.navigation
-    resets to the default page on every rerun (an AppTest artifact — real
+    resets to the default page on every rerun (an AppTest artifact - real
     sessions persist it), so the masthead resyncs any interaction back to
-    Briefing. cache_key=None takes the uncached path."""
+    Briefing. cache_key=None takes the uncached path.
+
+    NOTE: keep this function's source ASCII-only. AppTest.from_function
+    re-writes the extracted source to a temp script with the LOCALE encoding
+    on older Streamlit (cp1252 on Windows) and reads it back as UTF-8, so any
+    non-ASCII char here breaks script compilation on Windows."""
     from components.signal_tracker import render_signal_tracker_page
     from lib.data_loader import load_all_reports, load_sqlite_prices
 
