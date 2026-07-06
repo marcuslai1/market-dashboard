@@ -91,6 +91,41 @@ def test_verdict_seeded_when_returns_none():
     assert tone == ""
 
 
+# ── _variants_html ──
+from components.paper_book import _variants_html
+
+_VARIANTS = [
+    {"policy_id": "v1_trail10", "nav_return_pct": 1.05, "cash_pct": 42.48,
+     "n_positions": 7, "stops": 18},
+    {"policy_id": "v1_nostop10", "nav_return_pct": 3.97, "cash_pct": 0.0,
+     "n_positions": 12, "stops": 0},
+]
+
+
+def test_variants_html_renders_advisory_lanes():
+    html = _variants_html(_VARIANTS)
+    assert 'class="pb-variants"' in html
+    assert "trail" in html and "+1.1%" in html and "18 stops" in html
+    assert "no-stop" in html and "+4.0%" in html and "0 stops" in html
+    assert "verdict" not in html.lower()      # framing lives in the banner
+
+
+def test_variants_html_skips_malformed_and_escapes_unknown_ids():
+    html = _variants_html([
+        "not-a-dict", {}, {"policy_id": "v1_x", "nav_return_pct": None},
+        {"policy_id": "<i>x</i>", "nav_return_pct": 2.0},
+    ])
+    assert "<i>x</i>" not in html             # unknown id escaped, not raw
+    assert "&lt;i&gt;x&lt;/i&gt;" in html
+    assert "+2.0%" in html
+
+
+def test_variants_html_empty():
+    assert _variants_html(None) == ""
+    assert _variants_html([]) == ""
+    assert _variants_html([{"policy_id": "v1_trail10"}]) == ""   # no return yet
+
+
 # ── renderers ──
 from components.paper_book import _positions_table_html, _stats_html, _verdict_html
 
@@ -193,6 +228,8 @@ def test_render_paper_book_block_only_renders_summary():
                  "cash_pct": 38.0, "n_positions": 1, "nav_return_pct": 4.2,
                  "spy_return_pct": 6.1, "trade_counts": {},
                  "positions": [], "trades_today": [],
+                 "variants": [{"policy_id": "v1_trail10",
+                               "nav_return_pct": 1.05, "stops": 18}],
                  "banner": "Paper measurement only."}
         render_paper_book({"paper_portfolio": block}, pd.DataFrame())
 
@@ -203,3 +240,4 @@ def test_render_paper_book_block_only_renders_summary():
     assert "Paper book" in joined
     assert "trailing the benchmark" in joined
     assert "Paper measurement only." in joined
+    assert "trail" in joined and "18 stops" in joined   # advisory lanes line
