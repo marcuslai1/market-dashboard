@@ -131,6 +131,52 @@ def _window_caption(data_window: dict) -> str:
     return " · ".join(bits)
 
 
+def _decayed_full_line(decayed_full: dict | None) -> str:
+    """One-line full-corpus decayed+shrunk view — the honest "no 60d cliff" α.
+
+    Built from ``signal_performance_decayed_full`` (upstream 2934f47): episodes
+    over the FULL corpus with old outcomes faded by half-life and thin cells
+    shrunk toward the skeptical prior (0% α / 50% hit) — a small-episode signal
+    SHOULD read muted here. Shows the shrunk α per signal in SIGNAL_ORDER; the
+    decayed-only intermediates stay unshown (one honest number beats two
+    near-duplicates). Returns "" when the report predates the fields, so
+    pre-adoption markup is unchanged. Same pre-cutover pooling caveat as
+    ``taxonomy_discrimination.full_corpus``. Plain text — the caller escapes it.
+    """
+    df = decayed_full or {}
+    bits = []
+    for sig in SIGNAL_ORDER:
+        cell = df.get(sig)
+        if not cell:
+            continue
+        ep = cell.get("n_episodes")
+        ep_txt = f" ({int(ep)} ep)" if ep is not None else ""
+        bits.append(f"{sig} {_pct(cell.get('alpha_shrunk_10d'))}{ep_txt}")
+    if not bits:
+        return ""
+    return f"Full corpus, decayed + shrunk α/10d: {' · '.join(bits)}"
+
+
+def _decay_knobs_caption(decay_shrinkage: dict | None) -> str:
+    """Short caveat bit naming the decay/shrinkage knobs, or "" when absent.
+
+    Anchors the full-corpus line's numbers to the knobs that produced them
+    (``decay_shrinkage``, additive upstream field); the Terminology page
+    carries the full definitions, so this stays telegraphic.
+    """
+    ds = decay_shrinkage or {}
+    bits = []
+    halflife = ds.get("halflife_days")
+    if halflife is not None:
+        bits.append(f"decay half-life {int(halflife)}d")
+    strength = ds.get("strength")
+    if strength is not None:
+        min_ep = ds.get("min_sample")
+        tail = f" (min {int(min_ep)} ep)" if min_ep is not None else ""
+        bits.append(f"shrinkage {strength:g}{tail}")
+    return " · ".join(bits)
+
+
 def _scorecard_table_html(rows: list) -> str:
     """A .ep-table of signal → today-count, n, win%, avg-10d, alpha.
 
@@ -212,18 +258,25 @@ def _calibration_html(calibration_insights: dict, watchlist: dict) -> str:
         _scorecard_table_html(rows),
     ]
 
+    fc_line = _decayed_full_line(ci.get("signal_performance_decayed_full"))
+    if fc_line:
+        parts.append(f'<p class="cal-fullcorpus">{_escape_dollars(fc_line)}</p>')
+
     tax_line = _taxonomy_line(ci.get("taxonomy_discrimination"))
     if tax_line:
         parts.append(f'<p class="cal-taxonomy">{_escape_dollars(tax_line)}</p>')
 
     banner = (ci.get("confidence_banner") or "").strip()
     window = _window_caption(ci.get("data_window"))
-    if banner or window:
+    knobs = _decay_knobs_caption(ci.get("decay_shrinkage"))
+    if banner or window or knobs:
         caveat_bits = []
         if banner:
             caveat_bits.append(_escape_dollars(banner))
         if window:
             caveat_bits.append(window)  # dates already escaped inside
+        if knobs:
+            caveat_bits.append(_escape_dollars(knobs))
         parts.append(f'<p class="cal-caveat">{"&nbsp; ".join(caveat_bits)}</p>')
 
     parts.append("</div>")

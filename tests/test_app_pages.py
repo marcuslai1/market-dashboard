@@ -103,6 +103,27 @@ def test_tracker_scorecard_survives_empty_name_filter():
         "scorecard vanished when the name filter was emptied"
 
 
+def _terminology_page_app():
+    """Boot ONLY the Terminology page (see _tracker_page_app for why non-default
+    pages can't be driven through dashboard.py). ASCII-only source, same reason."""
+    from components.terminology import render_terminology_page
+
+    render_terminology_page()
+
+
+def test_terminology_defines_decay_half_life_and_shrinkage():
+    """Methodology-copy rule: the calibration band's decayed/shrunk figures must
+    have matching Terminology definitions (decay half-life, shrinkage)."""
+    at = AppTest.from_function(_terminology_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "half-life" in page
+    assert "Shrinkage" in page
+    assert "90" in page                # the pipeline's half-life knob, in days
+    assert "50%" in page               # the skeptical hit-rate prior
+
+
 def test_briefing_renders_capex_pulse_band():
     at = _boot()
     assert not at.exception
