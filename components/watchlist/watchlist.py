@@ -40,7 +40,7 @@ def render_watchlist(
     head = (
         '<div class="tk-row head" role="row">'
         '<div role="columnheader">Ticker</div>'
-        '<div role="columnheader">Name</div>'
+        '<div role="columnheader">Cluster</div>'
         '<div role="columnheader">Signal</div>'
         '<div role="columnheader" style="text-align:right;">Last · Δ</div>'
         '<div role="columnheader" style="text-align:right;">1mo</div>'

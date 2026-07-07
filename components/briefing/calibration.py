@@ -206,12 +206,14 @@ def _scorecard_table_html(rows: list) -> str:
             f'<td class="num">{_pct(r["avg"])}</td>'
             f'<td class="num">{_pct(r["alpha"])}</td>{ep_td}</tr>'
         )
-    ep_th = '<th class="num">α/ep</th>' if has_ep else ""
+    # α headers ride in a .lc span: .ep-table th uppercases text, and Greek α
+    # capitalizes to Α — pixel-identical to Latin "A" (UX 2026-07-07).
+    ep_th = '<th class="num"><span class="lc">α/ep</span></th>' if has_ep else ""
     return (
         '<div class="tk-scroll"><table class="ep-table cal-scorecard">'
         '<thead><tr><th>Signal</th><th class="num">Today</th>'
         '<th class="num">n</th><th class="num">Win</th>'
-        f'<th class="num">Avg 10d</th><th class="num">α</th>{ep_th}</tr></thead>'
+        f'<th class="num">Avg 10d</th><th class="num"><span class="lc">α</span></th>{ep_th}</tr></thead>'
         f'<tbody>{"".join(trs)}</tbody></table></div>'
     )
 

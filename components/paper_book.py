@@ -161,27 +161,33 @@ def _banner_html(block: dict) -> str:
     return f'<p class="pb-banner">{_escape_dollars(banner)}</p>'
 
 
-# Variant policy_id → compact public label (the lanes the Telegram glance
-# abbreviates as "trail"/"nostop"/"wide").
-_VARIANT_LABELS = {"v1_trail10": "trail", "v1_nostop10": "no-stop",
-                   "v1_wide10": "wide"}
+# Policy_id → compact public label (the lanes the Telegram glance abbreviates
+# as "trail"/"nostop"/"wide"; the headline book itself is the flat 10% stop).
+_LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
+                "v1_nostop10": "no-stop", "v1_wide10": "wide"}
 
 
-def _variants_html(variants: list) -> str:
+def _variants_html(block: dict | None) -> str:
     """Advisory stop-rule lanes, one compact line under the stats.
 
-    Numbers only, framed as lanes of the same book — never a ranking: the
-    exported banner rendered directly beneath carries the single-regime
-    caveat. Malformed entries and lanes without a return yet are skipped.
+    Leads with the headline book's own lane, labeled "(headline)", so the
+    band's lead number reconciles with the variants beside it — four unnamed
+    returns invited "so which rule is the +3.5%?" (UX 2026-07-07). Numbers
+    only, framed as lanes of the same book — never a ranking: the exported
+    banner rendered directly beneath carries the single-regime caveat.
+    Malformed entries and lanes without a return yet are skipped; without at
+    least one variant lane the line is omitted entirely (the headline number
+    already leads the band).
     """
+    block = block or {}
     parts = []
-    for v in variants or []:
+    for v in block.get("variants") or []:
         if not isinstance(v, dict) or not v.get("policy_id"):
             continue
         nav = v.get("nav_return_pct")
         if not isinstance(nav, (int, float)):
             continue
-        label = (_VARIANT_LABELS.get(v["policy_id"])
+        label = (_LANE_LABELS.get(v["policy_id"])
                  or _escape_dollars(str(v["policy_id"])))
         stops = v.get("stops")
         stop_txt = (f" · {int(stops)} stops"
@@ -189,7 +195,15 @@ def _variants_html(variants: list) -> str:
         parts.append(f"<b>{label}</b> {nav:+.1f}%{stop_txt}")
     if not parts:
         return ""
-    return ('<p class="pb-variants">Advisory stop-rule lanes: '
+    head_nav = block.get("nav_return_pct")
+    if isinstance(head_nav, (int, float)):
+        label = (_LANE_LABELS.get(block.get("policy_id"))
+                 or _escape_dollars(str(block.get("policy_id") or "book")))
+        stops = (block.get("trade_counts") or {}).get("stop")
+        stop_txt = (f" · {int(stops)} stops"
+                    if isinstance(stops, (int, float)) else "")
+        parts.insert(0, f"<b>{label}</b> {head_nav:+.1f}%{stop_txt} (headline)")
+    return ('<p class="pb-variants">Stop-rule lanes: '
             + " | ".join(parts)
             + " — same book, only the stop rule differs.</p>")
 
@@ -240,9 +254,18 @@ def _trades_today_html(trades: list) -> str:
     return f'<ul class="pb-trades">{items}</ul>'
 
 
+# The chart answers exactly one question — is the book beating SPY? — so only
+# those two series plot. SOXX's window return (±60%) set the y-range and
+# flattened the book-vs-SPY gap into two overlapping lines (UX 2026-07-07);
+# it stays in the rebased frame for the data-table view, with an off-chart
+# note (_soxx_note_html) naming its return.
+_CHART_SERIES = ("Paper book", "SPY")
+
+
 def _nav_fig(rebased: pd.DataFrame):
     fig = go.Figure()
-    for name in [c for c in rebased.columns if c != "date"]:
+    for name in [c for c in rebased.columns
+                 if c != "date" and c in _CHART_SERIES]:
         fig.add_scatter(
             x=rebased["date"], y=rebased[name], mode="lines", name=name,
             line=dict(color=_SERIES_COLORS.get(name, CHART_LINE),
@@ -252,6 +275,19 @@ def _nav_fig(rebased: pd.DataFrame):
                       legend=dict(orientation="h", yanchor="bottom", y=1.02),
                       yaxis_title="rebased · inception = 100")
     return style_fig(fig)
+
+
+def _soxx_note_html(rebased: pd.DataFrame) -> str:
+    """One-line pointer to the off-chart SOXX series, or "" when absent."""
+    if rebased is None or rebased.empty or "SOXX" not in rebased.columns:
+        return ""
+    valid = rebased["SOXX"].dropna()
+    if valid.empty:
+        return ""
+    ret = valid.iloc[-1] - 100.0
+    return (f'<p class="pb-chartnote">SOXX {ret:+.1f}% over this window is '
+            f"left off the chart so the book-vs-SPY gap stays readable — "
+            f"full series in the data table.</p>")
 
 
 def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
@@ -274,9 +310,12 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
     if not rebased.empty:
         st.plotly_chart(_nav_fig(rebased), use_container_width=True,
                         config=PLOTLY_CONFIG)
+        note = _soxx_note_html(rebased)
+        if note:
+            st.markdown(note, unsafe_allow_html=True)
         chart_data_table(rebased)
     if block:
-        st.markdown(_variants_html(block.get("variants")) + _banner_html(block),
+        st.markdown(_variants_html(block) + _banner_html(block),
                     unsafe_allow_html=True)
         positions_html = _positions_table_html(block.get("positions"))
         trades_html = _trades_today_html(block.get("trades_today"))

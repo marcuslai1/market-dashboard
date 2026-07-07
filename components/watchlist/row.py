@@ -24,6 +24,17 @@ from lib.formatters import (
 from lib.pills import _signal_pill_html
 
 
+def _pct_cell(value, decimals: int) -> str:
+    """Signed percent for a summary cell, or a bare '—' when missing.
+
+    ``_fmt_num(None)`` already yields the em-dash; appending the unit
+    unconditionally printed "—%" for absent values (UX review 2026-07-07).
+    """
+    if value is None:
+        return "—"
+    return f"{_sign(value)}{_fmt_num(value, decimals)}%"
+
+
 def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -> str:
     """Build a complete <details> block: row as summary, writeup+drilldown as body.
 
@@ -54,12 +65,12 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
         f'<div class="name">{CLUSTER_MAP.get(tk, "")}</div>'
         f'<div>{_signal_pill_html(sig)}</div>'
         f'<div style="text-align:right;">'
-        f'{pfx}{_fmt_num(price, dec)}'
+        f'{f"{pfx}{_fmt_num(price, dec)}" if price is not None else "—"}'
         f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
-        f'{_sign(chg)}{_fmt_num(chg, 2)}%</div></div>'
+        f'{_pct_cell(chg, 2)}</div></div>'
         f'<div class="{_delta_class(m1)}" style="text-align:right;">'
-        f'{_sign(m1)}{_fmt_num(m1, 1)}%</div>'
-        f'<div style="text-align:right;">{_sign(vs50)}{_fmt_num(vs50, 1)}%</div>'
+        f'{_pct_cell(m1, 1)}</div>'
+        f'<div style="text-align:right;">{_pct_cell(vs50, 1)}</div>'
         f'<div style="text-align:right;">{_fmt_num(rsi, 0)}</div>'
         f'<div style="text-align:right;"{rr_title}>{rr_label or "—"}</div>'
         '</summary>'

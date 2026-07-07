@@ -600,7 +600,7 @@ def _name_ledger_html(episodes: pd.DataFrame, current_signal: dict) -> str:
     head = (
         '<div class="led-head" role="row">'
         '<div role="columnheader">Name</div>'
-        '<div role="columnheader">Sector</div>'
+        '<div role="columnheader">Cluster</div>'
         '<div role="columnheader">Now</div>'
         '<div role="columnheader" class="led-num">Episodes</div>'
         '<div role="columnheader">Trades won</div>'

@@ -339,8 +339,16 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   position: relative;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  gap: 10px !important;   /* tightened so all 7 tabs fit (no scrollbar) when the sidebar is collapsed */
+  /* Full-width section bar (UX 2026-07-07): tabs justified edge-to-edge like a
+     newspaper contents band — the old left-packed strip left a dead zone to
+     the right and read as plain text links. The gap survives as the minimum
+     spacing once the strip overflows and space-between has no room to give. */
+  justify-content: space-between;
+  gap: 10px !important;
   border: none !important;
+  /* Oxford rule above (heavy double), hairline below — the band reads as a
+     deliberate strip rather than a row of floating labels. */
+  border-top: 3px double var(--rule-strong) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;  /* quiet hairline — let the amber active marker carry the strip */
   overflow-x: auto;
   /* Horizontal scroll only. Leaving overflow-y at its default lets CSS compute
@@ -371,11 +379,11 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   flex: 0 0 auto;                 /* keep on one line, never shrink */
   white-space: nowrap;
   font-family: var(--mono) !important;
-  font-size: 11px !important;
-  letter-spacing: 0.06em !important;
+  font-size: 12.5px !important;   /* was 11px — the strip read as fine print */
+  letter-spacing: 0.06em !important;  /* 0.08em overflowed by 5px with the sidebar open */
   text-transform: uppercase;
-  color: var(--ink-3) !important;
-  padding: 9px 0 11px !important;
+  color: var(--ink-2) !important; /* was ink-3 — idle tabs sat below AA-comfort */
+  padding: 11px 0 12px !important;
   margin-bottom: -2px !important;
   cursor: pointer;
   border-bottom: 2px solid transparent !important;
@@ -421,7 +429,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
    idle, full amber on the active section. */
 .st-key-page_nav [role="radiogroup"] > label::before {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;                /* scaled with the 12.5px labels */
   font-weight: 600;
   letter-spacing: 0.04em;
   color: #f59e0b;
@@ -824,6 +832,23 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   border-bottom: 1.5px solid var(--ink);
   font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--ink-3); padding: 8px 12px;
+}
+/* Desktop: pin the watchlist column headers under the sticky nav — 29 rows
+   plus multi-screen drill-downs left the numeric columns headerless for most
+   of the scroll (UX 2026-07-07). Sticky needs a clean vertical scroll chain:
+   any overflow-x:auto ancestor becomes the containing scrollport and kills
+   it, so the redundant-at-this-width .tk-scroll scroller is released. The
+   :has() gate scopes both rules to the watchlist grid (the only .tk-scroll
+   with a .tk-row.head child); phones keep the horizontal swipe untouched.
+   top must track the rendered nav height — remeasure if the nav changes. */
+@media (min-width: 1100px) {
+  .tk-scroll:has(> .tk-row.head) { overflow-x: visible; }
+  .tk-scroll > .tk-row.head {
+    position: sticky;
+    top: 58px;                     /* measured .st-key-page_nav height */
+    z-index: 30;
+    background: var(--paper);
+  }
 }
 .tk-row .name { font-family: var(--sans); color: var(--ink-2); }
 .sig-pill {
@@ -1267,7 +1292,8 @@ details.led-details[open] > summary > div:first-child::before {
 .led-head,
 details.led-details > summary {
   display: grid;
-  grid-template-columns: 76px 1fr 92px 92px 152px 72px 70px 70px;
+  /* 92px ticker column: 76px wrapped "000660.KS" onto a second line. */
+  grid-template-columns: 92px 1fr 92px 92px 152px 72px 70px 70px;
   gap: 12px; align-items: center;
   font-family: var(--mono); font-size: 12.5px;
 }
@@ -1287,7 +1313,7 @@ details.led-details > summary:hover { background: var(--paper-2); }
 details.led-details[open] > summary {
   background: var(--paper-2); border-bottom-color: var(--rule-strong);
 }
-.led-tk { font-weight: 600; color: var(--ink); }
+.led-tk { font-weight: 600; color: var(--ink); white-space: nowrap; }
 .led-name {
   font-family: var(--sans); color: var(--ink-3); font-size: 12px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -1317,6 +1343,9 @@ details.led-details[open] > summary {
   text-transform: uppercase; color: var(--ink-3); font-weight: 600;   /* was --ink-4 (fails AA) */
   padding: 0 10px 7px; border-bottom: 1px solid var(--rule);
 }
+/* Exemption span for Greek glyphs: uppercase turns α into Α, which is
+   pixel-identical to Latin "A" — the alpha columns read as unlabeled. */
+.ep-table th .lc { text-transform: none; }
 .ep-table td {
   padding: 8px 10px; border-bottom: 1px solid var(--rule); color: var(--ink-2);
 }
@@ -1519,6 +1548,8 @@ details.led-details[open] > summary {
 .pb-stat span { font-size: 11px; color: var(--ink-3); }
 .pb-banner { font-size: 12px; font-style: italic; color: var(--ink-3);
   margin: 6px 0 0; }
+.pb-chartnote { font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  margin: 2px 0 6px; }
 .pb-variants { font-family: var(--mono); font-size: 11.5px;
   color: var(--ink-2); margin: 10px 0 0; }
 .pb-variants b { color: var(--ink); font-weight: 600; }
