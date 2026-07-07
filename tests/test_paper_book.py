@@ -105,7 +105,7 @@ _VARIANTS = [
 
 
 def test_variants_html_renders_advisory_lanes():
-    html = _variants_html(_VARIANTS)
+    html = _variants_html({"variants": _VARIANTS})
     assert 'class="pb-variants"' in html
     assert "trail" in html and "+1.1%" in html and "18 stops" in html
     assert "no-stop" in html and "+4.0%" in html and "0 stops" in html
@@ -115,10 +115,10 @@ def test_variants_html_renders_advisory_lanes():
 
 
 def test_variants_html_skips_malformed_and_escapes_unknown_ids():
-    html = _variants_html([
+    html = _variants_html({"variants": [
         "not-a-dict", {}, {"policy_id": "v1_x", "nav_return_pct": None},
         {"policy_id": "<i>x</i>", "nav_return_pct": 2.0},
-    ])
+    ]})
     assert "<i>x</i>" not in html             # unknown id escaped, not raw
     assert "&lt;i&gt;x&lt;/i&gt;" in html
     assert "+2.0%" in html
@@ -126,8 +126,49 @@ def test_variants_html_skips_malformed_and_escapes_unknown_ids():
 
 def test_variants_html_empty():
     assert _variants_html(None) == ""
-    assert _variants_html([]) == ""
-    assert _variants_html([{"policy_id": "v1_trail10"}]) == ""   # no return yet
+    assert _variants_html({}) == ""
+    assert _variants_html({"variants": []}) == ""
+    assert _variants_html({"variants": [{"policy_id": "v1_trail10"}]}) == ""
+
+
+# ── UX review 2026-07-07: the headline book's own stop rule leads the line ──
+def test_variants_html_leads_with_labeled_headline_lane():
+    block = {"policy_id": "v1_flat10", "nav_return_pct": 3.52,
+             "trade_counts": {"stop": 13}, "variants": _VARIANTS}
+    html = _variants_html(block)
+    assert "<b>flat</b> +3.5%" in html
+    assert "13 stops" in html
+    assert "headline" in html                 # the lane is named as the book's own
+    assert html.index("flat") < html.index("trail")
+
+
+def test_variants_html_headline_alone_renders_nothing():
+    # No variant lanes -> no line; the headline number already leads the band.
+    block = {"policy_id": "v1_flat10", "nav_return_pct": 3.52,
+             "trade_counts": {"stop": 13}, "variants": []}
+    assert _variants_html(block) == ""
+
+
+# ── UX review 2026-07-07: the chart's job is book-vs-SPY; SOXX off-chart ──
+def _rebased(with_soxx=True):
+    data = {"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
+            "Paper book": [100.0, 103.5], "SPY": [100.0, 106.3]}
+    if with_soxx:
+        data["SOXX"] = [100.0, 160.0]
+    return pd.DataFrame(data)
+
+
+def test_nav_fig_plots_book_and_spy_only():
+    from components.paper_book import _nav_fig
+    names = [tr.name for tr in _nav_fig(_rebased()).data]
+    assert names == ["Paper book", "SPY"]
+
+
+def test_soxx_note_names_offchart_return():
+    from components.paper_book import _soxx_note_html
+    note = _soxx_note_html(_rebased())
+    assert "SOXX" in note and "+60.0%" in note
+    assert _soxx_note_html(_rebased(with_soxx=False)) == ""
 
 
 # ── renderers ──

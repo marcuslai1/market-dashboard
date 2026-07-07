@@ -30,6 +30,20 @@ def _drilldown_section_html(title: str) -> str:
     return f'<div class="dd-section">{title}</div>'
 
 
+def _consensus_str(rec, n_analysts) -> str:
+    """Human form of yfinance's snake_case recommendation, or '—'.
+
+    'strong_buy (58)' read as a raw field leak; 'none' is yfinance's literal
+    no-coverage sentinel, not a rating (UX 2026-07-07).
+    """
+    if not rec or str(rec).lower() == "none":
+        return "—"
+    label = str(rec).replace("_", " ").strip().capitalize()
+    if n_analysts:
+        return f"{label} · {int(n_analysts)} analysts"
+    return label
+
+
 def _drilldown_metrics_html(items: list[tuple[str, str]]) -> str:
     visible = [(label, value) for label, value in items if value not in (None, "", "—")]
     if not visible:
@@ -93,6 +107,9 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
     }
     status_chips: list[str] = []
     if caution_source and signal not in {"BUY", "HOLD"}:
+        # Mapped ids show the plain-English label alone — repeating the raw id
+        # beside it leaked pipeline vocabulary into the UI (UX 2026-07-07).
+        # Unmapped ids fall back to the raw id: it is the only label we have.
         label, color = cs_labels.get(
             caution_source, (caution_source, STATUS_NEUTRAL)
         )
@@ -101,15 +118,17 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             f'letter-spacing:0.10em;text-transform:uppercase;'
             f'background:rgba(255,255,255,0.05);color:{color};'
             f'padding:3px 8px;border-radius:3px;">'
-            f'{label} · {caution_source}</span>'
+            f'{label}</span>'
         )
     if momentum_warn:
+        # Plain-English label; the reason strings stay verbatim — they are
+        # report data (thresholds included), only the chrome is ours.
         reason_str = "; ".join(momentum_reasons) if momentum_reasons else "tape diverging"
         status_chips.append(
             f'<span style="font-family:var(--mono);font-size:10.5px;'
             f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
             f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
-            f'momentum_warn · {_escape_dollars(reason_str)}</span>'
+            f'Momentum warning · {_escape_dollars(reason_str)}</span>'
         )
     data_anomaly = d.get("data_anomaly")
     if data_anomaly:
@@ -321,8 +340,15 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             if invalidation_reason:
                 line += f" — {_escape_dollars(invalidation_reason)}"
             parts.append(f'<div class="dd-line">{line}</div>')
+        # A distorted headline (too-tight stop inflating the ratio) is flagged
+        # on the stat itself — the row/action card already show the corrected
+        # sizing R:R, so an unmarked 22.5:1 here read as a contradiction.
+        _rr_qual_bits = [b for b in (rr_quality,
+                                     "tight-stop distorted" if rr_obj.get("rr_distorted") else "")
+                         if b]
+        _rr_qual = f" ({' · '.join(_rr_qual_bits)})" if _rr_qual_bits else ""
         rr_metrics = [
-            ("Headline R:R", f"{rr_label} ({rr_quality})" if rr_label else "—"),
+            ("Headline R:R", f"{rr_label}{_rr_qual}" if rr_label else "—"),
             ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—"),
             (
                 "Structural support",
@@ -567,8 +593,7 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
         ("FCF yield", f"{_sign(fcf_y)}{_fmt_num(fcf_y, 2)}%" if fcf_y is not None else "—"),
         ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
         ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),
-        ("Analyst consensus",
-         f"{rec} ({n_analysts})" if rec and n_analysts else (rec or "—")),
+        ("Analyst consensus", _consensus_str(rec, n_analysts)),
         ("Est. EPS growth",
          f"{_sign(eps_g)}{_fmt_num(eps_g, 1)}%" if eps_g is not None else "—"),
     ]

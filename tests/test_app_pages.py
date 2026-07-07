@@ -130,6 +130,15 @@ def test_briefing_renders_capex_pulse_band():
     assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)
 
 
+def test_briefing_action_card_has_own_section_head():
+    """The action card must not read as part of Earnings Scorecard — it gets
+    its own section head (UX review 2026-07-07)."""
+    at = _boot()
+    assert not at.exception
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "Today&#x27;s Trade" in page or "Today's Trade" in page
+
+
 def test_briefing_capex_pulse_shows_a_verdict():
     at = _boot()
     assert not at.exception

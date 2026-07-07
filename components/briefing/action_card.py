@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from lib.cards import card_container
+from lib.cards import card_container, render_section_head
 from lib.catalog import (
     CLUSTER_MAP,
     RETIRED_TICKERS,
@@ -55,6 +55,10 @@ def render_action_card(wl: dict, events: list) -> None:
     if not tk:
         # Nothing actionable today — render nothing per design.
         return
+    # Own section head: rendered bare after the Earnings Scorecard band, the
+    # card read as earnings content (UX 2026-07-07). Emitted only when the
+    # card itself renders, so an empty day stays fully silent.
+    render_section_head("Today's Trade", "The single highest-conviction setup on the book")
     sig = d.get("signal", "WATCH")
     color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
     display_tk = _escape_dollars(display_ticker(tk))

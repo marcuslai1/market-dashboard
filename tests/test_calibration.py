@@ -202,6 +202,19 @@ def test_fallback_html_is_byte_identical_shape():
     assert html.count("</th>") == 6    # Signal/Today/n/Win/Avg 10d/α — no more
 
 
+def test_alpha_headers_exempt_from_uppercase_transform():
+    # .ep-table th uppercases text, turning α into Α (reads as Latin "A").
+    # The α glyphs must ship inside a .lc span the CSS exempts (UX 2026-07-07).
+    html = _scorecard_table_html(_scorecard_rows(_SP, {}))
+    assert '<span class="lc">α</span>' in html
+    with_ep = _scorecard_table_html(_scorecard_rows(
+        {"CAUTION": {"n_matured_10d": 5, "win_rate_pct": 40.0,
+                     "avg_return_10d": 1.0, "alpha_10d": -1.0,
+                     "single_regime": True,
+                     "n_episodes": 2, "alpha_episode_mean_10d": -0.5}}, {}))
+    assert '<span class="lc">α/ep</span>' in with_ep
+
+
 # ── Decay/shrinkage adoption (upstream 2934f47, PIPELINE_FEATURES §37) ──
 from components.briefing.calibration import (  # noqa: E402
     _decay_knobs_caption,

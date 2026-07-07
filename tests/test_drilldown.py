@@ -59,6 +59,62 @@ def test_premarket_chip_renders_phrase_colored_by_sign():
     assert "premarket -0.9% vs prior close" in html
     assert STATUS_NEG in html
 
+
+# ── UX review 2026-07-07: plain-English chips, honest R:R stat ──
+def test_momentum_chip_uses_plain_label_not_raw_identifier():
+    d = {"momentum_warn": True, "momentum_warn_reasons": ["vol_ratio 0.67 (<0.7)"]}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "Momentum warning" in html
+    assert "momentum_warn" not in html          # raw field name no longer leaks
+    # the pipeline-authored reason stays verbatim (escaped) — data, not chrome
+    assert "vol_ratio 0.67 (&lt;0.7)" in html
+
+
+def test_caution_chip_drops_redundant_raw_id_when_mapped():
+    html = render_drilldown_detail_html("NVDA", {"caution_source": "hard_block"})
+    assert "Mechanical hard block" in html
+    assert "hard_block" not in html
+    # unmapped ids still surface raw — the id is the only label available
+    html2 = render_drilldown_detail_html("NVDA", {"caution_source": "mystery_gate"})
+    assert "mystery_gate" in html2
+
+
+def test_analyst_consensus_humanized():
+    d = {"valuation": {"forward_pe": 15.3,
+                       "analyst_consensus": {"recommendation": "strong_buy",
+                                             "num_analysts": 58}}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "Strong buy · 58 analysts" in html
+    assert "strong_buy" not in html
+
+
+def test_analyst_consensus_none_renders_no_cell():
+    # yfinance's literal "none" sentinel maps to "—", which the metrics grid
+    # drops entirely — same treatment as any other absent metric.
+    d = {"valuation": {"forward_pe": 15.3,
+                       "analyst_consensus": {"recommendation": "none",
+                                             "num_analysts": 4}}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "Analyst consensus" not in html
+    assert "none" not in html
+
+
+def test_headline_rr_flags_tight_stop_distortion():
+    d = {"risk_reward": {"ratio": 22.5, "ratio_label": "22.5:1",
+                         "rr_quality": "observed", "rr_distorted": True,
+                         "invalidation": 194.74,
+                         "sizing_rr": {"ratio": 3.9}}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "tight-stop distorted" in html
+
+
+def test_headline_rr_clean_when_not_distorted():
+    d = {"risk_reward": {"ratio": 2.4, "ratio_label": "2.4:1",
+                         "rr_quality": "observed", "invalidation": 100.0}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "distorted" not in html
+    assert "2.4:1 (observed)" in html
+
     d_up = {"premarket": {"phrase": "premarket +0.5% vs prior close", "pm_chg_pct": 0.53}}
     html_up = render_drilldown_detail_html("NVDA", d_up)
     assert STATUS_POS in html_up
