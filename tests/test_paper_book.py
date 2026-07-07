@@ -99,6 +99,8 @@ _VARIANTS = [
      "n_positions": 7, "stops": 18},
     {"policy_id": "v1_nostop10", "nav_return_pct": 3.97, "cash_pct": 0.0,
      "n_positions": 12, "stops": 0},
+    {"policy_id": "v1_wide10", "nav_return_pct": 8.31, "cash_pct": 9.55,
+     "n_positions": 9, "stops": 8},
 ]
 
 
@@ -107,6 +109,8 @@ def test_variants_html_renders_advisory_lanes():
     assert 'class="pb-variants"' in html
     assert "trail" in html and "+1.1%" in html and "18 stops" in html
     assert "no-stop" in html and "+4.0%" in html and "0 stops" in html
+    assert "<b>wide</b>" in html and "+8.3%" in html and "8 stops" in html
+    assert "v1_wide10" not in html            # labeled, not raw policy_id
     assert "verdict" not in html.lower()      # framing lives in the banner
 
 

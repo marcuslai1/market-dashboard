@@ -162,8 +162,9 @@ def _banner_html(block: dict) -> str:
 
 
 # Variant policy_id → compact public label (the lanes the Telegram glance
-# abbreviates as "trail"/"nostop").
-_VARIANT_LABELS = {"v1_trail10": "trail", "v1_nostop10": "no-stop"}
+# abbreviates as "trail"/"nostop"/"wide").
+_VARIANT_LABELS = {"v1_trail10": "trail", "v1_nostop10": "no-stop",
+                   "v1_wide10": "wide"}
 
 
 def _variants_html(variants: list) -> str:
