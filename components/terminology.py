@@ -397,6 +397,20 @@ avg_run(signal)    = mean(run_during_pct over closed episodes for signal)</div>
 <li><b>Per-signal, not per-day.</b> A 30-day BUY counts once, not 30 times. This avoids inflating the denominator with persistent calls.</li>
 <li><b>HOLD is never counted.</b> HOLD is non-directional — including it would dilute every metric toward 50/50.</li>
 </ul>
+<div class="term-prose">
+<b>Decay half-life (90 days).</b> In the full-corpus "decayed" figures, old
+outcomes fade smoothly instead of dropping off a lookback cliff: a 90-day-old
+result carries half a vote, a 180-day-old result a quarter. This lets the
+calibration read the whole history without letting stale regimes outvote the
+recent one.
+</div>
+<div class="term-prose">
+<b>Shrinkage.</b> "Shrunk" figures blend small samples toward a skeptical prior
+— 0% alpha, 50% hit rate — until they earn their way out: a signal with fewer
+than 5 episodes reads mostly as the prior, and the observed value takes over as
+episodes accumulate. Thin cells looking muted is the method working, not
+missing data.
+</div>
 """, unsafe_allow_html=True)
 
     # ---- Macro Scenarios ----
