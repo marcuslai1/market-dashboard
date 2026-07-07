@@ -5,8 +5,9 @@
     {
       "date": "2026-07-06",
       "themes": [
-        "Semiconductor caution broadens",
-        "Oil stable as supply glut narrative prevails"
+        "Oil de-escalation & surplus pricing",
+        "Semiconductor caution & AI capex concerns",
+        "Bond market rate hike pressure vs. Warsh dovish tone"
       ],
       "signals_snapshot": {
         "WATCH": [
@@ -23,8 +24,10 @@
           "O39_SI",
           "U11_SI",
           "AMD",
+          "INTC",
           "ASML",
           "MU",
+          "TSEM",
           "000660_KS",
           "CRWV",
           "CBRS",
@@ -41,10 +44,6 @@
           "PLTR",
           "WRD",
           "SITM"
-        ],
-        "AVOID": [
-          "INTC",
-          "TSEM"
         ]
       },
       "key_prices": {
@@ -54,12 +53,11 @@
         "Gold": 4201.1
       },
       "interconnected_suggested": [
-        "Coherent",
-        "Marvell Technology",
-        "005930_KS",
-        "Arista Networks"
+        "COHR",
+        "MRVL",
+        "ANET"
       ],
-      "one_liner": "Semis signals worsen: INTC/TSEM→AVOID, ASML→CAUTION; IFX_DE→WATCH. Oil $68.65 (-0.2%), OPEC+ output offsets Hormuz disruptions."
+      "one_liner": "Futures mixed post-holiday; ASML→CAUTION, IFX_DE→WATCH. WTI $68.65 flat, 6M T-bill 4% presses rate hikes."
     },
     {
       "date": "2026-07-04",
@@ -635,10 +633,6 @@
       },
       "updates": [
         {
-          "date": "2026-06-29",
-          "note": "GOOG→BUY (from CAUTION). Alphabet AI chip strength eases capex ROI concerns for GOOG. AMZN remains CAUTION. Big Tech $8T AI bet raises costs for cars, consoles."
-        },
-        {
           "date": "2026-06-30",
           "note": "GOOG BUY→CAUTION, MSFT WATCH→ACCUMULATE. GOOG's brief upgrade reverses; MSFT gains on tech rally/water solution."
         },
@@ -661,6 +655,10 @@
         {
           "date": "2026-07-06",
           "note": "ASML→CAUTION, INTC→AVOID amid AI capex worry. MSFT faces 400-newspaper lawsuit. No signal change for AMZN/GOOG."
+        },
+        {
+          "date": "2026-07-06",
+          "note": "ASML→CAUTION, INTC→AVOID. MSFT 400-newspaper lawsuit. SK Hynix $28B Nasdaq listing fuels AI memory demand debate. No signal change for AMZN/GOOG."
         }
       ],
       "last_updated": "2026-07-06"
@@ -948,7 +946,7 @@
       "id": "us_iran_hormuz_blockade",
       "title": "US-Iran Hormuz Blockade Escalation: Oil Supply Crisis Resurfaces",
       "started": "2026-04-13",
-      "status": "active",
+      "status": "archived",
       "summary": "US Navy blockade of Iran ports + US tech/rare earths sanctions escalate Middle East crisis beyond ceasefire collapse. WTI surges +8.64% to $104.91 single session on Hormuz supply closure threat. Logistics disruption (airspace closures, shipping reroutes) compounds margin pressure beyond direct commodity moves. Strait reopening timeline extends from days to weeks+.",
       "affected_tickers": [
         "WTI",
@@ -1308,6 +1306,61 @@
       "date": "2026-07-06",
       "topics": [
         {
+          "topic": "Oil & Hormuz",
+          "summary": "Strait of Hormuz sporadic disruptions but market prices in surplus; US-Iran peace talks on hold. WTI $68.65, down 28.5% monthly. De-escalation steady, risk premium gone.",
+          "tickers": [
+            "WTI",
+            "XOM",
+            "CVX"
+          ]
+        },
+        {
+          "topic": "US-China tech trade tensions",
+          "summary": "Alibaba bans Anthropic coding tool, deepening AI rift. USMCA review and excavator tariff extend trade friction. Intel's older chip supply restart fails to offset caution.",
+          "tickers": [
+            "BABA",
+            "ASML",
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Fed interest rate hike pressure",
+          "summary": "6M T-bill yield rises to 4%, bond market signals rate hikes despite June payrolls miss. Key focus on Fed minutes this week, DXY -0.58% for the week.",
+          "tickers": [
+            "DXY",
+            "SPY",
+            "QQQ"
+          ]
+        },
+        {
+          "topic": "Ukraine-Russia military escalation",
+          "summary": "Russia claims control of Donetsk logistics hub; Ukraine drone destroys Russian jet in Crimea. Limited direct market impact.",
+          "tickers": []
+        },
+        {
+          "topic": "AI legal/capex criticism",
+          "summary": "Nearly 400 local newspapers sue OpenAI and Microsoft; Forbes intensifies AI lab credibility critique. Deepens MSFT caution, no signal change.",
+          "tickers": [
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "Semiconductor AI demand & supply chain",
+          "summary": "$750B AI infrastructure spending wave touted; Kioxia ships new AI memory chips. SK Hynix files for $28B Nasdaq listing, signaling massive AI memory capacity expansion. China robot exports near 20B yuan Jan-May.",
+          "tickers": [
+            "NVDA",
+            "AMD",
+            "MU",
+            "ASML",
+            "INTC"
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-07-06",
+      "topics": [
+        {
           "topic": "Oil & Strait of Hormuz",
           "summary": "WTI $68.65 (-0.2%); Strait sporadic disruptions but OPEC+ output rebound drives surplus. US-Iran peace efforts on hold, de-escalation steady.",
           "tickers": []
@@ -1402,65 +1455,6 @@
         {
           "topic": "Geopolitical & military tensions",
           "summary": "Strait of Hormuz narrative persists (Times of Israel analysis); Zelensky orders expansion of high-tech weapons production; container lines worry about black swan overcapacity. Minor market impact.",
-          "tickers": []
-        }
-      ]
-    },
-    {
-      "date": "2026-07-03",
-      "topics": [
-        {
-          "topic": "Meta AI cloud intensifies hyperscaler competition, semiconductor selloff",
-          "summary": "Meta's push into AI cloud business deepens hyperscaler peak fears, driving SOXX -5.6%. Multiple semiconductor signals downgraded. AI capex ROI doubts mount.",
-          "tickers": [
-            "NVDA",
-            "ASML",
-            "TSM",
-            "INTC",
-            "AMD"
-          ]
-        },
-        {
-          "topic": "Massive June payrolls miss reshapes Fed expectations",
-          "summary": "US added only 57k jobs vs 129k expected, shocking markets. Gold and silver rally as rate hike bets collapse. Yields initially edged higher but likely reversed.",
-          "tickers": [
-            "GLD",
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Oil de-escalation continues as Doha talks conclude",
-          "summary": "US-Iran talks conclude in Doha, WTI up 1.9% to $68.97 but still down 26% over the past month. Strait reopening steady, risk premium fading.",
-          "tickers": [
-            "XOM",
-            "CVX"
-          ]
-        },
-        {
-          "topic": "Fed Chair Warsh signals dovish tilt",
-          "summary": "Warsh states inflation risks are declining and AI will create jobs. Comments alongside payroll miss could mark shift from hawkish stance. Awaits Europe talks.",
-          "tickers": [
-            "DXY",
-            "SPY"
-          ]
-        },
-        {
-          "topic": "US-China tech tensions broaden to biotech and EU",
-          "summary": "Biotech's China ties raise national security concerns; EU imposes new steel and e-commerce regulations to reduce trade imbalance with China.",
-          "tickers": []
-        },
-        {
-          "topic": "Intel to restart older chip supply to China",
-          "summary": "Intel expected to restart supply of 10th-14th gen processors to mainland China. Samsung showcases foundry pipeline at SAFE Forum.",
-          "tickers": [
-            "INTC"
-          ]
-        },
-        {
-          "topic": "OpenAI floats 5% cut to Trump administration",
-          "summary": "OpenAI proposes giving Trump administration 5% cut of AI boom; Trump's trade deal gets renewed look. Potential policy shifts.",
           "tickers": []
         }
       ]
