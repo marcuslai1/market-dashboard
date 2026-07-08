@@ -5,29 +5,31 @@
     {
       "date": "2026-07-07",
       "themes": [
-        "Tech rebound",
-        "Oil steady at pre-war levels",
-        "WRD signal upgrade"
+        "Chip rebound led by AMD/TSMC",
+        "Fed hawkish pushback vs ECB easing"
       ],
       "signals_snapshot": {
         "WATCH": [
           "NVDA",
-          "TSM",
-          "IFX_DE",
           "WRD"
         ],
         "HOLD": [
           "AMZN",
-          "GOOG"
+          "GOOG",
+          "MSFT",
+          "AVGO",
+          "NOK",
+          "AIXA_DE",
+          "NVTS"
         ],
         "CAUTION": [
           "D05_SI",
           "O39_SI",
           "U11_SI",
           "AMD",
-          "INTC",
           "ASML",
           "MU",
+          "TSM",
           "TSEM",
           "000660_KS",
           "CRWV",
@@ -35,15 +37,14 @@
           "AXTI",
           "SOI_PA",
           "SNDK",
-          "MSFT",
-          "AVGO",
           "LITE",
-          "NOK",
           "BE",
-          "AIXA_DE",
-          "NVTS",
+          "IFX_DE",
           "PLTR",
           "SITM"
+        ],
+        "AVOID": [
+          "INTC"
         ]
       },
       "key_prices": {
@@ -53,12 +54,12 @@
         "Gold": 4158.5
       },
       "interconnected_suggested": [
-        "005930_KS",
-        "COHR",
-        "MRVL",
-        "ANET"
+        "Samsung Electronics",
+        "Coherent",
+        "Marvell Technology",
+        "Arista Networks"
       ],
-      "one_liner": "US equities edge higher as tech rebounds; WTI $68.82 (+0.6%). WRD: CAUTION→WATCH."
+      "one_liner": "Chip rebound lifts S&P +0.74%, Nasdaq +1.21%; SOXX +2.15% led by AMD/TSMC; oil $68.82 (-28% MoM). Waller warns inflation upside."
     },
     {
       "date": "2026-07-06",
@@ -488,10 +489,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-06-30",
-          "note": "NVDA BUY→CAUTION, TSEM CAUTION→WATCH, SITM HOLD→WATCH. Mega-cap caution despite broad tech rally; small-cap semis upgrades."
-        },
-        {
           "date": "2026-07-01",
           "note": "SOX +4.2% (second session rally). SITM, TSEM, TSM downgraded to CAUTION despite index strength. BlackRock flags broader AI trade beyond NVDA/AMD/MU."
         },
@@ -514,6 +511,10 @@
         {
           "date": "2026-07-07",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-07",
+          "note": "TSM WATCH→CAUTION despite SOXX +2.15% rebound; NVDA unchanged. Market rally but TSM downgrade reflects caution."
         }
       ],
       "last_updated": "2026-07-07"
@@ -1186,10 +1187,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-06-30",
-          "note": "GOOG BUY→CAUTION, MSFT WATCH→ACCUMULATE. Divergence flips again; GOOG down, MSFT up. AMZN unchanged at CAUTION."
-        },
-        {
           "date": "2026-07-01",
           "note": "No signal change. BIS warns AI investment bubble; MSFT partners on 5G AI twin. AMZN unchanged CAUTION."
         },
@@ -1212,6 +1209,10 @@
         {
           "date": "2026-07-07",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-07",
+          "note": "MSFT CAUTION→HOLD, aligning with GOOG/AMZN HOLD status; BigTech AI divergence narrows further."
         }
       ],
       "last_updated": "2026-07-07"
@@ -1220,7 +1221,7 @@
   "lessons_learned": [
     {
       "lesson": "INSUFFICIENT DATA: CAUTION for U11_SI has only n=20 over a single regime (trend_up) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +1.2% over 10d (n=19)",
+      "evidence": "avg alpha vs ^STI: +1.2% over 10d (n=20)",
       "tickers_involved": [
         "U11_SI"
       ],
@@ -1228,7 +1229,7 @@
     },
     {
       "lesson": "INSUFFICIENT DATA: CAUTION for O39_SI has only n=22 over a single regime (trend_up) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +1.7% over 10d (n=21)",
+      "evidence": "avg alpha vs ^STI: +1.7% over 10d (n=22)",
       "tickers_involved": [
         "O39_SI"
       ],
@@ -1236,7 +1237,7 @@
     },
     {
       "lesson": "INSUFFICIENT DATA: CAUTION for D05_SI has only n=23 over a single regime (trend_up) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +2.0% over 10d (n=22)",
+      "evidence": "avg alpha vs ^STI: +1.9% over 10d (n=23)",
       "tickers_involved": [
         "D05_SI"
       ],
@@ -1300,6 +1301,61 @@
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-07-07",
+      "topics": [
+        {
+          "topic": "Oil & Hormuz de-escalation steady",
+          "summary": "WTI $68.82 (+0.6%), down 28% monthly; OPEC+ output rise sustains surplus. No new Strait of Hormuz disruptions, de-escalation continues.",
+          "tickers": []
+        },
+        {
+          "topic": "Fed rate hawkish pushback after payrolls miss",
+          "summary": "Fed's Waller says US inflation risks tilted to upside, countering dovish payrolls narrative. 10Y yields edge lower ahead of FOMC minutes. DXY steady.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "ECB cuts rates, widens policy divergence",
+          "summary": "ECB trims borrowing costs to 2022 low, signals further easing; Makhlouf warns oil price drop won't eliminate inflation. Divergence vs Fed widens.",
+          "tickers": [
+            "DXY"
+          ]
+        },
+        {
+          "topic": "US-China agricultural trade tensions",
+          "summary": "Sino-US agricultural cooperation called vital for food security; Trump’s USMCA move rattles agricultural markets, adding trade friction dimension.",
+          "tickers": []
+        },
+        {
+          "topic": "AI chip demand resilience",
+          "summary": "Nvidia supplier Hon Hai reports surging sales on solid AI demand, countering recent Hyperscaler ROI skepticism; Samsung expected to soothe AI jitters.",
+          "tickers": [
+            "NVDA",
+            "AMD",
+            "TSM",
+            "ASML"
+          ]
+        },
+        {
+          "topic": "China manufacturing exports surge",
+          "summary": "China HDPE exports surge, possibly more than temporary, reinforcing manufacturing momentum; earlier robot exports near 20B yuan Jan-May.",
+          "tickers": [
+            "ASML",
+            "MU",
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Geopolitical risks: Ukraine escalation & Yemen",
+          "summary": "Ukraine hits Russian airbase in Crimea, targets logistics; Iran envoy to Houthis signals Tehran backed escalation in Yemen. No direct market impact.",
+          "tickers": []
+        }
+      ]
+    },
     {
       "date": "2026-07-07",
       "topics": [
@@ -1395,54 +1451,6 @@
             "ASML",
             "INTC"
           ]
-        }
-      ]
-    },
-    {
-      "date": "2026-07-06",
-      "topics": [
-        {
-          "topic": "Oil & Strait of Hormuz",
-          "summary": "WTI $68.65 (-0.2%); Strait sporadic disruptions but OPEC+ output rebound drives surplus. US-Iran peace efforts on hold, de-escalation steady.",
-          "tickers": []
-        },
-        {
-          "topic": "US-China tech decoupling & tariffs",
-          "summary": "Alibaba bans Anthropic coding tool, deepening US-China AI rift. Excavator tariff and USMCA review widen trade tensions. ASML & INTC downgraded on tech restrictions.",
-          "tickers": [
-            "ASML",
-            "INTC"
-          ]
-        },
-        {
-          "topic": "Fed rate-hike pressure",
-          "summary": "6M T-bill yield hits 4%, bond market pushes for hikes despite June payrolls miss. Fed minutes this week in focus; DXY -0.58% for the week.",
-          "tickers": [
-            "SPY",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "AI legal & scepticism",
-          "summary": "Nearly 400 local newspapers sue OpenAI/Microsoft over copyright. Forbes critiques AI lab credibility, intensifying bubble concerns. MSFT remains CAUTION.",
-          "tickers": [
-            "MSFT"
-          ]
-        },
-        {
-          "topic": "Semiconductor capex & demand",
-          "summary": "$750B AI infrastructure spending wave touted; Kioxia ships new AI memory chips. ASML semiconductor materials market analysis. Mixed signals with broader semi caution.",
-          "tickers": [
-            "ASML",
-            "NVDA",
-            "INTC",
-            "AMD"
-          ]
-        },
-        {
-          "topic": "China export resilience",
-          "summary": "China robot exports near 20B yuan Jan-May, overseas push quickens. Supports manufacturing momentum narrative.",
-          "tickers": []
         }
       ]
     }
