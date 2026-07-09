@@ -126,7 +126,7 @@ def render_trim_experiment(nav_df: pd.DataFrame) -> None:
     if tbl.empty:
         return
 
-    with st.expander("Caution-trim experiment · 25 variant books "
+    with st.expander(f"Caution-trim experiment · {len(tbl)} variant books "
                      "(measurement only)", expanded=False):
         base_txt = (f"Baseline v1_flat10 {base_ret:+.1f}%"
                     if base_ret is not None else "Baseline v1_flat10 seeded")
