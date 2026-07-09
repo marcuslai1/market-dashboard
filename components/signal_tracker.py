@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from components.paper_book import render_paper_book
+from components.trim_experiment import render_trim_experiment
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import load_changelog, load_paper_nav
@@ -704,7 +705,12 @@ def render_signal_tracker_page(
     # the name filter below deliberately does not touch it (page contract,
     # spec 2026-07-05-paper-book-band-design). Skips itself until the
     # pipeline's paper_portfolio block / paper_nav.csv export first lands.
-    render_paper_book(latest_report, load_paper_nav())
+    _pnav = load_paper_nav()
+    render_paper_book(latest_report, _pnav)
+    # ── 1d. Caution-trim experiment — 25 output-only variant books (MarketReport
+    # spec 2026-07-09). Collapsed + banner-capped: single-regime hypothesis-grade,
+    # not a verdict. Silent until the trim books land in paper_nav.csv.
+    render_trim_experiment(_pnav)
 
     # ── 2. What we've changed — recent methodology updates ──
     changelog = load_changelog()
