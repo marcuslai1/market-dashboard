@@ -4,6 +4,15 @@ on:
   pull_request:
   push:
     branches: [main]
+    # The suite renders the repo's LIVE data/ snapshot, so the pipeline's daily
+    # data-only "Update YYYY-MM-DD" pushes diff by construction (new report ->
+    # new masthead issue no. / briefing content / longer paper curve) and were
+    # keeping this workflow permanently red — which buries real UI regressions.
+    # Skip data-only pushes; code pushes still run, and each intentional UI
+    # change regenerates baselines against then-current data (see
+    # tests/visual/README.md). PRs are unaffected.
+    paths-ignore:
+      - "data/**"
 
 jobs:
   visual:
