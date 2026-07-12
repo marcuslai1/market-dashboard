@@ -77,7 +77,7 @@ def render_action_card(wl: dict, events: list) -> None:
     delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
     verb_pill = (
         f'<span style="display:inline-block;font-family:var(--mono);font-size:10px;'
-        f'font-weight:600;letter-spacing:0.04em;padding:3px 9px;'
+        f'font-weight:600;letter-spacing:0.04em;padding:3px 9px;white-space:nowrap;'
         f'border-radius:var(--radius-pill);background:{SIGNAL_TINTS.get(sig, "var(--paper-3)")};'
         f'color:{color};">{SIGNAL_VERBS.get(sig, sig)}</span>'
     )
@@ -103,14 +103,19 @@ def render_action_card(wl: dict, events: list) -> None:
         if rr_label else ""
     )
 
-    # Two-column body: signal-railed content on the left, price stats on the right.
-    # The card's eyebrow + headline (in .card-head) already render the
-    # ticker headline above, so the body opens with the ticker line + plain body.
+    # Two-column body: signal-railed content on the left, price stats on the
+    # right. The grid + price rail are classed (.ac-cols / .ac-price) so
+    # theme.css can stack them below 720px — inline styles can't carry media
+    # queries, and the side-by-side split starved the prose to ~191px at a
+    # 390px viewport (mobile review 2026-07-12). The card's eyebrow + headline
+    # (in .card-head) already render the ticker headline above, so the body
+    # opens with the ticker line + plain body.
     body_html = (
-        f'<div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;">'
+        f'<div class="ac-cols">'
         # Left column — signal-coloured rail preserves the old .action-card look.
         f'<div style="border-left:3px solid {color};padding-left:16px;">'
-        f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+        f'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;'
+        f'margin-bottom:8px;">'
         f'<span style="font-family:var(--mono);font-size:12.5px;font-weight:600;'
         f'letter-spacing:0.04em;color:var(--ink-3);">'
         f'{display_tk}{" · " + cluster if cluster else ""}</span>'
@@ -121,8 +126,7 @@ def render_action_card(wl: dict, events: list) -> None:
         f'{block_html}'
         f'</div>'
         # Right column — price stats (Last / level / delta / R:R).
-        f'<div style="font-family:var(--mono);font-size:11px;text-align:right;'
-        f'color:var(--ink-3);line-height:1.6;min-width:120px;">'
+        f'<div class="ac-price">'
         f'<div>Last</div>'
         f'<div style="font-family:var(--serif);font-size:1.4rem;color:var(--ink);'
         f'font-weight:500;letter-spacing:-0.01em;">{price_str}</div>'

@@ -1555,3 +1555,23 @@ details.led-details[open] > summary {
 .pb-variants b { color: var(--ink); font-weight: 600; }
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }
+
+/* ── Briefing · Today's Trade card (action card) ────────────────────────────
+   Base: prose column + right-aligned price rail. Below 720px the fixed
+   side-by-side split starved the prose to ~191px at a 390px viewport while
+   the 120px rail sat on dead space (mobile review 2026-07-12) — stack
+   instead, price block under the prose behind a hairline. Keep these rules
+   last: the phone override shares specificity with its base, so source
+   order is what makes it win. */
+.ac-cols { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: start; }
+.ac-price {
+  font-family: var(--mono); font-size: 11px; text-align: right;
+  color: var(--ink-3); line-height: 1.6; min-width: 120px;
+}
+@media (max-width: 719px) {
+  .ac-cols { grid-template-columns: 1fr; gap: 14px; }
+  .ac-price {
+    text-align: left; min-width: 0;
+    border-top: 1px solid var(--rule); padding-top: 10px;
+  }
+}

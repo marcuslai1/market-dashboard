@@ -214,6 +214,17 @@ def render_drilldown_detail_html(tk: str, d: dict) -> str:
             f"  ·  {rcp_sessions} sessions since gap" if rcp_sessions is not None else ""
         )
         parts.append(_drilldown_section_html("Regime Change Pending"))
+        # One-line gloss: this was the least self-explanatory block on the
+        # site (casual-reader review 2026-07-12) — phase chips and "sessions
+        # since gap" meant nothing without the rule they belong to.
+        parts.append(
+            '<div class="dd-line" style="color:var(--ink-3);font-size:12px;'
+            'line-height:1.5;">A single-session move of 10%+ on real news reset '
+            'this chart — old trend anchors like the 50-day average no longer '
+            'apply. The name re-qualifies only by proving the new level: holding '
+            'a retest (Path A) or breaking above the post-gap range (Path B) '
+            'within 60 sessions.</div>'
+        )
         parts.append(
             f'<div class="dd-line">'
             f'<span style="font-family:var(--mono);font-size:11px;letter-spacing:0.10em;'
