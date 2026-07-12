@@ -231,7 +231,17 @@ def _headline_html(rows: list, today_counts) -> str:
         dominant = sorted(counts, key=lambda s: (-counts[s], order.get(s, 99)))[0]
         row = next((r for r in rows if r["signal"] == dominant), None)
         if row is not None:
-            conf = "low-confidence" if row["low_conf"] else "decision-grade"
+            # Point-of-use gloss for the confidence word (casual-reader
+            # review 2026-07-12) — the full caveat still lives in the body.
+            if row["low_conf"]:
+                conf = "low-confidence"
+                conf_tip = "Thin sample or single market regime — treat as provisional."
+            else:
+                conf = "decision-grade"
+                conf_tip = (
+                    "Enough matured calls across two or more market regimes "
+                    "to lean on this number."
+                )
             n = counts[dominant]
             names = "name" if n == 1 else "names"
             return (
@@ -239,7 +249,7 @@ def _headline_html(rows: list, today_counts) -> str:
                 f"{_signal_pill_html(dominant, small=True)}"
                 f'<span class="cal-head-txt">most common today ({n}&nbsp;{names}) · '
                 f'{_pct(row["alpha"])} α / 10d · '
-                f'<span class="cal-conf">{conf}</span></span></span>'
+                f'<span class="cal-conf" title="{conf_tip}">{conf}</span></span></span>'
             )
     return '<span class="cal-headline cal-head-txt">Signal calibration · 60-day window</span>'
 

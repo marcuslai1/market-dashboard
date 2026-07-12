@@ -74,7 +74,8 @@ def test_renders_at_a_glance_counts():
 
 def test_extension_breadth_chip_rendered():
     out = _clusters_html(_CLUSTERS, _WL, {"blocked_tickers": ["D05_SI"]})
-    assert "1/2&nbsp;ext." in out
+    assert "1/2&nbsp;extended" in out
+    assert 'title="1 of 2 names' in out   # point-of-use gloss (2026-07-12)
 
 
 def test_anchor_row_uses_normalized_key():

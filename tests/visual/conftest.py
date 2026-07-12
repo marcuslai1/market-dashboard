@@ -35,9 +35,9 @@ _DETERMINISTIC_ENV = {
     # Freeze lib.clock.today() so the today-anchored date filter (dashboard.py's
     # default range → Signal Tracker / Pipeline / Scenario Log / Report Comparison)
     # renders a fixed window; otherwise those baselines rot as the wall clock moves.
-    # 2026-07-09 = latest report date at the 2026-07-10 baseline regen (caution-trim
-    # band added to Signal Tracker; data drift since 07-04 folded in).
-    "TEST_DATE": "2026-07-09",
+    # 2026-07-12 = latest report date at the 2026-07-12 baseline regen (action-card
+    # phone stack + point-of-use glosses; data drift since 07-09 folded in).
+    "TEST_DATE": "2026-07-12",
     # Skip the live-quote batch entirely (live_prices honors this). The dead
     # proxy below only makes each fetch FAIL fast — yfinance's per-ticker
     # fallback chain keeps the worker threads hot-looping curl retries after

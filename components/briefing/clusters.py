@@ -95,7 +95,16 @@ def _glance_html(tickers: list, watchlist: dict, extension_regime) -> str:
     if breadth is not None:
         n, total = breadth
         warn = ' data-warn="1"' if n else ""
-        chips.append(f'<span class="cl-chip cl-ext"{warn}>{n}/{total}&nbsp;ext.</span>')
+        # "extended" not "ext." + a title gloss: the abbreviation had no
+        # expansion anywhere at point of use (casual-reader review 2026-07-12).
+        tip = (
+            f"{n} of {total} names here are hard-blocked from entry: "
+            "price is stretched too far above its 50-day trend line"
+        )
+        chips.append(
+            f'<span class="cl-chip cl-ext"{warn} title="{tip}">'
+            f"{n}/{total}&nbsp;extended</span>"
+        )
     return f'<span class="cl-glance">{"".join(chips)}</span>'
 
 
