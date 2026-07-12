@@ -413,6 +413,79 @@ missing data.
 </div>
 """, unsafe_allow_html=True)
 
+    # ---- Paper Book ----
+    render_section_head("Paper Book", "How the mechanical portfolio trades and is scored")
+    st.markdown("""
+<div class="term-prose">
+The <b>paper book</b> is a mechanical portfolio that trades the pipeline's own
+signals — no discretion, no hindsight. It answers one question: if you had
+followed the signals literally since inception (2026-04-19), would you have beaten
+the market? It is <b>measurement only</b> — it never feeds back into the signals,
+buckets, or writeups.
+</div>
+<div class="term-prose">
+<b>NAV, rebased to 100.</b> NAV (net asset value) is the whole book's worth — cash
+plus every open position marked at its latest price. The chart rebases NAV and both
+benchmarks to 100 at inception, so a line at 106 means +6% since 2026-04-19. Foreign
+holdings convert to USD at the day's FX rate.
+</div>
+<div class="term-formula">book_return = (current_NAV / inception_NAV − 1) × 100      # cash + positions marked to market
+spy_return  = (SPY_close_today / SPY_close_inception − 1) × 100    # plain buy-and-hold, same window
+soxx_return = (SOXX_close_today / SOXX_close_inception − 1) × 100</div>
+<div class="term-prose">
+<b>What "vs SPY / SOXX" means.</b> It compares the book's <i>total</i> return —
+realized gains <i>plus</i> the current mark-to-market of open positions — against
+simply buying and holding SPY (or the SOXX semiconductor ETF) over the exact same
+dates. It is <b>not</b> realized-gains-only, and <b>not</b> re-weighted to today's
+holdings: the benchmarks are plain buy-and-hold. "Trailing the benchmark" means the
+book's total return is below the index's; "leading" means above. SOXX is kept off
+the chart (its swings would flatten the book-vs-SPY gap) and shown in the data table.
+</div>
+<div class="term-prose">
+<b>When it buys.</b> A <b>BUY</b> signal fills a full 10%-of-NAV position in one go.
+An <b>ACCUMULATE</b> signal adds a 5% slice ("tranche") that day, and another 5%
+each further day it persists, up to the same 10% cap. It buys only with available
+cash and never exceeds target.
+</div>
+<div class="term-prose">
+<b>When it sells.</b> Every exit liquidates the <i>whole</i> position — no partial
+trims. There are exactly three exit triggers:
+</div>
+<ul class="term-bullets">
+<li><b>Stop.</b> Price falls to the position's stop level. Fill is the worse of the stop or that day's open, so a gap-down pays the gap.</li>
+<li><b>AVOID exit.</b> The signal turns AVOID while the position is held — rare by design, since AVOID needs a sourced thesis break.</li>
+<li><b>Delist exit.</b> The ticker drops off the watchlist entirely.</li>
+</ul>
+<div class="term-prose">
+<b>Stop-rule lanes.</b> Four copies of the book run in parallel, differing <i>only</i>
+in the stop rule, to measure which rule works best — same buys, same everything else:
+</div>
+<table class="term-table">
+<thead><tr><th scope="col">Lane</th><th scope="col">Stop rule</th></tr></thead>
+<tbody>
+<tr><td><b>flat</b> (headline)</td><td>Entry-day invalidation, frozen for the life of the trade.</td></tr>
+<tr><td><b>trail</b></td><td>Re-anchors each day to the latest published invalidation — can tighten or loosen.</td></tr>
+<tr><td><b>no-stop</b></td><td>No price stop at all; exits only on AVOID or delist.</td></tr>
+<tr><td><b>wide</b></td><td>Frozen like flat, but uses the deeper structural support when it is wider than the headline stop — more room.</td></tr>
+</tbody>
+</table>
+<div class="term-prose">
+The <b>flat</b> lane is the headline curve; the other three render as a single
+numbers-only line beneath it. They are lanes of the same book, never a ranking.
+</div>
+<ul class="term-bullets">
+<li><b>Weight</b> — a position's size as a % of the book (~10% target each).</li>
+<li><b>Stop</b> — the price at which that position auto-sells, per the lane's rule.</li>
+<li><b>Tranches</b> — how many slices built the position (1 = a BUY or a single ACCUMULATE day; 2 = two ACCUMULATE days).</li>
+<li><b>Max drawdown</b> — the largest peak-to-trough dip that position has taken while held. A risk gauge, not a realized loss.</li>
+</ul>
+<div class="term-prose">
+<b>Single-regime caveat.</b> The book has run through only one market regime (a
+broadly rising market since April 2026). The returns are hypothesis-grade, not a
+performance verdict — which is exactly what the exported banner says.
+</div>
+""", unsafe_allow_html=True)
+
     # ---- Macro Scenarios ----
     render_section_head("Macro Scenarios & Odds", "What the probability bar represents")
     st.markdown("""
