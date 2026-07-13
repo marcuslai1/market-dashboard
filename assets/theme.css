@@ -699,6 +699,18 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 .down { color: #ef4444; }
 .flat { color: var(--ink-3); }
 
+/* ── Extended-hours (PRE/POST) tag ────────────────────────────────────────────
+   Marks a price as a pre/post-market print (live_prices overlay sets
+   live_session). Muted amber on purpose: informational, not an alert — it
+   must not compete with the red/green delta it sits beside. inline-block +
+   tiny metrics keep it from shifting the dense row/pulse line heights. */
+.ext-tag {
+  display: inline-block; margin-left: 5px; padding: 0 4px;
+  font-family: var(--mono); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.08em; line-height: 1.6; vertical-align: 1px;
+  color: #d3a94e; background: rgba(211, 169, 78, 0.13); border-radius: 2px;
+}
+
 /* ── Horizontal-scroll wrapper for the wide fixed-column ledgers ──────────────
    The Watchlist (.tk-row / .tk-details) and Signal-Tracker (.led-*) rows use
    fixed px column tracks that sum to ~680–720px. On phones they used to be

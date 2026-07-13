@@ -55,7 +55,15 @@ def _render_live_caption(live: dict, enabled: bool) -> None:
     except (ValueError, AttributeError):
         when = "—"
     dot = SIGNAL_COLORS["BUY"] if n_ok else SIGNAL_COLORS["CAUTION"]
-    label = f"LIVE · {when} · {n_ok}/{n_total} quotes" if n_ok else "LIVE · FETCH FAILED — showing snapshot"
+    # Name the US extended session so a Singapore-evening reader knows the US
+    # rows are pre/post-market prints, not the regular session.
+    session_label = {"PRE": " · PRE-MARKET", "POST": " · AFTER-HOURS"}.get(
+        meta.get("session"), ""
+    )
+    label = (
+        f"LIVE{session_label} · {when} · {n_ok}/{n_total} quotes"
+        if n_ok else "LIVE · FETCH FAILED — showing snapshot"
+    )
     st.markdown(
         f'<div style="font-family:var(--mono);font-size:10.5px;'
         f'letter-spacing:0.08em;color:var(--ink-3);text-transform:uppercase;'

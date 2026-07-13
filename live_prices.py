@@ -14,11 +14,21 @@ from __future__ import annotations
 import concurrent.futures
 import json
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, time as dtime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import streamlit as st
+
+_ET = ZoneInfo("America/New_York")
+
+# US extended-hours windows (ET). Clock-based rather than asking Yahoo for
+# marketState: no extra network call, and holidays self-correct because the
+# prepost download simply has no bars inside today's window.
+_PRE_START, _PRE_END = dtime(4, 0), dtime(9, 30)
+_POST_START, _POST_END = dtime(16, 0), dtime(20, 0)
 
 
 def _live_quotes_disabled() -> bool:
@@ -48,6 +58,89 @@ TICKER_TO_YAHOO: dict[str, str] = json.loads(
 )["tickers"]["yahoo"]
 
 
+def _us_session_now(now: datetime | None = None) -> str | None:
+    """"PRE" / "POST" when the US market is in an extended session, else None."""
+    now = (now or datetime.now(_ET)).astimezone(_ET)
+    if now.weekday() >= 5:
+        return None
+    t = now.time()
+    if _PRE_START <= t < _PRE_END:
+        return "PRE"
+    if _POST_START <= t < _POST_END:
+        return "POST"
+    return None
+
+
+def _us_symbols(mapping: dict[str, str]) -> dict[str, str]:
+    """Subset of the catalog map that trades US extended hours.
+
+    Plain Nasdaq/NYSE symbols only: a '.' means a foreign listing (D05.SI,
+    IFX.DE), '=' a future (CL=F), '^' an index (^VIX), '-' Yahoo's composite
+    symbols (DX-Y.NYB). SPY/QQQ/SOXX pass.
+    """
+    return {
+        key: sym for key, sym in mapping.items()
+        if not any(c in sym for c in ".=^-")
+    }
+
+
+def _session_window(session: str, now: datetime) -> tuple[datetime, datetime]:
+    start, end = (_PRE_START, _PRE_END) if session == "PRE" else (_POST_START, _POST_END)
+    day = now.astimezone(_ET).date()
+    return (datetime.combine(day, start, tzinfo=_ET),
+            datetime.combine(day, end, tzinfo=_ET))
+
+
+def _fetch_ext_bars(symbols: list[str]):
+    """Batched 1-minute prepost bars for the US names. None on any failure.
+
+    One yf.download call (~0.9s for 26 symbols, measured 2026-07-13) instead of
+    per-ticker .info (~0.6s each): the whole thing hides inside the fast_info
+    batch's wall-clock, keeping the 4s deadline honest.
+    """
+    try:
+        import yfinance as yf
+        return yf.download(
+            symbols, period="1d", interval="1m", prepost=True,
+            progress=False, threads=True,
+        )
+    except Exception:
+        return None
+
+
+def _ext_quotes_from_bars(
+    bars, session: str, now: datetime, sym_to_key: dict[str, str]
+) -> dict[str, float]:
+    """{report_key: extended-hours price} from a prepost download frame.
+
+    Only bars stamped inside TODAY's current session window count — Friday's
+    regular-session tail (or a holiday's stale bars) never leaks in as a fake
+    pre-market print. Symbols with no in-window trade are simply absent.
+    """
+    out: dict[str, float] = {}
+    if bars is None or getattr(bars, "empty", True):
+        return out
+    try:
+        closes = bars["Close"]
+    except Exception:
+        return out
+    win_start, win_end = _session_window(session, now)
+    try:
+        in_window = closes.loc[(closes.index >= win_start) & (closes.index < win_end)]
+    except TypeError:
+        return out  # tz-naive index — can't trust it against an ET window
+    if in_window.empty:
+        return out
+    for sym, key in sym_to_key.items():
+        if sym not in in_window.columns:
+            continue
+        col = in_window[sym].dropna()
+        if col.empty:
+            continue
+        out[key] = float(col.iloc[-1])
+    return out
+
+
 def _fetch_one(yahoo_sym: str) -> dict | None:
     """Pull last_price + previous_close for a single symbol. None on any error."""
     try:
@@ -61,12 +154,15 @@ def _fetch_one(yahoo_sym: str) -> dict | None:
         # versions.
         last = getattr(fi, "last_price", None)
         prev = getattr(fi, "previous_close", None)
-        if last is None or prev is None:
+        if last is None:
             return None
         last_f = float(last)
+        if prev is None or float(prev) == 0:
+            # Days-old listing (e.g. SKHYV the week of its IPO): Yahoo has a
+            # live print but no previous_close yet. A live price with an
+            # unknown Δ beats silently freezing the row at the snapshot.
+            return {"price": last_f, "chg_pct": None}
         prev_f = float(prev)
-        if prev_f == 0:
-            return None
         return {
             "price":   last_f,
             "chg_pct": (last_f - prev_f) / prev_f * 100,
@@ -91,12 +187,20 @@ def fetch_live_quotes() -> dict:
             "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "n_ok": 0,
             "n_total": len(items),
+            "session": None,
         }
         return out
+    session = _us_session_now()
+    us = _us_symbols(TICKER_TO_YAHOO) if session else {}
+    now_et = datetime.now(_ET)
+    t0 = time.monotonic()
     # Not using the context manager: its __exit__ calls shutdown(wait=True), which
     # would block on stragglers and defeat the deadline. We cancel/return instead.
     pool = ThreadPoolExecutor(max_workers=12)
     try:
+        # The prepost download rides the same pool and deadline as the
+        # fast_info batch; measured ~0.9s, it finishes well inside the batch.
+        ext_fut = pool.submit(_fetch_ext_bars, list(us.values())) if us else None
         futures = {pool.submit(_fetch_one, sym): key for key, sym in items}
         try:
             for fut in as_completed(futures, timeout=_FETCH_DEADLINE_S):
@@ -105,12 +209,30 @@ def fetch_live_quotes() -> dict:
                     out[futures[fut]] = quote
         except concurrent.futures.TimeoutError:
             pass  # Yahoo slow/unreachable — keep what completed, fall back for the rest.
+        if ext_fut is not None:
+            try:
+                remaining = max(0.05, _FETCH_DEADLINE_S - (time.monotonic() - t0))
+                bars = ext_fut.result(timeout=remaining)
+                ext = _ext_quotes_from_bars(
+                    bars, session, now_et, {sym: key for key, sym in us.items()}
+                )
+            except Exception:
+                ext = {}  # ext quotes are garnish — never fail the batch over them
+            for key, ext_price in ext.items():
+                q = out.get(key)
+                base = (q or {}).get("price")
+                if not q or not base:
+                    continue  # no regular quote → no Δ base → skip
+                q["ext_price"] = ext_price
+                q["ext_chg_pct"] = (ext_price - base) / base * 100
+                q["ext_session"] = session
     finally:
         pool.shutdown(wait=False, cancel_futures=True)
     out["__meta__"] = {
         "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "n_ok": len(out),
         "n_total": len(items),
+        "session": session,
     }
     return out
 
@@ -125,16 +247,28 @@ def overlay_live(report: dict, live: dict) -> dict:
     """
     if not live:
         return report
+
+    def _apply(entry: dict, q: dict) -> dict:
+        ne = dict(entry)
+        if q.get("ext_price"):
+            # Extended session: show the pre/post print, Δ vs last regular
+            # close (matches IBKR / Yahoo's own pre-market %), and tag the
+            # entry so renderers can mark it PRE/POST.
+            ne["price"] = q["ext_price"]
+            ne["chg_pct"] = q["ext_chg_pct"]
+            ne["live_session"] = q.get("ext_session")
+        else:
+            ne["price"] = q["price"]
+            ne["chg_pct"] = q["chg_pct"]
+        return ne
+
     out = dict(report)
     benchmarks = dict(report.get("benchmarks", {}))
     for key, b in list(benchmarks.items()):
         q = live.get(key)
         if not q:
             continue
-        nb = dict(b)
-        nb["price"] = q["price"]
-        nb["chg_pct"] = q["chg_pct"]
-        benchmarks[key] = nb
+        benchmarks[key] = _apply(b, q)
     out["benchmarks"] = benchmarks
 
     watchlist = dict(report.get("watchlist", {}))
@@ -142,9 +276,6 @@ def overlay_live(report: dict, live: dict) -> dict:
         q = live.get(key)
         if not q:
             continue
-        nd = dict(d)
-        nd["price"] = q["price"]
-        nd["chg_pct"] = q["chg_pct"]
-        watchlist[key] = nd
+        watchlist[key] = _apply(d, q)
     out["watchlist"] = watchlist
     return out

@@ -58,6 +58,10 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
     # names, since there's no room for an inline marker (UX-BR-2).
     _rr_raw = (d.get("risk_reward") or {}).get("ratio_label", "")
     rr_title = f' title="tight-stop adjusted (raw {_escape_attr(_rr_raw)})"' if rr_adjusted else ""
+    # PRE/POST tag when the live overlay swapped in an extended-hours print
+    # (overlay_live sets live_session only in that case).
+    session = d.get("live_session")
+    ext_tag = f'<span class="ext-tag">{_escape_attr(session)}</span>' if session else ""
 
     summary = (
         '<summary>'
@@ -67,7 +71,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
         f'<div style="text-align:right;">'
         f'{f"{pfx}{_fmt_num(price, dec)}" if price is not None else "—"}'
         f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
-        f'{_pct_cell(chg, 2)}</div></div>'
+        f'{_pct_cell(chg, 2)}{ext_tag}</div></div>'
         f'<div class="{_delta_class(m1)}" style="text-align:right;">'
         f'{_pct_cell(m1, 1)}</div>'
         f'<div style="text-align:right;">{_pct_cell(vs50, 1)}</div>'
