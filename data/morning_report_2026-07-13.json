@@ -2,7 +2,7 @@
   "meta": {
     "report_date": "2026-07-13",
     "market_date": "2026-07-13",
-    "generated_at": "2026-07-13T11:36:20.540831",
+    "generated_at": "2026-07-13T13:39:59.869249",
     "timezone": "SGT",
     "data_coverage": {
       "expected": 31,
@@ -4388,7 +4388,7 @@
         "momentum_warn_reasons": [
           "vol_ratio 0.30 (<0.7)"
         ],
-        "earnings_days_until": 24
+        "earnings_days_until": 23
       },
       "prev_signal": "CAUTION",
       "prev_date": "2026-07-12",
@@ -5143,30 +5143,44 @@
     ],
     "validator_downgrades": {},
     "regen": {
-      "first_pass_critical_violations": [
-        "CBRS: signal=CAUTION writeup.what_to_do lacks a numeric re-entry zone. Per FIELD 3 and the depth mandate, quote the pre-computed anchor verbatim: reentry_zone.level = '$196.73' (support at $196.73 (8% below)). Keep your own date/event trigger alongside it if you have one."
-      ],
-      "regen_fired": true,
+      "first_pass_critical_violations": [],
+      "regen_fired": false,
       "post_regen_remaining": 0,
-      "regen_scope": "scoped"
+      "regen_scope": null
     },
     "bucket_hint_audit": {
       "regime": "trend_up",
       "instrument_dark": false,
       "pairs": {
-        "AVGO": {
-          "proposed": "on_deck",
-          "final": "on_deck"
-        },
-        "ASML": {
+        "SITM": {
           "proposed": "avoid",
           "final": "avoid"
         },
-        "GOOG": {
+        "NOK": {
           "proposed": "hold_no_action",
           "final": "hold_no_action"
         },
-        "SITM": {
+        "CBRS": {
+          "proposed": "avoid",
+          "final": "avoid"
+        },
+        "AIXA_DE": {
+          "proposed": "hold_no_action",
+          "final": "hold_no_action"
+        },
+        "TSEM": {
+          "proposed": "avoid",
+          "final": "avoid"
+        },
+        "000660_KS": {
+          "proposed": "watch_for_entry",
+          "final": "watch_for_entry"
+        },
+        "PLTR": {
+          "proposed": "avoid",
+          "final": "avoid"
+        },
+        "ASML": {
           "proposed": "avoid",
           "final": "avoid"
         },
@@ -5174,31 +5188,39 @@
           "proposed": "watch_for_entry",
           "final": "watch_for_entry"
         },
-        "SNDK": {
+        "MU": {
           "proposed": "on_deck",
           "final": "on_deck"
         },
-        "NOK": {
-          "proposed": "hold_no_action",
-          "final": "hold_no_action"
+        "INTC": {
+          "proposed": "avoid",
+          "final": "on_deck"
         },
-        "BE": {
-          "proposed": "watch_for_entry",
-          "final": "watch_for_entry"
-        },
-        "D05_SI": {
+        "AXTI": {
           "proposed": "avoid",
           "final": "avoid"
         },
-        "TSM": {
+        "AMD": {
+          "proposed": "avoid",
+          "final": "on_deck"
+        },
+        "IFX_DE": {
           "proposed": "hold_no_action",
           "final": "hold_no_action"
         },
-        "MSFT": {
+        "GOOG": {
           "proposed": "hold_no_action",
           "final": "hold_no_action"
         },
-        "PLTR": {
+        "U11_SI": {
+          "proposed": "avoid",
+          "final": "on_deck"
+        },
+        "AVGO": {
+          "proposed": "on_deck",
+          "final": "on_deck"
+        },
+        "NVTS": {
           "proposed": "avoid",
           "final": "avoid"
         },
@@ -5206,9 +5228,29 @@
           "proposed": "hold_no_action",
           "final": "hold_no_action"
         },
-        "SOI_PA": {
+        "AMZN": {
+          "proposed": "hold_no_action",
+          "final": "hold_no_action"
+        },
+        "005930_KS": {
+          "proposed": "hold_no_action",
+          "final": "hold_no_action"
+        },
+        "WRD": {
+          "proposed": "watch_for_entry",
+          "final": "watch_for_entry"
+        },
+        "LITE": {
           "proposed": "avoid",
-          "final": "avoid"
+          "final": "on_deck"
+        },
+        "MSFT": {
+          "proposed": "hold_no_action",
+          "final": "hold_no_action"
+        },
+        "BE": {
+          "proposed": "watch_for_entry",
+          "final": "watch_for_entry"
         },
         "CRWV": {
           "proposed": "avoid",
@@ -5218,63 +5260,19 @@
           "proposed": "avoid",
           "final": "avoid"
         },
-        "NVTS": {
+        "D05_SI": {
           "proposed": "avoid",
           "final": "avoid"
         },
-        "WRD": {
-          "proposed": "watch_for_entry",
-          "final": "watch_for_entry"
-        },
-        "000660_KS": {
-          "proposed": "watch_for_entry",
-          "final": "watch_for_entry"
-        },
-        "U11_SI": {
-          "proposed": "avoid",
-          "final": "on_deck"
-        },
-        "AXTI": {
-          "proposed": "avoid",
-          "final": "avoid"
-        },
-        "LITE": {
-          "proposed": "avoid",
-          "final": "on_deck"
-        },
-        "AIXA_DE": {
-          "proposed": "hold_no_action",
-          "final": "hold_no_action"
-        },
-        "MU": {
+        "SNDK": {
           "proposed": "on_deck",
           "final": "on_deck"
         },
-        "IFX_DE": {
-          "proposed": "hold_no_action",
-          "final": "hold_no_action"
-        },
-        "INTC": {
-          "proposed": "avoid",
-          "final": "on_deck"
-        },
-        "AMD": {
-          "proposed": "avoid",
-          "final": "on_deck"
-        },
-        "005930_KS": {
-          "proposed": "hold_no_action",
-          "final": "hold_no_action"
-        },
-        "CBRS": {
+        "SOI_PA": {
           "proposed": "avoid",
           "final": "avoid"
         },
-        "TSEM": {
-          "proposed": "avoid",
-          "final": "avoid"
-        },
-        "AMZN": {
+        "TSM": {
           "proposed": "hold_no_action",
           "final": "hold_no_action"
         }
@@ -5736,7 +5734,7 @@
         "alpha_max_10d": 10.74,
         "thin": false,
         "n_episodes": 14,
-        "alpha_episode_mean_10d": -4.95,
+        "alpha_episode_mean_10d": -4.96,
         "alpha_decayed_10d": -4.46,
         "hit_rate_decayed_pct": 53.84,
         "alpha_shrunk_10d": -3.99,
