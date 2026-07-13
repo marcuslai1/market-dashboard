@@ -25,3 +25,16 @@ def test_present_pct_cells_keep_sign_and_unit():
 def test_missing_price_renders_dash_without_currency_prefix():
     html = render_ticker_details_html("NVDA", {"signal": "HOLD"})
     assert "$—" not in html
+
+
+def test_extended_session_row_gets_tag():
+    d = {"signal": "WATCH", "price": 208.0, "chg_pct": -1.4, "live_session": "PRE"}
+    html = render_ticker_details_html("NVDA", d)
+    assert 'class="ext-tag"' in html
+    assert ">PRE</span>" in html
+
+
+def test_regular_session_row_has_no_tag():
+    d = {"signal": "WATCH", "price": 210.96, "chg_pct": 0.19}
+    html = render_ticker_details_html("NVDA", d)
+    assert "ext-tag" not in html

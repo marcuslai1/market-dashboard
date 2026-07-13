@@ -75,6 +75,10 @@ def render_action_card(wl: dict, events: list) -> None:
     price_str = _price_str(price, ccy)
     delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
     delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
+    # "today" is a lie during extended hours — name the session instead.
+    delta_when = {"PRE": "pre-mkt", "POST": "after-hrs"}.get(
+        d.get("live_session"), "today"
+    )
     verb_pill = (
         f'<span style="display:inline-block;font-family:var(--mono);font-size:10px;'
         f'font-weight:600;letter-spacing:0.04em;padding:3px 9px;white-space:nowrap;'
@@ -130,7 +134,7 @@ def render_action_card(wl: dict, events: list) -> None:
         f'<div>Last</div>'
         f'<div style="font-family:var(--serif);font-size:1.4rem;color:var(--ink);'
         f'font-weight:500;letter-spacing:-0.01em;">{price_str}</div>'
-        f'<div style="margin-top:6px;color:{delta_color};">{delta_str} today</div>'
+        f'<div style="margin-top:6px;color:{delta_color};">{delta_str} {delta_when}</div>'
         f'{rr_html}'
         f'</div>'
         f'</div>'
