@@ -217,13 +217,16 @@ def _positions_table_html(positions: list) -> str:
         wt = p.get("weight_pct")
         stop = p.get("stop")
         dd = p.get("max_dd_pct")
+        # Pipeline emits drawdown as a positive magnitude ("fell 8.3%");
+        # render with a minus sign so it can't read as a gain.
+        dd_txt = "—" if dd is None else (f"-{abs(dd):.1f}%" if dd else "0.0%")
         rows += (
             "<tr>"
             f"<td>{_escape_dollars(display_ticker(str(p['ticker'])))}</td>"
             f'<td class="num">{f"{wt:.1f}%" if wt is not None else "—"}</td>'
             f'<td class="num">{f"{stop:.2f}" if stop is not None else "—"}</td>'
             f'<td class="num">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
-            f'<td class="num">{f"{dd:+.1f}%" if dd is not None else "—"}</td>'
+            f'<td class="num">{dd_txt}</td>'
             "</tr>"
         )
     if not rows:

@@ -180,10 +180,11 @@ _BLOCK = {
     "nav_return_pct": 4.2, "spy_return_pct": 6.1, "soxx_return_pct": 9.9,
     "trade_counts": {"buy_signal": 12, "stop": 3},
     "positions": [
+        # pipeline emits drawdown as a POSITIVE magnitude (paper_portfolio.py)
         {"ticker": "NVDA", "weight_pct": 10.4, "stop": 101.5, "tranches": 1,
-         "max_dd_pct": -8.3},
+         "max_dd_pct": 8.3},
         {"ticker": "000660_KS", "weight_pct": 9.1, "stop": None, "tranches": 2,
-         "max_dd_pct": -2.0},
+         "max_dd_pct": 2.0},
     ],
     "trades_today": [{"date": "2026-07-03", "ticker": "AMD", "side": "buy",
                       "reason": "buy_signal"}],
@@ -208,7 +209,7 @@ def test_positions_table_lists_rows_and_skips_malformed():
     hostile = {"ticker": "AMD", "weight_pct": 5.0, "stop": None,
                "tranches": "<b>2</b>", "max_dd_pct": None}
     weight_none = {"ticker": "INTC", "weight_pct": None, "stop": 30.0,
-                   "tranches": "1", "max_dd_pct": -2.0}
+                   "tranches": "1", "max_dd_pct": 2.0}
     html = _positions_table_html(_BLOCK["positions"] + [hostile, weight_none,
                                                         "not-a-dict", {}])
     assert "NVDA" in html
@@ -218,6 +219,8 @@ def test_positions_table_lists_rows_and_skips_malformed():
     assert "&lt;b&gt;2&lt;/b&gt;" in html
     assert "INTC" in html                         # weight_pct None row renders
     assert "—</td>" in html                       # ...with em-dash, not a crash
+    assert "-8.3%" in html                        # drawdown signed as a decline
+    assert "+8.3%" not in html                    # ...never rendered as a gain
 
 
 def test_render_paper_book_absent_renders_nothing():
