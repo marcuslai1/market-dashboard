@@ -96,7 +96,7 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     since = f" since {block['inception']}" if block.get("inception") else ""
     if nav is None or spy is None:
         return (f"Paper book seeded{since} — first fills pending.", "")
-    body = f"Paper book {nav:+.1f}%{since} vs SPY {spy:+.1f}%"
+    body = f"Paper book {nav:+.1f}%{since} vs SPY (the S&P 500) {spy:+.1f}%"
     if nav > spy:
         return (f"{body} — leading the benchmark.", "pos")
     if nav < spy:
@@ -104,11 +104,12 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     return (f"{body} — tracking the benchmark.", "")
 
 
-# Trade-reason keys (upstream policy vocabulary) → compact chip labels.
+# Trade-reason keys (upstream policy vocabulary) → plain-language chip labels
+# (first-time-reader pass 2026-07-16: "ACC tranches"/"stops" were jargon).
 _REASON_LABELS = {
     "buy_signal": "BUY entries",
-    "accumulate_tranche": "ACC tranches",
-    "stop": "stops",
+    "accumulate_tranche": "add-on buys",
+    "stop": "stop-outs (auto-sold)",
     "avoid_exit": "AVOID exits",
     "delist_exit": "delist exits",
 }
@@ -136,7 +137,7 @@ def _stats_html(block: dict) -> str:
     """Stat chips: cash weight, open positions, trade counts by reason."""
     chips = []
     if block.get("cash_pct") is not None:
-        chips.append((f'{block["cash_pct"]:.0f}%', "cash"))
+        chips.append((f'{block["cash_pct"]:.0f}%', "cash (not invested)"))
     if block.get("n_positions") is not None:
         chips.append((str(block["n_positions"]), "open positions"))
     for key, label in _REASON_LABELS.items():
@@ -190,7 +191,7 @@ def _variants_html(block: dict | None) -> str:
         label = (_LANE_LABELS.get(v["policy_id"])
                  or _escape_dollars(str(v["policy_id"])))
         stops = v.get("stops")
-        stop_txt = (f" · {int(stops)} stops"
+        stop_txt = (f" · {int(stops)} stop-outs"
                     if isinstance(stops, (int, float)) else "")
         parts.append(f"<b>{label}</b> {nav:+.1f}%{stop_txt}")
     if not parts:
@@ -200,7 +201,7 @@ def _variants_html(block: dict | None) -> str:
         label = (_LANE_LABELS.get(block.get("policy_id"))
                  or _escape_dollars(str(block.get("policy_id") or "book")))
         stops = (block.get("trade_counts") or {}).get("stop")
-        stop_txt = (f" · {int(stops)} stops"
+        stop_txt = (f" · {int(stops)} stop-outs"
                     if isinstance(stops, (int, float)) else "")
         parts.insert(0, f"<b>{label}</b> {head_nav:+.1f}%{stop_txt} (headline)")
     return ('<p class="pb-variants">Stop-rule lanes: '
@@ -241,6 +242,19 @@ def _positions_table_html(positions: list) -> str:
     )
 
 
+# Plain-language key for the positions table, rendered directly beneath it
+# (first-time-reader pass 2026-07-16). Kept as one paragraph so it reads as
+# small print, not a second table; reuses the .pb-banner small-italic style.
+_POSITIONS_LEGEND = (
+    '<p class="pb-banner">How to read this: <b>Weight</b> — the slice of the '
+    "whole book held in this stock. <b>Stop</b> — the pre-set price that "
+    "triggers an automatic sell if the stock falls to it. <b>Tranches</b> — "
+    "how many separate purchases built the position. <b>Max drawdown</b> — "
+    "the deepest fall from the stock's highest point while we've held it: "
+    "the pain endured along the way, not the current profit or loss.</p>"
+)
+
+
 def _trades_today_html(trades: list) -> str:
     """Today's fills with their policy reasons, one line each."""
     items = ""
@@ -276,7 +290,7 @@ def _nav_fig(rebased: pd.DataFrame):
         )
     fig.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                      yaxis_title="rebased · inception = 100")
+                      yaxis_title="value of 100 invested at start")
     return style_fig(fig)
 
 
@@ -305,7 +319,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
         return
     render_section_head(
         "Paper book",
-        "The signals traded mechanically · measured by the pipeline",
+        "A simulated portfolio that follows the signals by rule · "
+        "no real money · exists to measure them",
     )
     if block:
         st.markdown(_verdict_html(block) + _stats_html(block),
@@ -329,3 +344,4 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
                 if positions_html:
                     st.markdown(f'<div class="tk-scroll">{positions_html}</div>',
                                 unsafe_allow_html=True)
+                    st.markdown(_POSITIONS_LEGEND, unsafe_allow_html=True)
