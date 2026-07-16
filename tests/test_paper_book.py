@@ -107,9 +107,9 @@ _VARIANTS = [
 def test_variants_html_renders_advisory_lanes():
     html = _variants_html({"variants": _VARIANTS})
     assert 'class="pb-variants"' in html
-    assert "trail" in html and "+1.1%" in html and "18 stops" in html
-    assert "no-stop" in html and "+4.0%" in html and "0 stops" in html
-    assert "<b>wide</b>" in html and "+8.3%" in html and "8 stops" in html
+    assert "trail" in html and "+1.1%" in html and "18 stop-outs" in html
+    assert "no-stop" in html and "+4.0%" in html and "0 stop-outs" in html
+    assert "<b>wide</b>" in html and "+8.3%" in html and "8 stop-outs" in html
     assert "v1_wide10" not in html            # labeled, not raw policy_id
     assert "verdict" not in html.lower()      # framing lives in the banner
 
@@ -137,7 +137,7 @@ def test_variants_html_leads_with_labeled_headline_lane():
              "trade_counts": {"stop": 13}, "variants": _VARIANTS}
     html = _variants_html(block)
     assert "<b>flat</b> +3.5%" in html
-    assert "13 stops" in html
+    assert "13 stop-outs" in html
     assert "headline" in html                 # the lane is named as the book's own
     assert html.index("flat") < html.index("trail")
 
@@ -223,6 +223,13 @@ def test_positions_table_lists_rows_and_skips_malformed():
     assert "+8.3%" not in html                    # ...never rendered as a gain
 
 
+def test_positions_legend_explains_every_column():
+    from components.paper_book import _POSITIONS_LEGEND
+    for term in ("Weight", "Stop", "Tranches", "Max drawdown"):
+        assert term in _POSITIONS_LEGEND
+    assert "not the current profit" in _POSITIONS_LEGEND
+
+
 def test_render_paper_book_absent_renders_nothing():
     from streamlit.testing.v1 import AppTest
 
@@ -288,4 +295,4 @@ def test_render_paper_book_block_only_renders_summary():
     assert "Paper book" in joined
     assert "trailing the benchmark" in joined
     assert "Paper measurement only." in joined
-    assert "trail" in joined and "18 stops" in joined   # advisory lanes line
+    assert "trail" in joined and "18 stop-outs" in joined   # advisory lanes line
