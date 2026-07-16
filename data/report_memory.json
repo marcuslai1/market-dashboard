@@ -1,7 +1,65 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-15",
   "rolling_summaries": [
+    {
+      "date": "2026-07-15",
+      "themes": [
+        "CPI cool/Fed rate pause",
+        "Hormuz/oil escalation"
+      ],
+      "signals_snapshot": {
+        "WATCH": [
+          "NVDA",
+          "INTC",
+          "MU",
+          "000660_KS",
+          "SNDK",
+          "SITM"
+        ],
+        "HOLD": [
+          "TSM",
+          "SKHY",
+          "005930_KS",
+          "AMZN",
+          "GOOG",
+          "MSFT",
+          "AVGO",
+          "NOK",
+          "IFX_DE",
+          "AIXA_DE"
+        ],
+        "CAUTION": [
+          "D05_SI",
+          "O39_SI",
+          "U11_SI",
+          "AMD",
+          "ASML",
+          "TSEM",
+          "CRWV",
+          "CBRS",
+          "AXTI",
+          "SOI_PA",
+          "LITE",
+          "BE",
+          "NVTS",
+          "PLTR",
+          "WRD"
+        ]
+      },
+      "key_prices": {
+        "SPY": 751.83,
+        "WTI": 80.19,
+        "VIX": 16.5,
+        "Gold": 4041.8
+      },
+      "interconnected_suggested": [
+        "COHR",
+        "MRVL",
+        "ANET"
+      ],
+      "one_liner": "S&P +0.49% as CPI cools to 3.7%, easing rate fears; WTI up 14% in 5 days to $80.19 on Hormuz blockade renewal"
+    },
     {
       "date": "2026-07-14",
       "themes": [
@@ -359,63 +417,6 @@
         "CDNS"
       ],
       "one_liner": "Oil hits $74.57, Strait shipping stopped after Iran attack; yields rise, gold slides 1.4% to $4,077, risk-off reversal."
-    },
-    {
-      "date": "2026-07-08",
-      "themes": [
-        "Iran-US Strait of Hormuz escalation: oil surge",
-        "Semiconductor sell-off on AI demand doubts"
-      ],
-      "signals_snapshot": {
-        "WATCH": [
-          "NVDA",
-          "SNDK",
-          "MSFT",
-          "WRD"
-        ],
-        "HOLD": [
-          "TSM",
-          "CRWV",
-          "AMZN",
-          "GOOG",
-          "AVGO",
-          "LITE",
-          "NOK",
-          "IFX_DE",
-          "AIXA_DE",
-          "NVTS"
-        ],
-        "CAUTION": [
-          "D05_SI",
-          "O39_SI",
-          "U11_SI",
-          "AMD",
-          "INTC",
-          "ASML",
-          "MU",
-          "TSEM",
-          "000660_KS",
-          "CBRS",
-          "AXTI",
-          "SOI_PA",
-          "BE",
-          "PLTR",
-          "SITM"
-        ]
-      },
-      "key_prices": {
-        "SPY": 747.71,
-        "WTI": 72.17,
-        "VIX": 16.13,
-        "Gold": 4130.6
-      },
-      "interconnected_suggested": [
-        "005930_KS",
-        "COHR",
-        "ANET",
-        "MRVL"
-      ],
-      "one_liner": "Oil +4.7% to $72.17 on Iran ship attacks; SOXX -4.2%, Nasdaq -1.5% after Samsung miss. US airstrikes overnight."
     }
   ],
   "active_narratives": [
@@ -494,10 +495,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-07-08",
-          "note": "SOXX -4.2% on Samsung earnings miss, but TSM CAUTION→HOLD, SNDK CAUTION→WATCH. NVDA unchanged. Broad selloff but some mid-cap upgrades."
-        },
-        {
           "date": "2026-07-09",
           "note": "MU & SK Hynix (000660_KS) CAUTION→WATCH. Korean chip stocks drop on AI/memory pricing concerns, but memory upgrades indicate pipeline sees relief."
         },
@@ -520,9 +517,13 @@
         {
           "date": "2026-07-14",
           "note": "NVDA WATCH→BUY, MU CAUTION→WATCH, ASML & AVGO CAUTION→HOLD. Broad signal upgrades extend semi rally."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "ASML→CAUTION (helium halt), BE→CAUTION, NVDA→WATCH (few H200 chips to China per US official), INTC→WATCH, SITM/SNDK→WATCH, WRD→CAUTION. Broad caution shift amid oil supply risk and export control tightening."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "fed_rate_pivot",
@@ -538,10 +539,6 @@
       "thesis": "If inflation remains sticky, Fed may pause/skip rate cuts, pressuring tech (rates-sensitive) and favoring duration. DXY at 98.9 suggests US dollar strength on hawkish pivot; monitor Fed communications and next CPI print.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "NY Fed survey: rising near-term inflation expectations. Williams sanguine on energy price retreat. Gold near 2-wk high on easing rate-hike bets. Yields higher."
-        },
         {
           "date": "2026-07-09",
           "note": "Yields rise further on oil spike and Fed minutes; gold -1.4% to $4,077. Rate-hike bets edge up."
@@ -565,9 +562,13 @@
         {
           "date": "2026-07-14",
           "note": "July rate hike odds explicitly rising per CNBC; Treasury yields muted ahead of core CPI data. No fresh Fed comments."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "June CPI 3.7% YoY (down from 4.3%), cooling rate-hike fears; Warsh sees room to delay hikes. S&P +0.49%."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -586,10 +587,6 @@
         "US10Y_reset": 4.2
       },
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "No material change."
-        },
         {
           "date": "2026-07-09",
           "note": "No material change."
@@ -613,9 +610,13 @@
         {
           "date": "2026-07-14",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "Singapore Q2 GDP +5.7% beat, but no signal change for bank tickers. NIM compression persists."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "hyperscaler_capex_sustainability_debate",
@@ -636,10 +637,6 @@
         "datacenter_capex_2030_target": "1.7T"
       },
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "SOXX -4.2% after Samsung earnings miss (below AI bar). Guardian: stymied datacentre projects threaten AI revolution. MSFT shifts to own models to cut AI costs. Capex doubts intensify."
-        },
         {
           "date": "2026-07-09",
           "note": "MSFT upgraded to HOLD; own-model cost reduction may ease capex concerns. No new hyperscaler capex data."
@@ -663,9 +660,13 @@
         {
           "date": "2026-07-14",
           "note": "Intel $5.7B AI Ireland investment; Samsung wins Tesla AI5 2nm chip; Micron’s own investment flagged as potential AI demand warning."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "WTI surge may raise datacenter energy costs, pressuring capex ROI. No direct hyperscaler capex news."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -764,10 +765,6 @@
       },
       "updates": [
         {
-          "date": "2026-07-08",
-          "note": "Beijing weighs curbing overseas AI model access; covert US-China AI leak battle escalates. No direct semi supply chain impact."
-        },
-        {
           "date": "2026-07-09",
           "note": "No material change."
         },
@@ -790,9 +787,13 @@
         {
           "date": "2026-07-14",
           "note": "China halts helium exports again on fresh Mideast tensions; Trump eases export controls for UAE, signaling selective tech trade flexibility."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "Helium export halt persists, ASML→CAUTION. US official says 'very few' H200 chips reach China; new policy restricts research collaboration, warns of 'talent wall'."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -808,10 +809,6 @@
       "thesis": "China stimulus supporting manufacturing PMI provides isolated bright spot countering US tariff escalation narrative. However, fundamental decoupling thesis from US-China tech restrictions suggests stimulus efficacy limited to non-semiconductor export categories. Semiconductor supply chain reshaping (onshoring to US, Japan, South Korea) structurally offsetting China stimulus benefit. Watch for quarterly export data to confirm whether stimulus counters tariff impact or merely softens blow.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "China manufacturing PMI beats at 50.3 in June, building on robot and HDPE export strength. Resilience narrative intact."
-        },
         {
           "date": "2026-07-09",
           "note": "No material change."
@@ -835,9 +832,13 @@
         {
           "date": "2026-07-14",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "China monthly car exports top 1m for first time, overall trade soars, reinforcing manufacturing resilience narrative."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "ecb_monetary_policy_divergence",
@@ -853,10 +854,6 @@
         "DXY_strength": 99.61
       },
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "No material change."
-        },
         {
           "date": "2026-07-09",
           "note": "No material change."
@@ -880,9 +877,13 @@
         {
           "date": "2026-07-14",
           "note": "ECB considers one-and-done rate rise (FT); July Fed hike odds rising (CNBC), widening policy divergence."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "gold_data_conflict",
@@ -968,10 +969,6 @@
       },
       "updates": [
         {
-          "date": "2026-07-08",
-          "note": "Iran fired missiles at ships, US airstrikes overnight. WTI +4.7% to $72.17, reversing prior de-escalation. Strait of Hormuz threatened again."
-        },
-        {
           "date": "2026-07-09",
           "note": "WTI $74.57 (+$2.40). Strait shipping stopped after new Iran tanker attacks; Trump declares ceasefire over. Escalation intensifies."
         },
@@ -994,9 +991,13 @@
         {
           "date": "2026-07-14",
           "note": "WTI 79.56 (+8.15 from 71.41 on 7/11). Trump reinstates Iran blockade and proposes 20% Strait of Hormuz transit fee."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "WTI $80.19 (+$0.63 from $79.56), up 14% in five days. Iran strikes US bases across Gulf; US reinstates blockade with 20% Strait transit fee. Escalation intensifies."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -1014,10 +1015,6 @@
         "MSFT_azure_openai_concentration": "45%"
       },
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "MSFT HOLD→WATCH; MSFT shifts to own AI models to reduce costs, reducing OpenAI dependency risk."
-        },
         {
           "date": "2026-07-09",
           "note": "MSFT upgraded to HOLD; own-model shift further reduces OpenAI concentration risk. No new Azure data."
@@ -1041,9 +1038,13 @@
         {
           "date": "2026-07-14",
           "note": "OpenAI ad business to miss own forecast by 90% (ADWEEK); breakup speculation with Microsoft and Apple resurfaces."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "OpenAI ad business to miss own forecast by 90%. Breakup speculation with Microsoft/Apple resurfaces. No MSFT signal change."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "intel_18a_node_production",
@@ -1060,10 +1061,6 @@
       "thesis": "18A milestone validates Intel's foundry roadmap and CHIPS Act investment, potentially shifting competitive landscape against TSMC. However, INTC remains CAUTION until market reprices foundry competitiveness and demand visibility.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "INTC AVOID→CAUTION despite broader semis selloff. No 18A-specific news."
-        },
         {
           "date": "2026-07-09",
           "note": "No material change."
@@ -1087,9 +1084,13 @@
         {
           "date": "2026-07-14",
           "note": "Intel to invest $5.7B AI-capacity in Ireland; Samsung wins Tesla AI5 2nm chip, potential foundry competitive loss."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "INTC→WATCH. Reports suggest Tesla could be external foundry customer. No concrete 18A progress update."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "fed_chair_warsh_transition",
@@ -1106,10 +1107,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-07-08",
-          "note": "No material change."
-        },
-        {
           "date": "2026-07-09",
           "note": "No material change."
         },
@@ -1132,9 +1129,13 @@
         {
           "date": "2026-07-14",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "June CPI cools to 3.7%, easing rate-hike pressure on Warsh and supporting pause narrative."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "us_china_tech_blacklist",
@@ -1147,10 +1148,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-07-08",
-          "note": "No material change."
-        },
-        {
           "date": "2026-07-09",
           "note": "No material change."
         },
@@ -1173,9 +1170,13 @@
         {
           "date": "2026-07-14",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     },
     {
       "id": "bigtech_ai_divergence",
@@ -1191,10 +1192,6 @@
       "thesis": "Divergence reflects structural AI strategy differences. GOOG benefits from TPU momentum and oversold conditions; MSFT faces persistent Azure OpenAI dependency risk; AMZN weighed by AI capex sustainability concerns. This differentiation could reshape BigTech relative valuations if sustained.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-08",
-          "note": "MSFT HOLD→WATCH; MSFT’s own-model shift narrows gap with GOOG/AMZN (HOLD). Divergence further closing."
-        },
         {
           "date": "2026-07-09",
           "note": "MSFT upgraded to HOLD from WATCH; own-model shift reduces AI exposure risk, aligning with GOOG/AMZN HOLD. Divergence narrows further."
@@ -1218,79 +1215,83 @@
         {
           "date": "2026-07-14",
           "note": "No material change."
+        },
+        {
+          "date": "2026-07-15",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-14"
+      "last_updated": "2026-07-15"
     }
   ],
   "lessons_learned": [
     {
-      "lesson": "AXTI CAUTION correctly avoided relative weakness in 6/6 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -18.3% (n=6)",
+      "lesson": "AXTI CAUTION correctly avoided relative weakness in 7/7 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -17.4% (n=7)",
       "tickers_involved": [
         "AXTI"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     },
     {
-      "lesson": "CBRS CAUTION correctly avoided relative weakness in 8/11 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -15.8% (n=11)",
+      "lesson": "CBRS CAUTION correctly avoided relative weakness in 7/11 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -12.4% (n=11)",
       "tickers_involved": [
         "CBRS"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     },
     {
-      "lesson": "TSEM CAUTION correctly avoided relative weakness in 16/25 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -7.4% (n=25)",
-      "tickers_involved": [
-        "TSEM"
-      ],
-      "computed_on": "2026-07-14"
-    },
-    {
-      "lesson": "MU CAUTION missed alpha (stock beat SOXX) in 12/27 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +7.1% (n=27)",
-      "tickers_involved": [
-        "MU"
-      ],
-      "computed_on": "2026-07-14"
-    },
-    {
-      "lesson": "AIXA_DE CAUTION correctly avoided relative weakness in 16/23 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -6.7% (n=23)",
+      "lesson": "AIXA_DE CAUTION correctly avoided relative weakness in 17/24 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -6.8% (n=24)",
       "tickers_involved": [
         "AIXA_DE"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     },
     {
-      "lesson": "000660_KS CAUTION missed alpha (stock beat SOXX) in 14/27 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +5.4% (n=27)",
+      "lesson": "TSEM CAUTION correctly avoided relative weakness in 15/25 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -6.2% (n=25)",
       "tickers_involved": [
-        "000660_KS"
+        "TSEM"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
+    },
+    {
+      "lesson": "ACCUMULATE cross-watchlist (last 60d): beat benchmark in 2/8, lagged in 6/8 (regimes: chop/trend_up).",
+      "evidence": "avg alpha: -5.9% over 10d (n=8)",
+      "tickers_involved": [],
+      "computed_on": "2026-07-15"
+    },
+    {
+      "lesson": "MU CAUTION missed alpha (stock beat SOXX) in 11/27 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +5.7% (n=27)",
+      "tickers_involved": [
+        "MU"
+      ],
+      "computed_on": "2026-07-15"
     },
     {
       "lesson": "BE CAUTION correctly avoided relative weakness in 14/24 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -4.7% (n=24)",
+      "evidence": "avg alpha vs SOXX: -4.3% (n=24)",
       "tickers_involved": [
         "BE"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     },
     {
-      "lesson": "ACCUMULATE cross-watchlist (last 60d): beat benchmark in 3/9, lagged in 6/9 (regimes: chop/trend_up).",
-      "evidence": "avg alpha: -4.5% over 10d (n=9)",
-      "tickers_involved": [],
-      "computed_on": "2026-07-14"
+      "lesson": "000660_KS CAUTION missed alpha (stock beat SOXX) in 13/27 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +4.0% (n=27)",
+      "tickers_involved": [
+        "000660_KS"
+      ],
+      "computed_on": "2026-07-15"
     },
     {
-      "lesson": "CAUTION cross-watchlist (last 60d): beat benchmark in 147/540, lagged in 289/540 (regimes: chop/trend_up).",
-      "evidence": "avg alpha: -3.7% over 10d (n=540)",
+      "lesson": "CAUTION cross-watchlist (last 60d): beat benchmark in 147/541, lagged in 290/541 (regimes: chop/trend_up).",
+      "evidence": "avg alpha: -3.6% over 10d (n=541)",
       "tickers_involved": [],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     },
     {
       "lesson": "SITM CAUTION correctly avoided relative weakness in 13/20 cases over 10d (regimes: chop/trend_up).",
@@ -1298,10 +1299,73 @@
       "tickers_involved": [
         "SITM"
       ],
-      "computed_on": "2026-07-14"
+      "computed_on": "2026-07-15"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-07-15",
+      "topics": [
+        {
+          "topic": "Oil crisis escalates in Hormuz",
+          "summary": "WTI up 14% in five days to $80.19 as Iran strikes US bases and US reinstates blockade with proposed 20% Strait of Hormuz transit fee. Yemen tensions add to energy crisis; airspace closures, shipping reroutes intensify.",
+          "tickers": [
+            "WTI"
+          ]
+        },
+        {
+          "topic": "Inflation cools, rate-hike fears ease",
+          "summary": "June CPI 3.7% YoY (down from 4.3%) curbs Fed rate-hike odds. Fed Chair Warsh may delay hikes; S&P 500 +0.49%.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "US tightens tech exports to China",
+          "summary": "US trade official says 'very few' Nvidia H200 AI chips have been shipped to China. New policy restricts research collaboration with China, warns of 'talent wall'. Helium export halt by China persists.",
+          "tickers": [
+            "NVDA",
+            "ASML"
+          ]
+        },
+        {
+          "topic": "China car exports surge",
+          "summary": "China's monthly car exports top 1 million for the first time as overall trade soars, reinforcing manufacturing resilience narrative.",
+          "tickers": []
+        },
+        {
+          "topic": "Intel/Tesla foundry customer speculation",
+          "summary": "Benzinga suggests Tesla could be an external customer for Intel's foundry; Gavin Newsom jokes about California collecting Tesla shares. Intel invests $5.7B in Ireland AI capacity.",
+          "tickers": [
+            "INTC",
+            "TSLA"
+          ]
+        },
+        {
+          "topic": "Singapore GDP beats expectations",
+          "summary": "Q2 GDP expands 5.7%, beating forecasts. High-yield savings rates reach 4.50%. No immediate signal change for bank tickers.",
+          "tickers": [
+            "D05_SI",
+            "O39_SI",
+            "U11_SI"
+          ]
+        },
+        {
+          "topic": "OpenAI ad miss and political pressures",
+          "summary": "OpenAI ad business on pace to miss own forecast by 90%. America First movement influences OpenAI; breakup speculation with Microsoft and Apple resurfaces.",
+          "tickers": [
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "AI boom finds new winners in banking",
+          "summary": "Goldman Sachs and JPMorgan Chase emerge as beneficiaries of the AI boom, according to CNBC.",
+          "tickers": []
+        }
+      ]
+    },
     {
       "date": "2026-07-14",
       "topics": [
@@ -1391,61 +1455,6 @@
         {
           "topic": "Microsoft-OpenAI legal risk",
           "summary": "OpenAI faces sanctions bid over training on stolen news; Starbucks warns Microsoft and IBM AI apps. Legal and operational overhang on MSFT-OpenAI partnership.",
-          "tickers": [
-            "MSFT"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-07-12",
-      "topics": [
-        {
-          "topic": "Fed rate/inflation concerns",
-          "summary": "Fed officials openly weigh rate hikes as inflation concerns persist; July CPI report next week seen as key catalyst. Treasury yields little changed; gold softens as Hormuz risk keeps yields firm. (Continued hawkish rhetoric, no new data.)",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Iran-Hormuz conflict de-escalation",
-          "summary": "U.S. and Iran exchanged fire overnight but WTI crude slipped to $71.41 as risk premium continues to erode. Experts say Iran's oil weapon is slipping; Strait of Hormuz traffic near standstill. (De-escalation: WTI declining despite fire exchange.)",
-          "tickers": [
-            "WTI"
-          ]
-        },
-        {
-          "topic": "US-China trade/tech tensions",
-          "summary": "China temporarily bans helium exports, threatening semiconductor manufacturing gas supply amid US-Iran tensions. Corporate America's China addiction cited as national security threat, hinting at further decoupling. (Helium ban unchanged; national security rhetoric heightens.)",
-          "tickers": [
-            "ASML",
-            "INTC",
-            "MU"
-          ]
-        },
-        {
-          "topic": "China auto exports surge",
-          "summary": "China's passenger car exports surged 80% YoY in June on EV demand, while domestic sales declined. Export resilience continues but domestic weakness persists. (Unchanged from Friday.)",
-          "tickers": [
-            "NIO"
-          ]
-        },
-        {
-          "topic": "Semiconductor & AI infrastructure updates",
-          "summary": "Meta confirms in-house AI chip production in September; Intel's Altera FPGA returns to growth on AI/robotics; Micron seen setting up for strong earnings catalyst; Cerebras boosts CS-3 manufacturing; TSM CEO purchases shares. (Meta chip reaffirmed; new Altera growth, Micron quiet catalyst, TSM insider.)",
-          "tickers": [
-            "INTC",
-            "MU",
-            "NVDA",
-            "AMD",
-            "TSM"
-          ]
-        },
-        {
-          "topic": "Microsoft-OpenAI partnership deepening",
-          "summary": "OpenAI says GPT 5.6 model becomes foundation for Microsoft Copilot, deepening partnership and reducing earlier breakup chatter. (Reaffirmed from Friday.)",
           "tickers": [
             "MSFT"
           ]
