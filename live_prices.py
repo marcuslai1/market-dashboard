@@ -16,7 +16,8 @@ import json
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, time as dtime, timezone
+from datetime import datetime, timezone
+from datetime import time as dtime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
