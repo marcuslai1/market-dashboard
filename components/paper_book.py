@@ -4,8 +4,8 @@ Renders the pipeline's mechanical paper portfolio — policy ``v1_flat10``,
 replay-seeded 2026-04-19, Measurement-Gate-exempt — from two exported
 sources: the report's ``paper_portfolio`` summary block and
 ``data/paper_nav.csv`` (daily NAV + SPY/SOXX closes). The dashboard's only
-arithmetic is rebasing exported series to 100 at their first valid row;
-all measurement lives upstream
+arithmetic is rebasing exported series to a $10,000 display notional at
+their first valid row; all measurement lives upstream
 (docs/superpowers/specs/2026-07-05-paper-book-band-design.md).
 """
 from __future__ import annotations
@@ -30,6 +30,16 @@ from lib.formatters import _escape_dollars, display_ticker
 # Exported column → display series name. NAV is the hero series; SPY/SOXX are
 # the benchmarks the upstream summary already compares against.
 _REBASE_COLS = {"nav_units": "Paper book", "spy_close": "SPY", "soxx_close": "SOXX"}
+
+# Display notional: curves and verdict render as dollars of a $10,000 pot
+# (user request 2026-07-17 — sequential percentages don't add, dollars do;
+# the book is unit/cash-based upstream, so this is pure presentation math).
+NOTIONAL_START = 10_000.0
+
+
+def _money(v: float) -> str:
+    """$10,287 — whole dollars, thousands separator."""
+    return f"${v:,.0f}"
 
 # The headline book. Stop-rule variants (v1_trail10 / v1_nostop10) share the
 # CSV since 2026-07-06 but are advisory lanes — never the default curve.
@@ -59,14 +69,16 @@ def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
 
 
 def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
-    """``date`` + one rebased-to-100 column per available series.
+    """``date`` + one rebased-to-$10,000 column per available series.
 
     Each series rebases to its own first valid value (the upstream summary
     computes benchmark returns first-row→last-row the same way — this is
     presentation math, not measurement). NAV's first exported row is the
     inception seed (nav_units == INCEPTION_UNITS upstream), so the curve's
     endpoint agrees with the block's nav_return_pct. Series that are absent,
-    all-NaN, or zero-based are omitted rather than plotted wrong.
+    all-NaN, or zero-based are omitted rather than plotted wrong. Base is
+    ``NOTIONAL_START`` dollars (2026-07-17): sequential percentages don't
+    add in readers' heads; a dollar pot compounds visibly.
     """
     if df is None or df.empty:
         return pd.DataFrame()
@@ -78,7 +90,7 @@ def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
         valid = series.dropna()
         if valid.empty or valid.iloc[0] == 0:
             continue
-        out[label] = series / valid.iloc[0] * 100.0
+        out[label] = series / valid.iloc[0] * NOTIONAL_START
     if out.columns.tolist() == ["date"]:
         return pd.DataFrame()
     return out
@@ -96,7 +108,11 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     since = f" since {block['inception']}" if block.get("inception") else ""
     if nav is None or spy is None:
         return (f"Paper book seeded{since} — first fills pending.", "")
-    body = f"Paper book {nav:+.1f}%{since} vs SPY (the S&P 500) {spy:+.1f}%"
+    nav_usd = _money(NOTIONAL_START * (1 + nav / 100.0))
+    spy_usd = _money(NOTIONAL_START * (1 + spy / 100.0))
+    body = (f"Paper book: {_money(NOTIONAL_START)} → {nav_usd} "
+            f"({nav:+.1f}%){since} vs SPY (the S&P 500) → {spy_usd} "
+            f"({spy:+.1f}%)")
     if nav > spy:
         return (f"{body} — leading the benchmark.", "pos")
     if nav < spy:
@@ -272,14 +288,58 @@ def _trades_today_html(trades: list) -> str:
 
 
 # The chart answers exactly one question — is the book beating SPY? — so only
-# those two series plot. SOXX's window return (±60%) set the y-range and
+# those two series plot solid. SOXX's window return (±60%) set the y-range and
 # flattened the book-vs-SPY gap into two overlapping lines (UX 2026-07-07);
 # it stays in the rebased frame for the data-table view, with an off-chart
 # note (_soxx_note_html) naming its return.
 _CHART_SERIES = ("Paper book", "SPY")
 
+# Advisory ext-exit lanes charted as DASHED curves (user decision 2026-07-17,
+# entry-sizing research adoption addendum). This is a deliberate, narrow
+# exception to the "variants never charted" rule of the 2026-07-05 spec:
+# the exit-on-extension lanes are the live sizing/exit experiment and the
+# owner asked to track the divergence visually. They stay visually
+# subordinate (thin + dashed), the headline curve is unchanged, and the
+# single-regime banner still renders beneath the chart. Lanes absent from
+# the CSV (b30 seeds on its first post-registration pipeline run) are
+# silently skipped.
+_ADVISORY_CURVES = {
+    "v1_tc_ext_100": "ext-exit 10/5",
+    "v1_tc_ext_100_b30": "ext-exit 30/15",
+}
+_ADVISORY_COLORS = {"ext-exit 10/5": CHART_PALETTE[2],    # sage
+                    "ext-exit 30/15": CHART_PALETTE[3]}   # dusty mauve
 
-def _nav_fig(rebased: pd.DataFrame):
+
+def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
+    """``date`` + one rebased-to-100 NAV column per advisory lane in the CSV.
+
+    Same presentation math as ``rebase_curves`` (each lane rebases to its own
+    first valid ``nav_units`` row); lanes missing from the CSV are omitted.
+    Empty frame when none are present, so the band renders exactly as before.
+    """
+    if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
+        return pd.DataFrame()
+    out = None
+    for pid, label in _ADVISORY_CURVES.items():
+        rows = nav_df[nav_df["policy_id"] == pid].sort_values("date")
+        if rows.empty or "nav_units" not in rows.columns:
+            continue
+        series = pd.to_numeric(rows["nav_units"], errors="coerce")
+        valid = series.dropna()
+        if valid.empty or valid.iloc[0] == 0:
+            continue
+        lane = pd.DataFrame({
+            "date": pd.to_datetime(rows["date"], errors="coerce"),
+            label: series / valid.iloc[0] * NOTIONAL_START,
+        })
+        out = lane if out is None else out.merge(lane, on="date", how="outer")
+    if out is None:
+        return pd.DataFrame()
+    return out.sort_values("date").reset_index(drop=True)
+
+
+def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
     fig = go.Figure()
     for name in [c for c in rebased.columns
                  if c != "date" and c in _CHART_SERIES]:
@@ -288,10 +348,29 @@ def _nav_fig(rebased: pd.DataFrame):
             line=dict(color=_SERIES_COLORS.get(name, CHART_LINE),
                       width=2.2 if name == "Paper book" else 1.4),
         )
+    if advisory is not None and not advisory.empty:
+        for name in [c for c in advisory.columns if c != "date"]:
+            fig.add_scatter(
+                x=advisory["date"], y=advisory[name], mode="lines", name=name,
+                line=dict(color=_ADVISORY_COLORS.get(name, CHART_LINE),
+                          width=1.2, dash="dash"),
+            )
     fig.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                      yaxis_title="value of 100 invested at start")
+                      yaxis_title="value of $10,000 invested at start")
     return style_fig(fig)
+
+
+def _advisory_note_html(advisory: pd.DataFrame) -> str:
+    """One-line key for the dashed lanes, or "" when none plotted."""
+    if advisory is None or advisory.empty:
+        return ""
+    names = [c for c in advisory.columns if c != "date"]
+    if not names:
+        return ""
+    return ('<p class="pb-chartnote">Dashed: exit-on-extension replay lanes '
+            f'({", ".join(names)} — BUY%/add-on% of the book) · '
+            "hypothesis-grade, one regime · not the headline book.</p>")
 
 
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
@@ -301,7 +380,7 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
     valid = rebased["SOXX"].dropna()
     if valid.empty:
         return ""
-    ret = valid.iloc[-1] - 100.0
+    ret = (valid.iloc[-1] / NOTIONAL_START - 1.0) * 100.0
     return (f'<p class="pb-chartnote">SOXX {ret:+.1f}% over this window is '
             f"left off the chart so the book-vs-SPY gap stays readable — "
             f"full series in the data table.</p>")
@@ -315,6 +394,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
     """
     block = (latest_report or {}).get("paper_portfolio") or {}
     rebased = rebase_curves(select_policy(nav_df, block))
+    advisory = advisory_curves(nav_df)
     if not block and rebased.empty:
         return
     render_section_head(
@@ -326,12 +406,15 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
         st.markdown(_verdict_html(block) + _stats_html(block),
                     unsafe_allow_html=True)
     if not rebased.empty:
-        st.plotly_chart(_nav_fig(rebased), use_container_width=True,
+        st.plotly_chart(_nav_fig(rebased, advisory), use_container_width=True,
                         config=PLOTLY_CONFIG)
-        note = _soxx_note_html(rebased)
+        note = _soxx_note_html(rebased) + _advisory_note_html(advisory)
         if note:
             st.markdown(note, unsafe_allow_html=True)
-        chart_data_table(rebased)
+        table = rebased
+        if not advisory.empty:
+            table = rebased.merge(advisory, on="date", how="left")
+        chart_data_table(table)
     if block:
         st.markdown(_variants_html(block) + _banner_html(block),
                     unsafe_allow_html=True)

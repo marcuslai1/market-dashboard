@@ -134,3 +134,19 @@ Ships independently of the dashboard work; the band's absence tiers make order i
 - No policy-variant comparison UI (one policy exists; variants are an upstream future).
 - No change to the tracker scorecard/ledger fallback plan — the single-source-of-truth
   migration (raw_direction_5d / episodes exports) proceeds separately as specced.
+
+## Addendum 2026-07-17 — dollar notional + advisory ext-exit curves
+
+User decisions (entry-sizing research follow-up; MarketReport spec
+`2026-07-16-entry-sizing-research-adoption.md` addendum is the sibling):
+
+- **Display notional:** curves + verdict rebase to `NOTIONAL_START = $10,000`
+  instead of index-100 — sequential percentages don't add in readers' heads;
+  a dollar pot compounds visibly. Presentation math only.
+- **Scoped exception to "no policy-variant comparison UI":** the ext-exit
+  lanes `v1_tc_ext_100` (10/5) and `v1_tc_ext_100_b30` (30/15) chart as thin
+  dashed advisory curves (`advisory_curves` / `_ADVISORY_CURVES` allowlist,
+  sage/mauve, `_advisory_note_html` carries the one-regime caveat). Headline
+  curve, `select_policy`, and the exported banner are unchanged. Lanes absent
+  from `paper_nav.csv` are silently skipped (b30 seeds on its first pipeline
+  run after 2026-07-17). Do not generalize beyond the allowlist.
