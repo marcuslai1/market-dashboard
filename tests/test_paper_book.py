@@ -47,13 +47,14 @@ def test_select_policy_empty_input():
 
 
 # ── rebase_curves ──
-def test_rebase_to_100_at_first_row():
+def test_rebase_to_notional_at_first_row():
+    # Display notional is $10,000 (2026-07-17 — dollar pot instead of index-100)
     out = rebase_curves(select_policy(_nav_df(), {}))
     assert list(out.columns) == ["date", "Paper book", "SPY", "SOXX"]
-    assert out["Paper book"].iloc[0] == 100.0
-    assert round(out["Paper book"].iloc[1], 2) == 100.45
-    assert round(out["SPY"].iloc[1], 1) == 102.0
-    assert round(out["SOXX"].iloc[1], 1) == 99.5
+    assert out["Paper book"].iloc[0] == 10_000.0
+    assert round(out["Paper book"].iloc[1], 2) == 10_045.0
+    assert round(out["SPY"].iloc[1], 1) == 10_200.0
+    assert round(out["SOXX"].iloc[1], 1) == 9_950.0
 
 
 def test_rebase_skips_series_with_no_valid_base():
@@ -74,6 +75,8 @@ def test_verdict_trailing():
     text, tone = verdict_bits({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
                                "inception": "2026-04-19"})
     assert "+4.2%" in text and "+6.1%" in text and "2026-04-19" in text
+    # dollar-pot framing (2026-07-17): $10,000 start and both endpoints
+    assert "$10,000" in text and "$10,420" in text and "$10,610" in text
     assert "trailing" in text
     assert tone == "neg"
 
@@ -152,9 +155,9 @@ def test_variants_html_headline_alone_renders_nothing():
 # ── UX review 2026-07-07: the chart's job is book-vs-SPY; SOXX off-chart ──
 def _rebased(with_soxx=True):
     data = {"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
-            "Paper book": [100.0, 103.5], "SPY": [100.0, 106.3]}
+            "Paper book": [10_000.0, 10_350.0], "SPY": [10_000.0, 10_630.0]}
     if with_soxx:
-        data["SOXX"] = [100.0, 160.0]
+        data["SOXX"] = [10_000.0, 16_000.0]
     return pd.DataFrame(data)
 
 
@@ -169,6 +172,57 @@ def test_soxx_note_names_offchart_return():
     note = _soxx_note_html(_rebased())
     assert "SOXX" in note and "+60.0%" in note
     assert _soxx_note_html(_rebased(with_soxx=False)) == ""
+
+
+# ── advisory ext-exit lanes (2026-07-17 sizing-research addendum) ──
+def _adv_nav_df():
+    frames = [_nav_df("v1_flat10")]
+    for pid, units in (("v1_tc_ext_100", [1_000_000, 1_010_000]),
+                       ("v1_tc_ext_100_b30", [1_000_000, 1_040_000])):
+        f = _nav_df(pid)
+        f["nav_units"] = units
+        frames.append(f)
+    return pd.concat(frames, ignore_index=True)
+
+
+def test_advisory_curves_rebased_per_lane():
+    from components.paper_book import advisory_curves
+    out = advisory_curves(_adv_nav_df())
+    assert list(out.columns) == ["date", "ext-exit 10/5", "ext-exit 30/15"]
+    assert out["ext-exit 10/5"].iloc[0] == 10_000.0
+    assert round(out["ext-exit 10/5"].iloc[1], 1) == 10_100.0
+    assert round(out["ext-exit 30/15"].iloc[1], 1) == 10_400.0
+
+
+def test_advisory_curves_skip_missing_lanes():
+    from components.paper_book import advisory_curves
+    # only the 10/5 lane in the CSV (b30 seeds on its first pipeline run)
+    df = pd.concat([_nav_df("v1_flat10"), _nav_df("v1_tc_ext_100")],
+                   ignore_index=True)
+    out = advisory_curves(df)
+    assert list(out.columns) == ["date", "ext-exit 10/5"]
+    # no advisory lanes at all → empty, band renders as before
+    assert advisory_curves(_nav_df("v1_flat10")).empty
+    assert advisory_curves(None).empty
+
+
+def test_nav_fig_advisory_lanes_dashed_and_subordinate():
+    from components.paper_book import _nav_fig, advisory_curves
+    fig = _nav_fig(_rebased(), advisory_curves(_adv_nav_df()))
+    by_name = {tr.name: tr for tr in fig.data}
+    assert set(by_name) == {"Paper book", "SPY",
+                            "ext-exit 10/5", "ext-exit 30/15"}
+    for lane in ("ext-exit 10/5", "ext-exit 30/15"):
+        assert by_name[lane].line.dash == "dash"
+        assert by_name[lane].line.width < by_name["Paper book"].line.width
+
+
+def test_advisory_note_names_lanes_and_caveat():
+    from components.paper_book import _advisory_note_html, advisory_curves
+    note = _advisory_note_html(advisory_curves(_adv_nav_df()))
+    assert "ext-exit 10/5" in note and "ext-exit 30/15" in note
+    assert "one regime" in note
+    assert _advisory_note_html(pd.DataFrame()) == ""
 
 
 # ── renderers ──
