@@ -94,7 +94,7 @@ layers because the fetch happens in two different processes:
   `NO_PROXY=127.0.0.1,localhost`, so any *other* outbound call fails rather than
   introducing nondeterminism.
 
-### 2. `TEST_DATE=2026-07-04` clock freeze
+### 2. `TEST_DATE` clock freeze (current value: see conftest.py)
 
 Four pages — **signal-tracker, pipeline-stats, scenario-log, report-comparison** —
 filter their content to a **today-anchored 30-day window** (`dashboard.py`:
@@ -104,7 +104,7 @@ reports fall inside that window would change and these baselines would rot day b
 day, unrelated to any code change.
 
 `lib/clock.py::today()` returns `date.today()` in production but honors a
-`TEST_DATE=YYYY-MM-DD` override. `conftest.py` injects `TEST_DATE=2026-07-04`
+`TEST_DATE=YYYY-MM-DD` override. `conftest.py` injects a pinned `TEST_DATE` (2026-07-12 as of this writing)
 (the latest report date) into the Streamlit **server subprocess's** environment,
 so the whole app renders a fixed window.
 
