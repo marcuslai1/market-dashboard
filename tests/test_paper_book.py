@@ -350,3 +350,258 @@ def test_render_paper_book_block_only_renders_summary():
     assert "trailing the benchmark" in joined
     assert "Paper measurement only." in joined
     assert "trail" in joined and "18 stop-outs" in joined   # advisory lanes line
+
+
+# ── trade history (spec 2026-07-17-paper-trade-history) ──
+from components.paper_book import (
+    _drawer_title,
+    _history_verdict_html,
+    _trade_history_html,
+    select_trades,
+    trade_dollars_factor,
+    trade_rows,
+)
+
+
+def _trades_df(policy="v1_flat10"):
+    return pd.DataFrame({
+        "policy_id": [policy] * 3,
+        "ticker": ["AMD", "000660_KS", "NVDA"],
+        "entry_date": ["2026-04-20", "2026-05-02", "2026-04-22"],
+        "avg_entry_price": [203.43, 210000.0, 174.40],
+        "tranches": [1, 1, 2],
+        "exit_date": ["2026-05-15", "2026-06-10", "2026-06-03"],
+        "exit_price": [188.10, 189000.0, 216.10],
+        "exit_reason": ["stop", "delist_exit", "avoid_exit"],
+        "pnl_pct": [-7.5, -10.0, 23.9],
+        "pnl_units": [-7500, -10000, 24100],
+    })
+
+
+# ── select_trades ──
+def test_select_trades_prefers_block_policy_and_sorts_newest_first():
+    df = pd.concat([_trades_df("v1_flat10"), _trades_df("v1_trail10")])
+    out = select_trades(df, {"policy_id": "v1_flat10"})
+    assert set(out["policy_id"]) == {"v1_flat10"}
+    assert list(out["ticker"]) == ["000660_KS", "NVDA", "AMD"]  # newest exit first
+
+
+def test_select_trades_policy_fallbacks_match_nav_rules():
+    assert len(select_trades(_trades_df("v1_trail10"), {})) == 3   # sole id
+    multi = pd.concat([_trades_df("v1_trail10"), _trades_df("v1_nostop10")])
+    assert select_trades(multi, {}).empty          # never blend variants
+    both = pd.concat([_trades_df("v1_flat10"), _trades_df("v1_trail10")])
+    out = select_trades(both, {})                  # headline book wins
+    assert set(out["policy_id"]) == {"v1_flat10"}
+    assert select_trades(pd.DataFrame(), {}).empty
+    assert select_trades(None, {}).empty
+
+
+# ── trade_dollars_factor ──
+def test_trade_dollars_factor_matches_nav_rebase():
+    assert trade_dollars_factor(_nav_df(), {}) == 10_000.0 / 1_000_000
+    assert trade_dollars_factor(pd.DataFrame(), {}) is None
+    assert trade_dollars_factor(None, {}) is None
+
+
+# ── trade_rows ──
+def test_trade_rows_formats_dates_prices_and_dollars():
+    rows = trade_rows(select_trades(_trades_df(), {}), factor=0.01,
+                      as_of_year=2026)
+    assert [r["ticker"] for r in rows] == ["000660.KS", "NVDA", "AMD"]
+    nvda = rows[1]
+    assert nvda["bought"].startswith("Apr 22 @ $174.40")
+    assert "2 buys" in nvda["bought"]              # multi-tranche suffix
+    assert "avg" in nvda["bought"]
+    assert nvda["sold"] == "Jun 3 @ $216.10"
+    assert nvda["why"] == "AVOID exit"
+    assert nvda["dollars"] == 241.0
+    assert nvda["pct"] == 23.9
+    amd = rows[2]
+    assert "buys" not in amd["bought"]             # single tranche, no suffix
+    assert amd["why"] == "stop-out (auto-sold)"
+    assert rows[0]["why"] == "delisted"
+    assert rows[0]["dollars"] == -100.0
+
+
+def test_trade_rows_year_shown_when_it_differs():
+    df = _trades_df()
+    rows = trade_rows(select_trades(df, {}), factor=0.01, as_of_year=2027)
+    assert any("2026" in r["bought"] for r in rows)
+
+
+def test_trade_rows_skips_malformed_and_survives_missing_fields():
+    df = _trades_df()
+    df.loc[0, "ticker"] = None                     # no ticker → skipped
+    df.loc[1, "pnl_pct"] = None
+    df.loc[1, "pnl_units"] = None                  # no P&L at all → skipped
+    df.loc[2, "entry_date"] = "not-a-date"         # bad date → em-dash, kept
+    rows = trade_rows(select_trades(df, {}), factor=0.01, as_of_year=2026)
+    assert len(rows) == 1
+    assert rows[0]["ticker"] == "NVDA"
+    assert rows[0]["bought"].startswith("—")
+
+
+def test_trade_rows_percent_only_without_factor():
+    rows = trade_rows(select_trades(_trades_df(), {}), factor=None,
+                      as_of_year=2026)
+    assert all(r["dollars"] is None for r in rows)
+    assert rows[1]["pct"] == 23.9
+
+
+# ── _trade_history_html / _history_verdict_html ──
+def test_trade_history_html_renders_table():
+    rows = trade_rows(select_trades(_trades_df(), {}), factor=0.01,
+                      as_of_year=2026)
+    html = _trade_history_html(rows)
+    for head in ("Name", "Bought", "Sold", "Why sold", "Profit"):
+        assert head in html
+    assert "NVDA" in html and "000660.KS" in html
+    assert "+&#36;241 (+23.9%)" in html            # dollars escaped, not LaTeX
+    assert "stop-out (auto-sold)" in html
+    assert _trade_history_html([]) == ""
+
+
+def test_history_verdict_counts_and_pot_total():
+    rows = trade_rows(select_trades(_trades_df(), {}), factor=0.01,
+                      as_of_year=2026)
+    html = _history_verdict_html(rows)
+    assert "3 completed trades" in html
+    assert "1 made money" in html and "2 lost" in html
+    assert "&#36;66" in html                       # -75 + 241 - 100 = +66
+    assert _history_verdict_html([]) == ""
+
+
+def test_history_verdict_omits_pot_total_without_dollars():
+    rows = trade_rows(select_trades(_trades_df(), {}), factor=None,
+                      as_of_year=2026)
+    html = _history_verdict_html(rows)
+    assert "1 made money" in html
+    assert "&#36;" not in html                     # no invented dollars
+
+
+def test_drawer_title_switches_only_with_history():
+    assert _drawer_title(True) == "Positions & trade history"
+    assert _drawer_title(False) == "Positions & today's trades"
+
+
+# ── open positions: optional P&L-so-far columns ──
+def test_positions_table_gains_pnl_columns_when_exported():
+    positions = [
+        {"ticker": "NVDA", "weight_pct": 10.4, "stop": 101.5, "tranches": 1,
+         "max_dd_pct": 8.3, "entry_date": "2026-05-02", "pnl_pct": 6.3,
+         "pnl_units": 6300},
+        {"ticker": "AMD", "weight_pct": 5.0, "stop": None, "tranches": 1,
+         "max_dd_pct": None},                      # no new fields → em-dashes
+    ]
+    html = _positions_table_html(positions, factor=0.01, as_of_year=2026)
+    assert "Bought" in html and "P&amp;L so far" in html
+    assert "May 2" in html
+    assert "+&#36;63 (+6.3%)" in html
+    assert html.count("—") >= 2                    # AMD's new cells stay honest
+
+
+def test_positions_table_unchanged_without_new_fields():
+    html = _positions_table_html(_BLOCK["positions"], factor=0.01,
+                                 as_of_year=2026)
+    assert html == _positions_table_html(_BLOCK["positions"])
+    assert "P&amp;L" not in html                   # byte-identical absence tier
+
+
+# ── render integration ──
+def test_render_paper_book_shows_history_in_drawer():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.paper_book import render_paper_book
+        nav = pd.DataFrame({
+            "policy_id": ["v1_flat10", "v1_flat10"],
+            "date": ["2026-04-19", "2026-04-20"],
+            "nav_units": [1_000_000, 1_004_500],
+            "cash_units": [1_000_000, 900_000],
+            "n_positions": [0, 1],
+            "spy_close": [500.0, 510.0],
+            "soxx_close": [200.0, 199.0],
+        })
+        trades = pd.DataFrame({
+            "policy_id": ["v1_flat10"],
+            "ticker": ["NVDA"],
+            "entry_date": ["2026-04-22"],
+            "avg_entry_price": [174.40],
+            "tranches": [2],
+            "exit_date": ["2026-06-03"],
+            "exit_price": [216.10],
+            "exit_reason": ["stop"],
+            "pnl_pct": [23.9],
+            "pnl_units": [24_100],
+        })
+        block = {"policy_id": "v1_flat10", "inception": "2026-04-19",
+                 "as_of": "2026-07-17", "cash_pct": 38.0, "n_positions": 0,
+                 "nav_return_pct": 4.2, "spy_return_pct": 6.1,
+                 "trade_counts": {"stop": 1}, "positions": [],
+                 "trades_today": [], "variants": [], "banner": "Paper only."}
+        render_paper_book({"paper_portfolio": block}, nav, trades)
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "1 completed trade" in joined
+    assert "NVDA" in joined and "stop-out (auto-sold)" in joined
+    assert "+&#36;241 (+23.9%)" in joined          # units × the NAV rebase factor
+
+
+def test_render_paper_book_history_without_block_still_shows():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.paper_book import render_paper_book
+        trades = pd.DataFrame({
+            "policy_id": ["v1_flat10"],
+            "ticker": ["NVDA"],
+            "entry_date": ["2026-04-22"],
+            "avg_entry_price": [174.40],
+            "tranches": [1],
+            "exit_date": ["2026-06-03"],
+            "exit_price": [216.10],
+            "exit_reason": ["stop"],
+            "pnl_pct": [23.9],
+            "pnl_units": [24_100],
+        })
+        render_paper_book({}, pd.DataFrame(), trades)
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "NVDA" in joined
+    assert "+23.9%" in joined                      # percent-only: no NAV factor
+    assert "&#36;" not in joined or "+&#36;241" not in joined
+
+
+def test_render_paper_book_without_trades_is_unchanged():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.paper_book import render_paper_book
+        block = {"policy_id": "v1_flat10", "inception": "2026-04-19",
+                 "cash_pct": 38.0, "n_positions": 1, "nav_return_pct": 4.2,
+                 "spy_return_pct": 6.1, "trade_counts": {},
+                 "positions": [{"ticker": "NVDA", "weight_pct": 10.0,
+                                "stop": 101.5, "tranches": 1,
+                                "max_dd_pct": 8.3}],
+                 "trades_today": [], "variants": [], "banner": "Paper only."}
+        render_paper_book({"paper_portfolio": block}, pd.DataFrame(), None)
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "completed trade" not in joined         # no history, no verdict line
+    assert "P&amp;L so far" not in joined          # positions table as today

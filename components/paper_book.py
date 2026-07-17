@@ -46,26 +46,74 @@ def _money(v: float) -> str:
 _DEFAULT_POLICY = "v1_flat10"
 
 
-def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
-    """Rows of *nav_df* for the policy the latest report block names.
+def _policy_for(df: pd.DataFrame, block: dict) -> str | None:
+    """The policy_id the band should render from *df*, or None.
 
-    Without a block, falls back to the headline book (``v1_flat10``) when the
-    CSV carries it, else to the sole distinct ``policy_id``. A multi-policy
-    CSV with neither a block nor the headline book yields an EMPTY frame:
-    side-by-side policy variants must never blend into one curve.
+    Block-named policy first; without a block, the headline book
+    (``v1_flat10``) when the frame carries it, else the sole distinct
+    ``policy_id``. Multi-policy with neither → None: side-by-side policy
+    variants must never blend into one view.
     """
-    if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
-        return pd.DataFrame()
     pid = (block or {}).get("policy_id")
     if pid is None:
-        ids = nav_df["policy_id"].dropna().unique()
+        ids = df["policy_id"].dropna().unique()
         if _DEFAULT_POLICY in ids:
             pid = _DEFAULT_POLICY
         elif len(ids) == 1:
             pid = ids[0]
         else:
-            return pd.DataFrame()
+            return None
+    return pid
+
+
+def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
+    """Rows of *nav_df* for the policy the latest report block names.
+
+    Selection rule in ``_policy_for``; empty frame when no policy resolves.
+    """
+    if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
+        return pd.DataFrame()
+    pid = _policy_for(nav_df, block)
+    if pid is None:
+        return pd.DataFrame()
     return nav_df[nav_df["policy_id"] == pid].sort_values("date")
+
+
+def select_trades(trades_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
+    """Completed round-trips for the band's policy, newest exit first.
+
+    Same selection rule as the NAV curve (``_policy_for``), so advisory-lane
+    trades in the CSV stay invisible unless the block ever names such a lane.
+    """
+    if (trades_df is None or trades_df.empty
+            or "policy_id" not in trades_df.columns):
+        return pd.DataFrame()
+    pid = _policy_for(trades_df, block)
+    if pid is None:
+        return pd.DataFrame()
+    rows = trades_df[trades_df["policy_id"] == pid].copy()
+    if "exit_date" in rows.columns:
+        rows["_exit"] = pd.to_datetime(rows["exit_date"], errors="coerce")
+        rows = rows.sort_values("_exit", ascending=False).drop(columns="_exit")
+    return rows
+
+
+def trade_dollars_factor(nav_df: pd.DataFrame | None,
+                         block: dict) -> float | None:
+    """Dollars-of-the-pot per book unit, or None when unavailable.
+
+    ``NOTIONAL_START / first valid nav_units`` of the selected policy — the
+    identical rebase factor the NAV curve uses, so a trade's exported
+    ``pnl_units`` converts to the same dollars the curve shows. No factor →
+    the history renders percent-only rather than inventing dollars.
+    """
+    rows = select_policy(nav_df, block)
+    if rows.empty or "nav_units" not in rows.columns:
+        return None
+    valid = pd.to_numeric(rows["nav_units"], errors="coerce").dropna()
+    if valid.empty or valid.iloc[0] == 0:
+        return None
+    return NOTIONAL_START / valid.iloc[0]
 
 
 def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
@@ -225,8 +273,198 @@ def _variants_html(block: dict | None) -> str:
             + " — same book, only the stop rule differs.</p>")
 
 
-def _positions_table_html(positions: list) -> str:
-    """Open-positions table for the drawer. Malformed rows skipped via .get."""
+# Exit-reason keys → singular plain-language labels for the history's
+# "Why sold" column (the chip map above is plural, for counts).
+_EXIT_LABELS = {
+    "stop": "stop-out (auto-sold)",
+    "avoid_exit": "AVOID exit",
+    "delist_exit": "delisted",
+}
+
+
+def _fmt_trade_date(val, as_of_year: int | None = None) -> str:
+    """``May 2`` — year appended only when it differs from the as-of year
+    (or when no as-of year is known). Unparseable → em-dash."""
+    d = pd.to_datetime(val, errors="coerce")
+    if pd.isna(d):
+        return "—"
+    txt = f"{d:%b} {d.day}"
+    if as_of_year is None or d.year != as_of_year:
+        txt += f", {d.year}"
+    return txt
+
+
+def _num_or_none(val) -> float | None:
+    """float(val), or None for missing/NaN/non-numeric."""
+    try:
+        f = float(val)
+    except (TypeError, ValueError):
+        return None
+    return None if pd.isna(f) else f
+
+
+def trade_rows(df: pd.DataFrame | None, factor: float | None = None,
+               as_of_year: int | None = None) -> list[dict]:
+    """Display rows for the completed-trades table, from ``select_trades``.
+
+    Each row: ``ticker`` (display form), ``bought``/``sold`` (date @ price,
+    with an ``avg · N buys`` suffix for multi-tranche entries), ``why``
+    (labeled exit reason), ``dollars`` (pnl_units × *factor*, None without a
+    factor) and ``pct`` (exported return on cost). Rows without a ticker, or
+    with nothing honest to show as profit, are skipped; a bad date degrades
+    to an em-dash rather than dropping an otherwise-complete trade.
+    """
+    rows: list[dict] = []
+    if df is None or df.empty:
+        return rows
+    for _, r in df.iterrows():
+        ticker = r.get("ticker")
+        if not isinstance(ticker, str) or not ticker.strip():
+            continue
+        pct = _num_or_none(r.get("pnl_pct"))
+        units = _num_or_none(r.get("pnl_units"))
+        dollars = units * factor if units is not None and factor else None
+        if pct is None and dollars is None:
+            continue
+        bought = _fmt_trade_date(r.get("entry_date"), as_of_year)
+        entry_px = _num_or_none(r.get("avg_entry_price"))
+        if entry_px is not None:
+            bought += f" @ ${entry_px:,.2f}"
+        tranches = _num_or_none(r.get("tranches"))
+        if tranches is not None and tranches >= 2:
+            bought += f" avg · {int(tranches)} buys"
+        sold = _fmt_trade_date(r.get("exit_date"), as_of_year)
+        exit_px = _num_or_none(r.get("exit_price"))
+        if exit_px is not None:
+            sold += f" @ ${exit_px:,.2f}"
+        reason = r.get("exit_reason")
+        why = _EXIT_LABELS.get(reason, "" if pd.isna(reason) else str(reason))
+        rows.append({"ticker": display_ticker(ticker), "bought": bought,
+                     "sold": sold, "why": why, "dollars": dollars,
+                     "pct": pct})
+    return rows
+
+
+def _signed_money(v: float) -> str:
+    """+$241 / -$75 — signed whole dollars."""
+    sign = "+" if v > 0 else "-" if v < 0 else ""
+    return f"{sign}${abs(v):,.0f}"
+
+
+def _profit_html(dollars: float | None, pct: float | None) -> str:
+    """``+$241 (+23.9%)`` colored by sign; percent- or dollar-only when
+    that's all the data supports; em-dash when neither exists."""
+    if dollars is not None and pct is not None:
+        txt = f"{_signed_money(dollars)} ({pct:+.1f}%)"
+    elif dollars is not None:
+        txt = _signed_money(dollars)
+    elif pct is not None:
+        txt = f"{pct:+.1f}%"
+    else:
+        return "—"
+    val = dollars if dollars is not None else pct
+    color = STATUS_POS if val > 0 else STATUS_NEG if val < 0 else None
+    style = f' style="color:{color};"' if color else ""
+    return f"<span{style}>{_escape_dollars(txt)}</span>"
+
+
+def _drawer_title(has_history: bool) -> str:
+    """The drawer earns its new name only once history data exists, so the
+    pre-export corpus renders byte-identical to today."""
+    return ("Positions & trade history" if has_history
+            else "Positions & today's trades")
+
+
+def _history_verdict_html(rows: list[dict]) -> str:
+    """Plain-English lead line above the completed-trades table.
+
+    Counts winners/losers by the sign of the exported per-trade P&L and sums
+    the pot dollars — display aggregation of exported values, inside the
+    band's math budget. The pot total is omitted unless every row carries
+    dollars: a partial sum would misread as the whole story.
+    """
+    if not rows:
+        return ""
+
+    def _sign(r: dict) -> float:
+        v = r["pct"] if r["pct"] is not None else r["dollars"]
+        return v or 0.0
+
+    wins = sum(1 for r in rows if _sign(r) > 0)
+    losses = sum(1 for r in rows if _sign(r) < 0)
+    flat = len(rows) - wins - losses
+    word = "trade" if len(rows) == 1 else "trades"
+    text = f"{len(rows)} completed {word} — {wins} made money, {losses} lost"
+    if flat:
+        text += f", {flat} broke even"
+    if all(r["dollars"] is not None for r in rows):
+        total = sum(r["dollars"] for r in rows)
+        if total > 0:
+            text += f"; together they added {_signed_money(total)} to the pot"
+        elif total < 0:
+            text += (f"; together they took {_signed_money(total)} "
+                     "from the pot")
+        else:
+            text += "; together they netted out flat"
+    return f'<p class="pb-history-lead">{_escape_dollars(text)}.</p>'
+
+
+def _trade_history_html(rows: list[dict]) -> str:
+    """Completed round-trips table (newest exit first), or "" when empty."""
+    body = ""
+    for r in rows:
+        body += (
+            "<tr>"
+            f"<td>{_escape_dollars(r['ticker'])}</td>"
+            f"<td>{_escape_dollars(r['bought'])}</td>"
+            f"<td>{_escape_dollars(r['sold'])}</td>"
+            f"<td>{_escape_dollars(r['why'])}</td>"
+            f'<td class="num">{_profit_html(r["dollars"], r["pct"])}</td>'
+            "</tr>"
+        )
+    if not body:
+        return ""
+    return (
+        '<table class="ep-table"><thead><tr>'
+        '<th scope="col">Name</th><th scope="col">Bought</th>'
+        '<th scope="col">Sold</th><th scope="col">Why sold</th>'
+        '<th scope="col" class="num">Profit</th>'
+        f"</tr></thead><tbody>{body}</tbody></table>"
+    )
+
+
+# Plain-language key for the history table, same voice as the positions
+# legend. &#36; keeps the literal dollar sign out of Streamlit's LaTeX path.
+_HISTORY_LEGEND = (
+    '<p class="pb-banner">How to read this: each row is one completed trade, '
+    "newest first. <b>Bought / Sold</b> — the fill dates and prices (avg — "
+    "the average price when several buys built the position). <b>Why "
+    "sold</b> — the rule that triggered the sale; every exit is mechanical, "
+    "never a judgment call. <b>Profit</b> — what the trade added to or took "
+    "from the &#36;10,000 pot, with the return on the money put in.</p>"
+)
+
+
+def _has_position_pnl(positions: list) -> bool:
+    """True when any position carries the optional entry/P&L export fields
+    (spec 2026-07-17-paper-trade-history); gates the extra columns+legend."""
+    return any(
+        isinstance(p, dict) and (p.get("entry_date")
+                                 or p.get("pnl_pct") is not None
+                                 or p.get("pnl_units") is not None)
+        for p in positions or []
+    )
+
+
+def _positions_table_html(positions: list, factor: float | None = None,
+                          as_of_year: int | None = None) -> str:
+    """Open-positions table for the drawer. Malformed rows skipped via .get.
+
+    Gains Bought and P&L-so-far columns only when at least one position
+    carries the optional export fields — the pre-export block renders
+    byte-identical to today.
+    """
+    with_pnl = _has_position_pnl(positions)
     rows = ""
     for p in positions or []:
         if not isinstance(p, dict) or not p.get("ticker"):
@@ -237,23 +475,40 @@ def _positions_table_html(positions: list) -> str:
         # Pipeline emits drawdown as a positive magnitude ("fell 8.3%");
         # render with a minus sign so it can't read as a gain.
         dd_txt = "—" if dd is None else (f"-{abs(dd):.1f}%" if dd else "0.0%")
+        bought_cell = pnl_cell = ""
+        if with_pnl:
+            bought = ("—" if not p.get("entry_date")
+                      else _fmt_trade_date(p["entry_date"], as_of_year))
+            units = _num_or_none(p.get("pnl_units"))
+            dollars = units * factor if units is not None and factor else None
+            bought_cell = f"<td>{_escape_dollars(bought)}</td>"
+            pnl_cell = (f'<td class="num">'
+                        f'{_profit_html(dollars, _num_or_none(p.get("pnl_pct")))}'
+                        "</td>")
         rows += (
             "<tr>"
             f"<td>{_escape_dollars(display_ticker(str(p['ticker'])))}</td>"
+            f"{bought_cell}"
             f'<td class="num">{f"{wt:.1f}%" if wt is not None else "—"}</td>'
             f'<td class="num">{f"{stop:.2f}" if stop is not None else "—"}</td>'
             f'<td class="num">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
             f'<td class="num">{dd_txt}</td>'
+            f"{pnl_cell}"
             "</tr>"
         )
     if not rows:
         return ""
+    bought_head = '<th scope="col">Bought</th>' if with_pnl else ""
+    pnl_head = ('<th scope="col" class="num">P&amp;L so far</th>'
+                if with_pnl else "")
     return (
         '<table class="ep-table"><thead><tr>'
-        '<th scope="col">Name</th><th scope="col" class="num">Weight</th>'
+        f'<th scope="col">Name</th>{bought_head}'
+        '<th scope="col" class="num">Weight</th>'
         '<th scope="col" class="num">Stop</th>'
         '<th scope="col" class="num">Tranches</th>'
         '<th scope="col" class="num">Max drawdown</th>'
+        f"{pnl_head}"
         f"</tr></thead><tbody>{rows}</tbody></table>"
     )
 
@@ -268,6 +523,14 @@ _POSITIONS_LEGEND = (
     "how many separate purchases built the position. <b>Max drawdown</b> — "
     "the deepest fall from the stock's highest point while we've held it: "
     "the pain endured along the way, not the current profit or loss.</p>"
+)
+
+# Appended to the legend only when the optional export fields render.
+_POSITIONS_PNL_LEGEND = (
+    '<p class="pb-banner"><b>Bought</b> — the day the position was first '
+    "purchased. <b>P&amp;L so far</b> — what the position has made or lost "
+    "since purchase, in dollars of the &#36;10,000 pot; unrealized until "
+    "sold.</p>"
 )
 
 
@@ -386,16 +649,26 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
             f"full series in the data table.</p>")
 
 
-def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
+def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
+                      trades_df: pd.DataFrame | None = None) -> None:
     """Tier 1c — the paper book. Corpus-scoped (the tracker's name filter
-    deliberately does not touch it). Absence tiers per the spec: block+CSV →
+    deliberately does not touch it). Absence tiers per the specs: block+CSV →
     full band; block only → summary, no curve; CSV only → curve only; neither
-    → skipped entirely (every pre-export report renders exactly as before).
+    (and no trade history) → skipped entirely, so every pre-export report
+    renders exactly as before. *trades_df* (``data/paper_trades.csv``, spec
+    2026-07-17-paper-trade-history) adds the completed-trades history to the
+    drawer; absent → drawer title and contents byte-identical to today.
     """
     block = (latest_report or {}).get("paper_portfolio") or {}
     rebased = rebase_curves(select_policy(nav_df, block))
     advisory = advisory_curves(nav_df)
-    if not block and rebased.empty:
+    factor = trade_dollars_factor(nav_df, block)
+    as_of = pd.to_datetime(block.get("as_of"), errors="coerce")
+    as_of_year = None if pd.isna(as_of) else as_of.year
+    history_rows = trade_rows(select_trades(trades_df, block), factor,
+                              as_of_year)
+    history_html = _trade_history_html(history_rows)
+    if not block and rebased.empty and not history_html:
         return
     render_section_head(
         "Paper book",
@@ -418,13 +691,23 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame) -> None:
     if block:
         st.markdown(_variants_html(block) + _banner_html(block),
                     unsafe_allow_html=True)
-        positions_html = _positions_table_html(block.get("positions"))
-        trades_html = _trades_today_html(block.get("trades_today"))
-        if positions_html or trades_html:
-            with st.expander("Positions & today's trades", expanded=False):
-                if trades_html:
-                    st.markdown(trades_html, unsafe_allow_html=True)
-                if positions_html:
-                    st.markdown(f'<div class="tk-scroll">{positions_html}</div>',
-                                unsafe_allow_html=True)
-                    st.markdown(_POSITIONS_LEGEND, unsafe_allow_html=True)
+    positions_html = _positions_table_html(block.get("positions"), factor,
+                                           as_of_year)
+    trades_html = _trades_today_html(block.get("trades_today"))
+    if positions_html or trades_html or history_html:
+        with st.expander(_drawer_title(bool(history_html)), expanded=False):
+            if trades_html:
+                st.markdown(trades_html, unsafe_allow_html=True)
+            if positions_html:
+                st.markdown(f'<div class="tk-scroll">{positions_html}</div>',
+                            unsafe_allow_html=True)
+                legend = _POSITIONS_LEGEND
+                if _has_position_pnl(block.get("positions")):
+                    legend += _POSITIONS_PNL_LEGEND
+                st.markdown(legend, unsafe_allow_html=True)
+            if history_html:
+                st.markdown(_history_verdict_html(history_rows),
+                            unsafe_allow_html=True)
+                st.markdown(f'<div class="tk-scroll">{history_html}</div>',
+                            unsafe_allow_html=True)
+                st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
