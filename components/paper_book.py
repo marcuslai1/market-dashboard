@@ -326,17 +326,20 @@ def trade_rows(df: pd.DataFrame | None, factor: float | None = None,
         dollars = units * factor if units is not None and factor else None
         if pct is None and dollars is None:
             continue
+        # Prices render bare (no $), matching the positions table's Stop
+        # column: the book holds non-USD listings (e.g. 000660.KS trades in
+        # KRW), so a dollar sign would mislabel the currency.
         bought = _fmt_trade_date(r.get("entry_date"), as_of_year)
         entry_px = _num_or_none(r.get("avg_entry_price"))
         if entry_px is not None:
-            bought += f" @ ${entry_px:,.2f}"
+            bought += f" @ {entry_px:,.2f}"
         tranches = _num_or_none(r.get("tranches"))
         if tranches is not None and tranches >= 2:
             bought += f" avg · {int(tranches)} buys"
         sold = _fmt_trade_date(r.get("exit_date"), as_of_year)
         exit_px = _num_or_none(r.get("exit_price"))
         if exit_px is not None:
-            sold += f" @ ${exit_px:,.2f}"
+            sold += f" @ {exit_px:,.2f}"
         reason = r.get("exit_reason")
         why = _EXIT_LABELS.get(reason, "" if pd.isna(reason) else str(reason))
         rows.append({"ticker": display_ticker(ticker), "bought": bought,

@@ -410,10 +410,11 @@ def test_trade_rows_formats_dates_prices_and_dollars():
                       as_of_year=2026)
     assert [r["ticker"] for r in rows] == ["000660.KS", "NVDA", "AMD"]
     nvda = rows[1]
-    assert nvda["bought"].startswith("Apr 22 @ $174.40")
+    # prices bare (no $) — non-USD listings would mislabel the currency
+    assert nvda["bought"].startswith("Apr 22 @ 174.40")
     assert "2 buys" in nvda["bought"]              # multi-tranche suffix
     assert "avg" in nvda["bought"]
-    assert nvda["sold"] == "Jun 3 @ $216.10"
+    assert nvda["sold"] == "Jun 3 @ 216.10"
     assert nvda["why"] == "AVOID exit"
     assert nvda["dollars"] == 241.0
     assert nvda["pct"] == 23.9
