@@ -587,6 +587,115 @@ def test_render_paper_book_history_without_block_still_shows():
     assert "&#36;" not in joined or "+&#36;241" not in joined
 
 
+# ── advisory ext-exit lanes' history (2026-07-17 addendum) ──
+from components.paper_book import _lane_heading_html, ext_exit_history
+
+
+def _ext_nav_df():
+    frames = []
+    for pid, units in (("v1_flat10", [1_000_000, 1_004_500]),
+                       ("v1_tc_ext_100", [1_000_000, 1_010_000]),
+                       ("v1_tc_ext_100_b30", [500_000, 520_000])):
+        f = _nav_df(pid)
+        f["nav_units"] = units
+        frames.append(f)
+    return pd.concat(frames, ignore_index=True)
+
+
+def _ext_trades_df():
+    frames = [_trades_df("v1_flat10"), _trades_df("v1_tc_ext_100"),
+              _trades_df("v1_tc_ext_100_b30")]
+    df = pd.concat(frames, ignore_index=True)
+    df.loc[df.policy_id != "v1_flat10", "exit_reason"] = "caution_exit"
+    return df
+
+
+def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
+    out = ext_exit_history(_ext_nav_df(), _ext_trades_df(), as_of_year=2026)
+    assert [label for label, _ in out] == ["ext-exit 10/5", "ext-exit 30/15"]
+    for _label, rows in out:
+        assert len(rows) == 3
+        assert rows[0]["ticker"] == "000660.KS"       # newest exit first
+        assert all(r["why"] == "sold on extension" for r in rows)
+    # per-lane rebase: 10/5 seeds at 1_000_000 units, 30/15 at 500_000 —
+    # the same 24_100 pnl_units is twice the dollars in the smaller book
+    by = dict(out)
+    nvda_105 = next(r for r in by["ext-exit 10/5"] if r["ticker"] == "NVDA")
+    nvda_b30 = next(r for r in by["ext-exit 30/15"] if r["ticker"] == "NVDA")
+    assert nvda_105["dollars"] == 241.0
+    assert nvda_b30["dollars"] == 482.0
+
+
+def test_ext_exit_history_absent_lanes_and_empty_input():
+    # only the headline book trades → no advisory history at all
+    assert ext_exit_history(_ext_nav_df(), _trades_df("v1_flat10")) == []
+    assert ext_exit_history(_ext_nav_df(), pd.DataFrame()) == []
+    assert ext_exit_history(_ext_nav_df(), None) == []
+    # one lane present, the other missing → only the present one
+    df = pd.concat([_trades_df("v1_flat10"), _trades_df("v1_tc_ext_100")],
+                   ignore_index=True)
+    out = ext_exit_history(_ext_nav_df(), df)
+    assert [label for label, _ in out] == ["ext-exit 10/5"]
+
+
+def test_ext_exit_stop_label_keeps_headline_wording():
+    # a stopped-out trade in an ext lane reads like the headline book's stops
+    out = ext_exit_history(_ext_nav_df(), pd.concat(
+        [_trades_df("v1_tc_ext_100")], ignore_index=True))
+    (_label, rows), = out
+    whys = {r["why"] for r in rows}
+    assert "stop-out (auto-sold)" in whys              # stop rows unchanged
+    assert "AVOID exit" in whys                        # base map still applies
+
+
+def test_lane_heading_counts_exit_mix():
+    rows = [{"why": "sold on extension"}, {"why": "sold on extension"},
+            {"why": "stop-out (auto-sold)"}]
+    html = _lane_heading_html("ext-exit 10/5", rows)
+    assert "ext-exit 10/5" in html
+    assert "2 × sold on extension" in html
+    assert "1 × stop-out (auto-sold)" in html
+
+
+def test_render_paper_book_ext_drawer_renders_with_lane_trades():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.paper_book import render_paper_book
+        nav = pd.DataFrame({
+            "policy_id": ["v1_flat10", "v1_tc_ext_100"],
+            "date": ["2026-04-19", "2026-04-19"],
+            "nav_units": [1_000_000, 1_000_000],
+            "cash_units": [1_000_000, 1_000_000],
+            "n_positions": [0, 0],
+            "spy_close": [500.0, 500.0],
+            "soxx_close": [200.0, 200.0],
+        })
+        trades = pd.DataFrame({
+            "policy_id": ["v1_tc_ext_100"],
+            "ticker": ["NVDA"],
+            "entry_date": ["2026-04-22"],
+            "avg_entry_price": [174.40],
+            "tranches": [1],
+            "exit_date": ["2026-06-03"],
+            "exit_price": [216.10],
+            "exit_reason": ["caution_exit"],
+            "pnl_pct": [23.9],
+            "pnl_units": [24_100],
+        })
+        render_paper_book({}, nav, trades)
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "sold on extension" in joined
+    assert "ext-exit 10/5" in joined
+    assert "not the headline book" in joined            # caveat present
+
+
 def test_render_paper_book_without_trades_is_unchanged():
     from streamlit.testing.v1 import AppTest
 

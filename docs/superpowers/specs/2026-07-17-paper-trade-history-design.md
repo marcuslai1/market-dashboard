@@ -109,6 +109,32 @@ the paper-book SQLite → `data/paper_trades.csv` with the columns above, ordere
 per exit with its cost-basis share — the dashboard renders rows as given and needs no change.
 Ships independently; the absence tiers make order irrelevant.
 
+## Addendum 2026-07-17 — advisory ext-exit lanes' history
+
+User request (same day, after the headline history shipped and deployed):
+show the trade history of the exit-on-extension lanes so the *selling
+behaviour* difference is visible against the headline book's stop-outs.
+
+- **Scope: the `_ADVISORY_CURVES` allowlist**, exactly the two lanes already
+  charted dashed (`v1_tc_ext_100` "ext-exit 10/5", `v1_tc_ext_100_b30`
+  "ext-exit 30/15") — the same scoped exception to "no policy-variant
+  comparison UI", not a generalization. `paper_trades.csv` already carries
+  their round-trips; no upstream change.
+- **Home: a sibling expander** directly under "Positions & trade history":
+  **"Selling on extension — advisory trade history"**. Per lane: a heading
+  with the exit-reason mix (e.g. "12 × stop-out · 3 × sold on extension"),
+  the same verdict line, and the same round-trip table. One caveat line on
+  top (hypothesis-grade, one regime — mirrors the chart's dashed-lane note);
+  the shared history legend at the bottom. Renders only when at least one
+  allowlisted lane has completed trades; otherwise the band is unchanged.
+- **Labels:** within these lanes `caution_exit` renders as **"sold on
+  extension"** — deterministic from the lane's trigger (the allowlist is
+  ext-trigger by construction), not an invented semantic. `stop` keeps its
+  headline label so the behavioural contrast is legible.
+- **Dollars:** each lane converts `pnl_units` with **its own** NAV rebase
+  factor (`trade_dollars_factor` with that lane's policy_id) — the same
+  $10,000-pot each dashed curve plots. No cross-lane blending.
+
 ## Non-goals (v1)
 
 - No per-fill ledger UI (round-trip rows carry the tranche count; the fills themselves stay

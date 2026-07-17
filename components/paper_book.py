@@ -10,6 +10,8 @@ their first valid row; all measurement lives upstream
 """
 from __future__ import annotations
 
+from collections import Counter
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -91,7 +93,11 @@ def select_trades(trades_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
     pid = _policy_for(trades_df, block)
     if pid is None:
         return pd.DataFrame()
-    rows = trades_df[trades_df["policy_id"] == pid].copy()
+    return _newest_exit_first(trades_df[trades_df["policy_id"] == pid])
+
+
+def _newest_exit_first(rows: pd.DataFrame) -> pd.DataFrame:
+    rows = rows.copy()
     if "exit_date" in rows.columns:
         rows["_exit"] = pd.to_datetime(rows["exit_date"], errors="coerce")
         rows = rows.sort_values("_exit", ascending=False).drop(columns="_exit")
@@ -305,7 +311,8 @@ def _num_or_none(val) -> float | None:
 
 
 def trade_rows(df: pd.DataFrame | None, factor: float | None = None,
-               as_of_year: int | None = None) -> list[dict]:
+               as_of_year: int | None = None,
+               labels: dict | None = None) -> list[dict]:
     """Display rows for the completed-trades table, from ``select_trades``.
 
     Each row: ``ticker`` (display form), ``bought``/``sold`` (date @ price,
@@ -316,6 +323,7 @@ def trade_rows(df: pd.DataFrame | None, factor: float | None = None,
     to an em-dash rather than dropping an otherwise-complete trade.
     """
     rows: list[dict] = []
+    labels = _EXIT_LABELS if labels is None else labels
     if df is None or df.empty:
         return rows
     for _, r in df.iterrows():
@@ -342,7 +350,7 @@ def trade_rows(df: pd.DataFrame | None, factor: float | None = None,
         if exit_px is not None:
             sold += f" @ {exit_px:,.2f}"
         reason = r.get("exit_reason")
-        why = _EXIT_LABELS.get(reason, "" if pd.isna(reason) else str(reason))
+        why = labels.get(reason, "" if pd.isna(reason) else str(reason))
         rows.append({"ticker": display_ticker(ticker), "bought": bought,
                      "sold": sold, "why": why, "dollars": dollars,
                      "pct": pct})
@@ -435,6 +443,52 @@ def _trade_history_html(rows: list[dict]) -> str:
         '<th scope="col" class="num">Profit</th>'
         f"</tr></thead><tbody>{body}</tbody></table>"
     )
+
+
+# Advisory ext-exit lanes' history (spec addendum 2026-07-17) — the same
+# scoped allowlist as the dashed curves. Within these lanes a caution_exit
+# IS the extension rule firing (the allowlist is ext-trigger by
+# construction), so it's labeled as the behaviour it represents.
+_EXT_EXIT_LABELS = {**_EXIT_LABELS, "caution_exit": "sold on extension"}
+
+_EXT_HISTORY_CAVEAT = (
+    '<p class="pb-banner">The same signals traded with one extra sell rule — '
+    "exit when a stock stretches too far above its 50-day trend (the dashed "
+    "curves on the chart). Each lane is its own &#36;10,000 pot. "
+    "Hypothesis-grade, one regime · not the headline book.</p>"
+)
+
+
+def ext_exit_history(nav_df: pd.DataFrame | None,
+                     trades_df: pd.DataFrame | None,
+                     as_of_year: int | None = None) -> list[tuple[str, list]]:
+    """(lane label, display rows) per charted advisory lane with completed
+    trades — the ``_ADVISORY_CURVES`` allowlist, nothing else. Each lane's
+    dollars use its OWN NAV rebase factor (the pot its dashed curve plots);
+    lanes absent from the trades CSV are skipped silently."""
+    out: list[tuple[str, list]] = []
+    if (trades_df is None or trades_df.empty
+            or "policy_id" not in trades_df.columns):
+        return out
+    for pid, label in _ADVISORY_CURVES.items():
+        lane = trades_df[trades_df["policy_id"] == pid]
+        if lane.empty:
+            continue
+        factor = trade_dollars_factor(nav_df, {"policy_id": pid})
+        rows = trade_rows(_newest_exit_first(lane), factor, as_of_year,
+                          labels=_EXT_EXIT_LABELS)
+        if rows:
+            out.append((label, rows))
+    return out
+
+
+def _lane_heading_html(label: str, rows: list[dict]) -> str:
+    """Lane name + its exit-reason mix, e.g. "12 × stop-out · 3 × sold on
+    extension" — the selling-behaviour contrast at a glance."""
+    mix = Counter(r["why"] for r in rows if r.get("why"))
+    mix_txt = " · ".join(f"{n} × {why}" for why, n in mix.most_common())
+    return (f'<p class="pb-lane-head"><b>{_escape_dollars(label)}</b>'
+            f" — {_escape_dollars(mix_txt)}</p>")
 
 
 # Plain-language key for the history table, same voice as the positions
@@ -672,7 +726,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     history_rows = trade_rows(select_trades(trades_df, block), factor,
                               as_of_year)
     history_html = _trade_history_html(history_rows)
-    if not block and rebased.empty and not history_html:
+    ext_history = ext_exit_history(nav_df, trades_df, as_of_year)
+    if not block and rebased.empty and not history_html and not ext_history:
         return
     render_section_head(
         "Paper book",
@@ -715,3 +770,15 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                 st.markdown(f'<div class="tk-scroll">{history_html}</div>',
                             unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
+    if ext_history:
+        with st.expander("Selling on extension — advisory trade history",
+                         expanded=False):
+            st.markdown(_EXT_HISTORY_CAVEAT, unsafe_allow_html=True)
+            for label, rows in ext_history:
+                st.markdown(_lane_heading_html(label, rows)
+                            + _history_verdict_html(rows),
+                            unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="tk-scroll">{_trade_history_html(rows)}</div>',
+                    unsafe_allow_html=True)
+            st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
