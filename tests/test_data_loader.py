@@ -175,3 +175,27 @@ def test_load_paper_nav_reads_columns(monkeypatch, tmp_path):
     assert list(df.columns) == ["policy_id", "date", "nav_units", "cash_units",
                                 "n_positions", "spy_close", "soxx_close"]
     assert len(df) == 2
+
+
+# ── Trade history: load_paper_trades (spec 2026-07-17-paper-trade-history) ──
+def test_load_paper_trades_missing_file_returns_empty(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    df = dl.load_paper_trades()
+    assert df.empty
+
+
+def test_load_paper_trades_reads_columns(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    (tmp_path / "paper_trades.csv").write_text(
+        "policy_id,ticker,entry_date,avg_entry_price,tranches,"
+        "exit_date,exit_price,exit_reason,pnl_pct,pnl_units\n"
+        "v1_flat10,AMD,2026-04-20,203.43,1,2026-05-15,188.10,stop,-7.5,-7500\n"
+        "v1_flat10,NVDA,2026-04-22,174.40,2,2026-06-03,216.10,stop,23.9,24100\n",
+        encoding="utf-8",
+    )
+    df = dl.load_paper_trades()
+    assert list(df.columns) == [
+        "policy_id", "ticker", "entry_date", "avg_entry_price", "tranches",
+        "exit_date", "exit_price", "exit_reason", "pnl_pct", "pnl_units",
+    ]
+    assert len(df) == 2

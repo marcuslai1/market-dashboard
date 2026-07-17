@@ -204,6 +204,25 @@ def load_paper_nav() -> pd.DataFrame:
 
 
 @st.cache_data(max_entries=4)
+def _load_paper_trades_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    return _safe_read_csv(Path(path_str))
+
+
+def load_paper_trades() -> pd.DataFrame:
+    """Completed paper-book round-trips (``data/paper_trades.csv``), or empty.
+
+    Exported by the pipeline (spec 2026-07-17-paper-trade-history-design):
+    ``policy_id, ticker, entry_date, avg_entry_price, tranches, exit_date,
+    exit_price, exit_reason, pnl_pct, pnl_units``, one row per closed
+    position. Raw frame — date parsing, policy selection, and the
+    units→dollars transform live in the band's reducers. Missing file (every
+    checkout until the pipeline first exports it) → empty frame.
+    """
+    path = DATA_DIR / "paper_trades.csv"
+    return _load_paper_trades_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
 def _load_pipeline_stats_cached(path_str: str, mtime: float) -> pd.DataFrame:
     df = _safe_read_csv(Path(path_str))
     if df.empty:
