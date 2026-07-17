@@ -48,13 +48,14 @@ def test_select_policy_empty_input():
 
 # ── rebase_curves ──
 def test_rebase_to_notional_at_first_row():
-    # Display notional is $10,000 (2026-07-17 — dollar pot instead of index-100)
+    # Display notional is $100,000 (2026-07-17 — dollar pot instead of
+    # index-100; $100k so whole-share positions stay honest)
     out = rebase_curves(select_policy(_nav_df(), {}))
     assert list(out.columns) == ["date", "Paper book", "SPY", "SOXX"]
-    assert out["Paper book"].iloc[0] == 10_000.0
-    assert round(out["Paper book"].iloc[1], 2) == 10_045.0
-    assert round(out["SPY"].iloc[1], 1) == 10_200.0
-    assert round(out["SOXX"].iloc[1], 1) == 9_950.0
+    assert out["Paper book"].iloc[0] == 100_000.0
+    assert round(out["Paper book"].iloc[1], 2) == 100_450.0
+    assert round(out["SPY"].iloc[1], 1) == 102_000.0
+    assert round(out["SOXX"].iloc[1], 1) == 99_500.0
 
 
 def test_rebase_skips_series_with_no_valid_base():
@@ -75,8 +76,8 @@ def test_verdict_trailing():
     text, tone = verdict_bits({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
                                "inception": "2026-04-19"})
     assert "+4.2%" in text and "+6.1%" in text and "2026-04-19" in text
-    # dollar-pot framing (2026-07-17): $10,000 start and both endpoints
-    assert "$10,000" in text and "$10,420" in text and "$10,610" in text
+    # dollar-pot framing (2026-07-17): $100,000 start and both endpoints
+    assert "$100,000" in text and "$104,200" in text and "$106,100" in text
     assert "trailing" in text
     assert tone == "neg"
 
@@ -155,9 +156,10 @@ def test_variants_html_headline_alone_renders_nothing():
 # ── UX review 2026-07-07: the chart's job is book-vs-SPY; SOXX off-chart ──
 def _rebased(with_soxx=True):
     data = {"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
-            "Paper book": [10_000.0, 10_350.0], "SPY": [10_000.0, 10_630.0]}
+            "Paper book": [100_000.0, 103_500.0],
+            "SPY": [100_000.0, 106_300.0]}
     if with_soxx:
-        data["SOXX"] = [10_000.0, 16_000.0]
+        data["SOXX"] = [100_000.0, 160_000.0]
     return pd.DataFrame(data)
 
 
@@ -189,9 +191,9 @@ def test_advisory_curves_rebased_per_lane():
     from components.paper_book import advisory_curves
     out = advisory_curves(_adv_nav_df())
     assert list(out.columns) == ["date", "ext-exit 10/5", "ext-exit 30/15"]
-    assert out["ext-exit 10/5"].iloc[0] == 10_000.0
-    assert round(out["ext-exit 10/5"].iloc[1], 1) == 10_100.0
-    assert round(out["ext-exit 30/15"].iloc[1], 1) == 10_400.0
+    assert out["ext-exit 10/5"].iloc[0] == 100_000.0
+    assert round(out["ext-exit 10/5"].iloc[1], 1) == 101_000.0
+    assert round(out["ext-exit 30/15"].iloc[1], 1) == 104_000.0
 
 
 def test_advisory_curves_skip_missing_lanes():
@@ -399,7 +401,7 @@ def test_select_trades_policy_fallbacks_match_nav_rules():
 
 # ── trade_dollars_factor ──
 def test_trade_dollars_factor_matches_nav_rebase():
-    assert trade_dollars_factor(_nav_df(), {}) == 10_000.0 / 1_000_000
+    assert trade_dollars_factor(_nav_df(), {}) == 100_000.0 / 1_000_000
     assert trade_dollars_factor(pd.DataFrame(), {}) is None
     assert trade_dollars_factor(None, {}) is None
 
@@ -554,7 +556,7 @@ def test_render_paper_book_shows_history_in_drawer():
     joined = " ".join(m.value for m in at.markdown)
     assert "1 completed trade" in joined
     assert "NVDA" in joined and "stop-out (auto-sold)" in joined
-    assert "+&#36;241 (+23.9%)" in joined          # units × the NAV rebase factor
+    assert "+&#36;2,410 (+23.9%)" in joined        # units × the NAV rebase factor
 
 
 def test_render_paper_book_history_without_block_still_shows():
@@ -622,8 +624,8 @@ def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
     by = dict(out)
     nvda_105 = next(r for r in by["ext-exit 10/5"] if r["ticker"] == "NVDA")
     nvda_b30 = next(r for r in by["ext-exit 30/15"] if r["ticker"] == "NVDA")
-    assert nvda_105["dollars"] == 241.0
-    assert nvda_b30["dollars"] == 482.0
+    assert nvda_105["dollars"] == 2_410.0
+    assert nvda_b30["dollars"] == 4_820.0
 
 
 def test_ext_exit_history_absent_lanes_and_empty_input():
@@ -722,29 +724,39 @@ def _positions_df(policy="v1_flat10"):
     })
 
 
-def test_position_rows_pot_scaled_shares_prices_and_values():
-    rows = position_rows(_positions_df(), factor=0.01, as_of_year=2026)
+def test_position_rows_whole_shares_prices_and_values():
+    rows = position_rows(_positions_df(), factor=0.1, as_of_year=2026)
     msft, u11 = rows
     assert msft["ticker"] == "MSFT"
-    assert msft["shares"] == "2.71"                    # 271.39 shares × 0.01
+    assert msft["shares"] == "27"                      # 27.14 rounds down
     assert msft["bought"] == "Jun 30 @ 379.35 avg · 2 buys"
     assert msft["now"] == "401.10"
-    assert round(msft["cost"]) == 1_030                # $ of the pot put in
-    assert round(msft["value"]) == 1_089               # marked to last close
-    assert round(msft["dollars"]) == 59
+    assert round(msft["cost"]) == 10_242               # 27 × per-share cost
+    assert round(msft["value"]) == 10_830              # 27 × last close
+    assert round(msft["dollars"]) == 587
     assert round(msft["pct"], 1) == 5.7
     assert u11["ticker"] == "U11.SI"                   # display_ticker
-    assert u11["shares"] == "17.5"
+    assert u11["shares"] == "175"                      # 175.12 rounds down
     assert u11["now"] == "43.50"
-    assert round(u11["value"]) == 591                  # fx applied
+    assert round(u11["value"]) == 5_909                # fx applied per share
     assert round(u11["pct"], 1) == 17.2
+
+
+def test_position_rows_round_up_and_never_below_one_share():
+    df = _positions_df().iloc[[0]].copy()
+    df["qty"] = 276.0                                  # 27.6 pot shares
+    (row,) = position_rows(df, factor=0.1, as_of_year=2026)
+    assert row["shares"] == "28"                       # spend extra on 1 more
+    df["qty"] = 3.0                                    # 0.3 pot shares
+    (row,) = position_rows(df, factor=0.1, as_of_year=2026)
+    assert row["shares"] == "1"                        # a held name shows ≥ 1
 
 
 def test_position_rows_skips_malformed_and_survives_missing_marks():
     df = _positions_df()
     df.loc[0, "ticker"] = None                         # skipped
     df.loc[1, "last_close"] = None                     # no mark → no value
-    rows = position_rows(df, factor=0.01, as_of_year=2026)
+    rows = position_rows(df, factor=0.1, as_of_year=2026)
     (u11,) = rows
     assert u11["value"] is None and u11["dollars"] is None
     assert u11["cost"] is not None                     # cost still honest
@@ -758,13 +770,13 @@ def test_select_positions_matches_policy_rules():
 
 
 def test_positions_v2_table_and_compounding_reconciles():
-    rows = position_rows(_positions_df(), factor=0.01, as_of_year=2026)
+    rows = position_rows(_positions_df(), factor=0.1, as_of_year=2026)
     html = _positions_v2_table_html(rows)
     for head in ("Name", "Shares", "Bought", "Now", "Cost → value",
                  "P&amp;L so far", "Stop", "Max drawdown"):
         assert head in html
-    assert "2.71" in html and "379.35" in html and "401.10" in html
-    assert "&#36;1,030 → &#36;1,089" in html           # cost basis → value
+    assert ">27<" in html and "379.35" in html and "401.10" in html
+    assert "&#36;10,242 → &#36;10,830" in html         # cost basis → value
     assert "-5.6%" in html                             # drawdown still signed
     assert _positions_v2_table_html([]) == ""
     # compounding sanity: value = cost × (1 + pct) and dollars = value − cost
@@ -775,8 +787,8 @@ def test_positions_v2_table_and_compounding_reconciles():
 
 def test_lane_cash_html_from_nav_tail():
     html = lane_cash_html(_nav_df(), "v1_flat10", 1)
-    assert "&#36;10,045" in html                       # pot now (compounded)
-    assert "&#36;9,000" in html                        # cash
+    assert "&#36;100,450" in html                      # pot now (compounded)
+    assert "&#36;90,000" in html                       # cash
     assert "(90%)" in html
     assert "1 open position" in html
     assert lane_cash_html(pd.DataFrame(), "v1_flat10", 1) == ""
@@ -837,7 +849,7 @@ def test_render_paper_book_positions_csv_supersedes_block_table():
     at.run()
     assert not at.exception
     joined = " ".join(m.value for m in at.markdown)
-    assert "2.71" in joined                            # shares column live
+    assert ">27<" in joined                            # whole shares live
     assert "Cost → value" in joined
     assert "Pot now" in joined and "cash" in joined    # cash line
     assert "Weight" not in joined                      # block table replaced

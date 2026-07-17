@@ -151,12 +151,19 @@ price and current price, genuinely compounded.
 - **Shares/cost-basis table** (`_positions_v2_table_html`): Name · Shares ·
   Bought (date @ avg fill price, native) · Now (last close, native) ·
   Cost → value (pot dollars) · P&L so far · Stop · Max drawdown. Everything
-  dollar-shaped scales by the book's own NAV rebase factor, so shares are
-  "what a $10,000 pot's stake buys" and values compound exactly as the
-  curve does — verified: Σ position values + cash ≡ the pot's NAV tail (to
-  the cent on all three surfaced books).
+  dollar-shaped scales by the book's own NAV rebase factor, so values
+  compound exactly as the curve does.
+- **Whole shares on a $100,000 pot** (same-day user decision): the display
+  notional moves 10k → 100k band-wide (`NOTIONAL_START`), and the Shares
+  column rounds the pot's stake to the nearest whole share, never below one
+  — cost = shares × per-share USD cost basis (`invested_units/qty`, which
+  carries the fx actually paid), value = shares × native close × carried
+  fx. The whole-share table may differ from the pot line by a share's worth
+  (legend says so); the fractional-unit measurement stays upstream —
+  verified pre-rounding: Σ values + cash ≡ the NAV tail to the cent on all
+  three surfaced books.
 - **Pot/cash line** (`lane_cash_html`) above every positions table:
-  "Pot now $10,556 · cash $6,150 (58%) · 5 open positions" — from the
+  "Pot now $105,560 · cash $61,500 (58%) · 5 open positions" — from the
   book's own NAV tail, nothing re-derived.
 - **Placement:** the headline drawer's positions table upgrades to this view
   whenever the CSV covers the selected policy (the block table remains the

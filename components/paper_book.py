@@ -4,7 +4,7 @@ Renders the pipeline's mechanical paper portfolio — policy ``v1_flat10``,
 replay-seeded 2026-04-19, Measurement-Gate-exempt — from two exported
 sources: the report's ``paper_portfolio`` summary block and
 ``data/paper_nav.csv`` (daily NAV + SPY/SOXX closes). The dashboard's only
-arithmetic is rebasing exported series to a $10,000 display notional at
+arithmetic is rebasing exported series to a $100,000 display notional at
 their first valid row; all measurement lives upstream
 (docs/superpowers/specs/2026-07-05-paper-book-band-design.md).
 """
@@ -33,10 +33,12 @@ from lib.formatters import _escape_dollars, display_ticker
 # the benchmarks the upstream summary already compares against.
 _REBASE_COLS = {"nav_units": "Paper book", "spy_close": "SPY", "soxx_close": "SOXX"}
 
-# Display notional: curves and verdict render as dollars of a $10,000 pot
+# Display notional: curves and verdict render as dollars of a $100,000 pot
 # (user request 2026-07-17 — sequential percentages don't add, dollars do;
 # the book is unit/cash-based upstream, so this is pure presentation math).
-NOTIONAL_START = 10_000.0
+# $100k rather than $10k (same-day follow-up): positions display in WHOLE
+# shares, and a $10k pot rounds a 10% stake of a $1,400 stock to zero.
+NOTIONAL_START = 100_000.0
 
 
 def _money(v: float) -> str:
@@ -123,7 +125,7 @@ def trade_dollars_factor(nav_df: pd.DataFrame | None,
 
 
 def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
-    """``date`` + one rebased-to-$10,000 column per available series.
+    """``date`` + one rebased-to-notional column per available series.
 
     Each series rebases to its own first valid value (the upstream summary
     computes benchmark returns first-row→last-row the same way — this is
@@ -457,26 +459,21 @@ def select_positions(positions_df: pd.DataFrame | None,
     return positions_df[positions_df["policy_id"] == pid]
 
 
-def _shares_txt(q: float) -> str:
-    """2.71 / 17.5 / 299 — precision scaled so small holdings stay honest."""
-    if q >= 100:
-        return f"{q:,.0f}"
-    if q >= 10:
-        return f"{q:,.1f}"
-    return f"{q:,.2f}"
-
-
 def position_rows(df: pd.DataFrame | None, factor: float | None = None,
                   as_of_year: int | None = None) -> list[dict]:
     """Display rows for the shares/cost-basis positions table.
 
-    Everything scales to the $10,000 pot with *factor* (the NAV curve's own
-    rebase), so the numbers compound exactly as the curve does: ``shares`` =
-    the book's share count × factor, ``cost`` = invested book units ×
-    factor, ``value`` = shares marked at the native last close × the carried
-    fx. Prices (``bought``/``now``/stop) stay native, matching the trades
-    table. Rows without a ticker or share count are skipped; a missing mark
-    degrades to a cost-only row rather than inventing a value.
+    WHOLE shares (user decision 2026-07-17): the pot's fractional stake
+    (book qty × *factor*, the NAV curve's own rebase) rounds to the nearest
+    whole share — spending a touch more or less than the measured stake —
+    and never below one share of a held position. ``cost`` = shares × the
+    position's per-share USD cost basis (``invested_units/qty``, which
+    carries the fx actually paid), ``value`` = shares × native last close ×
+    the carried fx, so cost/value/P&L are exactly what those whole shares
+    are worth in pot dollars. Prices (``bought``/``now``/stop) stay native,
+    matching the trades table. Rows without a ticker or share count are
+    skipped; a missing mark degrades to a cost-only row rather than
+    inventing a value.
     """
     rows: list[dict] = []
     if df is None or df.empty:
@@ -497,8 +494,11 @@ def position_rows(df: pd.DataFrame | None, factor: float | None = None,
         fx = _num_or_none(r.get("fx_rate"))
         fx = 1.0 if fx is None else fx
         invested = _num_or_none(r.get("invested_units"))
-        cost = invested * factor if invested and factor else None
-        value = (qty * last_close * fx * factor
+        # per-share USD cost = invested/qty — the pot scaling cancels, so
+        # shares × it is the pot cost of exactly those whole shares
+        shares = max(1, round(qty * factor)) if factor else max(1, round(qty))
+        cost = shares * invested / qty if invested and factor else None
+        value = (shares * last_close * fx
                  if last_close is not None and factor else None)
         dollars = pct = None
         if cost and value is not None:
@@ -510,7 +510,7 @@ def position_rows(df: pd.DataFrame | None, factor: float | None = None,
         dd_txt = "—" if dd is None else (f"-{abs(dd):.1f}%" if dd else "0.0%")
         rows.append({
             "ticker": display_ticker(ticker),
-            "shares": _shares_txt(qty * factor) if factor else _shares_txt(qty),
+            "shares": f"{shares:,}",
             "bought": bought,
             "now": f"{last_close:,.2f}" if last_close is not None else "—",
             "stop": f"{stop:,.2f}" if stop is not None else "—",
@@ -558,17 +558,18 @@ def _positions_v2_table_html(rows: list[dict]) -> str:
 
 
 _POSITIONS_V2_LEGEND = (
-    '<p class="pb-banner">How to read this: <b>Shares</b> — how many shares '
-    "a &#36;10,000 pot's stake buys (fractional, because every position is "
-    "sized as a fixed share of the compounding pot). <b>Bought</b> — first "
-    "purchase date @ average fill price, in the stock's own currency (avg — "
-    "several buys built the position). <b>Now</b> — the latest close, same "
-    "currency. <b>Cost → value</b> — pot dollars put in → what they're "
-    "worth at that close. <b>P&amp;L so far</b> — the difference; "
-    "unrealized until sold. <b>Stop</b> — the pre-set price that triggers "
-    "an automatic sell. <b>Max drawdown</b> — the deepest fall from the "
-    "stock's highest point while held: pain along the way, not the current "
-    "profit.</p>"
+    '<p class="pb-banner">How to read this: <b>Shares</b> — whole shares '
+    "the &#36;100,000 pot's stake buys, rounded to the nearest share "
+    "(spending a touch more or less than the measured stake — so the table "
+    "can differ from the pot line by a share's worth). <b>Bought</b> — "
+    "first purchase date @ average fill price, in the stock's own currency "
+    "(avg — several buys built the position). <b>Now</b> — the latest "
+    "close, same currency. <b>Cost → value</b> — pot dollars those shares "
+    "cost → what they're worth at that close. <b>P&amp;L so far</b> — the "
+    "difference; unrealized until sold. <b>Stop</b> — the pre-set price "
+    "that triggers an automatic sell. <b>Max drawdown</b> — the deepest "
+    "fall from the stock's highest point while held: pain along the way, "
+    "not the current profit.</p>"
 )
 
 
@@ -603,7 +604,7 @@ _EXT_EXIT_LABELS = {**_EXIT_LABELS, "caution_exit": "sold on extension"}
 _EXT_HISTORY_CAVEAT = (
     '<p class="pb-banner">The same signals traded with one extra sell rule — '
     "exit when a stock stretches too far above its 50-day trend (the dashed "
-    "curves on the chart). Each lane is its own &#36;10,000 pot. "
+    "curves on the chart). Each lane is its own &#36;100,000 pot. "
     "Hypothesis-grade, one regime · not the headline book.</p>"
 )
 
@@ -667,7 +668,7 @@ _HISTORY_LEGEND = (
     "the average price when several buys built the position). <b>Why "
     "sold</b> — the rule that triggered the sale; every exit is mechanical, "
     "never a judgment call. <b>Profit</b> — what the trade added to or took "
-    "from the &#36;10,000 pot, with the return on the money put in.</p>"
+    "from the &#36;100,000 pot, with the return on the money put in.</p>"
 )
 
 
@@ -755,7 +756,7 @@ _POSITIONS_LEGEND = (
 _POSITIONS_PNL_LEGEND = (
     '<p class="pb-banner"><b>Bought</b> — the day the position was first '
     "purchased. <b>P&amp;L so far</b> — what the position has made or lost "
-    "since purchase, in dollars of the &#36;10,000 pot; unrealized until "
+    "since purchase, in dollars of the &#36;100,000 pot; unrealized until "
     "sold.</p>"
 )
 
@@ -846,7 +847,8 @@ def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
             )
     fig.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                      yaxis_title="value of $10,000 invested at start")
+                      yaxis_title=f"value of {_money(NOTIONAL_START)} "
+                                  "invested at start")
     return style_fig(fig)
 
 
