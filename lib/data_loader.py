@@ -223,6 +223,25 @@ def load_paper_trades() -> pd.DataFrame:
 
 
 @st.cache_data(max_entries=4)
+def _load_paper_positions_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    return _safe_read_csv(Path(path_str))
+
+
+def load_paper_positions() -> pd.DataFrame:
+    """Open paper-book positions across every lane
+    (``data/paper_positions.csv``), or empty.
+
+    Exported by the pipeline (spec 2026-07-17-paper-trade-history-design,
+    addendum 2): ``policy_id, ticker, entry_date, avg_entry_price, tranches,
+    qty, invested_units, last_close, fx_rate, stop_price, max_dd_pct``, one
+    row per open position. Raw frame — the pot scaling lives in the band's
+    reducers. Missing file → empty frame.
+    """
+    path = DATA_DIR / "paper_positions.csv"
+    return _load_paper_positions_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
 def _load_pipeline_stats_cached(path_str: str, mtime: float) -> pd.DataFrame:
     df = _safe_read_csv(Path(path_str))
     if df.empty:

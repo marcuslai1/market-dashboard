@@ -135,6 +135,35 @@ behaviour* difference is visible against the headline book's stop-outs.
   factor (`trade_dollars_factor` with that lane's policy_id) — the same
   $10,000-pot each dashed curve plots. No cross-lane blending.
 
+## Addendum 2 2026-07-17 — realistic positions: shares, cost basis, lane cash
+
+User request (after the ext-exit history deployed): show each book's cash,
+and positions "as realistic as possible" — share counts, cost basis, bought
+price and current price, genuinely compounded.
+
+- **New upstream export `data/paper_positions.csv`** (MarketReport spec
+  addendum 2): one row per OPEN position across every book —
+  `policy_id, ticker, entry_date, avg_entry_price, tranches, qty,
+  invested_units, last_close, fx_rate, stop_price, max_dd_pct`. The native
+  `avg_entry_price` is the open episode's cost-basis average from the fills
+  ledger (trims preserve per-share cost). Per-book cash needs no export: the
+  book's last `paper_nav.csv` row carries `cash_units`.
+- **Shares/cost-basis table** (`_positions_v2_table_html`): Name · Shares ·
+  Bought (date @ avg fill price, native) · Now (last close, native) ·
+  Cost → value (pot dollars) · P&L so far · Stop · Max drawdown. Everything
+  dollar-shaped scales by the book's own NAV rebase factor, so shares are
+  "what a $10,000 pot's stake buys" and values compound exactly as the
+  curve does — verified: Σ position values + cash ≡ the pot's NAV tail (to
+  the cent on all three surfaced books).
+- **Pot/cash line** (`lane_cash_html`) above every positions table:
+  "Pot now $10,556 · cash $6,150 (58%) · 5 open positions" — from the
+  book's own NAV tail, nothing re-derived.
+- **Placement:** the headline drawer's positions table upgrades to this view
+  whenever the CSV covers the selected policy (the block table remains the
+  fallback contract, byte-identical); each ext-exit lane in the advisory
+  drawer gains its pot/cash line + positions table above its completed
+  trades.
+
 ## Non-goals (v1)
 
 - No per-fill ledger UI (round-trip rows carry the tranche count; the fills themselves stay

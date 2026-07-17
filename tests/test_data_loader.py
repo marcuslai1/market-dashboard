@@ -199,3 +199,25 @@ def test_load_paper_trades_reads_columns(monkeypatch, tmp_path):
         "exit_date", "exit_price", "exit_reason", "pnl_pct", "pnl_units",
     ]
     assert len(df) == 2
+
+
+def test_load_paper_positions_missing_file_returns_empty(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    assert dl.load_paper_positions().empty
+
+
+def test_load_paper_positions_reads_columns(monkeypatch, tmp_path):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    (tmp_path / "paper_positions.csv").write_text(
+        "policy_id,ticker,entry_date,avg_entry_price,tranches,qty,"
+        "invested_units,last_close,fx_rate,stop_price,max_dd_pct\n"
+        "v1_flat10,NVDA,2026-06-29,194.97,1,512.25,99874,207.40,1.0,190.43,4.9\n",
+        encoding="utf-8",
+    )
+    df = dl.load_paper_positions()
+    assert list(df.columns) == [
+        "policy_id", "ticker", "entry_date", "avg_entry_price", "tranches",
+        "qty", "invested_units", "last_close", "fx_rate", "stop_price",
+        "max_dd_pct",
+    ]
+    assert len(df) == 1

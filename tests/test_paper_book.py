@@ -696,6 +696,153 @@ def test_render_paper_book_ext_drawer_renders_with_lane_trades():
     assert "not the headline book" in joined            # caveat present
 
 
+# ── realistic positions view (addendum 2: shares, cost basis, lane cash) ──
+from components.paper_book import (
+    _positions_v2_table_html,
+    ext_lane_views,
+    lane_cash_html,
+    position_rows,
+    select_positions,
+)
+
+
+def _positions_df(policy="v1_flat10"):
+    return pd.DataFrame({
+        "policy_id": [policy] * 2,
+        "ticker": ["MSFT", "U11_SI"],
+        "entry_date": ["2026-06-30", "2026-05-08"],
+        "avg_entry_price": [379.346, 36.56],
+        "tranches": [2, 1],
+        "qty": [271.3933794697, 1751.2117923639],
+        "invested_units": [102_952, 50_447],
+        "last_close": [401.10, 43.5],
+        "fx_rate": [1.0, 0.7761805653572],
+        "stop_price": [355.51, 36.1],
+        "max_dd_pct": [5.6, 4.7],
+    })
+
+
+def test_position_rows_pot_scaled_shares_prices_and_values():
+    rows = position_rows(_positions_df(), factor=0.01, as_of_year=2026)
+    msft, u11 = rows
+    assert msft["ticker"] == "MSFT"
+    assert msft["shares"] == "2.71"                    # 271.39 shares × 0.01
+    assert msft["bought"] == "Jun 30 @ 379.35 avg · 2 buys"
+    assert msft["now"] == "401.10"
+    assert round(msft["cost"]) == 1_030                # $ of the pot put in
+    assert round(msft["value"]) == 1_089               # marked to last close
+    assert round(msft["dollars"]) == 59
+    assert round(msft["pct"], 1) == 5.7
+    assert u11["ticker"] == "U11.SI"                   # display_ticker
+    assert u11["shares"] == "17.5"
+    assert u11["now"] == "43.50"
+    assert round(u11["value"]) == 591                  # fx applied
+    assert round(u11["pct"], 1) == 17.2
+
+
+def test_position_rows_skips_malformed_and_survives_missing_marks():
+    df = _positions_df()
+    df.loc[0, "ticker"] = None                         # skipped
+    df.loc[1, "last_close"] = None                     # no mark → no value
+    rows = position_rows(df, factor=0.01, as_of_year=2026)
+    (u11,) = rows
+    assert u11["value"] is None and u11["dollars"] is None
+    assert u11["cost"] is not None                     # cost still honest
+
+
+def test_select_positions_matches_policy_rules():
+    df = pd.concat([_positions_df("v1_flat10"), _positions_df("v1_trail10")])
+    assert set(select_positions(df, {})["policy_id"]) == {"v1_flat10"}
+    assert select_positions(pd.DataFrame(), {}).empty
+    assert select_positions(None, {}).empty
+
+
+def test_positions_v2_table_and_compounding_reconciles():
+    rows = position_rows(_positions_df(), factor=0.01, as_of_year=2026)
+    html = _positions_v2_table_html(rows)
+    for head in ("Name", "Shares", "Bought", "Now", "Cost → value",
+                 "P&amp;L so far", "Stop", "Max drawdown"):
+        assert head in html
+    assert "2.71" in html and "379.35" in html and "401.10" in html
+    assert "&#36;1,030 → &#36;1,089" in html           # cost basis → value
+    assert "-5.6%" in html                             # drawdown still signed
+    assert _positions_v2_table_html([]) == ""
+    # compounding sanity: value = cost × (1 + pct) and dollars = value − cost
+    for r in rows:
+        assert abs(r["value"] - r["cost"] * (1 + r["pct"] / 100)) < 0.01
+        assert abs(r["dollars"] - (r["value"] - r["cost"])) < 0.01
+
+
+def test_lane_cash_html_from_nav_tail():
+    html = lane_cash_html(_nav_df(), "v1_flat10", 1)
+    assert "&#36;10,045" in html                       # pot now (compounded)
+    assert "&#36;9,000" in html                        # cash
+    assert "(90%)" in html
+    assert "1 open position" in html
+    assert lane_cash_html(pd.DataFrame(), "v1_flat10", 1) == ""
+
+
+def test_ext_lane_views_carry_positions_and_trades():
+    nav = _ext_nav_df()
+    views = ext_lane_views(nav, _ext_trades_df(), _positions_df("v1_tc_ext_100"),
+                           as_of_year=2026)
+    assert [v[0] for v in views] == ["ext-exit 10/5", "ext-exit 30/15"]
+    _label, pid, p_rows, t_rows = views[0]
+    assert pid == "v1_tc_ext_100"
+    assert len(p_rows) == 2 and len(t_rows) == 3
+    _, _, p_rows_b30, t_rows_b30 = views[1]
+    assert p_rows_b30 == [] and len(t_rows_b30) == 3   # no b30 positions given
+
+
+def test_render_paper_book_positions_csv_supersedes_block_table():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.paper_book import render_paper_book
+        nav = pd.DataFrame({
+            "policy_id": ["v1_flat10", "v1_flat10"],
+            "date": ["2026-04-19", "2026-04-20"],
+            "nav_units": [1_000_000, 1_004_500],
+            "cash_units": [1_000_000, 900_000],
+            "n_positions": [0, 1],
+            "spy_close": [500.0, 510.0],
+            "soxx_close": [200.0, 199.0],
+        })
+        positions = pd.DataFrame({
+            "policy_id": ["v1_flat10"],
+            "ticker": ["MSFT"],
+            "entry_date": ["2026-06-30"],
+            "avg_entry_price": [379.346],
+            "tranches": [2],
+            "qty": [271.3933794697],
+            "invested_units": [102_952],
+            "last_close": [401.10],
+            "fx_rate": [1.0],
+            "stop_price": [355.51],
+            "max_dd_pct": [5.6],
+        })
+        block = {"policy_id": "v1_flat10", "inception": "2026-04-19",
+                 "as_of": "2026-07-17", "cash_pct": 38.0, "n_positions": 1,
+                 "nav_return_pct": 4.2, "spy_return_pct": 6.1,
+                 "trade_counts": {}, "trades_today": [], "variants": [],
+                 "positions": [{"ticker": "MSFT", "weight_pct": 10.9,
+                                "stop": 355.51, "tranches": 2,
+                                "max_dd_pct": 5.6}],
+                 "banner": "Paper only."}
+        render_paper_book({"paper_portfolio": block}, nav, None, positions)
+
+    at = AppTest.from_function(app)
+    at.run()
+    assert not at.exception
+    joined = " ".join(m.value for m in at.markdown)
+    assert "2.71" in joined                            # shares column live
+    assert "Cost → value" in joined
+    assert "Pot now" in joined and "cash" in joined    # cash line
+    assert "Weight" not in joined                      # block table replaced
+
+
 def test_render_paper_book_without_trades_is_unchanged():
     from streamlit.testing.v1 import AppTest
 

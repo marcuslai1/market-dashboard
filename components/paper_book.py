@@ -445,6 +445,155 @@ def _trade_history_html(rows: list[dict]) -> str:
     )
 
 
+def select_positions(positions_df: pd.DataFrame | None,
+                     block: dict) -> pd.DataFrame:
+    """Open positions for the band's policy — same rule as the NAV curve."""
+    if (positions_df is None or positions_df.empty
+            or "policy_id" not in positions_df.columns):
+        return pd.DataFrame()
+    pid = _policy_for(positions_df, block)
+    if pid is None:
+        return pd.DataFrame()
+    return positions_df[positions_df["policy_id"] == pid]
+
+
+def _shares_txt(q: float) -> str:
+    """2.71 / 17.5 / 299 — precision scaled so small holdings stay honest."""
+    if q >= 100:
+        return f"{q:,.0f}"
+    if q >= 10:
+        return f"{q:,.1f}"
+    return f"{q:,.2f}"
+
+
+def position_rows(df: pd.DataFrame | None, factor: float | None = None,
+                  as_of_year: int | None = None) -> list[dict]:
+    """Display rows for the shares/cost-basis positions table.
+
+    Everything scales to the $10,000 pot with *factor* (the NAV curve's own
+    rebase), so the numbers compound exactly as the curve does: ``shares`` =
+    the book's share count × factor, ``cost`` = invested book units ×
+    factor, ``value`` = shares marked at the native last close × the carried
+    fx. Prices (``bought``/``now``/stop) stay native, matching the trades
+    table. Rows without a ticker or share count are skipped; a missing mark
+    degrades to a cost-only row rather than inventing a value.
+    """
+    rows: list[dict] = []
+    if df is None or df.empty:
+        return rows
+    for _, r in df.iterrows():
+        ticker = r.get("ticker")
+        qty = _num_or_none(r.get("qty"))
+        if not isinstance(ticker, str) or not ticker.strip() or not qty:
+            continue
+        bought = _fmt_trade_date(r.get("entry_date"), as_of_year)
+        entry_px = _num_or_none(r.get("avg_entry_price"))
+        if entry_px is not None:
+            bought += f" @ {entry_px:,.2f}"
+        tranches = _num_or_none(r.get("tranches"))
+        if tranches is not None and tranches >= 2:
+            bought += f" avg · {int(tranches)} buys"
+        last_close = _num_or_none(r.get("last_close"))
+        fx = _num_or_none(r.get("fx_rate"))
+        fx = 1.0 if fx is None else fx
+        invested = _num_or_none(r.get("invested_units"))
+        cost = invested * factor if invested and factor else None
+        value = (qty * last_close * fx * factor
+                 if last_close is not None and factor else None)
+        dollars = pct = None
+        if cost and value is not None:
+            dollars = value - cost
+            pct = (value / cost - 1) * 100.0
+        stop = _num_or_none(r.get("stop_price"))
+        dd = _num_or_none(r.get("max_dd_pct"))
+        # drawdown is a positive magnitude upstream; sign it as a decline
+        dd_txt = "—" if dd is None else (f"-{abs(dd):.1f}%" if dd else "0.0%")
+        rows.append({
+            "ticker": display_ticker(ticker),
+            "shares": _shares_txt(qty * factor) if factor else _shares_txt(qty),
+            "bought": bought,
+            "now": f"{last_close:,.2f}" if last_close is not None else "—",
+            "stop": f"{stop:,.2f}" if stop is not None else "—",
+            "dd": dd_txt,
+            "cost": cost, "value": value,
+            "dollars": dollars, "pct": pct,
+        })
+    return rows
+
+
+def _positions_v2_table_html(rows: list[dict]) -> str:
+    """Shares / cost-basis / marks positions table, or "" when empty."""
+    body = ""
+    for r in rows:
+        if r["cost"] is not None and r["value"] is not None:
+            cv = _escape_dollars(f"${r['cost']:,.0f} → ${r['value']:,.0f}")
+        elif r["cost"] is not None:
+            cv = _escape_dollars(f"${r['cost']:,.0f} → —")
+        else:
+            cv = "—"
+        body += (
+            "<tr>"
+            f"<td>{_escape_dollars(r['ticker'])}</td>"
+            f'<td class="num">{_escape_dollars(r["shares"])}</td>'
+            f"<td>{_escape_dollars(r['bought'])}</td>"
+            f'<td class="num">{_escape_dollars(r["now"])}</td>'
+            f'<td class="num">{cv}</td>'
+            f'<td class="num">{_profit_html(r["dollars"], r["pct"])}</td>'
+            f'<td class="num">{_escape_dollars(r["stop"])}</td>'
+            f'<td class="num">{r["dd"]}</td>'
+            "</tr>"
+        )
+    if not body:
+        return ""
+    return (
+        '<table class="ep-table"><thead><tr>'
+        '<th scope="col">Name</th><th scope="col" class="num">Shares</th>'
+        '<th scope="col">Bought</th><th scope="col" class="num">Now</th>'
+        '<th scope="col" class="num">Cost → value</th>'
+        '<th scope="col" class="num">P&amp;L so far</th>'
+        '<th scope="col" class="num">Stop</th>'
+        '<th scope="col" class="num">Max drawdown</th>'
+        f"</tr></thead><tbody>{body}</tbody></table>"
+    )
+
+
+_POSITIONS_V2_LEGEND = (
+    '<p class="pb-banner">How to read this: <b>Shares</b> — how many shares '
+    "a &#36;10,000 pot's stake buys (fractional, because every position is "
+    "sized as a fixed share of the compounding pot). <b>Bought</b> — first "
+    "purchase date @ average fill price, in the stock's own currency (avg — "
+    "several buys built the position). <b>Now</b> — the latest close, same "
+    "currency. <b>Cost → value</b> — pot dollars put in → what they're "
+    "worth at that close. <b>P&amp;L so far</b> — the difference; "
+    "unrealized until sold. <b>Stop</b> — the pre-set price that triggers "
+    "an automatic sell. <b>Max drawdown</b> — the deepest fall from the "
+    "stock's highest point while held: pain along the way, not the current "
+    "profit.</p>"
+)
+
+
+def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
+                   n_open: int) -> str:
+    """One-line pot status for a book: pot now, cash, open-position count.
+
+    All from the book's own NAV tail × its own rebase factor — the exact
+    numbers its curve compounds to; nothing re-derived.
+    """
+    rows = select_policy(nav_df, {"policy_id": pid})
+    factor = trade_dollars_factor(nav_df, {"policy_id": pid})
+    if rows.empty or not factor or "nav_units" not in rows.columns:
+        return ""
+    last = rows.iloc[-1]
+    nav = _num_or_none(last.get("nav_units"))
+    cash = _num_or_none(last.get("cash_units"))
+    if not nav or cash is None:
+        return ""
+    word = "position" if n_open == 1 else "positions"
+    txt = (f"Pot now {_money(nav * factor)} · cash {_money(cash * factor)} "
+           f"({cash / nav * 100:.0f}%) · {n_open} open {word}")
+    return f'<p class="pb-lane-cash">{_escape_dollars(txt)}</p>'
+
+
 # Advisory ext-exit lanes' history (spec addendum 2026-07-17) — the same
 # scoped allowlist as the dashed curves. Within these lanes a caution_exit
 # IS the extension rule firing (the allowlist is ext-trigger by
@@ -459,27 +608,44 @@ _EXT_HISTORY_CAVEAT = (
 )
 
 
+def _lane_of(df: pd.DataFrame | None, pid: str) -> pd.DataFrame:
+    """Rows of *df* for one policy_id; empty frame when unusable."""
+    if df is None or df.empty or "policy_id" not in df.columns:
+        return pd.DataFrame()
+    return df[df["policy_id"] == pid]
+
+
+def ext_lane_views(nav_df: pd.DataFrame | None,
+                   trades_df: pd.DataFrame | None,
+                   positions_df: pd.DataFrame | None = None,
+                   as_of_year: int | None = None) -> list[tuple]:
+    """(label, policy_id, position rows, trade rows) per charted advisory
+    lane with any data — the ``_ADVISORY_CURVES`` allowlist, nothing else.
+    Each lane's dollars use its OWN NAV rebase factor (the pot its dashed
+    curve plots); lanes absent from both CSVs are skipped silently."""
+    out: list[tuple] = []
+    for pid, label in _ADVISORY_CURVES.items():
+        lane_t = _lane_of(trades_df, pid)
+        lane_p = _lane_of(positions_df, pid)
+        if lane_t.empty and lane_p.empty:
+            continue
+        factor = trade_dollars_factor(nav_df, {"policy_id": pid})
+        t_rows = trade_rows(_newest_exit_first(lane_t), factor, as_of_year,
+                            labels=_EXT_EXIT_LABELS)
+        p_rows = position_rows(lane_p, factor, as_of_year)
+        if t_rows or p_rows:
+            out.append((label, pid, p_rows, t_rows))
+    return out
+
+
 def ext_exit_history(nav_df: pd.DataFrame | None,
                      trades_df: pd.DataFrame | None,
                      as_of_year: int | None = None) -> list[tuple[str, list]]:
-    """(lane label, display rows) per charted advisory lane with completed
-    trades — the ``_ADVISORY_CURVES`` allowlist, nothing else. Each lane's
-    dollars use its OWN NAV rebase factor (the pot its dashed curve plots);
-    lanes absent from the trades CSV are skipped silently."""
-    out: list[tuple[str, list]] = []
-    if (trades_df is None or trades_df.empty
-            or "policy_id" not in trades_df.columns):
-        return out
-    for pid, label in _ADVISORY_CURVES.items():
-        lane = trades_df[trades_df["policy_id"] == pid]
-        if lane.empty:
-            continue
-        factor = trade_dollars_factor(nav_df, {"policy_id": pid})
-        rows = trade_rows(_newest_exit_first(lane), factor, as_of_year,
-                          labels=_EXT_EXIT_LABELS)
-        if rows:
-            out.append((label, rows))
-    return out
+    """(lane label, completed-trade rows) — trades-only view of
+    ``ext_lane_views``, kept for its narrower contract."""
+    return [(label, t_rows)
+            for label, _pid, _p_rows, t_rows
+            in ext_lane_views(nav_df, trades_df, None, as_of_year) if t_rows]
 
 
 def _lane_heading_html(label: str, rows: list[dict]) -> str:
@@ -487,8 +653,10 @@ def _lane_heading_html(label: str, rows: list[dict]) -> str:
     extension" — the selling-behaviour contrast at a glance."""
     mix = Counter(r["why"] for r in rows if r.get("why"))
     mix_txt = " · ".join(f"{n} × {why}" for why, n in mix.most_common())
-    return (f'<p class="pb-lane-head"><b>{_escape_dollars(label)}</b>'
-            f" — {_escape_dollars(mix_txt)}</p>")
+    head = f"<b>{_escape_dollars(label)}</b>"
+    if mix_txt:
+        head += f" — {_escape_dollars(mix_txt)}"
+    return f'<p class="pb-lane-head">{head}</p>'
 
 
 # Plain-language key for the history table, same voice as the positions
@@ -708,14 +876,17 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
 
 
 def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
-                      trades_df: pd.DataFrame | None = None) -> None:
+                      trades_df: pd.DataFrame | None = None,
+                      positions_df: pd.DataFrame | None = None) -> None:
     """Tier 1c — the paper book. Corpus-scoped (the tracker's name filter
     deliberately does not touch it). Absence tiers per the specs: block+CSV →
     full band; block only → summary, no curve; CSV only → curve only; neither
     (and no trade history) → skipped entirely, so every pre-export report
-    renders exactly as before. *trades_df* (``data/paper_trades.csv``, spec
-    2026-07-17-paper-trade-history) adds the completed-trades history to the
-    drawer; absent → drawer title and contents byte-identical to today.
+    renders exactly as before. *trades_df* (``data/paper_trades.csv``) adds
+    the completed-trades history; *positions_df* (``data/paper_positions.csv``,
+    addendum 2) upgrades the open-positions table to the shares/cost-basis
+    view and adds per-lane pot/cash lines; either absent → the earlier
+    rendering, unchanged.
     """
     block = (latest_report or {}).get("paper_portfolio") or {}
     rebased = rebase_curves(select_policy(nav_df, block))
@@ -726,8 +897,11 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     history_rows = trade_rows(select_trades(trades_df, block), factor,
                               as_of_year)
     history_html = _trade_history_html(history_rows)
-    ext_history = ext_exit_history(nav_df, trades_df, as_of_year)
-    if not block and rebased.empty and not history_html and not ext_history:
+    pos_v2_rows = position_rows(select_positions(positions_df, block),
+                                factor, as_of_year)
+    ext_lanes = ext_lane_views(nav_df, trades_df, positions_df, as_of_year)
+    if (not block and rebased.empty and not history_html and not ext_lanes
+            and not pos_v2_rows):
         return
     render_section_head(
         "Paper book",
@@ -750,35 +924,62 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     if block:
         st.markdown(_variants_html(block) + _banner_html(block),
                     unsafe_allow_html=True)
-    positions_html = _positions_table_html(block.get("positions"), factor,
-                                           as_of_year)
+    if pos_v2_rows:
+        # positions CSV present → the shares/cost-basis view supersedes the
+        # block table (addendum 2); the block stays the fallback contract.
+        positions_html = _positions_v2_table_html(pos_v2_rows)
+    else:
+        positions_html = _positions_table_html(block.get("positions"), factor,
+                                               as_of_year)
     trades_html = _trades_today_html(block.get("trades_today"))
     if positions_html or trades_html or history_html:
         with st.expander(_drawer_title(bool(history_html)), expanded=False):
             if trades_html:
                 st.markdown(trades_html, unsafe_allow_html=True)
             if positions_html:
+                if pos_v2_rows:
+                    pid = _policy_for(positions_df, block)
+                    st.markdown(lane_cash_html(nav_df, pid,
+                                               len(pos_v2_rows)),
+                                unsafe_allow_html=True)
                 st.markdown(f'<div class="tk-scroll">{positions_html}</div>',
                             unsafe_allow_html=True)
-                legend = _POSITIONS_LEGEND
-                if _has_position_pnl(block.get("positions")):
-                    legend += _POSITIONS_PNL_LEGEND
-                st.markdown(legend, unsafe_allow_html=True)
+                if pos_v2_rows:
+                    st.markdown(_POSITIONS_V2_LEGEND, unsafe_allow_html=True)
+                else:
+                    legend = _POSITIONS_LEGEND
+                    if _has_position_pnl(block.get("positions")):
+                        legend += _POSITIONS_PNL_LEGEND
+                    st.markdown(legend, unsafe_allow_html=True)
             if history_html:
                 st.markdown(_history_verdict_html(history_rows),
                             unsafe_allow_html=True)
                 st.markdown(f'<div class="tk-scroll">{history_html}</div>',
                             unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
-    if ext_history:
+    if ext_lanes:
         with st.expander("Selling on extension — advisory trade history",
                          expanded=False):
             st.markdown(_EXT_HISTORY_CAVEAT, unsafe_allow_html=True)
-            for label, rows in ext_history:
-                st.markdown(_lane_heading_html(label, rows)
-                            + _history_verdict_html(rows),
+            any_pos = any_trades = False
+            for label, pid, p_rows, t_rows in ext_lanes:
+                st.markdown(_lane_heading_html(label, t_rows),
                             unsafe_allow_html=True)
-                st.markdown(
-                    f'<div class="tk-scroll">{_trade_history_html(rows)}</div>',
-                    unsafe_allow_html=True)
-            st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
+                if p_rows:
+                    any_pos = True
+                    st.markdown(lane_cash_html(nav_df, pid, len(p_rows)),
+                                unsafe_allow_html=True)
+                    st.markdown('<div class="tk-scroll">'
+                                f"{_positions_v2_table_html(p_rows)}</div>",
+                                unsafe_allow_html=True)
+                if t_rows:
+                    any_trades = True
+                    st.markdown(_history_verdict_html(t_rows),
+                                unsafe_allow_html=True)
+                    st.markdown('<div class="tk-scroll">'
+                                f"{_trade_history_html(t_rows)}</div>",
+                                unsafe_allow_html=True)
+            if any_pos:
+                st.markdown(_POSITIONS_V2_LEGEND, unsafe_allow_html=True)
+            if any_trades:
+                st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
