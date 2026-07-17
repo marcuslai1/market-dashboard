@@ -197,20 +197,23 @@ def _scorecard_table_html(rows: list) -> str:
         n_cell = _fmt_num(r["n"], 0)
         if has_ep and r["n_episodes"] is not None:
             n_cell = f'{n_cell} · {int(r["n_episodes"])} ep'
-        ep_td = f'<td class="num">{_pct(r["ep_mean"])}</td>' if has_ep else ""
+        ep_td = (f'<td class="num" data-l="alpha/ep">{_pct(r["ep_mean"])}</td>'
+                 if has_ep else "")
         trs.append(
             f"<tr{lc}><td>{_signal_pill_html(r['signal'], small=True)}</td>"
-            f'<td class="num">{r["today"]}</td>'
-            f'<td class="num">{n_cell}</td>'
-            f'<td class="num">{win}</td>'
-            f'<td class="num">{_pct(r["avg"])}</td>'
-            f'<td class="num">{_pct(r["alpha"])}</td>{ep_td}</tr>'
+            f'<td class="num" data-l="Today">{r["today"]}</td>'
+            f'<td class="num" data-l="n">{n_cell}</td>'
+            f'<td class="num" data-l="Win">{win}</td>'
+            f'<td class="num" data-l="Avg 10d">{_pct(r["avg"])}</td>'
+            f'<td class="num" data-l="alpha">{_pct(r["alpha"])}</td>{ep_td}</tr>'
         )
     # α headers ride in a .lc span: .ep-table th uppercases text, and Greek α
     # capitalizes to Α — pixel-identical to Latin "A" (UX 2026-07-07).
+    # The phone data-l labels are ALSO uppercased (stack-m ::before), so they
+    # spell out "alpha" instead of carrying the glyph.
     ep_th = '<th class="num"><span class="lc">α/ep</span></th>' if has_ep else ""
     return (
-        '<div class="tk-scroll"><table class="ep-table cal-scorecard">'
+        '<div class="tk-scroll"><table class="ep-table cal-scorecard stack-m">'
         '<thead><tr><th>Signal</th><th class="num">Today</th>'
         '<th class="num">n</th><th class="num">Win</th>'
         f'<th class="num">Avg 10d</th><th class="num"><span class="lc">α</span></th>{ep_th}</tr></thead>'
