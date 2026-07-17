@@ -422,6 +422,9 @@ def test_trade_rows_formats_dates_prices_and_dollars():
     assert "buys" not in amd["bought"]             # single tranche, no suffix
     assert amd["why"] == "stop-out (auto-sold)"
     assert rows[0]["why"] == "delisted"
+    # live pipeline vocabulary (2026-07-17 export): caution_exit is labeled too
+    from components.paper_book import _EXIT_LABELS
+    assert _EXIT_LABELS["caution_exit"] == "CAUTION exit"
     assert rows[0]["dollars"] == -100.0
 
 

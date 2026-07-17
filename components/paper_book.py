@@ -278,6 +278,7 @@ def _variants_html(block: dict | None) -> str:
 _EXIT_LABELS = {
     "stop": "stop-out (auto-sold)",
     "avoid_exit": "AVOID exit",
+    "caution_exit": "CAUTION exit",
     "delist_exit": "delisted",
 }
 
