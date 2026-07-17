@@ -8,7 +8,13 @@ import streamlit as st
 from components.scenario_log import _get_probs
 from lib.cards import render_section_head
 from lib.catalog import SIGNAL_BULLISHNESS
-from lib.formatters import _escape_dollars, _legacy_rationale_from, _price_str, display_ticker
+from lib.formatters import (
+    _escape_attr,
+    _escape_dollars,
+    _legacy_rationale_from,
+    _price_str,
+    display_ticker,
+)
 from lib.pills import _signal_pill_html
 
 # ── Editorial table helpers ──────────────────────────────────────────────────
@@ -24,6 +30,18 @@ _DIRECTION_STYLE = {
     "new": ("＋", "var(--accumulate)"),     # ＋
     "removed": ("−", "var(--ink-3)"),      # −
 }
+
+
+def _clip_rationale(text: str, limit: int = 150) -> str:
+    """Cap a rationale for the diff table at a WORD boundary with an ellipsis.
+
+    The old bare ``[:150]`` slice cut mid-word ("improved to 2.4:1. Close
+    $1815… sinc") and read as a rendering bug rather than a deliberate cap.
+    """
+    if len(text) <= limit:
+        return text
+    clipped = text[:limit].rsplit(" ", 1)[0].rstrip(" ,;:—-")
+    return f"{clipped} …"
 
 
 def _sig_cell(sig: str) -> str:
@@ -67,23 +85,32 @@ def _stat_tile(label: str, value: str, color: str = "var(--ink)") -> str:
 
 
 def _editorial_table(headers: list[str], rows: list[list[str]],
-                     num_cols: set[int] | None = None) -> str:
+                     num_cols: set[int] | None = None,
+                     wide_cols: set[int] | None = None) -> str:
     """Render an editorial HTML table (reuses the .ep-table styling).
 
     ``num_cols`` are column indices to right-align + nowrap (the .num class).
-    Wrapped in .tk-scroll so a wide diff swipes rather than clips on phones.
+    ``wide_cols`` are prose columns that span the full card width on phones.
+    On phones the .stack-m table reflows each row into a card of label-over-
+    value pairs (labels via ``data-l``), so the diff reads on one screen
+    instead of swiping sideways (owner request 2026-07-17).
     """
     num_cols = num_cols or set()
+    wide_cols = wide_cols or set()
 
     def _cls(i: int) -> str:
-        return ' class="num"' if i in num_cols else ""
+        parts = (["num"] if i in num_cols else []) + (["span2"] if i in wide_cols else [])
+        return f' class="{" ".join(parts)}"' if parts else ""
 
     head = "".join(f'<th scope="col"{_cls(i)}>{h}</th>' for i, h in enumerate(headers))
     body = ""
     for r in rows:
-        body += "<tr>" + "".join(f"<td{_cls(i)}>{c}</td>" for i, c in enumerate(r)) + "</tr>"
+        body += "<tr>" + "".join(
+            f'<td{_cls(i)} data-l="{_escape_attr(headers[i])}">{c}</td>'
+            for i, c in enumerate(r)
+        ) + "</tr>"
     return (
-        '<div class="tk-scroll"><table class="ep-table cmp-table">'
+        '<div class="tk-scroll"><table class="ep-table cmp-table stack-m">'
         f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
     )
 
@@ -279,7 +306,7 @@ def render_report_comparison_page(reports: dict) -> None:
                 f"Signal ({date_a})": sig_a,
                 f"Signal ({date_b})": sig_b,
                 "Direction": direction,
-                "Rationale": _legacy_rationale_from(wl_b.get(tk, {}))[:150],
+                "Rationale": _clip_rationale(_legacy_rationale_from(wl_b.get(tk, {}))),
             })
 
     if sig_changes:
@@ -290,7 +317,7 @@ def render_report_comparison_page(reports: dict) -> None:
              f'<span style="color:var(--ink-3);">{_escape_dollars(sc["Rationale"])}</span>']
             for sc in sig_changes
         ]
-        st.markdown(_editorial_table(h, rows), unsafe_allow_html=True)
+        st.markdown(_editorial_table(h, rows, wide_cols={4}), unsafe_allow_html=True)
     else:
         st.caption("No signal changes between these dates.")
 

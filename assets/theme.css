@@ -713,52 +713,28 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
 /* ── Horizontal-scroll wrapper for the wide fixed-column ledgers ──────────────
    The Watchlist (.tk-row / .tk-details) and Signal-Tracker (.led-*) rows use
-   fixed px column tracks that sum to ~680–720px. On phones they used to be
-   crammed into a ~333px container and clipped with NO way to scroll (the data
-   past RSI / R:R / Worst was simply unreachable). Rendering each table inside
-   .tk-scroll lets it swipe horizontally on narrow viewports while staying
-   full-width and un-scrolled on desktop. */
+   fixed px column tracks that sum to ~680–720px. On desktop .tk-scroll is
+   inert (everything fits). On phones the grid ledgers now REFLOW into stacked
+   cards (below) instead of swiping — the swipe canvas survives only for the
+   few compact scorecard tables that opt out of stacking (eps/cal scorecards,
+   whose trend strips are inherently horizontal). Owner request 2026-07-17:
+   wide UI must be readable on one phone screen, not reachable-by-swipe. */
 .tk-scroll { overflow-x: auto; scrollbar-width: thin; }
 @media (max-width: 719px) {
   .tk-scroll { -webkit-overflow-scrolling: touch; }
-  .tk-scroll > .tk-row,
-  .tk-scroll > details.tk-details,
-  .tk-scroll > .led-head,
-  .tk-scroll > details.led-details { min-width: 680px; }
-  /* The drilldown must NOT inherit the row ledger's 680px canvas — prose laid
-     out 680px wide inside a 348px scrollport forces a horizontal swipe per
-     line of text. Cap it at the scrollport width (100vw minus the block
-     container's chrome) and pin it with sticky so it stays in view even when
-     the summary row above is swiped. */
-  .tk-scroll > details.tk-details > .tk-drilldown,
-  .tk-scroll > details.led-details > .tk-drilldown {
-    position: sticky;
-    left: 0;
-    max-width: calc(100vw - 42px);
-  }
-  /* Right-edge fade: phones show no scrollbar, so the swipeable ledger reads
-     as page overflow instead of a contained scroller. Overlay a paper-colored
-     fade as the "more this way" affordance. Anchored on the .tk-scroll's
-     direct parent via :has() (same trick as the top nav) — an absolutely-
-     positioned child of the scroller itself would scroll away with the
-     content. Suppressed while a drill-down is open so the fade never sits
-     over prose. Anchors are listed explicitly, NOT *:has(> .tk-scroll): the
-     cluster-anchor tables (.cl-body) fit at phone width, and a fade on a
-     table that doesn't scroll is a false cue. A new band body whose table
-     genuinely overflows must opt in here. */
-  [data-testid="stMarkdownContainer"]:has(> .tk-scroll),
-  .eps-body:has(> .tk-scroll),
-  .cal-body:has(> .tk-scroll) { position: relative; }
-  [data-testid="stMarkdownContainer"]:has(> .tk-scroll):not(:has(details[open]))::after,
-  .eps-body:has(> .tk-scroll):not(:has(details[open]))::after,
-  .cal-body:has(> .tk-scroll):not(:has(details[open]))::after {
-    content: "";
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 28px;
-    background: linear-gradient(to left, var(--paper) 10%, rgba(20, 20, 15, 0));
-    pointer-events: none;
-  }
+
+  /* Phone reflow of the grid ledgers + wide tables lives at the BOTTOM of
+     this file (`Phone reflow — one-screen ledgers`): those overrides share
+     specificity with their base rules further down, so source order is what
+     makes them win (same convention as the action-card block). */
+
+  /* The right-edge "more this way" fade that used to sit over swipeable
+     tables is GONE: every wide table now reflows into stacked cards on
+     phones (see `Phone reflow — one-screen ledgers` at the bottom of this
+     file), so nothing scrolls sideways and a fade would be a false cue.
+     A future band that genuinely must swipe should reintroduce a scoped
+     fade on its own parent (see git history of this block for the
+     :has(> .tk-scroll)::after technique). */
 }
 
 /* Pulse tape reflow — 8 fluid cells shrank below their price width on phones and
@@ -1585,5 +1561,100 @@ details.led-details[open] > summary {
   .ac-price {
     text-align: left; min-width: 0;
     border-top: 1px solid var(--rule); padding-top: 10px;
+  }
+}
+
+/* ── Phone reflow — one-screen ledgers (owner request 2026-07-17) ────────────
+   The wide fixed-column ledgers and drawer tables used to swipe horizontally
+   on phones (the old .tk-scroll min-width canvas); the owner asked for them
+   to be READABLE ON ONE SCREEN instead. Each row reflows into a stacked card
+   whose values sit under their own small-caps labels (::before / data-l), so
+   no data hangs past the right edge. Kept LAST in this file: every override
+   here shares specificity with its base rule above, so source order is what
+   makes it win (same convention as the action-card phone block). */
+@media (max-width: 719px) {
+  /* ── Watchlist ledger → stacked cards ──
+     Summary cell order is fixed by row.py: 1 ticker · 2 cluster · 3 signal ·
+     4 last+Δ · 5 1mo · 6 vs50 · 7 RSI · 8 R:R. Header row hidden — the
+     labels move into each card so every value stays self-describing. */
+  .tk-scroll > .tk-row.head { display: none; }
+  details.tk-details > summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 13px 4px;
+  }
+  details.tk-details > summary > div:nth-child(1) { grid-area: 1 / 1 / 2 / 3; }
+  details.tk-details > summary > div:nth-child(3) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
+  details.tk-details > summary > div.name { grid-area: 2 / 1 / 3 / 4; margin-top: -6px; font-size: 12px; }
+  /* metric cells: value left-aligned under a small-caps label (the inline
+     text-align:right from row.py must lose here, hence !important) */
+  details.tk-details > summary > div:nth-child(n + 4) { text-align: left !important; }
+  details.tk-details > summary > div:nth-child(n + 4)::before {
+    display: block; font-size: 8.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
+  }
+  details.tk-details > summary > div:nth-child(4)::before { content: "Last · Δ"; }
+  details.tk-details > summary > div:nth-child(5)::before { content: "1mo"; }
+  details.tk-details > summary > div:nth-child(6)::before { content: "vs 50-day"; }
+  details.tk-details > summary > div:nth-child(7)::before { content: "RSI"; }
+  details.tk-details > summary > div:nth-child(8)::before { content: "R:R"; }
+
+  /* ── By-name ledger (tracker) → stacked cards ──
+     Cell order from signal_tracker.py: 1 name · 2 cluster · 3 signal ·
+     4 episodes · 5 winbar · 6 avg · 7 best · 8 worst. */
+  .tk-scroll > .led-head { display: none; }
+  details.led-details > summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 13px 4px;
+  }
+  details.led-details > summary > .led-tk { grid-area: 1 / 1 / 2 / 3; }
+  details.led-details > summary > div:nth-child(3) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
+  details.led-details > summary > .led-name { grid-area: 2 / 1 / 3 / 4; margin-top: -6px; }
+  details.led-details > summary > .winbar-wrap { grid-column: span 2; flex-wrap: wrap; }
+  details.led-details > summary > .led-num { text-align: left; }
+  details.led-details > summary > div:nth-child(n + 4)::before {
+    font-size: 8.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
+  }
+  details.led-details > summary > div:nth-child(n + 4):not(.winbar-wrap)::before { display: block; }
+  details.led-details > summary > .winbar-wrap::before { flex-basis: 100%; }
+  details.led-details > summary > div:nth-child(4)::before { content: "Episodes"; }
+  details.led-details > summary > div:nth-child(5)::before { content: "Trades won"; }
+  details.led-details > summary > div:nth-child(6)::before { content: "Avg"; }
+  details.led-details > summary > div:nth-child(7)::before { content: "Best"; }
+  details.led-details > summary > div:nth-child(8)::before { content: "Worst"; }
+
+  /* ── Stacked table (.stack-m) ──
+     Wide ep-tables (paper-book positions/history, compare diffs, episode
+     drill-downs) opt in via class="ep-table stack-m" + data-l="label" on
+     each labeled cell. The <thead> hides; every row becomes a bordered card
+     of label-over-value pairs, so nothing hangs past the phone screen.
+     Tables that stay deliberately horizontal (eps/cal scorecards) simply
+     don't take the class and keep the swipe + right-edge fade. */
+  table.stack-m { display: block; }
+  table.stack-m thead { display: none; }
+  table.stack-m tbody { display: block; }
+  table.stack-m tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.stack-m tr:last-child { border-bottom: 0; }
+  table.stack-m td {
+    display: block; border: 0; padding: 0;
+    text-align: left; white-space: normal;
+  }
+  /* .ep-table .num's right-align outranks the td rule above (0,2,0 > 0,1,2);
+     in a stacked card every value must sit flush-left under its label */
+  table.stack-m td.num { text-align: left; white-space: normal; }
+  table.stack-m td:first-child { grid-column: 1 / -1; }
+  table.stack-m td.span2 { grid-column: 1 / -1; }
+  table.stack-m td[data-l]::before {
+    content: attr(data-l);
+    display: block; font-size: 8.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
 }

@@ -116,12 +116,13 @@ def _scorecard_table_html(rows: list) -> str:
         )
         trs.append(
             f'<tr><td>{_escape_dollars(r["ticker"])}</td>'
-            f'<td class="num">{_latest_cell_html(r["latest"])}</td>'
-            f'<td>{_trend_cells_html(r["surprises"])}</td>'
-            f'<td class="num">{accel_html}</td></tr>'
+            f'<td class="num" data-l="Latest">{_latest_cell_html(r["latest"])}</td>'
+            f'<td data-l="Surprise trend (oldest → latest)" class="span2">'
+            f'{_trend_cells_html(r["surprises"])}</td>'
+            f'<td class="num" data-l="Accel">{accel_html}</td></tr>'
         )
     return (
-        '<div class="tk-scroll"><table class="ep-table eps-scorecard">'
+        '<div class="tk-scroll"><table class="ep-table eps-scorecard stack-m">'
         '<thead><tr><th>Ticker</th><th class="num">Latest</th>'
         '<th>Surprise trend (oldest → latest)</th>'
         '<th class="num">Accel</th></tr></thead>'

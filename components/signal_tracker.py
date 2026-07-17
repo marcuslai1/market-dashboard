@@ -532,16 +532,18 @@ def _episode_table_html(eps: pd.DataFrame) -> str:
         rows += (
             f'<tr>'
             f'<td>{_signal_pill_html(e["signal"], small=True)}</td>'
-            f'<td>{e["start"].strftime("%Y-%m-%d")} → {exit_lbl}</td>'
-            f'<td class="num">{int(e["duration_days"])}d</td>'
-            f'<td class="num">{entry_p} → {exit_p}</td>'
-            f'<td class="num">{ret_s}</td>'
-            f'<td class="num">{peak_s}</td>'
-            f'<td style="color:{vcol};">{verdict}</td>'
+            f'<td data-l="Window">{e["start"].strftime("%Y-%m-%d")} → {exit_lbl}</td>'
+            f'<td class="num" data-l="Held">{int(e["duration_days"])}d</td>'
+            f'<td class="num" data-l="Entry → Exit/Now">{entry_p} → {exit_p}</td>'
+            f'<td class="num" data-l="Return">{ret_s}</td>'
+            f'<td class="num" data-l="Peak run">{peak_s}</td>'
+            f'<td style="color:{vcol};" data-l="Verdict">{verdict}</td>'
             f'</tr>'
         )
+    # .stack-m: phones reflow each episode into a labeled card (data-l labels)
+    # instead of clipping the 7-column table inside the drill-down.
     return (
-        '<table class="ep-table"><thead><tr>'
+        '<table class="ep-table stack-m"><thead><tr>'
         '<th scope="col">Signal</th><th scope="col">Window</th>'
         '<th scope="col" class="num">Held</th>'
         '<th scope="col" class="num">Entry → Exit/Now</th>'

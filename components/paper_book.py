@@ -430,16 +430,18 @@ def _trade_history_html(rows: list[dict]) -> str:
         body += (
             "<tr>"
             f"<td>{_escape_dollars(r['ticker'])}</td>"
-            f"<td>{_escape_dollars(r['bought'])}</td>"
-            f"<td>{_escape_dollars(r['sold'])}</td>"
-            f"<td>{_escape_dollars(r['why'])}</td>"
-            f'<td class="num">{_profit_html(r["dollars"], r["pct"])}</td>'
+            f'<td data-l="Bought">{_escape_dollars(r["bought"])}</td>'
+            f'<td data-l="Sold">{_escape_dollars(r["sold"])}</td>'
+            f'<td data-l="Why sold">{_escape_dollars(r["why"])}</td>'
+            f'<td class="num" data-l="Profit">{_profit_html(r["dollars"], r["pct"])}</td>'
             "</tr>"
         )
     if not body:
         return ""
+    # .stack-m: phones reflow each trade into a labeled card (data-l labels)
+    # instead of swiping a 5-column table sideways (owner request 2026-07-17).
     return (
-        '<table class="ep-table"><thead><tr>'
+        '<table class="ep-table stack-m"><thead><tr>'
         '<th scope="col">Name</th><th scope="col">Bought</th>'
         '<th scope="col">Sold</th><th scope="col">Why sold</th>'
         '<th scope="col" class="num">Profit</th>'
@@ -534,19 +536,21 @@ def _positions_v2_table_html(rows: list[dict]) -> str:
         body += (
             "<tr>"
             f"<td>{_escape_dollars(r['ticker'])}</td>"
-            f'<td class="num">{_escape_dollars(r["shares"])}</td>'
-            f"<td>{_escape_dollars(r['bought'])}</td>"
-            f'<td class="num">{_escape_dollars(r["now"])}</td>'
-            f'<td class="num">{cv}</td>'
-            f'<td class="num">{_profit_html(r["dollars"], r["pct"])}</td>'
-            f'<td class="num">{_escape_dollars(r["stop"])}</td>'
-            f'<td class="num">{r["dd"]}</td>'
+            f'<td class="num" data-l="Shares">{_escape_dollars(r["shares"])}</td>'
+            f'<td data-l="Bought">{_escape_dollars(r["bought"])}</td>'
+            f'<td class="num" data-l="Now">{_escape_dollars(r["now"])}</td>'
+            f'<td class="num" data-l="Cost → value">{cv}</td>'
+            f'<td class="num" data-l="P&amp;L so far">{_profit_html(r["dollars"], r["pct"])}</td>'
+            f'<td class="num" data-l="Stop">{_escape_dollars(r["stop"])}</td>'
+            f'<td class="num" data-l="Max drawdown">{r["dd"]}</td>'
             "</tr>"
         )
     if not body:
         return ""
+    # .stack-m: phones reflow each position into a labeled card (data-l
+    # labels) instead of swiping an 8-column table sideways.
     return (
-        '<table class="ep-table"><thead><tr>'
+        '<table class="ep-table stack-m"><thead><tr>'
         '<th scope="col">Name</th><th scope="col" class="num">Shares</th>'
         '<th scope="col">Bought</th><th scope="col" class="num">Now</th>'
         '<th scope="col" class="num">Cost → value</th>'
@@ -708,18 +712,18 @@ def _positions_table_html(positions: list, factor: float | None = None,
                       else _fmt_trade_date(p["entry_date"], as_of_year))
             units = _num_or_none(p.get("pnl_units"))
             dollars = units * factor if units is not None and factor else None
-            bought_cell = f"<td>{_escape_dollars(bought)}</td>"
-            pnl_cell = (f'<td class="num">'
+            bought_cell = f'<td data-l="Bought">{_escape_dollars(bought)}</td>'
+            pnl_cell = (f'<td class="num" data-l="P&amp;L so far">'
                         f'{_profit_html(dollars, _num_or_none(p.get("pnl_pct")))}'
                         "</td>")
         rows += (
             "<tr>"
             f"<td>{_escape_dollars(display_ticker(str(p['ticker'])))}</td>"
             f"{bought_cell}"
-            f'<td class="num">{f"{wt:.1f}%" if wt is not None else "—"}</td>'
-            f'<td class="num">{f"{stop:.2f}" if stop is not None else "—"}</td>'
-            f'<td class="num">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
-            f'<td class="num">{dd_txt}</td>'
+            f'<td class="num" data-l="Weight">{f"{wt:.1f}%" if wt is not None else "—"}</td>'
+            f'<td class="num" data-l="Stop">{f"{stop:.2f}" if stop is not None else "—"}</td>'
+            f'<td class="num" data-l="Tranches">{_escape_dollars(str(p.get("tranches", "—")))}</td>'
+            f'<td class="num" data-l="Max drawdown">{dd_txt}</td>'
             f"{pnl_cell}"
             "</tr>"
         )
@@ -728,8 +732,9 @@ def _positions_table_html(positions: list, factor: float | None = None,
     bought_head = '<th scope="col">Bought</th>' if with_pnl else ""
     pnl_head = ('<th scope="col" class="num">P&amp;L so far</th>'
                 if with_pnl else "")
+    # .stack-m: phones reflow each position into a labeled card.
     return (
-        '<table class="ep-table"><thead><tr>'
+        '<table class="ep-table stack-m"><thead><tr>'
         f'<th scope="col">Name</th>{bought_head}'
         '<th scope="col" class="num">Weight</th>'
         '<th scope="col" class="num">Stop</th>'
