@@ -83,9 +83,15 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
     wu = _writeup_for_render(d)
     body_parts: list[str] = []
     if wu["entry_block"]:
+        # F2 (2026-07-18, reader eval): prefer the pipeline's plain-language
+        # entry_block_reader (top-level field, present from 2026-07-18 on);
+        # older reports fall back to the raw rule string. The raw string
+        # rides the title attr for grep-ability/hover.
+        reader_text = d.get("entry_block_reader") or wu["entry_block"]
         body_parts.append(
-            f'<div class="dd-entry-block">ENTRY BLOCK · '
-            f'{_escape_dollars(wu["entry_block"])}</div>'
+            f'<div class="dd-entry-block" '
+            f'title="{_escape_attr(wu["entry_block"])}">ENTRY BLOCK · '
+            f'{_escape_dollars(reader_text)}</div>'
         )
     if wu["headline"]:
         body_parts.append(

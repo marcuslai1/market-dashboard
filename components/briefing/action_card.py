@@ -86,11 +86,14 @@ def render_action_card(wl: dict, events: list) -> None:
         f'color:{color};">{SIGNAL_VERBS.get(sig, sig)}</span>'
     )
 
+    # F2 (2026-07-18): plain-language entry_block_reader wins when the report
+    # carries it (2026-07-18+); older reports fall back to the raw string.
+    block_text = (d.get("entry_block_reader") or block) if block else None
     block_html = (
         f'<div style="margin-top:10px;font-family:var(--mono);font-size:11.5px;'
         f'border-left:2px solid {STATUS_WARN}80;padding-left:10px;color:{STATUS_WARN_SOFT};'
-        f'line-height:1.5;">{_escape_dollars(block)}</div>'
-        if block else ""
+        f'line-height:1.5;">{_escape_dollars(block_text)}</div>'
+        if block_text else ""
     )
 
     # When the report flags the headline R:R as distorted by a too-tight stop,
