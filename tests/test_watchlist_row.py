@@ -38,3 +38,29 @@ def test_regular_session_row_has_no_tag():
     d = {"signal": "WATCH", "price": 210.96, "chg_pct": 0.19}
     html = render_ticker_details_html("NVDA", d)
     assert "ext-tag" not in html
+
+
+# ── entry_block_reader preference (F2, 2026-07-18 reader eval) ──
+def test_entry_block_reader_preferred_when_present():
+    d = {
+        "signal": "CAUTION",
+        "entry_block": "BLOCKED: +10.8% above 50-day SMA (>5% hard block).",
+        "entry_block_reader": "Entry blocked: price is 10.8% above its "
+                              "50-day average.",
+        "writeup": {"entry_block": "BLOCKED: +10.8% above 50-day SMA "
+                                   "(>5% hard block)."},
+    }
+    html = render_ticker_details_html("MU", d)
+    assert "price is 10.8% above its 50-day average" in html
+    # Raw string survives as the hover title for grep-ability.
+    assert "BLOCKED: +10.8%" in html
+
+
+def test_entry_block_raw_fallback_for_old_reports():
+    d = {
+        "signal": "CAUTION",
+        "entry_block": "BLOCKED: RSI 72 (>65 hard block).",
+        "writeup": {"entry_block": "BLOCKED: RSI 72 (>65 hard block)."},
+    }
+    html = render_ticker_details_html("MU", d)
+    assert "BLOCKED: RSI 72" in html
