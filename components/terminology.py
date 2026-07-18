@@ -167,6 +167,20 @@ percent away, producing a flattering R:R. The realistic upside in that case is
 the SMA50 reclaim — not a continuation through it. Read R:R alongside the
 ticker's vs-SMA50 reading.
 </div>
+<div class="term-prose">
+<b>Distorted ratios never reach prose (since 2026-07-18).</b> A stop within a
+fraction of a percent of price can inflate the headline ratio into
+nonsense (a 0.2% stop yields "46.5:1"). When the pipeline flags this
+(<i>rr_distorted</i>), every reader surface quotes <b>one</b> corrected
+number: the summary row and drill-down substitute the wide-stop sizing
+ratio (tagged "tight-stop adj."), and the writeup quotes a single
+pre-computed sentence — "Risk-reward about 4.4:1 — upside to $427,
+measured to the wider structural stop at $381.71." The old pattern of
+quoting the inflated number and then disclaiming it was retired: a number
+the report tells you to ignore is not shown at all. When no trustworthy
+ratio exists, the writeup says so and points at the support/resistance
+levels instead.
+</div>
 """, unsafe_allow_html=True)
 
     # ---- Technicals ----
@@ -512,6 +526,25 @@ mechanicals (price, RSI) make entry imprudent <i>even though the signal
 is BUY or ACCUMULATE</i>. It is the writeup's judgment, not a hard gate —
 the raw signal remains pure technicals; entry_block is the contextual
 caveat layered on top.
+</div>
+<div class="term-prose">
+<b>Plain-language blocks (since 2026-07-18).</b> Entry blocks used to render
+as raw rule-engine strings ("Sustained trend exception not met: 10.8%
+(&gt;=10% ceiling), RSI 80 (&gt;=65)") — readable only if you knew the rule
+table. Reports now carry a plain-language rendering of the same decision
+("Entry blocked: price is 10.8% above its 50-day average and the
+strong-trend exception doesn't apply — momentum is overheated (RSI 80)"),
+and the drill-down shows that version; the raw rule string is preserved
+in the hover tooltip. The two are generated from the same rule evaluation
+and cannot disagree.
+</div>
+<div class="term-prose">
+<b>Wait-state writeups describe conditions, not instructions (since
+2026-07-18).</b> Live entry imperatives ("Entry at $904 with a tight
+stop") are reserved for BUY and ACCUMULATE writeups. A WATCH, HOLD,
+CAUTION, or AVOID writeup phrases every level conditionally ("becomes
+actionable on a settle above $904 with volume") — if you can extract a
+buy instruction from a wait-state writeup, that is a defect, not advice.
 </div>
 <div class="term-prose">
 <b>Catalyst context.</b> When an extended name (&gt;5% above SMA50) has a
