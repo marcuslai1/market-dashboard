@@ -1,7 +1,14 @@
 """Tests for the Retrospective page (spec 2026-07-20-reader-retrospective-design)."""
 import pandas as pd
 
-from components.retrospective import build_month_digest, classify_call, dedupe_calls, month_label
+from components.retrospective import (
+    banner_text,
+    build_month_digest,
+    classify_call,
+    dedupe_calls,
+    month_label,
+    paper_month_line,
+)
 
 
 def _log(rows):
@@ -155,3 +162,41 @@ def test_build_month_digest_pending_only_month():
     assert d["n_calls"] == 1
     assert d["n_resolved"] == 0
     assert [r["ticker"] for r, _ in d["groups"]["pending"]] == ["TSM"]
+
+
+def test_banner_text_prefers_report_banner():
+    assert banner_text({"confidence_banner": "NOT yet decision-grade."}) == "NOT yet decision-grade."
+
+
+def test_banner_text_falls_back_when_absent():
+    fallback = banner_text(None)
+    assert "single market regime" in fallback
+    assert banner_text({"confidence_banner": "  "}) == fallback
+
+
+def _nav():
+    return pd.DataFrame({
+        "policy_id": ["v1_flat10"] * 3,
+        "date": ["2026-05-29", "2026-06-10", "2026-06-30"],
+        "nav_units": [1000000.0, 1010000.0, 1030000.0],
+        "spy_close": [700.0, 707.0, 714.0],
+        "soxx_close": [400.0, 404.0, 410.0],
+    })
+
+
+def test_paper_month_line_uses_pre_month_baseline():
+    line = paper_month_line(_nav(), {"policy_id": "v1_flat10"}, "2026-06")
+    assert line.startswith("Paper book: +3.0% in June")
+    assert "SPY +2.0%" in line
+    assert "SOXX +2.5%" in line
+
+
+def test_paper_month_line_seed_month_baselines_on_first_in_month_row():
+    nav = _nav().iloc[1:]  # no pre-June row: June return measured from 06-10
+    line = paper_month_line(nav, {"policy_id": "v1_flat10"}, "2026-06")
+    assert "+2.0% in June" in line  # 1010000 -> 1030000
+
+
+def test_paper_month_line_empty_when_month_has_no_rows():
+    assert paper_month_line(_nav(), {"policy_id": "v1_flat10"}, "2026-07") == ""
+    assert paper_month_line(pd.DataFrame(), {}, "2026-06") == ""

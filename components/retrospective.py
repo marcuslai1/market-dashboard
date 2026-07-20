@@ -13,6 +13,13 @@ from __future__ import annotations
 
 import pandas as pd
 
+from components.paper_book import select_policy
+
+_FALLBACK_BANNER = (
+    "Track record spans mostly a single market regime — read these verdicts "
+    "as provisional, not proven."
+)
+
 _DIRECTIONAL = ("BUY", "ACCUMULATE", "CAUTION", "AVOID")
 _LONG = ("BUY", "ACCUMULATE")
 
@@ -103,3 +110,48 @@ def build_month_digest(calls: pd.DataFrame, month: str) -> dict:
     resolved = len(groups["worked"]) + len(groups["failed"])
     return {"month": month, "n_calls": len(rows), "n_resolved": resolved,
             "n_worked": len(groups["worked"]), "groups": groups}
+
+
+def banner_text(calibration_insights: dict | None) -> str:
+    """The honesty banner: the pipeline's own confidence_banner verbatim when
+    present, else a fixed single-regime caution. Never empty — the spec
+    requires every month to render under it."""
+    banner = ((calibration_insights or {}).get("confidence_banner") or "").strip()
+    return banner or _FALLBACK_BANNER
+
+
+def paper_month_line(nav_df: pd.DataFrame, block: dict, month: str) -> str:
+    """One-line paper-book month read, or '' when the month has no NAV rows.
+
+    Baseline = last NAV at-or-before month start (the seed month, with no
+    prior row, measures from its first in-month observation). Uses the same
+    ``select_policy`` rule as the Paper Book band so both surfaces always
+    describe the same headline lane.
+    """
+    rows = select_policy(nav_df if nav_df is not None else pd.DataFrame(), block or {})
+    if rows.empty:
+        return ""
+    rows = rows.assign(_d=pd.to_datetime(rows["date"], errors="coerce")).dropna(subset=["_d"])
+    keys = rows["_d"].dt.strftime("%Y-%m")
+    in_month = rows[keys == month]
+    if in_month.empty:
+        return ""
+    before = rows[keys < month]
+    base = before.iloc[-1] if not before.empty else in_month.iloc[0]
+    end = in_month.iloc[-1]
+
+    mon_name = pd.Timestamp(f"{month}-01").strftime("%B")
+    bits = []
+    for col, label in [("nav_units", None), ("spy_close", "SPY"), ("soxx_close", "SOXX")]:
+        b = pd.to_numeric(base.get(col), errors="coerce")
+        e = pd.to_numeric(end.get(col), errors="coerce")
+        if pd.isna(b) or pd.isna(e) or b == 0:
+            if label is None:
+                return ""  # no NAV read -> no line at all
+            continue
+        pct = (e - b) / b * 100
+        bits.append(f"{pct:+.1f}% in {mon_name}" if label is None else f"{label} {pct:+.1f}%")
+    line = f"Paper book: {bits[0]}"
+    if len(bits) > 1:
+        line += " vs " + " · ".join(bits[1:])
+    return line
