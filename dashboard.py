@@ -40,7 +40,9 @@ from lib.data_loader import (
     list_report_dates,
     load_all_reports,
     load_earnings_cascades,
+    load_paper_nav,
     load_report,
+    load_signal_log,
     load_sqlite_prices,
     load_text_asset,
 )
@@ -316,6 +318,15 @@ def _page_signal_tracker() -> None:
     )
 
 
+def _page_retrospective() -> None:
+    from components.retrospective import render_retrospective_page
+    # Not sidebar-date-filtered: the page's month picker is its own time
+    # control and the archive should always be complete.
+    _dates = list_report_dates()
+    _latest = load_report(_dates[-1]) if _dates else {}
+    render_retrospective_page(_latest, load_signal_log(), load_paper_nav())
+
+
 def _page_scenario_log() -> None:
     from components.scenario_log import render_scenario_log_page
     render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
@@ -345,6 +356,7 @@ _PAGES = {
     "Briefing": st.Page(_page_briefing, title="Briefing", url_path="briefing", default=True),
     "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
     "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
+    "Retrospective": st.Page(_page_retrospective, title="Retrospective", url_path="retrospective"),
     "Pipeline Stats": st.Page(_page_pipeline_stats, title="Pipeline Stats", url_path="pipeline-stats"),
     "Scenario Log": st.Page(_page_scenario_log, title="Scenario Log", url_path="scenario-log"),
     "Report Comparison": st.Page(_page_report_comparison, title="Report Comparison", url_path="report-comparison"),
