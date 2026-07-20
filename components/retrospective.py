@@ -31,3 +31,58 @@ def dedupe_calls(log_df: pd.DataFrame) -> pd.DataFrame:
     first_of_run = df["signal"] != df.groupby("ticker")["signal"].shift()
     calls = df[first_of_run]
     return calls[calls["signal"].isin(_DIRECTIONAL)].reset_index(drop=True)
+
+
+def _flag(row, col: str) -> bool:
+    """True when a 0/1/NaN hit-flag cell is exactly 1."""
+    v = row.get(col)
+    try:
+        return pd.notna(v) and float(v) == 1.0
+    except (TypeError, ValueError):
+        return False
+
+
+def _pct_sfx(ret) -> str:
+    return f" ({ret:+.1f}%)" if ret is not None else ""
+
+
+def classify_call(row) -> tuple[str, str]:
+    """(bucket, plain-text outcome) for one deduped call row.
+
+    bucket: "worked" | "failed" | "pending". Right/wrong mirrors the Signal
+    Tracker scorecard exactly — long calls are right when price rose (>0),
+    CAUTION/AVOID right when it fell or went nowhere (<=0) — so the two pages
+    can never disagree on a verdict. Only the call's own window is consulted
+    (hit flags + 20-session return); no re-marking to the latest price.
+    """
+    ret = row.get("return_20d")
+    ret = None if ret is None or pd.isna(ret) else float(ret)
+
+    if row["signal"] in _LONG:
+        hit_up = _flag(row, "hit_upside_target")
+        hit_stop = _flag(row, "hit_invalidation")
+        if hit_up and hit_stop:
+            if ret is None:
+                return "pending", ("hit both its target and its stop — verdict pending "
+                                   "the 20-session mark")
+            bucket = "worked" if ret > 0 else "failed"
+            return bucket, (f"hit both its target and its stop inside the window — "
+                            f"finished {ret:+.1f}% after 20 sessions")
+        if hit_up:
+            return "worked", f"hit its target inside 20 sessions{_pct_sfx(ret)}"
+        if hit_stop:
+            return "failed", f"stopped out{_pct_sfx(ret)}"
+        if ret is None:
+            return "pending", "too early to judge"
+        if ret > 0:
+            return "worked", f"up {ret:+.1f}% after 20 sessions"
+        return "failed", f"down {ret:+.1f}% after 20 sessions"
+
+    # CAUTION / AVOID — a drop (or nothing) proves the call right
+    if ret is None:
+        return "pending", "too early to judge"
+    if ret == 0:
+        return "worked", "went nowhere — staying out cost nothing"
+    if ret < 0:
+        return "worked", f"fell {abs(ret):.1f}% — staying out was right"
+    return "failed", f"rallied {ret:+.1f}% instead"
