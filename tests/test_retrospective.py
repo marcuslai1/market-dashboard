@@ -4,8 +4,10 @@ import pandas as pd
 from components.retrospective import (
     banner_text,
     build_month_digest,
+    call_item_html,
     classify_call,
     dedupe_calls,
+    digest_html,
     month_label,
     paper_month_line,
 )
@@ -200,3 +202,50 @@ def test_paper_month_line_seed_month_baselines_on_first_in_month_row():
 def test_paper_month_line_empty_when_month_has_no_rows():
     assert paper_month_line(_nav(), {"policy_id": "v1_flat10"}, "2026-07") == ""
     assert paper_month_line(pd.DataFrame(), {}, "2026-06") == ""
+
+
+def _row(signal="ACCUMULATE", ticker="AMD"):
+    return pd.Series({
+        "date": pd.Timestamp("2026-06-05"),
+        "ticker": ticker,
+        "signal": signal,
+        "entry_price": 203.43,
+        "invalidation": 195.96,
+        "upside_target": 218.84,
+    })
+
+
+def test_call_item_html_shows_call_and_levels_with_entity_dollars():
+    out = call_item_html(_row(), "worked", "hit its target inside 20 sessions (+16.4%)")
+    assert "AMD" in out
+    assert "&#36;203.43" in out
+    assert "target &#36;218.84" in out
+    assert "stop &#36;195.96" in out
+    assert "$" not in out            # raw dollars would trip Streamlit LaTeX
+    assert 'data-bucket="worked"' in out
+
+
+def test_call_item_html_caution_shows_entry_but_no_target_stop():
+    out = call_item_html(_row(signal="CAUTION"), "failed", "rallied +4.0% instead")
+    assert "&#36;203.43" in out
+    assert "target" not in out
+    assert "stop" not in out
+
+
+def test_digest_html_headline_groups_and_paper_line():
+    calls = _calls_frame()  # from Task 3
+    d = build_month_digest(calls, "2026-06")
+    out = digest_html(d, "Paper book: +3.0% in June vs SPY +2.0%")
+    assert "June 2026" in out
+    assert "2 new calls" in out and "2 resolved" in out and "1 went our way" in out
+    assert "What worked" in out
+    assert "What didn&#x27;t" in out or "What didn't" in out
+    assert "Too early to judge" not in out   # empty groups are omitted
+    assert "Paper book: +3.0% in June" in out
+
+
+def test_digest_html_without_paper_line_omits_it():
+    d = build_month_digest(_calls_frame(), "2026-07")
+    out = digest_html(d, "")
+    assert "Paper book" not in out
+    assert "Too early to judge" in out

@@ -14,6 +14,9 @@ from __future__ import annotations
 import pandas as pd
 
 from components.paper_book import select_policy
+from lib.charts import STATUS_NEG, STATUS_POS
+from lib.formatters import _escape_dollars, display_ticker
+from lib.pills import _signal_pill_html
 
 _FALLBACK_BANNER = (
     "Track record spans mostly a single market regime — read these verdicts "
@@ -155,3 +158,60 @@ def paper_month_line(nav_df: pd.DataFrame, block: dict, month: str) -> str:
     if len(bits) > 1:
         line += " vs " + " · ".join(bits[1:])
     return line
+
+
+_ICONS = {"worked": "✓", "failed": "✗", "pending": "⏳"}
+_GROUP_HEADS = [("worked", "What worked"), ("failed", "What didn't"),
+                ("pending", "Too early to judge")]
+
+
+def _price(v) -> str:
+    """'&#36;203.43' — entity dollar so Streamlit never parses LaTeX."""
+    if v is None or pd.isna(v):
+        return "—"
+    return f"&#36;{float(v):,.2f}"
+
+
+def call_item_html(row, bucket: str, outcome: str) -> str:
+    """One verdict line: icon · pill · TICKER @ entry (levels) — outcome · date."""
+    icon_col = {"worked": STATUS_POS, "failed": STATUS_NEG}.get(bucket, "var(--ink-3)")
+    tk = _escape_dollars(display_ticker(str(row["ticker"])))
+    levels = ""
+    if row["signal"] in _LONG:
+        bits = []
+        if pd.notna(row.get("upside_target")):
+            bits.append(f"target {_price(row['upside_target'])}")
+        if pd.notna(row.get("invalidation")):
+            bits.append(f"stop {_price(row['invalidation'])}")
+        if bits:
+            levels = f' <span class="retro-levels">({", ".join(bits)})</span>'
+    return (
+        f'<div class="retro-item" data-bucket="{bucket}">'
+        f'<span class="retro-icon" style="color:{icon_col};">{_ICONS[bucket]}</span>'
+        f'<div class="retro-body">'
+        f'{_signal_pill_html(row["signal"], small=True)} '
+        f'<b>{tk}</b> @ {_price(row.get("entry_price"))}{levels}'
+        f'<span class="retro-outcome">— {_escape_dollars(outcome)}</span>'
+        f'<span class="retro-date">{row["date"].strftime("%b %d")}</span>'
+        f'</div></div>'
+    )
+
+
+def digest_html(digest: dict, paper_line: str) -> str:
+    """Headline + paper line + the three groups for one month (empty groups omitted)."""
+    head = (f'<div class="retro-headline"><b>{month_label(digest["month"])}</b> — '
+            f'{digest["n_calls"]} new calls · {digest["n_resolved"]} resolved · '
+            f'{digest["n_worked"]} went our way</div>')
+    paper = (f'<div class="retro-paper">{_escape_dollars(paper_line)}</div>'
+             if paper_line else "")
+    groups = ""
+    for key, title in _GROUP_HEADS:
+        items = digest["groups"][key]
+        if not items:
+            continue
+        body = "".join(call_item_html(r, key, o) for r, o in items)
+        groups += (f'<div class="retro-group"><div class="retro-group-title">'
+                   f'{_escape_dollars(title)} · {len(items)}</div>{body}</div>')
+    if not groups:
+        groups = '<div class="retro-group retro-empty">No calls this month.</div>'
+    return head + paper + groups
