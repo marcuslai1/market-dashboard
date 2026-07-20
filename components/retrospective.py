@@ -86,3 +86,20 @@ def classify_call(row) -> tuple[str, str]:
     if ret < 0:
         return "worked", f"fell {abs(ret):.1f}% — staying out was right"
     return "failed", f"rallied {ret:+.1f}% instead"
+
+
+def month_label(key: str) -> str:
+    """'2026-07' -> 'July 2026'."""
+    return pd.Timestamp(f"{key}-01").strftime("%B %Y")
+
+
+def build_month_digest(calls: pd.DataFrame, month: str) -> dict:
+    """Classified calls + headline stats for one 'YYYY-MM' month."""
+    rows = calls[calls["date"].dt.strftime("%Y-%m") == month].sort_values("date")
+    groups: dict[str, list] = {"worked": [], "failed": [], "pending": []}
+    for _, row in rows.iterrows():
+        bucket, outcome = classify_call(row)
+        groups[bucket].append((row, outcome))
+    resolved = len(groups["worked"]) + len(groups["failed"])
+    return {"month": month, "n_calls": len(rows), "n_resolved": resolved,
+            "n_worked": len(groups["worked"]), "groups": groups}
