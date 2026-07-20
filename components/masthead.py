@@ -17,6 +17,7 @@ _NAV_PAGES = [
     "Briefing",
     "Watchlist",
     "Signal Tracker",
+    "Retrospective",
     "Pipeline Stats",
     "Scenario Log",
     "Report Comparison",
@@ -32,6 +33,7 @@ _NAV_PAGES = [
 # name ("see the Terminology tab").
 _NAV_LABELS = {
     "Signal Tracker": "Tracker",
+    "Retrospective": "Review",
     "Pipeline Stats": "Pipeline",
     "Scenario Log": "Scenarios",
     "Report Comparison": "Compare",

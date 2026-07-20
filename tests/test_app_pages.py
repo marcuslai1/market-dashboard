@@ -3,7 +3,7 @@
 The review verified rerun determinism with an ad-hoc AppTest drive that was
 never committed — so CI could not catch a crash in the render-only components
 (pipeline_stats, terminology, masthead, watchlist drilldown). This walk boots
-the real dashboard.py and visits all 7 nav targets. Live quotes are stubbed:
+the real dashboard.py and visits all 8 nav targets. Live quotes are stubbed:
 no network in CI.
 """
 import glob
@@ -17,6 +17,7 @@ PAGES = [
     "Briefing",
     "Watchlist",
     "Signal Tracker",
+    "Retrospective",
     "Pipeline Stats",
     "Scenario Log",
     "Report Comparison",
