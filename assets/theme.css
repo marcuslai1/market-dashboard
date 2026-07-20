@@ -1564,6 +1564,52 @@ details.led-details[open] > summary {
   }
 }
 
+/* ── Retrospective page (spec 2026-07-20-reader-retrospective-design) ── */
+.retro-headline {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  margin: 18px 0 8px;
+}
+.retro-headline b { color: var(--ink); }
+.retro-paper {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}
+.retro-group { margin: 0 0 20px; }
+.retro-group-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+.retro-item {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 0;
+}
+.retro-icon { flex: 0 0 16px; text-align: center; }
+.retro-body { font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
+.retro-body b { color: var(--ink); }
+.retro-levels { color: var(--ink-3); font-size: 0.85em; }
+.retro-outcome { margin-left: 6px; }
+.retro-date {
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+}
+.retro-empty { color: var(--ink-3); }
+
 /* ── Phone reflow — one-screen ledgers (owner request 2026-07-17) ────────────
    The wide fixed-column ledgers and drawer tables used to swipe horizontally
    on phones (the old .tk-scroll min-width canvas); the owner asked for them
@@ -1658,49 +1704,3 @@ details.led-details[open] > summary {
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
 }
-
-/* ── Retrospective page (spec 2026-07-20-reader-retrospective-design) ── */
-.retro-headline {
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  margin: 18px 0 8px;
-}
-.retro-headline b { color: var(--ink); }
-.retro-paper {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--ink-2);
-  margin: 0 0 16px;
-}
-.retro-group { margin: 0 0 20px; }
-.retro-group-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-3);
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-.retro-item {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-  padding: 5px 0;
-}
-.retro-icon { flex: 0 0 16px; text-align: center; }
-.retro-body { font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
-.retro-body b { color: var(--ink); }
-.retro-levels { color: var(--ink-3); font-size: 0.85em; }
-.retro-outcome { margin-left: 6px; }
-.retro-date {
-  margin-left: 8px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-3);
-  letter-spacing: 0.08em;
-}
-.retro-empty { color: var(--ink-3); }
