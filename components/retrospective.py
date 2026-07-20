@@ -12,8 +12,10 @@ divergence from the Watchlist's RETIRED_TICKERS filter).
 from __future__ import annotations
 
 import pandas as pd
+import streamlit as st
 
 from components.paper_book import select_policy
+from lib.cards import render_section_head
 from lib.charts import STATUS_NEG, STATUS_POS
 from lib.formatters import _escape_dollars, display_ticker
 from lib.pills import _signal_pill_html
@@ -215,3 +217,53 @@ def digest_html(digest: dict, paper_line: str) -> str:
     if not groups:
         groups = '<div class="retro-group retro-empty">No calls this month.</div>'
     return head + paper + groups
+
+
+def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame,
+                              nav_df: pd.DataFrame) -> None:
+    """Retrospective page — monthly narrative digest of calls vs outcomes.
+
+    Deliberately NOT clipped by the sidebar date filter: the month picker is
+    this page's own time control and the archive should always be complete.
+    """
+    render_section_head(
+        "Retrospective",
+        "What we called, and what actually happened — month by month",
+    )
+    banner = _escape_dollars(banner_text((latest_report or {}).get("calibration_insights")))
+    st.markdown(
+        f'<div class="briefing-banner" data-tone="warn">⚠ {banner}</div>',
+        unsafe_allow_html=True,
+    )
+
+    calls = dedupe_calls(log_df)
+    if calls.empty:
+        st.caption(
+            "No calls logged yet — this page fills in as the pipeline's call "
+            "ledger (signal_log.csv) accumulates."
+        )
+        return
+
+    months = sorted(calls["date"].dt.strftime("%Y-%m").unique(), reverse=True)
+    sel = st.selectbox("Month", months, index=0, format_func=month_label,
+                       key="retro_month")
+
+    # "In progress" is data-derived (latest month in the ledger), never
+    # wall-clock — the visual baselines freeze TEST_DATE.
+    if sel == months[0]:
+        st.caption(
+            f"{month_label(sel)} is still in progress — recent calls sit in "
+            '"Too early to judge" until their 20-session window closes.'
+        )
+
+    digest = build_month_digest(calls, sel)
+    paper = paper_month_line(nav_df, (latest_report or {}).get("paper_portfolio") or {}, sel)
+    st.markdown(digest_html(digest, paper), unsafe_allow_html=True)
+
+    st.caption(
+        "Outcomes are **raw price direction** over each call's own 20-session "
+        "window — not benchmark-relative; the alpha view lives on the "
+        "Briefing's Signal Calibration band. WATCH and HOLD aren't scored "
+        "here (non-directional). Retired names stay on the record — dropping "
+        "old calls would flatter it."
+    )
