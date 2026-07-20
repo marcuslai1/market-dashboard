@@ -8,6 +8,7 @@ PAGES = [
     ("briefing", "/"),
     ("watchlist", "/watchlist"),
     ("signal-tracker", "/signal-tracker"),
+    ("retrospective", "/retrospective"),
     ("pipeline-stats", "/pipeline-stats"),
     ("scenario-log", "/scenario-log"),
     ("report-comparison", "/report-comparison"),
