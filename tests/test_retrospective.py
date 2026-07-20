@@ -1,7 +1,7 @@
 """Tests for the Retrospective page (spec 2026-07-20-reader-retrospective-design)."""
 import pandas as pd
 
-from components.retrospective import classify_call, dedupe_calls
+from components.retrospective import build_month_digest, classify_call, dedupe_calls, month_label
 
 
 def _log(rows):
@@ -121,3 +121,37 @@ def test_hit_flag_without_return_still_resolves():
     bucket, outcome = classify_call(_call("BUY", hit_up=1.0, hit_stop=0.0))
     assert bucket == "worked"
     assert "%" not in outcome  # no return available -> no percentage claimed
+
+
+def test_month_label():
+    assert month_label("2026-07") == "July 2026"
+
+
+def _calls_frame():
+    df = pd.DataFrame({
+        "date": pd.to_datetime(["2026-06-05", "2026-06-20", "2026-07-02"]),
+        "ticker": ["AMD", "NVDA", "TSM"],
+        "signal": ["ACCUMULATE", "CAUTION", "BUY"],
+        "return_20d": [12.0, 3.0, float("nan")],
+        "hit_upside_target": [1.0, float("nan"), float("nan")],
+        "hit_invalidation": [0.0, float("nan"), float("nan")],
+    })
+    return df
+
+
+def test_build_month_digest_filters_to_month_and_counts():
+    d = build_month_digest(_calls_frame(), "2026-06")
+    assert d["month"] == "2026-06"
+    assert d["n_calls"] == 2
+    assert d["n_resolved"] == 2          # AMD worked, NVDA failed
+    assert d["n_worked"] == 1
+    assert [r["ticker"] for r, _ in d["groups"]["worked"]] == ["AMD"]
+    assert [r["ticker"] for r, _ in d["groups"]["failed"]] == ["NVDA"]
+    assert d["groups"]["pending"] == []
+
+
+def test_build_month_digest_pending_only_month():
+    d = build_month_digest(_calls_frame(), "2026-07")
+    assert d["n_calls"] == 1
+    assert d["n_resolved"] == 0
+    assert [r["ticker"] for r, _ in d["groups"]["pending"]] == ["TSM"]
