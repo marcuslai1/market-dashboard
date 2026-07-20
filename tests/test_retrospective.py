@@ -249,3 +249,68 @@ def test_digest_html_without_paper_line_omits_it():
     out = digest_html(d, "")
     assert "Paper book" not in out
     assert "Too early to judge" in out
+
+
+def test_page_renders_and_month_picker_switches_months():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        # ASCII-only + self-contained: AppTest.from_function round-trips this
+        # source through a locale-encoded temp file on Windows.
+        import pandas as pd
+
+        from components.retrospective import render_retrospective_page
+
+        log = pd.DataFrame({
+            "date": pd.to_datetime(["2026-06-01", "2026-06-02", "2026-07-01"]),
+            "ticker": ["AMD", "AMD", "NVDA"],
+            "signal": ["ACCUMULATE", "ACCUMULATE", "CAUTION"],
+            "entry_price": [100.0, 100.0, 50.0],
+            "invalidation": [95.0, 95.0, 47.0],
+            "upside_target": [110.0, 110.0, 55.0],
+            "hit_invalidation": [0.0, 0.0, None],
+            "hit_upside_target": [1.0, 1.0, None],
+            "return_20d": [12.0, 12.5, None],
+        })
+        nav = pd.DataFrame({
+            "policy_id": ["v1_flat10"] * 3,
+            "date": ["2026-05-30", "2026-06-10", "2026-06-30"],
+            "nav_units": [1000000.0, 1010000.0, 1020000.0],
+            "spy_close": [700.0, 707.0, 714.0],
+            "soxx_close": [400.0, 404.0, 410.0],
+        })
+        report = {"calibration_insights": {"confidence_banner": "Single-regime test banner."},
+                  "paper_portfolio": {"policy_id": "v1_flat10"}}
+        render_retrospective_page(report, log, nav)
+
+    at = AppTest.from_function(app, default_timeout=30)
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    body = " ".join(str(m.value) for m in at.markdown)
+    assert "Single-regime test banner." in body     # banner above everything
+    assert "NVDA" in body                           # default month = latest (2026-07)
+    assert "too early" in body.lower()
+    # Archive: switch to June, the resolved AMD call appears with its verdict
+    at.selectbox(key="retro_month").set_value("2026-06").run()
+    assert not at.exception
+    body = " ".join(str(m.value) for m in at.markdown)
+    assert "AMD" in body
+    assert "hit its target" in body
+    assert "Paper book:" in body                    # June has NAV rows
+
+
+def test_page_empty_log_renders_honest_empty_state():
+    from streamlit.testing.v1 import AppTest
+
+    def app():
+        import pandas as pd
+
+        from components.retrospective import render_retrospective_page
+        render_retrospective_page({}, pd.DataFrame(), pd.DataFrame())
+
+    at = AppTest.from_function(app, default_timeout=30)
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    texts = " ".join(str(c.value) for c in at.caption) + " ".join(
+        str(m.value) for m in at.markdown)
+    assert "No calls logged yet" in texts
