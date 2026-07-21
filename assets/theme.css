@@ -1400,6 +1400,47 @@ details.led-details[open] > summary {
 .eps-reason { color: var(--ink-2); font-size: 11.5px; line-height: 1.5; margin: 6px 0 0; }
 .eps-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
 
+/* ── Briefing · Macro Trigger Map band (declutter 2026-07-21: three always-
+   open bull/bear cards → collapsed rows, same disclosure idiom as .cl-*) ── */
+.tm-band { margin: 6px 0 2px; }
+.tm-details { border-bottom: 1px solid var(--rule); padding: 9px 0; }
+.tm-details:last-child { border-bottom: 0; }
+.tm-summary {
+  cursor: pointer; list-style: none;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+}
+.tm-summary::-webkit-details-marker { display: none; }
+.tm-name { font-family: var(--serif); font-weight: 500; color: var(--ink); font-size: 1.05rem; }
+.tm-date {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.tm-chip {
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+  background: var(--paper-3); padding: 1px 6px; border-radius: 3px;
+}
+.tm-chip.tm-bull { color: var(--buy); }
+.tm-chip.tm-bear { color: var(--caution); }
+.tm-body { padding: 10px 2px 2px; }
+.tm-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 719px) {
+  /* Side-by-side bull/bear starves both columns at phone width — stack. */
+  .tm-paths { grid-template-columns: 1fr; }
+}
+
+/* ── Briefing · Macro-note scenario narratives (declutter 2026-07-21:
+   collapsed below the odds bar, which already carries the probabilities) ── */
+.mn-scen { margin-top: 16px; }
+.mn-scen-summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.mn-scen-summary::-webkit-details-marker { display: none; }
+.mn-scen-summary::after { content: " ▸"; }
+.mn-scen[open] .mn-scen-summary::after { content: " ▾"; }
+.mn-scen-body { padding-top: 8px; }
+
 /* ── Briefing status banners ──────────────────────────────────────
    One class replaces three near-identical inline-styled <div>s in
    dashboard.py (data-coverage / accumulate-paper-phase / crisis flag).
