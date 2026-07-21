@@ -226,12 +226,14 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
                 f'</div>'
             )
         if sc_rows:
+            # Collapsed by default (declutter pass 2026-07-21): four narrative
+            # paragraphs cost ~500px below an odds bar that already carries the
+            # probabilities. The summary line keeps the section discoverable;
+            # the narratives are one click away.
             body += (
-                '<div style="margin-top:16px;">'
-                '<div style="font-family:var(--mono);font-size:10px;'
-                'letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);'
-                'margin-bottom:8px;">What each scenario means</div>'
-                f'{sc_rows}</div>'
+                '<details class="mn-scen"><summary class="mn-scen-summary">'
+                'What each scenario means</summary>'
+                f'<div class="mn-scen-body">{sc_rows}</div></details>'
             )
 
     return card_container(

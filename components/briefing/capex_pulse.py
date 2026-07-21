@@ -218,14 +218,18 @@ def render_capex_pulse() -> None:
             _signals_html([by_key[k] for k in ("capex", "rev", "val", "fragile")]),
         ]),
         unsafe_allow_html=True)
+    # Declutter pass 2026-07-21: the gap chart + its data table were always
+    # rendered (~380px) below the verdict/hero/chips, which already carry the
+    # read. Both histories now share one collapsed expander — the spec's
+    # human-read scorecard stays visible, the evidence is one click away.
     gaps = coverage_gap_series(capex, fund_df)
-    if gaps:
-        df = _gap_chart_frame(gaps)
-        st.plotly_chart(_gap_fig(df), use_container_width=True,
-                        config=PLOTLY_CONFIG)
-        chart_data_table(df)
-    if not fund_df.empty:
-        with st.expander("Cluster fundamentals over time"):
+    if gaps or not fund_df.empty:
+        with st.expander("History — coverage gap & cluster fundamentals"):
+            if gaps:
+                df = _gap_chart_frame(gaps)
+                st.plotly_chart(_gap_fig(df), use_container_width=True,
+                                config=PLOTLY_CONFIG)
+                chart_data_table(df)
             for metric, label in _TREND_METRICS:
                 pivot = _cluster_medians(fund_df, metric)
                 if pivot.empty:
