@@ -3,62 +3,69 @@ import pandas as pd
 
 from components.briefing.capex_pulse import (
     _cluster_medians,
+    _datasheet_html,
     _gap_chart_frame,
-    _hero_gap_html,
     _overdue_html,
-    _signals_html,
-    _verdict_html,
 )
 from lib.capex import CURATION_OVERDUE_DAYS
 
-GAP_CHIP = {"key": "gap", "label": "Coverage gap",
-            "sub": "beneficiary revenue growth minus capex growth",
-            "tone": "watch", "arrow": "none",
-            "detail": "-18.6pp (rev +50.3% − capex +68.9%) — negative and widening & <script>",
-            "asof": "2026Q1"}
-
-SIGNALS = [
-    {"key": "capex", "label": "Capex", "sub": "combined MSFT/GOOG capex",
-     "tone": "neutral", "arrow": "up",
-     "detail": "core YoY +68.9% vs +61.9% prior — accelerating", "asof": "2026Q1"},
-    {"key": "rev", "label": "Beneficiary revenue", "sub": "median sales growth",
-     "tone": "good", "arrow": "up", "detail": "median +85.2% — rising",
-     "asof": "2026-07-03"},
-]
+_VERDICT = {"state": "digesting", "label": "DIGESTING", "tone": "watch",
+            "gloss": "Spending is outrunning the revenue it produces."}
 
 
-def test_verdict_html_renders_label_and_gloss_and_escapes():
-    html = _verdict_html({"state": "digesting", "label": "DIGESTING",
-                          "tone": "watch", "gloss": "watch the gap <script>"})
-    assert "DIGESTING" in html and "watch the gap" in html
-    assert "<script>" not in html and "&lt;script&gt;" in html
+def _chip(key, measure, value, remark, tone="good"):
+    return {"key": key, "measure": measure, "value": value, "remark": remark,
+            "tone": tone, "label": measure, "sub": "", "detail": "", "arrow": "none"}
 
 
-def test_hero_gap_html_shows_asof_and_forward_note():
-    note = {"now_pct": 85.2, "now_asof": "2026-07-03",
-            "direction": "risen", "hint": "narrow"}
-    html = _hero_gap_html(GAP_CHIP, note)
-    assert "as of 2026Q1 earnings" in html
-    assert "risen to +85.2%" in html and "may narrow" in html
-    assert "<script>" not in html          # detail HTML-escaped
+def test_datasheet_renders_verdict_and_one_row_per_chip():
+    chips = [_chip("capex", "Capex growth", "+68.9%", "Up from +61.9%"),
+             _chip("rev", "Customer sales", "+85.2%", "Unchanged since May")]
+    html = _datasheet_html(_VERDICT, chips)
+    assert "DIGESTING" in html
+    assert html.count("<tr") == 3          # header row + two data rows
+    assert "Capex growth" in html and "+68.9%" in html and "Up from +61.9%" in html
+    assert "01" in html and "02" in html   # sequential numbering
 
 
-def test_hero_gap_html_omits_note_when_none():
-    assert "↳" not in _hero_gap_html(GAP_CHIP, None)
+def test_datasheet_numbers_rows_without_holes():
+    chips = [_chip("a", "A", "1", "x"), _chip("b", "B", "2", "y"),
+             _chip("c", "C", "3", "z")]
+    html = _datasheet_html(_VERDICT, chips)
+    for n in ("01", "02", "03"):
+        assert f">{n}<" in html
 
 
-def test_hero_gap_html_escapes_forward_note_fields():
-    note = {"now_pct": 85.2, "now_asof": "2026-07-03<script>",
-            "direction": "risen", "hint": "narrow"}
-    html = _hero_gap_html(GAP_CHIP, note)
-    assert "<script>" not in html and "&lt;script&gt;" in html
+def test_datasheet_escapes_html_metacharacters_per_field():
+    """Stronger than the brief's example (see task-4-report.md): checks each of
+    measure/value/remark independently, confirms the *exact* raw chip strings
+    (which contain live '<script>' tags) never reach the output verbatim, and
+    that the row/cell tag counts are unaffected by the injected markup — i.e.
+    the metacharacters didn't get interpreted as structure.
+    """
+    raw_measure = "A & B <script>"
+    raw_value = "<3 & >5"
+    raw_remark = "P/E < 15 & rising >20% <script>alert(1)</script>"
+    chips = [_chip("a", raw_measure, raw_value, raw_remark)]
+    html = _datasheet_html(_VERDICT, chips)
 
+    # Raw, unescaped chip content must never appear verbatim in the markup.
+    assert raw_measure not in html
+    assert raw_value not in html
+    assert raw_remark not in html
+    assert "<script>" not in html
+    assert "</script>" not in html
 
-def test_signals_html_renders_arrows_labels_sublabels_and_key():
-    html = _signals_html(SIGNALS)
-    assert "Capex" in html and "▲" in html
-    assert "median sales growth" in html          # sublabel present
-    assert "healthy" in html and "direction only" in html   # key row
+    # The escaped forms prove the content still made it through.
+    assert "A &amp; B &lt;script&gt;" in html
+    assert "&lt;3 &amp; &gt;5" in html
+    assert ("P/E &lt; 15 &amp; rising &gt;20% &lt;script&gt;alert(1)"
+            "&lt;/script&gt;" in html)
+
+    # Structural integrity: exactly header row + one data row, four cells —
+    # the injected '<' '>' didn't spawn stray tags.
+    assert html.count("<tr") == 2
+    assert html.count("<td") == 4
 
 
 def test_overdue_html_only_past_threshold():
