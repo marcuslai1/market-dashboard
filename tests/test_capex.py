@@ -491,3 +491,49 @@ def test_no_remark_uses_banned_vocabulary():
         for pattern in _BANNED_REMARK_TERMS:
             assert not re.search(pattern, remark, re.I), (
                 f"{chip['key']} remark uses banned term {pattern}: {remark}")
+
+
+def _gap_fixture_negative_with_forward_note():
+    """Coverage-gap chip fixture: 2026Q1 gap is negative (capex outrunning
+    revenue) and a forward note is available (sales have moved since the
+    gap's own anchor report). Reuses _capex_with_yoy/GAP_REPORTS — the same
+    pairing proven fresh/fallen by the coverage-gap and forward-note tests
+    above — so this fixture's arithmetic is already covered elsewhere."""
+    return _capex_with_yoy(), fundamentals_history(GAP_REPORTS)
+
+
+def _gap_fixture_no_forward_note():
+    """Same capex as above, but fundamentals stop at the gap's own anchor
+    report — no fresher report to build a forward clause from (mirrors
+    test_forward_note_none_when_no_fresher_report)."""
+    reports = {
+        "2026-05-02": _report({"NVDA": {"valuation": {"revenue_growth_pct": 80.0}},
+                               "MU": {"valuation": {"revenue_growth_pct": 40.0}}}),
+    }
+    return _capex_with_yoy(), fundamentals_history(reports)
+
+
+def test_gap_chip_remark_reconciles_with_current_sales():
+    """The bug this rework exists for: the gap's revenue figure and the sales
+    chip's disagree because they cover different periods. The remark must say so."""
+    capex, fund = _gap_fixture_negative_with_forward_note()
+    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "gap")
+    assert chip["measure"].startswith("Coverage gap (")
+    assert chip["value"].endswith("pp")
+    assert "only" in chip["remark"]          # names the period limit
+    assert "since" in chip["remark"]         # carries the forward clause
+
+
+def test_gap_chip_remark_omits_forward_clause_when_note_absent():
+    capex, fund = _gap_fixture_no_forward_note()
+    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "gap")
+    assert "since" not in chip["remark"]
+    assert chip["remark"]
+
+
+def test_gap_chip_degraded_keeps_dash_value():
+    chip = _chip(build_chips({"core": [], "series": {}, "fragile": [],
+                              "beneficiaries": [], "warnings": []},
+                             _empty_fund_df(), date(2026, 7, 22)), "gap")
+    assert chip["value"] == "—"
+    assert chip["remark"] == "Needs at least one complete spending quarter"
