@@ -136,6 +136,48 @@ The band already degrades chip-by-chip and must continue to.
 - `tests/visual/baselines/briefing.png` regenerated in the pinned image.
 - Existing `tests/test_design_tokens.py` must stay green — no signal-palette edits.
 
+## 6 · Typographic contract
+
+The owner's "more compact" means Industry's *discipline*, not merely tighter
+spacing — declared geometry, one rhythm, contrast chosen per step. Compactness
+alone would make the card denser, not clearer.
+
+**Fixed geometry.** The plate is `table-layout: fixed` with an explicit
+`<colgroup>`; every column is a declared width. This is the specific fix for
+"the boxes are all differently sized" — today's four tiles are
+`flex: 1 1 200px; min-width: 190px`, so each sizes to its own content and no two
+match. Nothing in the plate may size to content.
+
+| column | width |
+|---|---|
+| `No` | 3.5ch |
+| `Measure` | 22% |
+| `Value` | 14%, `white-space: nowrap`, tabular figures |
+| `What it means` | remainder |
+
+**One rhythm.** A 22px leading unit (14px body at 1.5, the existing
+`.card-body` metric). Every vertical padding and margin in the plate is a whole
+or half unit — 11px or 22px, nothing else. A single-line row is therefore 44px
+and row 03 grows by whole units as it wraps, so the rules stay on the lattice.
+
+**Ink per step**, measured on `--paper-2` (#1B1B16):
+
+| element | token | ratio |
+|---|---|---|
+| Value | `--ink` | 15.06:1 |
+| Measure, **What it means** | `--ink-2` | 9.75:1 |
+| Column headers, `as of` furniture | `--ink-3` | 5.03:1 |
+| — | `--ink-4` | 2.51:1 — **fails; banned for text in this plate** |
+
+Putting the remark at `--ink-2` body size is the whole point of the rework: the
+clause that reconciles rows 02 and 03 currently renders at 11.5px in `--ink-3`,
+the dimmest ink on the card.
+
+**Rules, not boxes.** One `1px solid var(--rule)` frame around the plate;
+hairline row separators inside it. No per-row borders, no `3px` colored left
+borders, no nested filled surfaces. Tone appears once per row as an 8px dot in
+the `No` cell.
+
 ## Out of scope
 
 - **Macro Trigger Map current lean.** The owner wants to know which way each
