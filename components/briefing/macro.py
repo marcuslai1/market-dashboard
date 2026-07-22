@@ -10,6 +10,7 @@ dashboard.py) inside a lane wrapper.
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime as _dt
 
 from lib.cards import card_container
@@ -262,6 +263,43 @@ def _infer_severity(risk_str: str) -> str:
     return "LOW"
 
 
+# Label-vs-prose split for active_risks (2026-07-22). The corpus names risks
+# "Label: description", but the previous guard (<= 24 chars AND <= 2 spaces)
+# accepted only 89 of the 206 colon-bearing strings across data/ — the other 117
+# printed a bare severity badge where their name should have been. Measured
+# replacement: a length ceiling plus a sentence-break test accepts 205/206,
+# rejecting only a 181-char paragraph that happens to contain a colon.
+#
+# The ceiling is deliberately generous: the longest real label is 67 chars
+# ("Apple CEO transition (Tim Cook -> John Ternus effective September 1)") and
+# the next-longest string is that 181-char paragraph, so anything in between
+# separates them cleanly.
+_RISK_LABEL_MAX = 72
+# A sentence break is period-or-semicolon + space + capital. Matching a bare
+# period would wrongly reject "U.S. tariff uncertainty persists", which is a
+# real label in the corpus — the abbreviation's period is followed by lowercase.
+_RISK_SENTENCE_RE = re.compile(r"[.;]\s+[A-Z]|;")
+
+
+def _split_risk_label(text: str) -> tuple[str, str]:
+    """Split ``"Label: description"`` into ``(label, description)``.
+
+    Returns ``("", text)`` when the pre-colon text reads as prose rather than a
+    label, so the caller falls back to the severity badge. Never truncates —
+    the bug this guard originally existed for produced mid-word fragments like
+    ``"US-China tech tensions p"``.
+    """
+    if ":" not in text:
+        return "", text
+    label, _, rest = text.partition(":")
+    label, rest = label.strip(), rest.strip()
+    if not label or not rest or len(label) > _RISK_LABEL_MAX:
+        return "", text
+    if _RISK_SENTENCE_RE.search(label):
+        return "", text
+    return label, rest
+
+
 def risks_card_html(geo: dict) -> str:
     """Return the Active Risks card markup (ledger lane).
 
@@ -279,19 +317,19 @@ def risks_card_html(geo: dict) -> str:
         else:
             text = r
             sev = _infer_severity(r)
-        # Prefer a real "Category: …" prefix as the tag; otherwise fall back to
-        # the severity itself (HIGH/MED/LOW) rather than a redundant "Risk"
-        # label on every row. The tag colour is keyed off data-severity in CSS.
-        # Only treat the pre-colon text as a category when it is genuinely
-        # tag-like (short, a few words). Ordinary prose that merely contains a
-        # colon — e.g. "US-China tech tensions persist: …" — must fall back to
-        # the severity badge, not be sliced into a truncated fragment.
-        prefix = text.split(":", 1)[0] if ":" in text else ""
-        tag = prefix if (0 < len(prefix) <= 24 and prefix.count(" ") <= 2) else sev
+        # Prefer the row's own "Label: …" name as the tag; fall back to the
+        # severity (HIGH/MED/LOW) only when the pre-colon text is prose. The tag
+        # colour is keyed off data-severity in CSS.
+        #
+        # The label is also stripped from the body: it is the tag now, and
+        # printing it twice was the visible cost of the old guard accepting so
+        # few labels that the duplication stayed rare enough to miss.
+        label, detail = _split_risk_label(text)
+        tag = label or sev
         body += (
             f'<div class="risk-card" data-severity="{sev}">'
             f'<div class="tag">{_escape_dollars(tag)}</div>'
-            f'<div class="text">{_escape_dollars(text)}</div>'
+            f'<div class="text">{_escape_dollars(detail)}</div>'
             '</div>'
         )
     if not body:

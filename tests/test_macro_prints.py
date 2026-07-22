@@ -106,16 +106,60 @@ def test_unknown_series_falls_back_to_upstream_flag_and_age():
 # sliced into a truncated fragment (the old `[:24]` bug produced tags like
 # "US-China tech tensions p").
 
-def test_risk_prose_colon_falls_back_to_severity_tag():
+def test_risk_label_is_never_truncated_mid_word():
+    """The invariant the original guard existed for: no "[:24]" fragments.
+
+    Revised 2026-07-22. This case previously asserted a fall back to the
+    severity badge, on the theory that a clause ending in a verb is prose. The
+    corpus disagrees — "U.S. tariff uncertainty persists: …" is a real risk
+    NAME, structurally identical — and the old guard rejected 117 of 206
+    colon-bearing risks, so most rows lost their name. What must never happen
+    is a truncated fragment, which is what this now pins.
+    """
     geo = {"active_risks": [
         "US-China tech tensions persist: Pentagon blacklist aims at China's AI."
     ]}
     html = risks_card_html(geo)
-    assert '<div class="tag">LOW</div>' in html
     assert '<div class="tag">US-China tech tensions p</div>' not in html
+    assert '<div class="tag">US-China tech tensions persist</div>' in html
 
 
 def test_risk_short_category_prefix_becomes_tag():
     geo = {"active_risks": ["Iran-Hormuz: WTI spikes back above 90 on failed talks."]}
     html = risks_card_html(geo)
     assert '<div class="tag">Iran-Hormuz</div>' in html
+
+
+def test_risk_label_is_stripped_from_the_body():
+    """The label is the tag; printing it again in the body is duplication."""
+    geo = {"active_risks": ["Iran-Hormuz: WTI spikes back above 90 on failed talks."]}
+    html = risks_card_html(geo)
+    assert '<div class="text">WTI spikes back above 90 on failed talks.</div>' in html
+    assert "Iran-Hormuz: WTI" not in html
+
+
+def test_risk_multiword_label_survives_the_old_space_limit():
+    """The row that exposed this: 25 chars and 3 spaces, one over each old cap."""
+    geo = {"active_risks": [
+        "US-China AI tech tensions: Bessent threatened sanctions on Chinese AI labs."
+    ]}
+    html = risks_card_html(geo)
+    assert '<div class="tag">US-China AI tech tensions</div>' in html
+    assert '<div class="tag">LOW</div>' not in html
+
+
+def test_risk_paragraph_with_a_colon_still_falls_back_to_severity():
+    """The one genuine prose case in the corpus — a 181-char paragraph."""
+    geo = {"active_risks": [
+        "Fed hawkish hold reinforced — May PCE hit a 3-year high at 4.1% headline; "
+        "BofA's rate-hike call persists. Next catalyst: the July FOMC decision."
+    ]}
+    html = risks_card_html(geo)
+    assert '<div class="tag">LOW</div>' in html
+
+
+def test_risk_without_a_colon_keeps_its_full_text():
+    geo = {"active_risks": ["Broad risk-off with no obvious catalyst"]}
+    html = risks_card_html(geo)
+    assert '<div class="tag">LOW</div>' in html
+    assert "Broad risk-off with no obvious catalyst" in html
