@@ -385,6 +385,8 @@ def _val_chip(fund_df: pd.DataFrame) -> dict:
     pe = sem.dropna(subset=["forward_pe"]).groupby("date")["forward_pe"].median()
     if len(pe) < 5:
         return {"key": "val", "label": "Valuation", "sub": sub,
+                "measure": "Chip valuations", "value": "—",
+                "remark": "Needs at least five reports carrying chip valuations",
                 "tone": "na", "arrow": "none",
                 "detail": "needs ≥5 reports with Semis valuations", "asof": "—"}
     peg = sem.dropna(subset=["peg_ratio"]).groupby("date")["peg_ratio"].median()
@@ -395,6 +397,11 @@ def _val_chip(fund_df: pd.DataFrame) -> dict:
                                and peg_now > peg_hot)
     peg_s = f" · PEG {peg_now:.2f}" if peg_now == peg_now else ""
     return {"key": "val", "label": "Valuation", "sub": sub,
+            "measure": "Chip valuations",
+            "value": f"{pe_now:.1f}x",
+            "remark": (f"Above its own recent range — {pe_hot:.1f}x is the usual high"
+                       if rich else
+                       f"Inside its own recent range — {pe_hot:.1f}x is the usual high"),
             "tone": "watch" if rich else "good", "arrow": "none",
             "detail": (f"Semis median fwd PE {pe_now:.1f} "
                        f"(80th pct {pe_hot:.1f}){peg_s} — "
@@ -408,6 +415,8 @@ def _fragile_chip(capex: dict) -> dict:
              if capex["series"].get(tk)]
     if not frows:
         return {"key": "fragile", "label": "Fragile tier", "sub": sub,
+                "measure": "Weakest borrower", "value": "—",
+                "remark": "No borrower rows in the spending file",
                 "tone": "na", "arrow": "none", "detail": "no fragile-tier rows",
                 "asof": "—"}
     severity = {"red": 2, "amber": 1}
@@ -415,7 +424,17 @@ def _fragile_chip(capex: dict) -> dict:
     flag = row.get("flag") or "unflagged"
     note = f" — {row['note']}" if row.get("note") else ""
     tone = {"red": "stress", "amber": "watch"}.get(flag, "good")
+    _FRAGILE_REMARK = {
+        "stress": (f"Under strain funding ${row['capex_usd_b']:.1f}B of spending "
+                   f"— the first to struggle if money tightens"),
+        "watch": (f"Borrows to fund ${row['capex_usd_b']:.1f}B of spending "
+                  f"— watch this one first if money tightens"),
+        "good": f"Spending ${row['capex_usd_b']:.1f}B with no strain flagged",
+    }
     return {"key": "fragile", "label": "Fragile tier", "sub": sub,
+            "measure": "Weakest borrower",
+            "value": tk,
+            "remark": _FRAGILE_REMARK[tone],
             "tone": tone, "arrow": "none",
             "detail": f"{tk} {row['cq']} capex ${row['capex_usd_b']:.1f}B · {flag}{note}",
             "asof": row["cq"]}
