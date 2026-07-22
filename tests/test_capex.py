@@ -237,8 +237,20 @@ def test_chips_always_five_in_order_even_on_empty_inputs():
     assert _chip(chips, "gap")["detail"] == "needs capex data"
 
 
+def _capex_fixture_two_quarters():
+    """core=[MSFT,GOOG] at the ACCEL_PP threshold: 2025Q4 +50.0% -> 2026Q1
+    +52.0%. Shared by the accelerating-tone test and the value/remark test."""
+    return _capex_three_yoy(50.0, 52.0)
+
+
+def _empty_fund_df():
+    """No fundamentals reports at all — shared wherever a chip test only cares
+    about the capex side."""
+    return fundamentals_history({})
+
+
 def test_capex_chip_accelerating_at_threshold():
-    chips = build_chips(_capex_three_yoy(50.0, 52.0), fundamentals_history({}),
+    chips = build_chips(_capex_fixture_two_quarters(), _empty_fund_df(),
                         _date(2026, 7, 3))
     c = _chip(chips, "capex")
     assert c["tone"] == "neutral" and c["arrow"] == "up"   # +2.0pp = ACCEL_PP
@@ -257,15 +269,23 @@ def test_gap_chip_warns_when_negative():
     assert _chip(chips, "gap")["tone"] == "watch"     # rev ~60 < capex 70
 
 
-def test_rev_chip_falling_warns():
+def _rev_fixture_falling():
+    """Beneficiary revenue-growth median falling from Apr (75%) to Jul (50%).
+    Shared by the falling-tone test and the value/remark/banned-vocabulary
+    tests — named for what it does, not the brief's working title
+    (``_rev_fixture_flat``), since the trend here is a fall, not a flatline."""
     reports = {
         "2026-04-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 90.0}},
                                "MU": {"valuation": {"revenue_growth_pct": 60.0}}}),
         "2026-07-01": _report({"NVDA": {"valuation": {"revenue_growth_pct": 70.0}},
                                "MU": {"valuation": {"revenue_growth_pct": 30.0}}}),
     }
-    chips = build_chips(parse_capex(_raw()), fundamentals_history(reports),
-                        _date(2026, 7, 3))
+    return parse_capex(_raw()), fundamentals_history(reports)
+
+
+def test_rev_chip_falling_warns():
+    capex, fund = _rev_fixture_falling()
+    chips = build_chips(capex, fund, _date(2026, 7, 3))
     c = _chip(chips, "rev")
     assert c["tone"] == "watch" and "falling" in c["detail"]
 
@@ -428,3 +448,46 @@ def test_forward_note_none_when_move_is_flat():
                                "MU": {"valuation": {"revenue_growth_pct": 40.1}}}),
     }
     assert forward_revenue_note(_capex_with_yoy(), fundamentals_history(reports)) is None
+
+
+import re
+
+from lib.capex import _BANNED_REMARK_TERMS
+
+
+def test_capex_chip_value_and_remark_when_accelerating():
+    capex = _capex_fixture_two_quarters()
+    chip = _chip(build_chips(capex, _empty_fund_df(), date(2026, 7, 22)), "capex")
+    assert chip["measure"] == "Capex growth"
+    assert chip["value"].endswith("%")
+    assert "still building" in chip["remark"]
+    assert "Up from" in chip["remark"]
+
+
+def test_capex_chip_degraded_row_keeps_dash_value_and_explains():
+    degraded = {"core": ["MSFT"], "series": {}, "fragile": [],
+                "beneficiaries": [], "warnings": []}
+    chip = _chip(build_chips(degraded, _empty_fund_df(), date(2026, 7, 22)), "capex")
+    assert chip["value"] == "—"
+    assert chip["remark"]  # never blank — the reader must learn why
+
+
+def test_rev_chip_value_and_remark_name_the_reference_month():
+    capex, fund = _rev_fixture_falling()
+    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "rev")
+    assert chip["measure"] == "Customer sales"
+    assert chip["value"].endswith("%")
+    assert re.search(r"\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b",
+                     chip["remark"])
+
+
+def test_no_remark_uses_banned_vocabulary():
+    # Only the capex and rev chips carry `remark` as of this task (the other
+    # three chip builders are done in later tasks) — chip.get(...) so chips
+    # without the field yet trivially satisfy "no banned term present".
+    capex, fund = _rev_fixture_falling()
+    for chip in build_chips(capex, fund, date(2026, 7, 22)):
+        remark = chip.get("remark", "")
+        for pattern in _BANNED_REMARK_TERMS:
+            assert not re.search(pattern, remark, re.I), (
+                f"{chip['key']} remark uses banned term {pattern}: {remark}")
