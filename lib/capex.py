@@ -268,16 +268,34 @@ def _capex_chip(capex: dict) -> dict:
     yoy = [r for r in core_capex_yoy(capex) if r["yoy_pct"] is not None]
     if len(yoy) < 2:
         pend = pending_quarter(capex)
-        detail = (f"awaiting {len(pend['missing'])} of {len(capex['core'])} spenders for {pend['cq']}"
-                  if pend else "needs two quarters of complete core capex")
+        awaiting = (f"awaiting {len(pend['missing'])} of {len(capex['core'])} "
+                    f"spenders for {pend['cq']}" if pend else "")
+        if yoy:
+            # Exactly one comparable quarter. The growth figure EXISTS — the
+            # coverage-gap row quotes it — so this row must print it. What is
+            # missing is an *earlier* quarter to compare it against, which is a
+            # different statement from "cannot be computed". Saying the latter
+            # made row 01 deny the number row 03 was quoting (spec §2 rule 4).
+            cur = yoy[-1]
+            return {"key": "capex", "label": "Capex", "sub": sub,
+                    "measure": "Capex growth",
+                    "value": f"{cur['yoy_pct']:+.1f}%",
+                    "remark": (f"{cur['cq']} only — no earlier quarter yet to "
+                               f"say if this is speeding up or slowing"),
+                    "tone": "neutral", "arrow": "none",
+                    "detail": (f"core YoY {cur['yoy_pct']:+.1f}% for {cur['cq']} "
+                               f"— one comparable quarter only"
+                               + (f"; {awaiting}" if awaiting else "")),
+                    "asof": cur["cq"]}
         return {"key": "capex", "label": "Capex", "sub": sub,
                 "measure": "Capex growth", "value": "—",
                 "remark": (f"Waiting on {len(pend['missing'])} of "
                            f"{len(capex['core'])} big spenders to report {pend['cq']}"
                            if pend else
                            "Needs two full quarters before it can be compared"),
-                "tone": "na", "arrow": "none", "detail": detail,
-                "asof": yoy[-1]["cq"] if yoy else "—"}
+                "tone": "na", "arrow": "none",
+                "detail": awaiting or "needs two quarters of complete core capex",
+                "asof": "—"}
     cur, prev = yoy[-1], yoy[-2]
     delta = cur["yoy_pct"] - prev["yoy_pct"]
     if delta >= ACCEL_PP:
@@ -367,10 +385,16 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
         tone, arrow, word = "watch", "down", "falling"
     else:
         tone, arrow, word = "good", "none", "flat"
-    ref_month = datetime.strptime(ref_date, "%Y-%m-%d").strftime("%b")
-    _REV_REMARK = {"rising": f"Up from {ref_med:+.1f}% in {ref_month}",
-                   "falling": f"Down from {ref_med:+.1f}% in {ref_month} — buyers slowing",
-                   "flat": f"Unchanged since {ref_month}"}
+    # Name the baseline to the day. Row 03 names its own measurement point
+    # ("Coverage gap (2026Q1)") and anchors its sales figure there; a bare month
+    # here made the two rows read as contradictory — "Unchanged since May" next
+    # to "Sales have since reached +85.2%" — when they simply measure from
+    # different dates. Windows-safe formatting (no %-d), as in scenario_log.
+    ref_d = datetime.strptime(ref_date, "%Y-%m-%d").date()
+    ref_label = f'{ref_d.strftime("%b")} {ref_d.day}, {ref_d.year}'
+    _REV_REMARK = {"rising": f"Up from {ref_med:+.1f}% on {ref_label}",
+                   "falling": f"Down from {ref_med:+.1f}% on {ref_label} — buyers slowing",
+                   "flat": f"Unchanged since {ref_label}"}
     return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
             "measure": "Customer sales", "value": f"{now_med:+.1f}%",
             "remark": _REV_REMARK[word],
@@ -393,19 +417,35 @@ def _val_chip(fund_df: pd.DataFrame) -> dict:
     pe_now, pe_hot = float(pe.iloc[-1]), float(pe.quantile(VAL_WARN_QUANTILE))
     peg_now = float(peg.iloc[-1]) if len(peg) else float("nan")
     peg_hot = float(peg.quantile(VAL_WARN_QUANTILE)) if len(peg) else float("nan")
-    rich = pe_now > pe_hot or (peg_now == peg_now and peg_hot == peg_hot
-                               and peg_now > peg_hot)
-    peg_s = f" · PEG {peg_now:.2f}" if peg_now == peg_now else ""
+    pe_rich = pe_now > pe_hot
+    growth_rich = (peg_now == peg_now and peg_hot == peg_hot and peg_now > peg_hot)
+    rich = pe_rich or growth_rich
+    # `rich` is an OR of two independent tests, so the remark must narrate the
+    # one that actually fired. The growth-adjusted test can trip while the price
+    # sits well inside its range; narrating the price range regardless printed
+    # "Above its own recent range — 28.4x is the usual high" beside a Value of
+    # 21.0x — the row contradicting its own figure (spec §2 rule 4). The
+    # growth-adjusted case is said in words: the reader has told us the ratio's
+    # name means nothing to them, and it is banned from this column.
+    if pe_rich:
+        remark = f"Above its own recent range — {pe_hot:.1f}x is the usual high"
+        gloss = "rich vs own history"
+    elif growth_rich:
+        remark = ("Inside its usual price range, but expensive next to the "
+                  "growth expected")
+        gloss = "price within range, rich once growth is allowed for"
+    else:
+        remark = f"Inside its own recent range — {pe_hot:.1f}x is the usual high"
+        gloss = "within range"
+    peg_s = (f" · PEG {peg_now:.2f} (80th pct {peg_hot:.2f})"
+             if peg_now == peg_now else "")
     return {"key": "val", "label": "Valuation", "sub": sub,
             "measure": "Chip valuations",
             "value": f"{pe_now:.1f}x",
-            "remark": (f"Above its own recent range — {pe_hot:.1f}x is the usual high"
-                       if rich else
-                       f"Inside its own recent range — {pe_hot:.1f}x is the usual high"),
+            "remark": remark,
             "tone": "watch" if rich else "good", "arrow": "none",
             "detail": (f"Semis median fwd PE {pe_now:.1f} "
-                       f"(80th pct {pe_hot:.1f}){peg_s} — "
-                       f"{'rich vs own history' if rich else 'within range'}"),
+                       f"(80th pct {pe_hot:.1f}){peg_s} — {gloss}"),
             "asof": str(pe.index[-1])}
 
 

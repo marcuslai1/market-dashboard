@@ -3,6 +3,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from lib.capex import curation_age_days, parse_capex
 
 
@@ -488,16 +490,15 @@ def test_rev_chip_value_and_remark_name_the_reference_month():
                      chip["remark"])
 
 
-def test_no_remark_uses_banned_vocabulary():
-    # All five chip builders carry `remark` as of this task — index directly
-    # (not .get) so a builder that regresses and drops the key fails loudly
-    # instead of silently satisfying "no banned term present".
-    capex, fund = _rev_fixture_falling()
-    for chip in build_chips(capex, fund, date(2026, 7, 22)):
-        remark = chip["remark"]
-        for pattern in _BANNED_REMARK_TERMS:
-            assert not re.search(pattern, remark, re.I), (
-                f"{chip['key']} remark uses banned term {pattern}: {remark}")
+def test_capex_chip_names_its_quarter_when_only_one_is_comparable():
+    """One YoY-complete quarter: the growth figure EXISTS (the coverage-gap row
+    quotes it), so row 01 must print it rather than claim it cannot be computed.
+    What is missing is an earlier quarter to compare against."""
+    capex, fund = _gap_fixture_negative_with_forward_note()
+    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "capex")
+    assert chip["value"] == "+70.0%"        # not "—" — the figure is knowable
+    assert "2026Q1" in chip["remark"]       # names its own measurement point
+    assert chip["tone"] == "neutral"
 
 
 def _gap_fixture_negative_with_forward_note():
@@ -585,12 +586,87 @@ def _fund_fixture_five_reports():
     return fundamentals_history(reports)
 
 
+def _fund_fixture_five_reports_within_range():
+    """Same shape as ``_fund_fixture_five_reports`` but the final print sits
+    INSIDE its own range — the valuation chip's healthy branch. Its remark was
+    never exercised before (the banned-vocabulary test ran on a fixture that
+    never cleared the five-report floor at all)."""
+    dates = ["2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01"]
+    pes = [20.0, 21.0, 22.0, 23.0, 20.5]
+    reports = {d: _report({"NVDA": {"valuation": {"forward_pe": pe,
+                                                  "cluster_name": "Semis"}}})
+               for d, pe in zip(dates, pes, strict=True)}
+    return fundamentals_history(reports)
+
+
+def _fund_fixture_growth_adjusted_rich():
+    """The regression fixture for the row that contradicted its own Value.
+
+    Five Semis reports: forward P/E 20/26/28/30/21 (so the latest print, 21.0x,
+    sits SEVEN POINTS BELOW its own 80th-percentile 28.4x) while the
+    growth-adjusted ratio spikes on the last date (1/1/1/1/9). Only the
+    growth-adjusted test fires — and the remark used to narrate the P/E range
+    regardless, printing "Above its own recent range — 28.4x is the usual high"
+    beside a Value of 21.0x."""
+    dates = ["2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01"]
+    pes = [20.0, 26.0, 28.0, 30.0, 21.0]
+    pegs = [1.0, 1.0, 1.0, 1.0, 9.0]
+    reports = {d: _report({"NVDA": {"valuation": {"forward_pe": pe,
+                                                  "peg_ratio": peg,
+                                                  "cluster_name": "Semis"}}})
+               for d, pe, peg in zip(dates, pes, pegs, strict=True)}
+    return fundamentals_history(reports)
+
+
+def _capex_fixture_unflagged_fragile():
+    """fragile=[CRWV] with no flag — the borrower chip's healthy branch."""
+    return parse_capex(_raw({"CRWV": [
+        {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 6.8},
+    ]}))
+
+
+def _capex_fixture_red_fragile():
+    return parse_capex(_raw({"CRWV": [
+        {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 9.9,
+         "flag": "red"},
+    ]}))
+
+
+def _capex_fixture_pending_quarter():
+    """core=[MSFT,GOOG] with GOOG yet to report the newest quarter — no YoY
+    figure at all, so row 01 legitimately shows '—'."""
+    return _two_spender_capex({"2025Q1": 10.0, "2026Q1": 15.0}, {"2025Q1": 10.0})
+
+
 def test_val_chip_remark_avoids_percentile_and_peg_jargon():
     fund = _fund_fixture_five_reports()
     chip = _chip(build_chips(_empty_capex(), fund, date(2026, 7, 22)), "val")
     assert chip["measure"] == "Chip valuations"
     assert chip["value"].endswith("x")
     assert "range" in chip["remark"]
+
+
+def test_val_chip_remark_matches_the_test_that_actually_fired():
+    """`rich` is an OR of two independent tests; the remark must narrate the one
+    that fired. Here the price is comfortably inside its range and only the
+    growth-adjusted test trips, so the row may not claim the value is above a
+    ceiling it prints seven points below."""
+    fund = _fund_fixture_growth_adjusted_rich()
+    chip = _chip(build_chips(_empty_capex(), fund, date(2026, 7, 22)), "val")
+    assert chip["value"] == "21.0x"
+    assert chip["tone"] == "watch"                     # the row still warns
+    assert "Above" not in chip["remark"]               # ...but not about price
+    assert "28.4x" not in chip["remark"]               # the unquoted ceiling
+    assert "growth" in chip["remark"]
+    # ...and the detail behind it (History panel) still carries both figures.
+    assert "80th pct 28.4" in chip["detail"] and "PEG 9.00" in chip["detail"]
+
+
+def test_val_chip_remark_narrates_price_when_price_is_what_is_rich():
+    fund = _fund_fixture_five_reports()                # 20/21/22/23/30
+    chip = _chip(build_chips(_empty_capex(), fund, date(2026, 7, 22)), "val")
+    assert chip["tone"] == "watch"
+    assert chip["remark"].startswith("Above its own recent range")
 
 
 def test_fragile_chip_measure_is_plain_english():
@@ -600,3 +676,91 @@ def test_fragile_chip_measure_is_plain_english():
     assert chip["measure"] == "Weakest borrower"
     assert chip["value"] == "CRWV"
     assert "Borrows" in chip["remark"]
+
+
+def test_capex_and_gap_rows_do_not_contradict_each_other():
+    """Spec §2 rule 4 across a PAIR of rows, not each chip alone: with exactly
+    one YoY-complete quarter, row 01 used to say the capex figure could not be
+    computed while row 03 quoted that very figure in its own remark."""
+    capex, fund = _gap_fixture_negative_with_forward_note()
+    chips = build_chips(capex, fund, date(2026, 7, 22))
+    capex_chip, gap_chip = _chip(chips, "capex"), _chip(chips, "gap")
+    g = coverage_gap_series(capex, fund)[-1]
+    quoted = f"{g['capex_yoy_pct']:+.1f}%"
+
+    assert quoted in gap_chip["remark"]        # row 03 quotes the figure...
+    assert capex_chip["value"] == quoted       # ...and row 01 prints the same
+    assert capex_chip["value"] != "—"
+    # Both rows name the quarter they measure, so the reader can pair them.
+    assert g["cq"] in capex_chip["remark"] and g["cq"] in gap_chip["measure"]
+
+
+def test_capex_row_still_shows_a_dash_when_no_quarter_is_comparable():
+    """The honest '—' survives: with no YoY-complete quarter there is no figure
+    to print, and the remark says which spenders are outstanding."""
+    chip = _chip(build_chips(_capex_fixture_pending_quarter(), _empty_fund_df(),
+                             date(2026, 7, 22)), "capex")
+    assert chip["value"] == "—" and chip["tone"] == "na"
+    assert "Waiting on 1 of 2" in chip["remark"] and "2026Q1" in chip["remark"]
+
+
+def test_rev_chip_remark_names_its_baseline_to_the_day():
+    """Rows 02 and 03 measure from different points; row 02 must say which one,
+    the way row 03 names its quarter — otherwise 'Unchanged since May' beside
+    'Sales have since reached +85.2%' reads as a contradiction."""
+    capex, fund = _rev_fixture_falling()
+    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "rev")
+    assert "Apr 1, 2026" in chip["remark"]
+
+
+# Every chip's healthy AND degraded remark, not one fixture's worth. The
+# valuation and borrower chips' healthy branches went unchecked under the old
+# single-fixture test (that fixture never cleared the five-report floor and
+# carried no borrower rows), which is exactly how the valuation row's
+# self-contradicting remark reached review.
+_REMARK_FIXTURES = [
+    ("all-degraded", _empty_capex, _empty_fund_df),
+    ("capex-accelerating", _capex_fixture_two_quarters, _empty_fund_df),
+    ("capex-decelerating", lambda: _capex_three_yoy(60.0, 40.0), _empty_fund_df),
+    ("capex-steady", lambda: _capex_three_yoy(50.0, 50.5), _empty_fund_df),
+    ("capex-pending-quarter", _capex_fixture_pending_quarter, _empty_fund_df),
+    ("capex-one-comparable-quarter", _capex_with_yoy,
+     lambda: fundamentals_history(GAP_REPORTS)),
+    ("rev-falling", lambda: _rev_fixture_falling()[0],
+     lambda: _rev_fixture_falling()[1]),
+    ("gap-without-forward-note", lambda: _gap_fixture_no_forward_note()[0],
+     lambda: _gap_fixture_no_forward_note()[1]),
+    ("val-rich-on-price", _empty_capex, _fund_fixture_five_reports),
+    ("val-rich-on-growth", _empty_capex, _fund_fixture_growth_adjusted_rich),
+    ("val-within-range", _empty_capex, _fund_fixture_five_reports_within_range),
+    ("fragile-amber", _capex_fixture_with_amber_fragile, _empty_fund_df),
+    ("fragile-red", _capex_fixture_red_fragile, _empty_fund_df),
+    ("fragile-unflagged", _capex_fixture_unflagged_fragile, _empty_fund_df),
+]
+
+
+@pytest.mark.parametrize(("capex_fx", "fund_fx"),
+                         [(c, f) for _, c, f in _REMARK_FIXTURES],
+                         ids=[name for name, _, _ in _REMARK_FIXTURES])
+def test_no_remark_uses_banned_vocabulary(capex_fx, fund_fx):
+    # All five chip builders carry `remark` — index directly (not .get) so a
+    # builder that regresses and drops the key fails loudly instead of silently
+    # satisfying "no banned term present".
+    for chip in build_chips(capex_fx(), fund_fx(), date(2026, 7, 22)):
+        remark = chip["remark"]
+        assert isinstance(remark, str) and remark
+        for pattern in _BANNED_REMARK_TERMS:
+            assert not re.search(pattern, remark, re.I), (
+                f"{chip['key']} remark uses banned term {pattern}: {remark}")
+
+
+@pytest.mark.parametrize(("capex_fx", "fund_fx"),
+                         [(c, f) for _, c, f in _REMARK_FIXTURES],
+                         ids=[name for name, _, _ in _REMARK_FIXTURES])
+def test_plate_fields_are_always_strings(capex_fx, fund_fx):
+    """`measure` / `value` / `remark` are str on every return branch — the plate
+    formats them straight into HTML."""
+    for chip in build_chips(capex_fx(), fund_fx(), date(2026, 7, 22)):
+        for field in ("measure", "value", "remark"):
+            assert isinstance(chip[field], str) and chip[field], (
+                f"{chip['key']}.{field}")
