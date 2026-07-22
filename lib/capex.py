@@ -302,6 +302,8 @@ def _gap_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     gaps = coverage_gap_series(capex, fund_df)
     if not gaps:
         return {"key": "gap", "label": "Coverage gap", "sub": sub,
+                "measure": "Coverage gap", "value": "—",
+                "remark": "Needs at least one complete spending quarter",
                 "tone": "na", "arrow": "none", "detail": "needs capex data",
                 "asof": "—"}
     g = gaps[-1]
@@ -313,7 +315,20 @@ def _gap_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
         tone, word = "watch", "narrowing fast"
     else:
         tone, word = "good", "revenue keeping pace"
+    # The reconciliation (spec §2 rule 4). The gap is anchored to the last
+    # complete quarter, so its sales figure is older than the sales row's. Say
+    # that in the same row as the number, at full text weight — the 2026-07-03
+    # pass put this in an --ink-3 footnote and the reader never reached it.
+    remark = (f"{g['cq']} only: spending grew {g['capex_yoy_pct']:+.1f}% "
+              f"against sales {g['rev_growth_pct']:+.1f}%.")
+    note = forward_revenue_note(capex, fund_df)
+    if note is not None:
+        remark += (f" Sales have since reached {note['now_pct']:+.1f}%, "
+                   f"so the next reading should {note['hint']}.")
     return {"key": "gap", "label": "Coverage gap", "sub": sub,
+            "measure": f"Coverage gap ({g['cq']})",
+            "value": f"{g['gap_pp']:+.1f}pp",
+            "remark": remark,
             "tone": tone, "arrow": "none",
             "detail": (f"{g['gap_pp']:+.1f}pp (rev {g['rev_growth_pct']:+.1f}% − "
                        f"capex {g['capex_yoy_pct']:+.1f}%) — {word}"),
