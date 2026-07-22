@@ -296,11 +296,18 @@ def test_valuation_chip_needs_five_reports():
     assert _chip(chips, "val")["tone"] == "na"
 
 
-def test_fragile_chip_surfaces_flag_and_note():
-    capex = parse_capex(_raw({"CRWV": [
+def _capex_fixture_with_amber_fragile():
+    """fragile=[CRWV], amber-flagged with a note; core/beneficiaries unused.
+    Shared by the flag/note surfacing test and the plain-English
+    measure/remark test."""
+    return parse_capex(_raw({"CRWV": [
         {"cq": "2026Q1", "reported": "2026-05-07", "capex_usd_b": 6.8,
          "flag": "amber", "note": "debt-funded ramp"},
     ]}))
+
+
+def test_fragile_chip_surfaces_flag_and_note():
+    capex = _capex_fixture_with_amber_fragile()
     c = _chip(build_chips(capex, fundamentals_history({}), _date(2026, 7, 3)),
               "fragile")
     assert c["tone"] == "watch"
@@ -482,12 +489,12 @@ def test_rev_chip_value_and_remark_name_the_reference_month():
 
 
 def test_no_remark_uses_banned_vocabulary():
-    # Only the capex and rev chips carry `remark` as of this task (the other
-    # three chip builders are done in later tasks) — chip.get(...) so chips
-    # without the field yet trivially satisfy "no banned term present".
+    # All five chip builders carry `remark` as of this task — index directly
+    # (not .get) so a builder that regresses and drops the key fails loudly
+    # instead of silently satisfying "no banned term present".
     capex, fund = _rev_fixture_falling()
     for chip in build_chips(capex, fund, date(2026, 7, 22)):
-        remark = chip.get("remark", "")
+        remark = chip["remark"]
         for pattern in _BANNED_REMARK_TERMS:
             assert not re.search(pattern, remark, re.I), (
                 f"{chip['key']} remark uses banned term {pattern}: {remark}")
@@ -557,3 +564,39 @@ def test_gap_chip_degraded_keeps_dash_value():
                              _empty_fund_df(), date(2026, 7, 22)), "gap")
     assert chip["value"] == "—"
     assert chip["remark"] == "Needs at least one complete spending quarter"
+
+
+def _empty_capex():
+    """No capex data at all — shared wherever a chip test only cares about
+    the fundamentals side."""
+    return parse_capex({})
+
+
+def _fund_fixture_five_reports():
+    """Five reports' worth of Semis forward-PE, one ticker, each on its own
+    date, so the valuation chip clears its >=5-report floor. Values climb
+    across the run so the final print sits above its own 80th-percentile
+    range (a hot-valuation regime) — exercises the `rich` branch."""
+    dates = ["2026-03-01", "2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01"]
+    pes = [20.0, 21.0, 22.0, 23.0, 30.0]
+    reports = {d: _report({"NVDA": {"valuation": {"forward_pe": pe,
+                                                  "cluster_name": "Semis"}}})
+              for d, pe in zip(dates, pes, strict=True)}
+    return fundamentals_history(reports)
+
+
+def test_val_chip_remark_avoids_percentile_and_peg_jargon():
+    fund = _fund_fixture_five_reports()
+    chip = _chip(build_chips(_empty_capex(), fund, date(2026, 7, 22)), "val")
+    assert chip["measure"] == "Chip valuations"
+    assert chip["value"].endswith("x")
+    assert "range" in chip["remark"]
+
+
+def test_fragile_chip_measure_is_plain_english():
+    capex = _capex_fixture_with_amber_fragile()
+    chip = _chip(build_chips(capex, _empty_fund_df(), date(2026, 7, 22)),
+                "fragile")
+    assert chip["measure"] == "Weakest borrower"
+    assert chip["value"] == "CRWV"
+    assert "Borrows" in chip["remark"]
