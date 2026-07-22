@@ -80,3 +80,50 @@ def test_probabilities_without_scenarios_descriptions_is_safe():
     df = extract_scenario_history(reports)
     assert (df["description"] == "").all()
     assert set(df["scenario"]) == {"Base", "Optimistic"}
+
+
+def test_string_scenarios_shape_drift_does_not_crash():
+    """2026-07-22 shape-drift day: the pipeline shipped all four scenarios as
+    bare STRINGS (the string is the description) alongside a normal
+    `probabilities` block. Both extract branches previously called .get() on
+    the value and raised AttributeError — one bad day killed the whole
+    Scenario Log page. Strings must be read as descriptions."""
+    reports = {
+        "2026-07-22": {
+            "geopolitical": {
+                "probabilities": {"base": 50, "optimistic": 15,
+                                  "pessimistic": 25, "wildcard": 10},
+                "scenarios": {
+                    "base": "Hormuz disrupted but not closed; WTI $80-90.",
+                    "wildcard": "US sanctions Chinese AI labs.",
+                },
+            }
+        }
+    }
+    df = extract_scenario_history(reports)
+    base = df[df["scenario"] == "Base"].iloc[0]
+    assert base["probability_mid"] == 50.0
+    assert base["description"] == "Hormuz disrupted but not closed; WTI $80-90."
+
+
+def test_string_scenarios_legacy_branch_does_not_crash():
+    """Same drift shape but WITHOUT a probabilities block (legacy branch):
+    no probability is recoverable from a bare string, but the description
+    must survive and the build must not raise."""
+    reports = {
+        "2026-07-22": {
+            "geopolitical": {
+                "scenarios": {"base": "Bare-string scenario prose."}
+            }
+        }
+    }
+    df = extract_scenario_history(reports)
+    base = df[df["scenario"] == "Base"].iloc[0]
+    assert base["probability_mid"] is None
+    assert base["description"] == "Bare-string scenario prose."
+
+
+def test_get_probs_string_scenarios_safe():
+    from components.scenario_log import _get_probs
+    out = _get_probs({"geopolitical": {"scenarios": {"base": "prose only"}}})
+    assert out["Base"] == ("—", None)
