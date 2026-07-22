@@ -515,20 +515,40 @@ def _gap_fixture_no_forward_note():
 
 def test_gap_chip_remark_reconciles_with_current_sales():
     """The bug this rework exists for: the gap's revenue figure and the sales
-    chip's disagree because they cover different periods. The remark must say so."""
+    chip's disagree because they cover different periods. The remark must say so
+    — and the numbers it cites must actually be the numbers they claim to be,
+    not just plausible-looking text alongside the right keywords."""
     capex, fund = _gap_fixture_negative_with_forward_note()
-    chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "gap")
+    chips = build_chips(capex, fund, date(2026, 7, 22))
+    chip = _chip(chips, "gap")
+    rev_chip = _chip(chips, "rev")
+    g = coverage_gap_series(capex, fund)[-1]
+
     assert chip["measure"].startswith("Coverage gap (")
     assert chip["value"].endswith("pp")
     assert "only" in chip["remark"]          # names the period limit
     assert "since" in chip["remark"]         # carries the forward clause
 
+    # The backward-looking figures must be the gap's own numbers, as formatted
+    # — not just any percentage, and not each other's.
+    assert f"{g['capex_yoy_pct']:+.1f}%" in chip["remark"]
+    assert f"{g['rev_growth_pct']:+.1f}%" in chip["remark"]
+
+    # The forward clause's sales figure must equal the sibling `rev` chip's
+    # value — that equality is the whole point of the reconciliation.
+    assert rev_chip["value"] in chip["remark"]
+
 
 def test_gap_chip_remark_omits_forward_clause_when_note_absent():
     capex, fund = _gap_fixture_no_forward_note()
     chip = _chip(build_chips(capex, fund, date(2026, 7, 22)), "gap")
+    g = coverage_gap_series(capex, fund)[-1]
     assert "since" not in chip["remark"]
     assert chip["remark"]
+    # Even without a forward clause, the two backward-looking figures must
+    # still match the gap's own numbers, as formatted.
+    assert f"{g['capex_yoy_pct']:+.1f}%" in chip["remark"]
+    assert f"{g['rev_growth_pct']:+.1f}%" in chip["remark"]
 
 
 def test_gap_chip_degraded_keeps_dash_value():
