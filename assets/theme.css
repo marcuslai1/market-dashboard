@@ -1651,6 +1651,92 @@ details.led-details[open] > summary {
 }
 .retro-empty { color: var(--ink-3); }
 
+/* ── AI Capex Pulse datasheet (spec 2026-07-22 §6) ──────────────
+   Fixed geometry: every column is a declared width, nothing sizes to content —
+   this is the fix for "the boxes are all differently sized" (the old tiles were
+   flex: 1 1 200px). Rhythm: a 22px leading unit (14px body at 1.5, matching
+   .card-body); every vertical value is 11px or 22px, nothing else. Ink is
+   assigned per measured contrast on --paper-2: --ink 15.06:1 for the value,
+   --ink-2 9.75:1 for measure and remark, --ink-3 5.03:1 for furniture.
+   --ink-4 measures 2.51:1 and is never used for text here. */
+.capex-sheet {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 1px solid var(--rule);
+  font-size: 14px;
+  line-height: 22px;
+}
+.capex-sheet col.c-no      { width: 3.5ch; }
+.capex-sheet col.c-measure { width: 22%; }
+.capex-sheet col.c-value   { width: 14%; }
+
+.capex-sheet caption.cs-read {
+  caption-side: top;
+  text-align: left;
+  padding: 11px 22px;
+  border-bottom: 1px solid var(--rule);
+}
+.capex-sheet .cs-state {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.capex-sheet .cs-gloss { color: var(--ink-2); }
+
+.capex-sheet .cs-head th {
+  padding: 11px 22px;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.capex-sheet tbody td {
+  padding: 11px 22px;
+  vertical-align: baseline;
+  border-bottom: 1px solid var(--rule);
+}
+.capex-sheet tbody tr:last-child td { border-bottom: 0; }
+.capex-sheet .cs-no {
+  padding-right: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.capex-sheet .cs-measure { color: var(--ink-2); }
+.capex-sheet .cs-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.capex-sheet .cs-remark { color: var(--ink-2); }
+
+@media (max-width: 720px) {
+  /* Phone: the four columns cannot hold their declared widths, so each row
+     becomes its own small plate — number and measure on one line, the value
+     beneath, the remark last. Reading order is unchanged. */
+  .capex-sheet, .capex-sheet tbody, .capex-sheet tbody td { display: block; }
+  .capex-sheet thead .cs-head { display: none; }
+  .capex-sheet tbody tr {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 11px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .capex-sheet tbody td { padding: 0 22px; border-bottom: 0; }
+  .capex-sheet .cs-value, .capex-sheet .cs-remark { grid-column: 1 / -1; }
+}
+
 /* ── Phone reflow — one-screen ledgers (owner request 2026-07-17) ────────────
    The wide fixed-column ledgers and drawer tables used to swipe horizontally
    on phones (the old .tk-scroll min-width canvas); the owner asked for them
