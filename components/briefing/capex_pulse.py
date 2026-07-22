@@ -43,6 +43,8 @@ from lib.formatters import _escape_dollars
 _TONE_COLOR = {"good": STATUS_POS, "watch": STATUS_WARN, "stress": STATUS_NEG,
                "neutral": INK_FALLBACK, "na": INK_FALLBACK}
 
+_ROW_ORDER = ("capex", "rev", "gap", "val", "fragile")
+
 _TREND_METRICS = [("revenue_growth_pct", "Revenue growth %"),
                   ("earnings_growth_pct", "Earnings growth %"),
                   ("fcf_yield_pct", "FCF yield %"),
@@ -114,6 +116,46 @@ def _datasheet_html(verdict: dict, chips: list) -> str:
         f'<tbody>{rows}</tbody></table>')
 
 
+def _sheet_rows(chips: list) -> list:
+    """The chips the plate renders, in plate order, skipping any the builder
+    did not produce.
+
+    Spec §4: a missing chip omits its row and ``No`` closes up — indexing
+    ``by_key[k]`` instead raised ``KeyError`` and took the whole Briefing down.
+    ``_datasheet_html`` numbers from enumerate, so the sequence has no holes.
+    """
+    by_key = {c["key"]: c for c in chips}
+    return [by_key[k] for k in _ROW_ORDER if k in by_key]
+
+
+def _breakdown_html(chips: list) -> str:
+    """The plate's figures in full, for the History expander.
+
+    The plate speaks plain English by design; the precise numbers behind each
+    row (the percentile, the growth-adjusted ratio, the per-row ``as of``) and
+    the curator's hand-written note live in ``detail``/``sub``. They belong
+    somewhere — this is the "moved into the History panel" the changelog
+    promises. Hairline rules only, like the plate: no bordered blocks.
+    """
+    rows = ""
+    for c in chips:
+        asof = c.get("asof") or ""
+        sub = c.get("sub") or ""
+        detail = c.get("detail") or ""
+        rows += (
+            f'<div class="cd-row">'
+            f'<div class="cd-head">'
+            f'<span class="cd-measure">{_escape_dollars(c["measure"])}</span>'
+            f'<span class="cd-asof">as of {_escape_dollars(asof)}</span>'
+            f'</div>'
+            f'<div class="cd-detail">{_escape_dollars(detail)}</div>'
+            f'<div class="cd-sub">{_escape_dollars(sub)}</div>'
+            f'</div>')
+    return (f'<div class="capex-detail">'
+            f'<div class="cd-title">Figures behind each row</div>'
+            f'{rows}</div>')
+
+
 def _gap_chart_frame(gap_rows: list) -> pd.DataFrame:
     """The exact frame behind the gap chart (also the a11y table)."""
     return pd.DataFrame(
@@ -177,13 +219,12 @@ def render_capex_pulse() -> None:
     for w in capex["warnings"]:
         st.caption(f"⚠ capex file: {w}")
     chips = build_chips(capex, fund_df, today)
-    by_key = {c["key"]: c for c in chips}
+    rows = _sheet_rows(chips)
     verdict = compute_verdict(capex, fund_df, chips)
     st.markdown(
         "".join([
             _overdue_html(curation_age_days(capex, today)),
-            _datasheet_html(verdict, [by_key[k] for k in
-                                      ("capex", "rev", "gap", "val", "fragile")]),
+            _datasheet_html(verdict, rows),
         ]),
         unsafe_allow_html=True)
     # Declutter pass 2026-07-21: the gap chart + its data table were always
@@ -192,8 +233,12 @@ def render_capex_pulse() -> None:
     # expander — the spec's human-read scorecard stays visible, the evidence
     # is one click away.
     gaps = coverage_gap_series(capex, fund_df)
-    if gaps or not fund_df.empty:
+    if rows or gaps or not fund_df.empty:
         with st.expander("History — coverage gap & cluster fundamentals"):
+            # The per-row figures come first: they are what the plate's plain
+            # English is a summary OF, so they read as the expansion of the row
+            # above rather than a footnote to the charts.
+            st.markdown(_breakdown_html(rows), unsafe_allow_html=True)
             if gaps:
                 df = _gap_chart_frame(gaps)
                 st.plotly_chart(_gap_fig(df), use_container_width=True,

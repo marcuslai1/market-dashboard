@@ -3,10 +3,12 @@ import pandas as pd
 from streamlit.testing.v1 import AppTest
 
 from components.briefing.capex_pulse import (
+    _breakdown_html,
     _cluster_medians,
     _datasheet_html,
     _gap_chart_frame,
     _overdue_html,
+    _sheet_rows,
 )
 from lib.capex import CURATION_OVERDUE_DAYS
 
@@ -14,9 +16,11 @@ _VERDICT = {"state": "digesting", "label": "DIGESTING", "tone": "watch",
             "gloss": "Spending is outrunning the revenue it produces."}
 
 
-def _chip(key, measure, value, remark, tone="good"):
+def _chip(key, measure, value, remark, tone="good", detail="", sub="",
+          asof="2026Q1"):
     return {"key": key, "measure": measure, "value": value, "remark": remark,
-            "tone": tone, "label": measure, "sub": "", "detail": "", "arrow": "none"}
+            "tone": tone, "label": measure, "sub": sub, "detail": detail,
+            "arrow": "none", "asof": asof}
 
 
 def test_datasheet_renders_verdict_and_one_row_per_chip():
@@ -94,6 +98,65 @@ def test_datasheet_escapes_verdict_label_and_gloss():
             "outrunning &gt;20%" in html)
 
 
+def test_sheet_rows_orders_the_plate_and_survives_a_missing_chip():
+    """Spec §4: a missing chip omits its row and the numbering closes up.
+    Indexing by_key[k] raised KeyError and took the whole Briefing down."""
+    chips = [_chip("fragile", "Weakest borrower", "CRWV", "z"),
+             _chip("capex", "Capex growth", "+68.9%", "x"),
+             _chip("rev", "Customer sales", "+85.2%", "y")]   # no gap, no val
+    rows = _sheet_rows(chips)
+    assert [c["key"] for c in rows] == ["capex", "rev", "fragile"]
+    html = _datasheet_html(_VERDICT, rows)
+    for n in ("01", "02", "03"):
+        assert f">{n}<" in html
+    assert ">04<" not in html
+
+
+def test_sheet_rows_empty_when_no_chips():
+    assert _sheet_rows([]) == []
+
+
+def test_breakdown_carries_the_detail_the_plate_leaves_out():
+    """The changelog promises the jargon 'moved into the History panel' — so
+    every chip's measure, as-of, detail and sub must actually render there."""
+    chips = [_chip("val", "Chip valuations", "25.4x", "Inside its own range",
+                   detail="Semis median fwd PE 25.4 (80th pct 29.5) · PEG 0.63",
+                   sub="Semis forward P/E vs its own recent range",
+                   asof="2026-07-22"),
+             _chip("fragile", "Weakest borrower", "CRWV", "Borrows to fund",
+                   detail="CRWV 2026Q1 capex $6.8B · amber — FY26 guide $31-35B",
+                   sub="the debt-funded name most likely to crack first",
+                   asof="2026Q1")]
+    html = _breakdown_html(chips)
+    assert "Chip valuations" in html and "Weakest borrower" in html
+    assert "80th pct 29.5" in html and "PEG 0.63" in html      # the jargon lands
+    assert "as of 2026-07-22" in html and "as of 2026Q1" in html
+    assert "Semis forward P/E vs its own recent range" in html  # sub survives
+    assert "amber" in html                                     # curator's note
+    assert html.count('class="cd-row"') == 2
+    # Dollar amounts must not reach Streamlit's LaTeX parser.
+    assert "$6.8B" not in html and "&#36;6.8B" in html
+
+
+def test_breakdown_escapes_html_metacharacters():
+    chips = [_chip("val", "A & B <script>", "1", "x",
+                   detail="P/E < 15 & rising >20% <script>alert(1)</script>",
+                   sub="rev & capex <b>", asof="<i>now</i>")]
+    html = _breakdown_html(chips)
+    assert "<script>" not in html and "</script>" not in html
+    assert "<b>" not in html and "<i>" not in html
+    assert "A &amp; B &lt;script&gt;" in html
+    assert "P/E &lt; 15 &amp; rising &gt;20%" in html
+
+
+def test_breakdown_tolerates_missing_optional_fields():
+    """A chip whose detail/sub/asof are absent must still render its row."""
+    chip = {"key": "capex", "measure": "Capex growth", "value": "—",
+            "remark": "x", "tone": "na"}
+    html = _breakdown_html([chip])
+    assert "Capex growth" in html and html.count('class="cd-row"') == 1
+
+
 def test_overdue_html_only_past_threshold():
     assert _overdue_html(30) == ""
     assert "CURATION OVERDUE" in _overdue_html(CURATION_OVERDUE_DAYS + 1)
@@ -136,11 +199,15 @@ def _capex_pulse_page_app():
     under AppTest: st.navigation resets to the default page on every rerun).
 
     AppTest.from_function extracts only this function's own source lines
-    (inspect.getsourcelines) — module-level imports in capex_pulse.py are not
-    carried along, so the import must live inside this wrapper's body. Keep
-    this function's source ASCII-only: AppTest.from_function re-writes the
-    extracted source to a temp script whose encoding round-trip breaks on
-    non-ASCII characters on this host."""
+    (inspect.getsourcelines) - module-level imports in capex_pulse.py are not
+    carried along, so the import must live inside this wrapper's body.
+
+    NOTE: keep this function's source ASCII-only. AppTest.from_function
+    re-writes the extracted source to a temp script with the LOCALE encoding
+    on older Streamlit (cp1252 on Windows) and reads it back as UTF-8, so any
+    non-ASCII char here breaks script compilation on Windows. The pinned 1.58
+    round-trips UTF-8 correctly, but requirements.txt floats
+    streamlit>=1.39.0,<1.59 - the convention holds for the whole range."""
     from components.briefing.capex_pulse import render_capex_pulse
 
     render_capex_pulse()
@@ -159,3 +226,7 @@ def test_capex_pulse_renders_the_plate_end_to_end():
     assert "capex-sheet" in html
     assert "What it means" in html
     assert "Weakest borrower" in html
+    # The History panel's per-row breakdown ships with it - the changelog says
+    # the jargon moved there, so it has to actually be rendered.
+    assert "capex-detail" in html
+    assert "Figures behind each row" in html
