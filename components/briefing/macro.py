@@ -209,7 +209,10 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
         sc_rows = ""
         for k in ["base", "optimistic", "pessimistic", "wildcard"]:
             sc = scenarios.get(k)
-            desc = sc.get("description") if isinstance(sc, dict) else None
+            # Shape-drift days (2026-07-22) ship the scenario as a bare
+            # string — the string IS the description.
+            desc = (sc.get("description") if isinstance(sc, dict)
+                    else sc if isinstance(sc, str) else None)
             if not desc:
                 continue
             pct = probs.get(k)

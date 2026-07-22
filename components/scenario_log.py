@@ -33,6 +33,20 @@ def _norm_scenario(name: str) -> str:
     return key.replace("_", " ").title()
 
 
+def _sc_dict(sc) -> dict:
+    """Normalise one scenario entry to dict shape.
+
+    Entries are {description, probability?} dicts per contract, but shape-
+    drift days ship bare strings (2026-07-22 report: all four scenarios were
+    strings — the string is the description). Anything else degrades to {}
+    so one malformed day can never crash the whole scenario history build."""
+    if isinstance(sc, dict):
+        return sc
+    if isinstance(sc, str):
+        return {"description": sc}
+    return {}
+
+
 def _get_probs(rpt):
     """Extract scenario probabilities from either new or legacy format.
 
@@ -57,7 +71,7 @@ def _get_probs(rpt):
     # Legacy format: geopolitical.scenarios = {base_case: {probability: "50-55%"}}
     result = {}
     for name, sc in geo.get("scenarios", {}).items():
-        prob_str = sc.get("probability", "—")
+        prob_str = _sc_dict(sc).get("probability", "—")
         mid = None
         try:
             cleaned = prob_str.replace("%", "").strip()
@@ -99,13 +113,14 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
                     "scenario": _norm_scenario(name),
                     "probability_str": prob_str,
                     "probability_mid": mid,
-                    "description": (new_scenarios.get(name) or {}).get("description", ""),
+                    "description": _sc_dict(new_scenarios.get(name)).get("description", ""),
                 })
             continue  # Skip legacy format if new format present
 
         # Legacy format: geopolitical.scenarios = {base_case: {probability: "50-55%", ...}}
         scenarios = geo.get("scenarios", {})
         for name, sc in scenarios.items():
+            sc = _sc_dict(sc)
             prob_str = sc.get("probability", "")
             # Parse "50-55%" into midpoint
             mid = None
