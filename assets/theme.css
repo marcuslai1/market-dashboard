@@ -1736,8 +1736,53 @@ details.led-details[open] > summary {
     border-bottom: 1px solid var(--rule);
   }
   .capex-sheet tbody td { padding: 0 22px; border-bottom: 0; }
+  /* .cs-no's desktop padding-left (0,2,0) outranks the td rule above (0,1,2),
+     so under 720px the row number used to inset 11px while Value and Remark
+     inset 22px — the stacked card had two left edges. Matching the class count
+     with td.cs-no (0,2,2) puts the number back on the same edge; the right
+     padding stays 0 so the measure keeps its tight 11px column gap. */
+  .capex-sheet tbody td.cs-no { padding-left: 22px; padding-right: 0; }
   .capex-sheet .cs-value, .capex-sheet .cs-remark { grid-column: 1 / -1; }
 }
+
+/* ── AI Capex Pulse · figures behind each row (History expander) ─────────────
+   The plate speaks plain English; the precise figures, the per-row `as of` and
+   the curator's note live here, one click away. Same discipline as the plate:
+   hairline separators only — no bordered blocks, no nested filled surfaces —
+   and the same 11px/22px rhythm. Furniture at --ink-3, content at --ink-2. */
+.capex-detail { margin: 0 0 11px; font-size: 13px; line-height: 22px; }
+.capex-detail .cd-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--rule);
+}
+.capex-detail .cd-row {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.capex-detail .cd-row:last-child { border-bottom: 0; }
+.capex-detail .cd-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.capex-detail .cd-measure { color: var(--ink); }
+.capex-detail .cd-asof {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.capex-detail .cd-detail { color: var(--ink-2); }
+.capex-detail .cd-sub { color: var(--ink-3); font-size: 12px; }
 
 /* ── Phone reflow — one-screen ledgers (owner request 2026-07-17) ────────────
    The wide fixed-column ledgers and drawer tables used to swipe horizontally
