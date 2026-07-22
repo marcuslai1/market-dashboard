@@ -21,6 +21,17 @@ VAL_WARN_QUANTILE = 0.80   # fwd-PE/PEG above this corpus quantile → warn
 CURATION_OVERDUE_DAYS = 110
 SEMIS_CLUSTER = "Semis"
 
+# Vocabulary banned from every chip `remark` (spec §2 rule 1). The remark column
+# is the one place the band speaks plain English; these terms assume a
+# vocabulary the reader has told us they do not have. Enforced by
+# tests/test_capex.py::test_no_remark_uses_banned_vocabulary.
+_BANNED_REMARK_TERMS = (r"\bPEG\b", r"\bpp\b", r"\bpct\b", r"\bpercentile\b",
+                        r"\bcircularity\b", r"\bfragile tier\b", r"\bbeneficiar")
+
+_CAPEX_REMARK = {"accelerating": "Up from {prev:+.1f}% — still building",
+                 "decelerating": "Down from {prev:+.1f}% — easing off",
+                 "steady": "Holding near {prev:+.1f}%"}
+
 _CQ_RE = re.compile(r"^\d{4}Q[1-4]$")
 
 
@@ -260,6 +271,11 @@ def _capex_chip(capex: dict) -> dict:
         detail = (f"awaiting {len(pend['missing'])} of {len(capex['core'])} spenders for {pend['cq']}"
                   if pend else "needs two quarters of complete core capex")
         return {"key": "capex", "label": "Capex", "sub": sub,
+                "measure": "Capex growth", "value": "—",
+                "remark": (f"Waiting on {len(pend['missing'])} of "
+                           f"{len(capex['core'])} big spenders to report {pend['cq']}"
+                           if pend else
+                           "Needs two full quarters before it can be compared"),
                 "tone": "na", "arrow": "none", "detail": detail,
                 "asof": yoy[-1]["cq"] if yoy else "—"}
     cur, prev = yoy[-1], yoy[-2]
@@ -271,6 +287,9 @@ def _capex_chip(capex: dict) -> dict:
     else:
         arrow, word = "none", "steady"
     return {"key": "capex", "label": "Capex", "sub": sub,
+            "measure": "Capex growth",
+            "value": f"{cur['yoy_pct']:+.1f}%",
+            "remark": _CAPEX_REMARK[word].format(prev=prev["yoy_pct"]),
             "tone": "neutral", "arrow": arrow,
             "detail": (f"core YoY {cur['yoy_pct']:+.1f}% vs "
                        f"{prev['yoy_pct']:+.1f}% prior — {word}"),
@@ -306,6 +325,8 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     now = _median_rev_growth(fund_df, capex["beneficiaries"])
     if now is None:
         return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
+                "measure": "Customer sales", "value": "—",
+                "remark": "No sales-growth figures in the reports yet",
                 "tone": "na", "arrow": "none",
                 "detail": "no revenue-growth data in reports", "asof": "—"}
     now_date, now_med = now
@@ -316,6 +337,8 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
     older = sorted(d for d in bdf["date"].unique() if d <= cutoff)
     if not older:
         return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
+                "measure": "Customer sales", "value": f"{now_med:+.1f}%",
+                "remark": "Not enough history yet to show a trend",
                 "tone": "neutral", "arrow": "none",
                 "detail": (f"median {now_med:+.1f}% — corpus younger than "
                            f"{REV_TREND_WINDOW_DAYS}d, no trend yet"),
@@ -329,7 +352,13 @@ def _rev_chip(capex: dict, fund_df: pd.DataFrame) -> dict:
         tone, arrow, word = "watch", "down", "falling"
     else:
         tone, arrow, word = "good", "none", "flat"
+    ref_month = datetime.strptime(ref_date, "%Y-%m-%d").strftime("%b")
+    _REV_REMARK = {"rising": f"Up from {ref_med:+.1f}% in {ref_month}",
+                   "falling": f"Down from {ref_med:+.1f}% in {ref_month} — buyers slowing",
+                   "flat": f"Unchanged since {ref_month}"}
     return {"key": "rev", "label": "Beneficiary revenue", "sub": sub,
+            "measure": "Customer sales", "value": f"{now_med:+.1f}%",
+            "remark": _REV_REMARK[word],
             "tone": tone, "arrow": arrow,
             "detail": f"median {now_med:+.1f}% vs {ref_med:+.1f}% on {ref_date} — {word}",
             "asof": now_date}
