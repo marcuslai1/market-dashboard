@@ -95,7 +95,7 @@ def macro_prints_html(indicators: dict) -> str:
     (FRED key unset, or pre-FRED reports), so old reports stay clean.
     """
     indicators = indicators or {}
-    rows = ""
+    cells = ""
     any_row = False
     for label in _PRINT_ORDER:
         d = indicators.get(label)
@@ -106,25 +106,25 @@ def macro_prints_html(indicators: dict) -> str:
         val = _escape_dollars(_fmt_value(label, d))
         delta = _fmt_delta(label, d) if has_val else ""
         fresh = _escape_dollars(_fmt_freshness(d)) if has_val else "unavailable"
-        rows += (
-            '<div style="display:flex;justify-content:space-between;'
-            'align-items:baseline;gap:8px;padding:3px 0;font-family:var(--mono);'
-            'font-size:11px;color:var(--ink-2);">'
-            f'<span style="color:var(--ink-3);min-width:96px;">{label}</span>'
-            f'<span style="color:var(--ink);font-weight:600;">{val}</span>'
-            f'<span style="color:var(--ink-3);min-width:42px;text-align:right;">{delta}</span>'
-            f'<span style="color:var(--ink-3);flex:1;text-align:right;">{fresh}</span>'
-            '</div>'
+        cells += (
+            f'<div class="fp-cell">'
+            f'<div class="fp-label">{label}</div>'
+            f'<div class="fp-value">{val}</div>'
+            f'<div class="fp-meta">'
+            f'<span class="fp-delta">{delta}</span>'
+            f'<span class="fp-month">{fresh}</span>'
+            f'</div>'
+            f'</div>'
         )
     if not any_row:
         return ""
+    # Caveat ABOVE the grid: the honesty ("not live") has to be read before the
+    # numbers, not after them.
     return (
-        '<div style="margin-top:14px;padding-top:8px;'
-        'border-top:1px solid var(--rule);">'
-        '<div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;'
-        'text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;">'
-        'Macro prints · FRED · latest available, not live</div>'
-        f'{rows}</div>'
+        '<div class="fp-wrap">'
+        '<div class="fp-caveat">Macro prints · FRED · latest available, not live</div>'
+        f'<div class="fp-grid">{cells}</div>'
+        '</div>'
     )
 
 
@@ -152,7 +152,7 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
     if geo.get("portfolio_action"):
         body += (
             '<div class="macro-action">'
-            '<strong style="color:var(--ink);">Portfolio implication.</strong> '
+            '<strong>Implication.</strong> '
             f'{_escape_dollars(geo.get("portfolio_action", ""))}</div>'
         )
     # Scenario odds + per-scenario narrative moved to the Scenario Log tab

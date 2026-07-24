@@ -296,6 +296,22 @@ header[data-testid="stHeader"] {
   padding-top: 16px !important;   /* header spec: 16px 28px 0 */
 }
 
+/* Reclaim the band above the masthead. It was NOT the header bar (already
+   height:0 below) nor the container padding — dashboard.py injects three
+   style-only st.markdown blocks (theme CSS, first-mount animations, density
+   override) and Streamlit gives each its own element container, which then
+   takes part in the vertical block's row-gap. Collapsing the style-only
+   containers removes that dead space; a <style> still applies while its
+   wrapper is display:none. Scoped to markdown whose ONLY child is a <style>,
+   so no container carrying real content is ever hidden.
+   They are already zero-HEIGHT, but a zero-height flex child still earns its
+   16px row-gap — two of them is the 32px band (16 pad + 16 + 16 = 48px). */
+[data-testid="stElementContainer"]:has(
+  [data-testid="stMarkdownContainer"] > style:only-child
+) {
+  display: none !important;
+}
+
 /* Typography */
 h1, h2, h3, h4 {
   font-family: var(--serif) !important;
@@ -1071,40 +1087,117 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 }
 .risk-card .text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
 
+/* A fixed 52px date column forms a timeline spine down the left so every date
+   aligns; the flexible right column holds the event and its metadata. Scan the
+   dates first, then read across. */
 .cal-day {
-  display: grid; grid-template-columns: 110px 1fr; gap: 24px;
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
+  display: grid; grid-template-columns: 52px 1fr; gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid var(--color-divider);
 }
+/* Big date, quiet weekday, on a faint rail tick. */
 .cal-date {
-  font-family: var(--serif); font-size: 1.1rem; font-weight: 500; color: var(--ink);
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--color-text);
+  border-left: 2px solid var(--color-divider); padding-left: 10px;
 }
 .cal-date .dow {
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--font-display); font-size: 9px;
   text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--ink-3); display: block; margin-top: 2px;
+  color: var(--color-text-3); display: block; margin-top: 2px;
 }
 .cal-event {
   display: grid; grid-template-columns: 60px 1fr;
   gap: 14px; align-items: baseline; margin-bottom: 8px;
 }
+/* Severity is NOT a signal, so it must not wear signal hues. Was filled
+   signal-red (HIGH) / WATCH-amber (MEDIUM), which let an impact level read as a
+   CAUTION rating. Now a transparent steel OUTLINE chip: it says "impact level"
+   and leaves red meaning only CAUTION. Transparent (vs filled) also keeps it
+   quiet beside the event name. */
 .cal-impact {
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+  font-family: var(--font-display); font-size: 8.5px; letter-spacing: 0.14em;
   text-transform: uppercase; font-weight: 600; padding: 2px 6px;
-  border-radius: 2px; text-align: center; width: fit-content;
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; text-align: center; width: fit-content;
+  color: var(--color-text-4);
 }
-.cal-impact.HIGH { color: #ef4444; background: rgba(239,68,68,0.16); }
-.cal-impact.MEDIUM { color: #f59e0b; background: rgba(245,158,11,0.18); }
-.cal-impact.LOW { color: var(--ink-3); background: rgba(255,255,255,0.05); }
+.cal-impact.HIGH { color: var(--eyebrow); border-color: var(--eyebrow); }
+.cal-impact.MEDIUM { color: var(--color-text-3); }
+.cal-impact.LOW { color: var(--color-text-4); }
 .cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
-.macro-lead {
-  font-family: var(--serif); font-size: 1.2rem; font-weight: 400;
-  line-height: 1.5; color: var(--ink); margin-bottom: 14px;
-  max-width: 70ch;
+/* Scenario read — steel toggle = navigation, never a signal. Collapsed so the
+   calendar stays scannable. */
+.cal-scen { margin-top: 5px; }
+.cal-scen-toggle {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--eyebrow);
 }
+.cal-scen-toggle::-webkit-details-marker { display: none; }
+.cal-scen-toggle::before { content: "▶ "; font-size: 8px; }
+.cal-scen[open] > .cal-scen-toggle::before { content: "▼ "; }
+.cal-scen-setup {
+  margin: 5px 0 4px; font-size: 10.5px; font-style: italic;
+  color: var(--color-text-3);
+}
+
+/* The one place body-length text uses the HEADING font: at 19px condensed it
+   reads as a newspaper standfirst — larger and airier than ordinary body — which
+   marks it as the card's opening statement. 62ch caps the measure. */
+/* !important: Streamlit's markdown-container `p` rule out-specifies a bare
+   class and was pinning this to 14px body size. */
+.macro-lead {
+  font-family: var(--font-display) !important;
+  font-size: 19px !important;
+  font-weight: 400 !important;
+  line-height: 1.42 !important;
+  color: var(--color-text) !important;
+  margin: 0 0 14px;
+  max-width: 62ch;
+}
+/* Steel left-border is the callout device: it flags "this is the takeaway"
+   without a fill or a coloured box. Steel because it is structural emphasis,
+   not a signal. */
 .macro-action {
-  font-size: 13.5px; color: var(--ink-2); line-height: 1.6;
-  border-left: 2px solid var(--rule-strong); padding-left: 12px;
+  font-size: 13.5px; color: var(--color-text-2); line-height: 1.55;
+  border-left: 2px solid var(--accent); padding-left: 13px;
+  margin-top: 16px;
+}
+.macro-action strong { color: var(--color-text); }
+
+/* ── FRED prints: five equal cells reading as one connected instrument ──
+   The 1px-gap-over-a-divider-ground trick draws hairlines between every cell
+   without per-cell borders, echoing the pulse tape at the top of the page. */
+.fp-wrap { margin-top: 18px; }
+.fp-caveat {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-4); margin-bottom: 8px;
+}
+.fp-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--color-divider); border: 1px solid var(--color-divider);
+}
+.fp-cell { background: var(--color-bg); padding: 9px 10px; min-width: 0; }
+.fp-label {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.fp-value {
+  font-family: var(--font-display); font-size: 19px; font-weight: 600;
+  color: var(--color-text); line-height: 1.15; margin-top: 3px;
+}
+.fp-meta {
+  display: flex; justify-content: space-between; gap: 6px; margin-top: 2px;
+  font-family: var(--font-display); font-size: 9.5px;
+}
+/* Deltas stay MUTED, never up/down green-red: a falling CPI is good but falling
+   payrolls is bad, so colouring the arrows would assert a judgment the data
+   does not support. */
+.fp-delta { color: var(--color-text-3); white-space: nowrap; }
+.fp-month { color: var(--color-text-4); text-align: right; white-space: nowrap; }
+@media (max-width: 900px) {
+  .fp-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .colophon {
