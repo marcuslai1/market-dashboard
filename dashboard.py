@@ -223,11 +223,11 @@ def _page_briefing() -> None:
         )
         _fx_strip = fundamentals_strip_html(watchlist)
         if _cl_strip or _fx_strip:
-            # Cards are DIRECT grid children (not column wrappers) so the pair
-            # shares one grid row and stretches to a common height — the
-            # blueprint boxes and their corner marks line up exactly.
             st.markdown(
-                f'<div class="briefing-grid">{_cl_strip}{_fx_strip}</div>',
+                f'<div class="briefing-grid">'
+                f'<div class="bg-col">{_cl_strip}</div>'
+                f'<div class="bg-col">{_fx_strip}</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -238,23 +238,19 @@ def _page_briefing() -> None:
         # that used to stack here — clusters, calibration, earnings, the macro
         # trigger map, contrarians, capex — now live on their own tabs (see the
         # section mapping in docs/overhaul-plan.md); nothing was deleted.
-        # Emitted in ROW order as direct grid children: row 1 = Action | Risks,
-        # row 2 = Macro | Week-ahead. Each row's pair stretches to a common
-        # height, so the blueprint boxes align edge-to-edge and their corner
-        # marks sit on the same lines (owner review 2026-07-24). The spacer
-        # keeps the pairing when nothing is actionable.
-        _action = action_card_html(watchlist, events) or '<div class="bg-empty"></div>'
-        _risks = risks_card_html(geo)
-        _macro = macro_card_html(
+        _left = action_card_html(watchlist, events) + macro_card_html(
             report.get("macro_summary", ""), geo,
             report.get("commodities_note", ""),
             report.get("macro_indicators", {}),
         )
-        _cal = calendar_card_html(
+        _right = risks_card_html(geo) + calendar_card_html(
             events, lane="ledger", cascades=load_earnings_cascades(),
         )
         st.markdown(
-            f'<div class="briefing-grid">{_action}{_risks}{_macro}{_cal}</div>',
+            f'<div class="briefing-grid">'
+            f'<div class="bg-col">{_left}</div>'
+            f'<div class="bg-col">{_right}</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 

@@ -54,15 +54,6 @@ def render_masthead_and_nav(current: str) -> str:
     # cheaply and loads just the one report, never the whole corpus.
     dates = list_report_dates()
     latest = dates[-1] if dates else "—"
-    first = dates[0] if dates else None
-    issue = "—"
-    if first:
-        try:
-            first_d = date.fromisoformat(first)
-            last_d = date.fromisoformat(latest)
-            issue = f"No. {(last_d - first_d).days + 1}"
-        except ValueError:
-            pass
     market_date = _escape_dollars(
         load_report(latest).get("meta", {}).get("market_date", "—")
     )
@@ -81,11 +72,6 @@ def render_masthead_and_nav(current: str) -> str:
         f'<div class="date">{long_date}</div>'
         f'<div>Singapore · 11:30 SGT · Last close {market_date}</div>'
         f'</div>'
-        f'</div>'
-        f'<div class="masthead-strip">'
-        f'<span>Issue {issue}</span>'
-        f'<span>The Signal Desk</span>'
-        f'<span>Updated 11:30 SGT</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
