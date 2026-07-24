@@ -50,15 +50,18 @@ def _pick_action_ticker(wl: dict) -> tuple[str | None, dict | None]:
     return candidates[0]
 
 
-def render_action_card(wl: dict, events: list) -> None:
+def action_card_html(wl: dict, events: list) -> str:
+    """Return the Today's-Trade card as an HTML string ("" when nothing is
+    actionable).
+
+    The Briefing 1.55fr/1fr grid composes this into a single ``st.markdown`` so
+    CSS grid sees its two columns as siblings (DESIGN_HANDOFF §3.4);
+    ``render_action_card`` below wraps it (with the section head) for any
+    standalone use."""
     tk, d = _pick_action_ticker(wl)
     if not tk:
-        # Nothing actionable today — render nothing per design.
-        return
-    # Own section head: rendered bare after the Earnings Scorecard band, the
-    # card read as earnings content (UX 2026-07-07). Emitted only when the
-    # card itself renders, so an empty day stays fully silent.
-    render_section_head("Today's Trade", "The single highest-conviction setup on the book")
+        # Nothing actionable today — caller skips the callout.
+        return ""
     sig = d.get("signal", "WATCH")
     color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
     display_tk = _escape_dollars(display_ticker(tk))
@@ -143,12 +146,22 @@ def render_action_card(wl: dict, events: list) -> None:
         f'</div>'
     )
 
-    st.markdown(
-        card_container(
-            eyebrow="IF YOU ONLY DO ONE THING TODAY",
-            headline=_escape_dollars(headline),
-            body_html=body_html,
-            lane="lede",
-        ),
-        unsafe_allow_html=True,
+    return card_container(
+        eyebrow="IF YOU ONLY DO ONE THING TODAY",
+        headline=_escape_dollars(headline),
+        body_html=body_html,
+        lane="lede",
     )
+
+
+def render_action_card(wl: dict, events: list) -> None:
+    """Standalone emit: the section head + the Today's-Trade card. Silent when
+    nothing is actionable. (The Briefing itself now composes the card into its
+    grid via ``action_card_html``; this wrapper stays for standalone callers.)"""
+    html = action_card_html(wl, events)
+    if not html:
+        return
+    render_section_head(
+        "Today's Trade", "The single highest-conviction setup on the book"
+    )
+    st.markdown(html, unsafe_allow_html=True)

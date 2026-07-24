@@ -3,7 +3,7 @@
 The review verified rerun determinism with an ad-hoc AppTest drive that was
 never committed — so CI could not catch a crash in the render-only components
 (pipeline_stats, terminology, masthead, watchlist drilldown). This walk boots
-the real dashboard.py and visits all 8 nav targets. Live quotes are stubbed:
+the real dashboard.py and visits all 10 nav targets. Live quotes are stubbed:
 no network in CI.
 """
 import glob
@@ -16,6 +16,8 @@ import live_prices
 PAGES = [
     "Briefing",
     "Watchlist",
+    "Clusters",
+    "Fundamentals",
     "Signal Tracker",
     "Retrospective",
     "Pipeline Stats",
@@ -125,23 +127,38 @@ def test_terminology_defines_decay_half_life_and_shrinkage():
     assert "50%" in page               # the skeptical hit-rate prior
 
 
-def test_briefing_renders_capex_pulse_band():
-    at = _boot()
-    assert not at.exception
-    assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)
-
-
-def test_briefing_action_card_has_own_section_head():
-    """The action card must not read as part of Earnings Scorecard — it gets
-    its own section head (UX review 2026-07-07)."""
+def test_briefing_renders_action_card():
+    """The single-action callout stays on the Briefing (design-spec §1 block 4).
+    Post-overhaul it composes into the 1.55fr/1fr grid via action_card_html, so
+    its eyebrow — not a separate 'Today's Trade' head — is the stable marker."""
     at = _boot()
     assert not at.exception
     page = " ".join(str(m.value) for m in at.markdown)
-    assert "Today&#x27;s Trade" in page or "Today's Trade" in page
+    assert "IF YOU ONLY DO ONE THING TODAY" in page
 
 
-def test_briefing_capex_pulse_shows_a_verdict():
-    at = _boot()
+def _capex_pulse_app():
+    """Boot ONLY the AI Capex Pulse band, moved to the Fundamentals tab in the
+    2026-07 overhaul. ASCII-only source (see _tracker_page_app for why)."""
+    from components.briefing.capex_pulse import render_capex_pulse
+
+    render_capex_pulse()
+
+
+def test_fundamentals_renders_capex_pulse_band():
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_capex_pulse_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)
+
+
+def test_fundamentals_capex_pulse_shows_a_verdict():
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_capex_pulse_app, default_timeout=30)
+    at.run()
     assert not at.exception
     page = " ".join(str(m.value) for m in at.markdown)
     assert any(v in page for v in

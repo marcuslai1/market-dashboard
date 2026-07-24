@@ -7,7 +7,7 @@ playbook, contrarians, and methodology footer), so there is no shared orchestrat
 """
 from __future__ import annotations
 
-from components.briefing.action_card import render_action_card
+from components.briefing.action_card import action_card_html, render_action_card
 from components.briefing.calibration import render_calibration
 from components.briefing.capex_pulse import render_capex_pulse
 from components.briefing.catalyst_playbook import render_catalyst_playbook
@@ -18,6 +18,7 @@ from components.briefing.earnings import render_earnings
 from components.briefing.pulse import render_pulse
 
 __all__ = [
+    "action_card_html",
     "render_action_card",
     "render_calibration",
     "render_capex_pulse",

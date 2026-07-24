@@ -16,6 +16,8 @@ from lib.formatters import _escape_dollars
 _NAV_PAGES = [
     "Briefing",
     "Watchlist",
+    "Clusters",
+    "Fundamentals",
     "Signal Tracker",
     "Retrospective",
     "Pipeline Stats",

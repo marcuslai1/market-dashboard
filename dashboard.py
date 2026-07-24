@@ -16,17 +16,11 @@ from pathlib import Path
 
 import streamlit as st
 
-from components.briefing import (
-    render_action_card,
-    render_calibration,
-    render_capex_pulse,
-    render_catalyst_playbook,
-    render_changes,
-    render_clusters,
-    render_contrarian_candidates,
-    render_earnings,
-    render_pulse,
-)
+# The Briefing body keeps only the glance blocks; the study blocks (clusters,
+# calibration, earnings, catalyst map, contrarians, capex) moved to their own
+# tabs (overhaul 2026-07) and are imported lazily inside those page functions.
+from components.briefing import render_changes, render_pulse
+from components.briefing.action_card import action_card_html
 from components.briefing.calendar import calendar_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.stance import stance_band_html
@@ -156,8 +150,6 @@ def _page_briefing() -> None:
         benchmarks = report.get("benchmarks", {})
         geo = report.get("geopolitical", {})
         events = report.get("events_this_week", []) or []
-        trigger_map = report.get("macro_trigger_map", []) or []
-        contrarians = report.get("contrarian_candidates", []) or []
 
         # Stance band: single st.markdown so the lane-wrapper actually scopes both
         # the lede (stance deck) and ledger (signal counts) as grid children.
@@ -212,37 +204,29 @@ def _page_briefing() -> None:
             watchlist,
             _prev_report.get("watchlist", {}) if _prev_report else {},
         )
-        render_clusters(
-            report.get("clusters", {}),
-            watchlist,
-            report.get("extension_regime"),
-        )
-        render_calibration(
-            report.get("calibration_insights"),
-            watchlist,
-        )
-        render_earnings(watchlist)
-        render_action_card(watchlist, events)
-        render_catalyst_playbook(trigger_map)
-        render_contrarian_candidates(contrarians)
-        render_capex_pulse()
 
-        # Context band: Macro note (lede) + Active Risks (ledger) on row 1, then
-        # the Week-Ahead calendar as a full-width strip on row 2. Placing the
-        # catalyst list in its own strip (rather than stacking it under Risks in
-        # the right column) keeps the row heights balanced and removes the tall
-        # empty void that used to sit beside the short Macro note.
-        band_html = (
-            '<div class="lane-wrapper">'
-            + macro_card_html(report.get("macro_summary", ""), geo,
-                              report.get("commodities_note", ""),
-                              report.get("macro_indicators", {}))
-            + risks_card_html(geo)
-            + calendar_card_html(events, lane="strip",
-                                 cascades=load_earnings_cascades())
-            + '</div>'
+        # Briefing body — 1.55fr / 1fr grid (design-spec §6), composed as ONE
+        # st.markdown so CSS grid sees the two columns as siblings
+        # (DESIGN_HANDOFF §3.4). Left lede: the single action + the macro note;
+        # right rail: active risks + the week-ahead calendar. The study blocks
+        # that used to stack here — clusters, calibration, earnings, the macro
+        # trigger map, contrarians, capex — now live on their own tabs (see the
+        # section mapping in docs/overhaul-plan.md); nothing was deleted.
+        _left = action_card_html(watchlist, events) + macro_card_html(
+            report.get("macro_summary", ""), geo,
+            report.get("commodities_note", ""),
+            report.get("macro_indicators", {}),
         )
-        st.markdown(band_html, unsafe_allow_html=True)
+        _right = risks_card_html(geo) + calendar_card_html(
+            events, lane="ledger", cascades=load_earnings_cascades(),
+        )
+        st.markdown(
+            f'<div class="briefing-grid">'
+            f'<div class="bg-col">{_left}</div>'
+            f'<div class="bg-col">{_right}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
         st.markdown(
             '<div style="margin-top:28px;padding:14px 16px;border-top:1px solid var(--rule);'
@@ -304,11 +288,57 @@ def _page_watchlist() -> None:
         render_pulse(benchmarks)
         render_watchlist(watchlist, changed_tickers=changed)
 
+        # Contrarian candidates moved off the Briefing (overhaul 2026-07):
+        # oversold names with a recovery thesis are name-level setups, so they
+        # sit with the names page. Rare — silent on most days.
+        from components.briefing import render_contrarian_candidates
+        render_contrarian_candidates(report.get("contrarian_candidates", []) or [])
+
     _render_watchlist_body()
+
+
+def _page_clusters() -> None:
+    # Cluster band moved off the Briefing (overhaul 2026-07) to its own tab, so
+    # the per-group theses + anchor tables get room to breathe. render_clusters
+    # carries its own section head. Latest report only.
+    from components.briefing import render_clusters
+    _dates = list_report_dates()
+    if not _dates:
+        st.error("No report files found in data/.")
+        st.stop()
+    _report = load_report(_dates[-1])
+    render_clusters(
+        _report.get("clusters", {}),
+        _report.get("watchlist", {}),
+        _report.get("extension_regime"),
+    )
+
+
+def _page_fundamentals() -> None:
+    # Fundamentals tab (overhaul 2026-07): the AI Capex Pulse (hero digestion
+    # scorecard) and the Earnings Scorecard — the two fundamental cross-checks —
+    # together, off the Briefing. Each render_* carries its own section head.
+    from components.briefing import render_capex_pulse, render_earnings
+    _dates = list_report_dates()
+    _report = load_report(_dates[-1]) if _dates else {}
+    render_capex_pulse()
+    render_earnings(_report.get("watchlist", {}))
 
 
 def _page_signal_tracker() -> None:
     from components.signal_tracker import render_signal_tracker_page
+    from components.briefing import render_calibration
+
+    # Signal calibration moved off the Briefing (overhaul 2026-07): "how have
+    # today's signals actually performed" is the Tracker's own subject, so it
+    # leads the page. Anchored to the latest report, not the filtered range.
+    _cal_dates = list_report_dates()
+    if _cal_dates:
+        _cal_latest = load_report(_cal_dates[-1])
+        render_calibration(
+            _cal_latest.get("calibration_insights"),
+            _cal_latest.get("watchlist", {}),
+        )
     render_signal_tracker_page(
         filter_reports(load_all_reports(), DATE_START, DATE_END),
         filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
@@ -329,6 +359,14 @@ def _page_retrospective() -> None:
 
 def _page_scenario_log() -> None:
     from components.scenario_log import render_scenario_log_page
+    from components.briefing import render_catalyst_playbook
+
+    # Macro Trigger Map moved off the Briefing (overhaul 2026-07): the per-event
+    # bull/bear playbook belongs with the scenarios it conditions. Latest report.
+    _cat_dates = list_report_dates()
+    if _cat_dates:
+        _cat_latest = load_report(_cat_dates[-1])
+        render_catalyst_playbook(_cat_latest.get("macro_trigger_map", []) or [])
     render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
@@ -355,6 +393,8 @@ def _page_terminology() -> None:
 _PAGES = {
     "Briefing": st.Page(_page_briefing, title="Briefing", url_path="briefing", default=True),
     "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
+    "Clusters": st.Page(_page_clusters, title="Clusters", url_path="clusters"),
+    "Fundamentals": st.Page(_page_fundamentals, title="Fundamentals", url_path="fundamentals"),
     "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
     "Retrospective": st.Page(_page_retrospective, title="Retrospective", url_path="retrospective"),
     "Pipeline Stats": st.Page(_page_pipeline_stats, title="Pipeline Stats", url_path="pipeline-stats"),
