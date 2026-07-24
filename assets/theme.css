@@ -455,7 +455,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
      table columns to scroll visibly past the nav's right edge. */
   width: 100% !important;
   align-self: stretch !important;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   padding-top: 6px;
 }
 .st-key-page_nav .stRadio > label {
@@ -786,8 +786,8 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   display: grid; grid-template-columns: repeat(5, 1fr);   /* 5-benchmark tape (was 8) — fills the width */
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
-  padding: 14px 0;
-  margin: 18px 0 8px;
+  padding: 12px 0;
+  margin: 12px 0 6px;
 }
 .pulse-cell {
   padding: 0 14px; border-right: 1px solid var(--rule);
@@ -1137,7 +1137,7 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   display: grid;
   grid-template-columns: 1.55fr 1fr;
   gap: var(--space-5, 40px);
-  margin-top: var(--space-5, 40px);
+  margin-top: 26px;   /* was --space-5 (40px) — trimmed in the density pass */
   /* Cards hug their own content. Stretching a pair to a common height aligned
      the boxes but left dead space under the shorter card, which read worse than
      the slight height difference (owner review 2026-07-24 — reverted). */
@@ -1156,7 +1156,7 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 /* ── Posture band — the Briefing's opening verdict (design ref briefing.jpg).
    Deliberately NOT a card: a bare full-width headline with the distribution
    folded into the sub-line, so the page opens on the conclusion. */
-.posture-band { margin: 6px 0 30px; }
+.posture-band { margin: 4px 0 20px; }
 .posture-eyebrow {
   display: flex;
   align-items: center;
@@ -1166,23 +1166,25 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-text-3);
-  margin-bottom: 16px;
+  margin-bottom: 11px;
 }
 .posture-dot { width: 9px; height: 9px; display: inline-block; flex: 0 0 auto; }
 /* !important throughout: the global h1 rules carry it, and this headline must
    win on size/family/colour. */
-/* Measure is 46ch, not the ~26ch a punchy verdict would want: the upstream
-   risk_posture is long-form prose on most days, and a narrow measure wrapped it
-   to seven lines against a mostly-empty right half (owner review 2026-07-24). */
+/* Sized for the DATA, not for a punchy one-liner: the upstream risk_posture is
+   long-form prose (~200 chars), so a big type size on a narrow measure cost 5–7
+   lines (~246px) and pushed the first card off the first screen. A 70ch measure
+   at ~27px lands it in ~3 lines while still reading as the page's headline
+   (owner review 2026-07-24: "too large a font on the starting parts"). */
 .posture-headline {
   font-family: var(--font-display) !important;
-  font-size: clamp(25px, 2.7vw, 35px) !important;
+  font-size: clamp(21px, 2.05vw, 27px) !important;
   font-weight: 600 !important;
-  letter-spacing: -0.018em !important;
+  letter-spacing: -0.015em !important;
   color: var(--color-text) !important;
-  line-height: 1.14;
-  margin: 0 0 16px;
-  max-width: 46ch;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  max-width: 70ch;
 }
 .posture-sub {
   font-family: var(--mono);
@@ -1200,7 +1202,7 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 10px;
-  margin: 4px 0 26px;
+  margin: 4px 0 16px;
 }
 .chg-lead {
   font-family: var(--mono);

@@ -449,25 +449,13 @@ _report_dates = list_report_dates()
 _latest_date = _report_dates[-1] if _report_dates else "—"
 _latest_rpt = load_report(_latest_date) if _report_dates else {}
 
-# ── Body-level data refresh + freshness indicator ──
-# The sidebar holds a "Refresh Data" button, but on mobile/narrow viewports the
-# Streamlit chrome that carries the sidebar-expand arrow is hidden, leaving the
-# sidebar (and its refresh) unreachable. Surface a compact refresh here in the
-# main flow so every viewport can reload the latest data. Mirrors the sidebar
-# button's clear-cache + rerun behaviour.
-_fresh_col, _refresh_col = st.columns([4, 1])
-with _fresh_col:
-    st.markdown(
-        f'<div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);'
-        f'padding-top:6px;">Data as of <span style="color:var(--ink-2);">'
-        f'{_latest_date}</span></div>',
-        unsafe_allow_html=True,
-    )
-with _refresh_col:
-    if st.button("↻ Refresh", use_container_width=True,
-                 help=f"Reload the latest data (showing {_latest_date})"):
-        st.cache_data.clear()
-        st.rerun()
+# ── Body-level refresh row: removed in the 2026-07-24 density pass ──
+# It cost ~62px directly under the nav on every page and duplicated two things
+# that already exist: the masthead's right block carries the date ("Last close
+# …"), and the sidebar carries "↻ Refresh Data". Its original reason — that the
+# sidebar was unreachable on narrow viewports — no longer holds: theme.css
+# force-pins the sidebar-expand chip visible at every width (see the
+# stExpandSidebarButton block), so the sidebar refresh is always reachable.
 _sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
 
 _status_html = '<div class="sidebar-status">'
