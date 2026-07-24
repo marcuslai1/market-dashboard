@@ -316,3 +316,50 @@ def test_method_points_at_this_page_not_the_briefing():
     old pointer sent readers to a band that is no longer there."""
     html = _method_html()
     assert "Briefing" not in html
+
+
+# ── Redesign (spec 2026-07-25 §5.3): the hit-rate tiles ──
+from components.signal_tracker import _hold_footnote_html
+
+
+def test_tiles_are_five_cells_of_one_hairline_grid():
+    """Five across is the point: the rates only compare if they share a row."""
+    html = _scorecard_html(_acc_df("BUY", [1.0] * 10))
+    assert 'class="hair-grid calib-grid"' in html
+    assert html.count('class="calib-cell') == 5
+
+
+def test_hit_rate_bar_and_rate_carry_no_valence_colour():
+    """A hit rate is calibration data, not a rating: the bar is brass in CSS and
+    the numeral is neutral, so neither may carry an inline colour.
+
+    The signal hue on the dot and name is legitimate and stays — the tile IS
+    about that signal — which is why this asserts on the bar and the value
+    rather than on the whole cell.
+    """
+    html = _scorecard_html(_acc_df("BUY", [1.0] * 10))
+    bar = html.split('<div class="cbar">', 1)[1].split("</div>", 1)[0]
+    assert "background" not in bar and "color" not in bar
+    for hexes in (STATUS_POS, STATUS_NEG, "#f59e0b"):
+        assert f'<div class="cval">{hexes}' not in html
+    assert '<div class="cval">100%</div>' in html
+
+
+def test_thin_cell_differs_in_three_redundant_ways():
+    """Opacity (the .thin class), colour (.warn-thin) and a glyph — no single
+    cue has to carry the caveat."""
+    thin = _scorecard_html(_acc_df("CAUTION", [-3.0, -1.0, -2.0, 4.0]))  # n=4
+    assert 'class="calib-cell thin"' in thin
+    assert "warn-thin" in thin
+    assert "⚠" in thin
+    solid = _scorecard_html(_acc_df("BUY", [1.0] * 10))
+    assert "warn-thin" not in solid and "holding up" in solid
+
+
+def test_hold_is_a_footnote_not_a_sixth_tile():
+    """HOLD makes no directional claim, so a cell with an empty percentage would
+    imply a missing measurement rather than an inapplicable one."""
+    note = _hold_footnote_html(188)
+    assert "188" in note and "not scored" in note
+    assert "calib-cell" not in note
+    assert _hold_footnote_html(0) == ""

@@ -148,3 +148,15 @@ def test_thin_sample_warning_is_terracotta_never_watch_amber():
 def test_masthead_section_head_is_the_two_px_rule():
     block = _THEME_CSS.split(".section-head.masthead {", 1)[1].split("}", 1)[0]
     assert "border-bottom: 2px solid var(--color-text)" in block
+
+
+def test_tile_bar_fills_the_cell_so_lengths_compare():
+    """47% vs 100% must read as a shape difference before either number is
+    read, which a capped bar width prevents."""
+    block = _THEME_CSS.split(".calib-cell .cbar {", 1)[1].split("}", 1)[0]
+    assert "max-width" not in block
+
+
+def test_tile_meaning_line_holds_a_shared_baseline():
+    block = _THEME_CSS.split(".calib-cell .sc-verb {", 1)[1].split("}", 1)[0]
+    assert "min-height: 24px" in block

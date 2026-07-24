@@ -363,22 +363,26 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
         n = len(valid5)
         color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         # A shown rate below the decision-grade floor ghosts the whole cell (see
-        # .calib-cell.thin) so a thin sample can't read as confidently as a solid
-        # one — the small ⚠ flag alone is too easy to skim past.
+        # .calib-cell.thin). AVOID's 100% is the least trustworthy figure on the
+        # page and any colour-coding would fight the number's own prominence;
+        # ghosting makes it physically recede, so the eye lands on the cells you
+        # can actually lean on. The design enforces the caveat instead of
+        # printing it.
         cell_thin = False
 
         if n >= MIN_SAMPLES:
             right = int((valid5 <= 0).sum() if mode == "avoid" else (valid5 > 0).sum())
             rate = right / n * 100
-            col = _rate_color(rate)
+            # No inline colour: the bar is brass in CSS, because a hit rate is a
+            # measurement of the signal and never a rating of it.
             val_html = (
                 f'<div class="cval">{rate:.0f}%</div>'
-                f'<div class="cbar"><i style="width:{rate:.0f}%;background:{col};"></i></div>'
+                f'<div class="cbar"><i style="width:{rate:.0f}%;"></i></div>'
             )
             sub = f"right {right} of {n} · 5d"
             if n < DECISION_GRADE_MIN:
                 cell_thin = True
-                flag = f'<div class="sc-flag thin">⚠ thin — only {n} calls</div>'
+                flag = f'<div class="sc-flag warn-thin">⚠ thin — only {n} calls</div>'
             else:
                 flag = f'<div class="sc-flag">n={n} · holding up</div>'
         else:
@@ -388,14 +392,28 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
 
         cells += (
             f'<div class="calib-cell{" thin" if cell_thin else ""}">'
-            f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
+            f'<div class="clabel" style="color:{color};">'
+            f'<span class="cdot" style="background:{color};"></span>{sig}</div>'
             f'<div class="sc-verb">{verb}</div>'
             f'{val_html}'
             f'<div class="csub">{sub}</div>'
             f'{flag}'
             f'</div>'
         )
-    return f'<div class="calib-grid">{cells}</div>'
+    return f'<div class="hair-grid calib-grid">{cells}</div>'
+
+
+def _hold_footnote_html(hold_count: int) -> str:
+    """HOLD's exclusion, stated as a footnote rather than a sixth tile.
+
+    HOLD carries no directional claim, so a cell with an empty percentage would
+    read as a *missing* measurement rather than an inapplicable one. Empty
+    string when there is nothing to exclude.
+    """
+    if not hold_count:
+        return ""
+    return (f'<p class="sc-hold">Hold · {hold_count} ticker-days · '
+            "not scored (non-directional)</p>")
 
 
 def _changelog_sub(entries: list) -> str:
@@ -724,8 +742,9 @@ def render_signal_tracker_page(
     else:
         st.markdown(_scorecard_html(acc_df), unsafe_allow_html=True)
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
-        if hold_count:
-            st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
+        note = _hold_footnote_html(hold_count)
+        if note:
+            st.markdown(note, unsafe_allow_html=True)
 
     # ── 1c. Paper book — the pipeline's mechanical NAV lane. Corpus-scoped:
     # the name filter below deliberately does not touch it (page contract,
