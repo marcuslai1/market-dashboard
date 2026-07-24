@@ -1,51 +1,77 @@
-"""Briefing · Changes-since-last-report ribbon.
+"""Briefing · Overnight signal-change chips.
 
-Renders a one-row ribbon showing every watchlist ticker whose signal moved
-between the prior report and today, plus an optional expander with the
-rationale for each move. Extracted from dashboard.py during the Day-2
-modularization pass.
+Design revision 2026-07-24 (ref docs/briefing.jpg): a verdict-first lead
+("▼ 10 downgrades — all to CAUTION") followed by one compact chip per name —
+a seamless row, not a bordered ribbon. The old "Why the signals moved" expander
+is gone: the per-name rationale already lives on the Watchlist.
 """
 from __future__ import annotations
 
 import streamlit as st
 
 from lib.catalog import SIGNAL_BULLISHNESS
-from lib.formatters import _escape_dollars, _writeup_for_render, display_ticker
-from lib.pills import _signal_pill_html
+from lib.formatters import _escape_dollars, display_ticker
+from lib.pills import signal_text_color
+
+
+def _lead_label(ups: list, downs: list) -> str:
+    """Verdict-first summary of the night's moves.
+
+    "10 downgrades — all to CAUTION" when they land on one signal; otherwise
+    just the counts, and both arms when the night moved in both directions.
+    """
+    def _all_to(moves: list) -> str:
+        targets = {m[2] for m in moves}
+        return f" — all to {targets.pop()}" if len(targets) == 1 else ""
+
+    parts = []
+    if downs:
+        word = "downgrade" if len(downs) == 1 else "downgrades"
+        parts.append(
+            f'<span class="chg-lead-down">▼ {len(downs)} {word}'
+            f'{_all_to(downs) if not ups else ""}</span>'
+        )
+    if ups:
+        word = "upgrade" if len(ups) == 1 else "upgrades"
+        parts.append(
+            f'<span class="chg-lead-up">▲ {len(ups)} {word}'
+            f'{_all_to(ups) if not downs else ""}</span>'
+        )
+    return '<span class="chg-lead">' + " · ".join(parts) + "</span>"
 
 
 def render_changes(today_wl: dict, prev_wl: dict) -> None:
+    """Emit the overnight signal-change row. Silent on the first report of a
+    corpus (no prior) and on days when nothing moved."""
     if not prev_wl:
         return
-    items = []
-    rationales: dict[str, str] = {}
+    moves = []
     for tk in sorted(set(today_wl) | set(prev_wl)):
         old = prev_wl.get(tk, {}).get("signal", "—")
         new = today_wl.get(tk, {}).get("signal", "—")
+        # Tickers that newly appeared / disappeared aren't analytical moves.
         if old == new or new == "—" or old == "—":
             continue
-        direction = "up" if SIGNAL_BULLISHNESS.get(new, 0) > SIGNAL_BULLISHNESS.get(old, 0) else "down"
-        # Direction arrow uses the price-delta up/down palette, not a signal hue.
-        arrow_color = "var(--up)" if direction == "up" else "var(--down)"
-        display_tk = display_ticker(tk)
-        items.append(
-            f'<span style="display:inline-flex;align-items:center;gap:8px;">'
-            f'<strong style="color:var(--ink);">{_escape_dollars(display_tk)}</strong>'
-            f'{_signal_pill_html(old, small=True)}'
-            f'<span style="color:{arrow_color};font-weight:700;">'
-            f'{"↑" if direction == "up" else "↓"}</span>'
-            f'{_signal_pill_html(new, small=True)}'
-            f'</span>'
+        direction = (
+            "up" if SIGNAL_BULLISHNESS.get(new, 0) > SIGNAL_BULLISHNESS.get(old, 0)
+            else "down"
         )
-        wu = _writeup_for_render(today_wl.get(tk, {}))
-        note = wu["headline"] or (wu["what_to_do"] or "").split(". ", 1)[0]
-        if note:
-            rationales[display_tk] = note
-    if not items:
+        moves.append((display_ticker(tk), old, new, direction))
+    if not moves:
         return
-    body = '<span class="clabel">Since yesterday</span>' + " ".join(items)
-    st.markdown(f'<div class="changes-ribbon">{body}</div>', unsafe_allow_html=True)
-    if rationales:
-        with st.expander("Why the signals moved", expanded=False):
-            for tk, txt in rationales.items():
-                st.markdown(f"**{tk}** — {_escape_dollars(txt)}")
+
+    ups = [m for m in moves if m[3] == "up"]
+    downs = [m for m in moves if m[3] == "down"]
+
+    chips = "".join(
+        f'<span class="chg-chip" style="border-left-color:{signal_text_color(new)};">'
+        f'<b>{_escape_dollars(tk)}</b>'
+        f'<span class="chg-sig" style="color:{signal_text_color(new)};">'
+        f'{_escape_dollars(new)}</span>'
+        f'</span>'
+        for tk, _old, new, _dir in moves
+    )
+    st.markdown(
+        f'<div class="changes-row">{_lead_label(ups, downs)}{chips}</div>',
+        unsafe_allow_html=True,
+    )

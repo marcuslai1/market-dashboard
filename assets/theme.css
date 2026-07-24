@@ -93,8 +93,10 @@
   --surface-2-light:#dedee0;      --surface-2-dark:#2a2b30;   /* nested */
   --surface-3-light:#d5d5d8;      --surface-3-dark:#33343a;   /* hover lift */
   --text-light:#1d1f20;           --text-dark:#e9e8e2;
-  --text-2-light:#494c4f;         --text-2-dark:#c4c5c8;      /* body-secondary */
-  --text-3-light:#6c6f73;         --text-3-dark:#8c8e92;      /* captions/eyebrows */
+  /* Body/caption ramp lifted 2026-07-24 (owner review: prose read "dull" in the
+     macro note, cluster/fundamentals strips and the change row). */
+  --text-2-light:#494c4f;         --text-2-dark:#d7d8db;      /* body-secondary */
+  --text-3-light:#6c6f73;         --text-3-dark:#a0a2a7;      /* captions/eyebrows */
   --text-4-light:#a1a3a6;         --text-4-dark:#5c5e62;      /* disabled */
   --divider-light:rgba(29,31,32,0.16);   --divider-dark:rgba(255,255,255,0.13);
   --divider-strong-light:rgba(29,31,32,0.28); --divider-strong-dark:rgba(255,255,255,0.22);
@@ -1161,18 +1163,101 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   display: grid;
   grid-template-columns: 1.55fr 1fr;
   gap: var(--space-5, 40px);
-  align-items: start;
   margin-top: var(--space-5, 40px);
+  /* Cards are DIRECT children emitted in row order, so each row's pair
+     stretches to a common height — the boxes align edge-to-edge and their
+     corner marks sit on the same lines (owner review 2026-07-24). */
+  align-items: stretch;
 }
-.briefing-grid > .bg-col {
+.briefing-grid > .card { min-width: 0; }   /* shrink in-track instead of overflowing */
+.bg-empty { display: block; }              /* spacer: keeps row pairing when a card is absent */
+/* A stretched card whose content is shorter than its row would trail dead space
+   at the bottom. Pin its "detail on the X tab" pointer to the card's foot so the
+   extra height reads as deliberate. Scoped with :has() to the strip cards only,
+   so no other card's internal layout becomes a flex context. */
+.briefing-grid > .card:has(.strip-more) { display: flex; flex-direction: column; }
+.briefing-grid > .card:has(.strip-more) > .card-body {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5, 40px);
-  min-width: 0;   /* let children shrink instead of overflowing the track */
 }
+.briefing-grid > .card .strip-more { margin-top: auto; }
 /* Cards in a column stack on the flex gap, not their own bottom margin (which
    would double-space against it — same reasoning as .lane-wrapper > .card). */
 .briefing-grid .card { margin-bottom: 0; }
+
+/* ── Posture band — the Briefing's opening verdict (design ref briefing.jpg).
+   Deliberately NOT a card: a bare full-width headline with the distribution
+   folded into the sub-line, so the page opens on the conclusion. */
+.posture-band { margin: 6px 0 30px; }
+.posture-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  margin-bottom: 16px;
+}
+.posture-dot { width: 9px; height: 9px; display: inline-block; flex: 0 0 auto; }
+/* !important throughout: the global h1 rules carry it, and this headline must
+   win on size/family/colour. */
+/* Measure is 46ch, not the ~26ch a punchy verdict would want: the upstream
+   risk_posture is long-form prose on most days, and a narrow measure wrapped it
+   to seven lines against a mostly-empty right half (owner review 2026-07-24). */
+.posture-headline {
+  font-family: var(--font-display) !important;
+  font-size: clamp(25px, 2.7vw, 35px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.018em !important;
+  color: var(--color-text) !important;
+  line-height: 1.14;
+  margin: 0 0 16px;
+  max-width: 46ch;
+}
+.posture-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  line-height: 1.65;
+  max-width: 76ch;
+}
+
+/* ── Overnight change row — seamless chips, no container box ── */
+.changes-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 4px 0 26px;
+}
+.chg-lead {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+.chg-lead-down { color: var(--down); font-weight: 600; }
+.chg-lead-up   { color: var(--up);   font-weight: 600; }
+.chg-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 4px 9px 4px 8px;
+  border: 1px solid var(--color-divider);
+  border-left-width: 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.chg-chip b { color: var(--color-text); font-weight: 600; letter-spacing: 0.03em; }
+.chg-sig { font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; }
 
 /* ── Compact internals strips: Clusters + Fundamentals (Briefing) ──
    Verdict-first, line-drawing rows separated by hairlines — no filled boxes.
@@ -1295,7 +1380,6 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
     grid-template-columns: 1fr;
     gap: var(--space-4, 24px);
   }
-  .briefing-grid > .bg-col { gap: var(--space-4, 24px); }
 }
 
 /* ── Signal color tokens (mirrored from assets/catalog.json) ──── */

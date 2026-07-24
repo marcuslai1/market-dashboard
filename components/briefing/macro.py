@@ -141,8 +141,10 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
         body += f'<p class="macro-lead">{_escape_dollars(macro_summary)}</p>'
     if commodities_note:
         body += (
+            # --ink-2 not --ink-3: this is prose ("WTI leapt to $91.95…"), and at
+            # caption weight it read dull against the lede above it (owner review).
             '<div style="margin-top:8px;font-family:var(--mono);font-size:11.5px;'
-            'color:var(--ink-3);line-height:1.5;padding:8px 0 4px;'
+            'color:var(--ink-2);line-height:1.5;padding:8px 0 4px;'
             'border-top:1px solid var(--rule);">'
             f'{_escape_dollars(commodities_note)}</div>'
         )
