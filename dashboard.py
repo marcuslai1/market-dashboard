@@ -16,17 +16,17 @@ from pathlib import Path
 
 import streamlit as st
 
+# The Briefing body keeps only the glance blocks; the study blocks (clusters,
+# calibration, earnings, catalyst map, contrarians, capex) moved to their own
+# tabs (overhaul 2026-07) and are imported lazily inside those page functions.
 from components.briefing import (
-    render_action_card,
-    render_calibration,
-    render_capex_pulse,
-    render_catalyst_playbook,
+    clusters_strip_html,
+    fundamentals_strip_html,
     render_changes,
-    render_clusters,
-    render_contrarian_candidates,
-    render_earnings,
     render_pulse,
 )
+from components.briefing.action_card import action_card_html
+from components.briefing.clusters import cluster_anchor_count
 from components.briefing.calendar import calendar_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.stance import stance_band_html
@@ -119,6 +119,35 @@ mark_mounted()
 # script, AFTER the sidebar has assigned LIVE_PRICES / DATE_START / DATE_END —
 # the functions read those module globals at call time.
 # ════════════════════════════════════════════
+# ── Drill-in modals ──
+# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
+# opens as a dialog from the matching Briefing card, so drilling in never leaves
+# the page. st.dialog supplies the dimmed backdrop, click-outside dismiss and
+# close control natively; theme.css only styles the surface so it wears the same
+# blueprint grammar (square corners, 2px masthead-weight header rule) as the
+# page behind it — "zooming into the same document, not opening a different app".
+@st.dialog("Where each group stands", width="large")
+def _clusters_dialog(report: dict) -> None:
+    from components.briefing import render_clusters
+    render_clusters(
+        report.get("clusters", {}),
+        report.get("watchlist", {}),
+        report.get("extension_regime"),
+    )
+
+
+@st.dialog("Fundamentals — the full measure list", width="large")
+def _fundamentals_dialog(watchlist: dict) -> None:
+    # Deliberately NOT render_capex_pulse(): that carries an st.expander, and a
+    # Streamlit widget inside a dialog reruns the script, which dismisses the
+    # dialog. The measure list and the earnings scorecard are pure markup
+    # (the latter uses native <details>), so the dialog stays put.
+    from components.briefing import render_earnings
+    from components.briefing.fundamentals import fundamentals_detail_html
+    st.markdown(fundamentals_detail_html(), unsafe_allow_html=True)
+    render_earnings(watchlist)
+
+
 def _page_briefing() -> None:
     _dates = list_report_dates()
     if not _dates:
@@ -139,6 +168,18 @@ def _page_briefing() -> None:
         st.stop()
     _prev_report = load_report(_prev_date) if _prev_date else None
 
+    # Drill-in dialogs are opened HERE, on the main script run — deliberately
+    # outside the body fragment below. A fragment rerun only patches its own DOM
+    # subtree, so a dialog opened inside one executes but never attaches (the
+    # content renders into nothing). The card buttons therefore set a flag and
+    # request a full-app rerun; we pop it here and open the dialog at page level.
+    _pending_modal = (st.session_state.pop("_open_modal", None)
+                      or st.query_params.get("modal"))
+    if _pending_modal == "clusters":
+        _clusters_dialog(_base_report)
+    elif _pending_modal == "fundamentals":
+        _fundamentals_dialog(_base_report.get("watchlist", {}))
+
     # Live prices are the only per-minute-changing input on the Briefing, and the
     # Yahoo fetch can stall for a few seconds. Rendering the body inside a fragment
     # keeps that fetch off the main script run — masthead, nav, and sidebar paint
@@ -156,12 +197,13 @@ def _page_briefing() -> None:
         benchmarks = report.get("benchmarks", {})
         geo = report.get("geopolitical", {})
         events = report.get("events_this_week", []) or []
-        trigger_map = report.get("macro_trigger_map", []) or []
-        contrarians = report.get("contrarian_candidates", []) or []
 
         # Stance band: single st.markdown so the lane-wrapper actually scopes both
         # the lede (stance deck) and ledger (signal counts) as grid children.
-        st.markdown(stance_band_html(snapshot, len(watchlist)), unsafe_allow_html=True)
+        st.markdown(
+            stance_band_html(snapshot, len(watchlist), report.get("extension_regime")),
+            unsafe_allow_html=True,
+        )
 
         # Data-coverage banner — only when the report ran on incomplete data.
         # A degraded run disarms cluster medians + extension-regime checks, so the
@@ -212,37 +254,68 @@ def _page_briefing() -> None:
             watchlist,
             _prev_report.get("watchlist", {}) if _prev_report else {},
         )
-        render_clusters(
-            report.get("clusters", {}),
-            watchlist,
-            report.get("extension_regime"),
-        )
-        render_calibration(
-            report.get("calibration_insights"),
-            watchlist,
-        )
-        render_earnings(watchlist)
-        render_action_card(watchlist, events)
-        render_catalyst_playbook(trigger_map)
-        render_contrarian_candidates(contrarians)
-        render_capex_pulse()
 
-        # Context band: Macro note (lede) + Active Risks (ledger) on row 1, then
-        # the Week-Ahead calendar as a full-width strip on row 2. Placing the
-        # catalyst list in its own strip (rather than stacking it under Risks in
-        # the right column) keeps the row heights balanced and removes the tall
-        # empty void that used to sit beside the short Macro note.
-        band_html = (
-            '<div class="lane-wrapper">'
-            + macro_card_html(report.get("macro_summary", ""), geo,
-                              report.get("commodities_note", ""),
-                              report.get("macro_indicators", {}))
-            + risks_card_html(geo)
-            + calendar_card_html(events, lane="strip",
-                                 cascades=load_earnings_cascades())
-            + '</div>'
+        # Market internals — compact, verdict-first showcase (design revision
+        # 2026-07-24): Clusters (left, per-group one-liners) + the Fundamentals
+        # verdicts (right, capex + earnings). The deep evidence — anchor tables,
+        # capex datasheet, trend charts — stays on the Clusters and Fundamentals
+        # tabs (progressive disclosure). Same 1.55fr/1fr grid as the main band.
+        # st.columns (not the CSS grid) because each column needs a real
+        # st.button to open its modal, and a widget can't live inside an
+        # st.markdown HTML string. Same 1.55/1 ratio as the band below.
+        # st.columns (not the CSS grid) because each card ends in a real
+        # st.button, and a widget can't live inside an st.markdown string. The
+        # keyed container IS the card frame (theme.css strips the inner .card's
+        # border), so the button sits in normal flow as the card's LAST CHILD —
+        # left-aligned to the content edge, shrink-to-fit, 12px below the last
+        # row. Cards size to their own content (align-items:start), so the two
+        # buttons do not share a baseline — that is intended.
+        _cl_strip = clusters_strip_html(
+            report.get("clusters", {}), watchlist, report.get("extension_regime")
         )
-        st.markdown(band_html, unsafe_allow_html=True)
+        _fx_strip = fundamentals_strip_html(watchlist)
+        if _cl_strip or _fx_strip:
+            _cl_col, _fx_col = st.columns([1.55, 1], gap="large")
+            with _cl_col:
+                if _cl_strip:
+                    with st.container(key="clusters_card"):
+                        st.markdown(_cl_strip, unsafe_allow_html=True)
+                        _n = cluster_anchor_count(report.get("clusters", {}))
+                        if st.button(f"View all {_n} anchors →",
+                                     key="open_clusters_modal"):
+                            st.session_state["_open_modal"] = "clusters"
+                            st.rerun(scope="app")
+            with _fx_col:
+                if _fx_strip:
+                    with st.container(key="fundamentals_card"):
+                        st.markdown(_fx_strip, unsafe_allow_html=True)
+                        if st.button("View all measures →",
+                                     key="open_fundamentals_modal"):
+                            st.session_state["_open_modal"] = "fundamentals"
+                            st.rerun(scope="app")
+
+        # Briefing body — 1.55fr / 1fr grid (design-spec §6), composed as ONE
+        # st.markdown so CSS grid sees the two columns as siblings
+        # (DESIGN_HANDOFF §3.4). Left lede: the single action + the macro note;
+        # right rail: active risks + the week-ahead calendar. The study blocks
+        # that used to stack here — clusters, calibration, earnings, the macro
+        # trigger map, contrarians, capex — now live on their own tabs (see the
+        # section mapping in docs/overhaul-plan.md); nothing was deleted.
+        _left = action_card_html(watchlist, events) + macro_card_html(
+            report.get("macro_summary", ""), geo,
+            report.get("commodities_note", ""),
+            report.get("macro_indicators", {}),
+        )
+        _right = risks_card_html(geo) + calendar_card_html(
+            events, lane="ledger", cascades=load_earnings_cascades(),
+        )
+        st.markdown(
+            f'<div class="briefing-grid">'
+            f'<div class="bg-col">{_left}</div>'
+            f'<div class="bg-col">{_right}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
         st.markdown(
             '<div style="margin-top:28px;padding:14px 16px;border-top:1px solid var(--rule);'
@@ -304,11 +377,34 @@ def _page_watchlist() -> None:
         render_pulse(benchmarks)
         render_watchlist(watchlist, changed_tickers=changed)
 
+        # Contrarian candidates moved off the Briefing (overhaul 2026-07):
+        # oversold names with a recovery thesis are name-level setups, so they
+        # sit with the names page. Rare — silent on most days.
+        from components.briefing import render_contrarian_candidates
+        render_contrarian_candidates(report.get("contrarian_candidates", []) or [])
+
     _render_watchlist_body()
+
+
+# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
+# opens as a modal from the matching Briefing card, so the reader drills in
+# without leaving the page — see _clusters_dialog / _fundamentals_dialog above.
 
 
 def _page_signal_tracker() -> None:
     from components.signal_tracker import render_signal_tracker_page
+    from components.briefing import render_calibration
+
+    # Signal calibration moved off the Briefing (overhaul 2026-07): "how have
+    # today's signals actually performed" is the Tracker's own subject, so it
+    # leads the page. Anchored to the latest report, not the filtered range.
+    _cal_dates = list_report_dates()
+    if _cal_dates:
+        _cal_latest = load_report(_cal_dates[-1])
+        render_calibration(
+            _cal_latest.get("calibration_insights"),
+            _cal_latest.get("watchlist", {}),
+        )
     render_signal_tracker_page(
         filter_reports(load_all_reports(), DATE_START, DATE_END),
         filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
@@ -329,6 +425,19 @@ def _page_retrospective() -> None:
 
 def _page_scenario_log() -> None:
     from components.scenario_log import render_scenario_log_page
+    from components.briefing import render_catalyst_playbook
+    from components.briefing.macro import scenario_odds_html
+
+    # Scenario odds + the Macro Trigger Map both moved off the Briefing (overhaul
+    # 2026-07): the scenario-probability bar and the per-event bull/bear playbook
+    # belong with the scenarios they describe. Latest report.
+    _cat_dates = list_report_dates()
+    if _cat_dates:
+        _cat_latest = load_report(_cat_dates[-1])
+        _odds = scenario_odds_html(_cat_latest.get("geopolitical", {}))
+        if _odds:
+            st.markdown(_odds, unsafe_allow_html=True)
+        render_catalyst_playbook(_cat_latest.get("macro_trigger_map", []) or [])
     render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
 
@@ -378,25 +487,13 @@ _report_dates = list_report_dates()
 _latest_date = _report_dates[-1] if _report_dates else "—"
 _latest_rpt = load_report(_latest_date) if _report_dates else {}
 
-# ── Body-level data refresh + freshness indicator ──
-# The sidebar holds a "Refresh Data" button, but on mobile/narrow viewports the
-# Streamlit chrome that carries the sidebar-expand arrow is hidden, leaving the
-# sidebar (and its refresh) unreachable. Surface a compact refresh here in the
-# main flow so every viewport can reload the latest data. Mirrors the sidebar
-# button's clear-cache + rerun behaviour.
-_fresh_col, _refresh_col = st.columns([4, 1])
-with _fresh_col:
-    st.markdown(
-        f'<div style="font-family:var(--mono);font-size:11px;color:var(--ink-3);'
-        f'padding-top:6px;">Data as of <span style="color:var(--ink-2);">'
-        f'{_latest_date}</span></div>',
-        unsafe_allow_html=True,
-    )
-with _refresh_col:
-    if st.button("↻ Refresh", use_container_width=True,
-                 help=f"Reload the latest data (showing {_latest_date})"):
-        st.cache_data.clear()
-        st.rerun()
+# ── Body-level refresh row: removed in the 2026-07-24 density pass ──
+# It cost ~62px directly under the nav on every page and duplicated two things
+# that already exist: the masthead's right block carries the date ("Last close
+# …"), and the sidebar carries "↻ Refresh Data". Its original reason — that the
+# sidebar was unreachable on narrow viewports — no longer holds: theme.css
+# force-pins the sidebar-expand chip visible at every width (see the
+# stExpandSidebarButton block), so the sidebar refresh is always reachable.
 _sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
 
 _status_html = '<div class="sidebar-status">'

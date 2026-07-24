@@ -50,15 +50,66 @@ def _pick_action_ticker(wl: dict) -> tuple[str | None, dict | None]:
     return candidates[0]
 
 
-def render_action_card(wl: dict, events: list) -> None:
+def _entry_target_invalidation_html(d: dict, ccy: str) -> str:
+    """The entry / target / invalidation triplet (design-spec §7).
+
+    Levels come straight from the report: ``reentry_zone.level`` for entry,
+    ``risk_reward.upside_target`` / ``.invalidation`` for the exits. Target and
+    invalidation carry the price up/down palette — they are price levels, not
+    signals. Returns "" when the report carries none of the three.
+    """
+    rr = d.get("risk_reward") or {}
+    rz = d.get("reentry_zone") or {}
+    entry = rz.get("level")
+    target = rr.get("upside_target")
+    invalid = rr.get("invalidation")
+    if not (entry or target is not None or invalid is not None):
+        return ""
+    up_pct = rr.get("upside_pct")
+    down_pct = rr.get("downside_pct")
+
+    def _cell(label: str, value: str, sub: str, color: str = "var(--ink)") -> str:
+        return (
+            f'<div class="ac-tri-cell">'
+            f'<div class="ac-tri-label">{label}</div>'
+            f'<div class="ac-tri-val" style="color:{color};">{value}</div>'
+            f'<div class="ac-tri-sub">{sub}</div>'
+            f'</div>'
+        )
+
+    entry_val = _escape_dollars(str(entry)) if entry else "—"
+    entry_sub = _escape_dollars(rz.get("source") or "on the setup")
+    target_val = _price_str(target, ccy) if target is not None else "—"
+    target_sub = (
+        f'{_sign(up_pct)}{_fmt_num(up_pct, 0)}% · {_escape_dollars(rr.get("upside_reason") or "")}'
+        if up_pct is not None else _escape_dollars(rr.get("upside_reason") or "")
+    )
+    inv_val = _price_str(invalid, ccy) if invalid is not None else "—"
+    inv_sub = (
+        f'−{_fmt_num(down_pct, 1)}% · {_escape_dollars(rr.get("invalidation_reason") or "")}'
+        if down_pct is not None else _escape_dollars(rr.get("invalidation_reason") or "")
+    )
+    return (
+        '<div class="ac-triplet">'
+        + _cell("Entry", entry_val, entry_sub)
+        + _cell("Target", target_val, target_sub, "var(--up)")
+        + _cell("Invalidation", inv_val, inv_sub, "var(--down)")
+        + '</div>'
+    )
+
+
+def action_card_html(wl: dict, events: list) -> str:
+    """Return the Today's-Trade card as an HTML string ("" when nothing is
+    actionable).
+
+    The Briefing 1.55fr/1fr grid composes this into a single ``st.markdown`` so
+    CSS grid sees its two columns as siblings (DESIGN_HANDOFF §3.4);
+    ``render_action_card`` below wraps it (with the section head) for any
+    standalone use."""
     tk, d = _pick_action_ticker(wl)
     if not tk:
-        # Nothing actionable today — render nothing per design.
-        return
-    # Own section head: rendered bare after the Earnings Scorecard band, the
-    # card read as earnings content (UX 2026-07-07). Emitted only when the
-    # card itself renders, so an empty day stays fully silent.
-    render_section_head("Today's Trade", "The single highest-conviction setup on the book")
+        # Nothing actionable today — caller skips the callout.
+        return ""
     sig = d.get("signal", "WATCH")
     color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
     display_tk = _escape_dollars(display_ticker(tk))
@@ -73,7 +124,9 @@ def render_action_card(wl: dict, events: list) -> None:
     rr_label, _, rr_adjusted = rr_display(d.get("risk_reward"))
 
     price_str = _price_str(price, ccy)
-    delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
+    # Price delta uses the dedicated up/down palette, never a signal hue
+    # (design-spec §3: signal colours live only on pills/rails).
+    delta_color = "var(--up)" if (chg or 0) >= 0 else "var(--down)"
     delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
     # "today" is a lie during extended hours — name the session instead.
     delta_when = {"PRE": "pre-mkt", "POST": "after-hrs"}.get(
@@ -95,6 +148,7 @@ def render_action_card(wl: dict, events: list) -> None:
         f'line-height:1.5;">{_escape_dollars(block_text)}</div>'
         if block_text else ""
     )
+    triplet_html = _entry_target_invalidation_html(d, ccy)
 
     # When the report flags the headline R:R as distorted by a too-tight stop,
     # rr_display() returns the deeper-stop sizing ratio the writeup itself cites
@@ -131,6 +185,7 @@ def render_action_card(wl: dict, events: list) -> None:
         f'<div style="color:var(--ink-2);font-size:14px;line-height:1.55;max-width:60ch;">'
         f'{_escape_dollars(body)}</div>'
         f'{block_html}'
+        f'{triplet_html}'
         f'</div>'
         # Right column — price stats (Last / level / delta / R:R).
         f'<div class="ac-price">'
@@ -143,12 +198,22 @@ def render_action_card(wl: dict, events: list) -> None:
         f'</div>'
     )
 
-    st.markdown(
-        card_container(
-            eyebrow="IF YOU ONLY DO ONE THING TODAY",
-            headline=_escape_dollars(headline),
-            body_html=body_html,
-            lane="lede",
-        ),
-        unsafe_allow_html=True,
+    return card_container(
+        eyebrow="IF YOU ONLY DO ONE THING TODAY",
+        headline=_escape_dollars(headline),
+        body_html=body_html,
+        lane="lede",
     )
+
+
+def render_action_card(wl: dict, events: list) -> None:
+    """Standalone emit: the section head + the Today's-Trade card. Silent when
+    nothing is actionable. (The Briefing itself now composes the card into its
+    grid via ``action_card_html``; this wrapper stays for standalone callers.)"""
+    html = action_card_html(wl, events)
+    if not html:
+        return
+    render_section_head(
+        "Today's Trade", "The single highest-conviction setup on the book"
+    )
+    st.markdown(html, unsafe_allow_html=True)

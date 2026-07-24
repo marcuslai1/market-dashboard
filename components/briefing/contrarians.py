@@ -4,7 +4,6 @@ from __future__ import annotations
 import streamlit as st
 
 from lib.cards import render_section_head
-from lib.charts import STATUS_POS
 from lib.formatters import _escape_dollars, _fmt_num, display_ticker
 
 
@@ -32,7 +31,7 @@ def render_contrarian_candidates(contrarians: list) -> None:
         thesis = c.get("thesis") or c.get("rationale") or ""
         trigger = c.get("trigger") or c.get("entry_trigger") or ""
         st.markdown(
-            f'<div style="border-left:3px solid {STATUS_POS};background:var(--paper-2);'
+            f'<div style="border-left:3px solid var(--up);background:var(--paper-2);'
             f'padding:12px 16px;margin-bottom:10px;">'
             f'<div style="display:flex;justify-content:space-between;'
             f'align-items:baseline;margin-bottom:6px;">'
@@ -45,7 +44,7 @@ def render_contrarian_candidates(contrarians: list) -> None:
             f'{_escape_dollars(thesis)}</div>'
             + (
                 f'<div style="margin-top:6px;font-family:var(--mono);font-size:11px;'
-                f'color:{STATUS_POS};">Trigger · {_escape_dollars(trigger)}</div>'
+                f'color:var(--up);">Trigger · {_escape_dollars(trigger)}</div>'
                 if trigger else ""
             )
             + '</div>',

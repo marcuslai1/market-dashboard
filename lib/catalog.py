@@ -44,13 +44,13 @@ SIGNAL_BULLISHNESS = {sig: len(SIGNAL_ORDER) - i for i, sig in enumerate(SIGNAL_
 # Signal palette tints (used by sig_pill_html for backgrounds)
 SIGNAL_TINTS = _CATALOG["signals"]["tints"]
 
+# Decision-relevant tape — 5 benchmarks (design-spec §7). WTI / Gold / DXY were
+# dropped from the tape in the 2026-07 overhaul: they are macro context, carried
+# narratively in the Macro note rather than as standing tiles (overhaul-plan §C6).
 PULSE_ORDER = [
     ("SPY",   "S&P 500",     False),
     ("QQQ",   "Nasdaq 100",  False),
     ("VIX",   "Fear gauge",  True),
-    ("WTI",   "Crude oil",   False),
-    ("Gold",  "Gold",        False),
-    ("DXY",   "Dollar idx",  False),
     ("US10Y", "10-yr yield", False),
     ("SOXX",  "Semis ETF",   False),
 ]
