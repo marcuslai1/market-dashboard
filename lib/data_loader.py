@@ -204,6 +204,25 @@ def load_paper_nav() -> pd.DataFrame:
 
 
 @st.cache_data(max_entries=4)
+def _load_earnings_history_cached(path_str: str, mtime: float) -> pd.DataFrame:
+    return _safe_read_csv(Path(path_str))
+
+
+def load_earnings_history() -> pd.DataFrame:
+    """Quarter-on-quarter earnings archive (``data/earnings_history.csv``), or empty.
+
+    Exported by the pipeline from its ``earnings_history`` table (spec
+    2026-07-24-earnings-history-archive): per (ticker, quarter) EPS
+    estimate/actual/surprise, revenue actual/estimate/YoY, margins. Raw frame —
+    the watchlist page groups it per ticker for the drill-down table. Missing
+    file (every checkout until the pipeline first exports it) → empty frame, and
+    the drill-down section stays silent.
+    """
+    path = DATA_DIR / "earnings_history.csv"
+    return _load_earnings_history_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
 def _load_paper_trades_cached(path_str: str, mtime: float) -> pd.DataFrame:
     return _safe_read_csv(Path(path_str))
 

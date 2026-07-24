@@ -35,12 +35,16 @@ def _pct_cell(value, decimals: int) -> str:
     return f"{_sign(value)}{_fmt_num(value, decimals)}%"
 
 
-def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -> str:
+def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
+                               earnings_hist=None) -> str:
     """Build a complete <details> block: row as summary, writeup+drilldown as body.
 
     ``signal_changed=True`` adds ``data-signal-changed="true"`` to the
     ``<details>`` element so the CSS first-mount signal-flash keyframe can
     target it (gated by ``.watchlist-route[data-first-mount="true"]``).
+
+    ``earnings_hist`` (optional) is passed straight through to the drill-down for
+    the quarter-on-quarter earnings-history table.
     """
     sig = d.get("signal", "HOLD")
     display_tk = _escape_dollars(display_ticker(tk))
@@ -106,7 +110,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False) -
         body_parts.append(
             f'<div class="dd-whatdo">{_escape_dollars(wu["what_to_do"])}</div>'
         )
-    body_parts.append(render_drilldown_detail_html(tk, d))
+    body_parts.append(render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist))
     body = f'<div class="tk-drilldown">{"".join(body_parts)}</div>'
 
     changed_attr = ' data-signal-changed="true"' if signal_changed else ''
