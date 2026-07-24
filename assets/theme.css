@@ -218,7 +218,7 @@
 }
 
 .stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
-.main .block-container { max-width: 1280px; padding-top: 18px; padding-bottom: 80px; }
+.main .block-container { max-width: 1200px; padding-top: 18px; padding-bottom: 80px; }  /* spec §6: 1200px centred */
 [data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 
 /* Hide default Streamlit chrome. The header is both hidden AND collapsed to
@@ -517,7 +517,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 .st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
   color: var(--ink) !important;
   font-weight: 600;
-  border-bottom-color: var(--watch) !important;   /* amber accent = "you are here" */
+  border-bottom-color: var(--accent) !important;   /* 2px accent underline = active tab (spec §6); was --watch, a signal hue */
 }
 /* Keyboard focus ring on the active tab label (matches the summary treatment). */
 .st-key-page_nav [role="radiogroup"] > label:has(input:focus-visible) {
@@ -535,7 +535,7 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   font-size: 10px;                /* scaled with the 12.5px labels */
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: #f59e0b;
+  color: var(--accent);   /* was #f59e0b (a signal hue); folio numerals are structure, not signal */
   opacity: 0.5;
   margin-right: 6px;
   vertical-align: 3px;            /* raise the numeral like a section folio */
@@ -1120,6 +1120,33 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
    left an empty band of whitespace below the Signal Distribution counts and
    below the Active Risks list. */
 .lane-wrapper > .card { margin-bottom: 0; align-self: start; }
+
+/* ── Briefing body grid (design-spec §6) ──────────────────────────
+   The Briefing body below the full-width posture/tape/chips is a two-column
+   1.55fr / 1fr grid: dominant lede left (Action, Macro), reference rail right
+   (Risks, Week-ahead). Composed as ONE st.markdown string so CSS grid sees the
+   columns as siblings (DESIGN_HANDOFF §3.4). Collapses to a single column
+   below 900px, lede stack first (docs/overhaul-plan.md §4). */
+.briefing-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: var(--space-5, 40px);
+  align-items: start;
+  margin-top: var(--space-5, 40px);
+}
+.briefing-grid > .bg-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 40px);
+  min-width: 0;   /* let children shrink instead of overflowing the track */
+}
+@media (max-width: 899px) {
+  .briefing-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4, 24px);
+  }
+  .briefing-grid > .bg-col { gap: var(--space-4, 24px); }
+}
 
 /* ── Signal color tokens (mirrored from assets/catalog.json) ──── */
 :root {
