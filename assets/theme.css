@@ -1943,37 +1943,55 @@ details.led-details[open] > summary > div:first-child::before {
    ════════════════════════════════════════════════════════════ */
 
 /* 1 ── Calibration hero band (one cell per signal type) */
-.calib-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--rule-strong);
-  border-bottom: 1px solid var(--rule-strong);
-  margin: 14px 0 6px;
-}
-.calib-cell { padding: 16px 20px; border-right: 1px solid var(--rule); }
-.calib-cell:last-child { border-right: 0; }
+/* ── Hit-rate tiles: five peer measurements, read left to right ──
+   Order inside a tile is fixed: identity → plain English → the number → its
+   shape → its arithmetic → whether to trust it. Grid construction comes from
+   .hair-grid; only the column count is local. */
+.calib-grid { grid-template-columns: repeat(5, 1fr); margin: 14px 0 6px; }
+.calib-cell { padding: 14px 16px 16px; }
 .calib-cell .clabel {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--ink-3);
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
   display: flex; align-items: center; gap: 7px;
 }
 .calib-cell .cdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+/* Verdict-first: the tile says what the signal tells you to do before it
+   reports how often it was right. min-height keeps one- and two-line meanings
+   from pushing the five percentages onto different baselines — the whole point
+   of a 5-across grid is that the numbers align. */
+.calib-cell .sc-verb {
+  font-size: 9.5px; line-height: 1.3; color: var(--color-text-3);
+  min-height: 24px; margin-top: 6px;
+}
 .calib-cell .cval {
-  font-family: var(--serif); font-size: 2rem; font-weight: 500;
-  letter-spacing: -0.01em; line-height: 1; margin-top: 9px; color: var(--ink);
+  font-family: var(--font-display); font-size: 38px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1; margin-top: 4px;
+  color: var(--color-text); font-variant-numeric: tabular-nums;
 }
-.calib-cell .cval.muted {
-  font-size: 1.05rem; color: var(--ink-3); font-style: italic;
-}
-/* Performance meter under the (neutral --ink) calibration numeral — carries the
-   good/weak read without tinting the number in a signal colour. */
-.calib-cell .cbar {
-  height: 3px; border-radius: 2px; background: var(--surface-2);
-  margin-top: 9px; overflow: hidden; max-width: 120px;
-}
-.calib-cell .cbar > i { display: block; height: 100%; border-radius: 2px; }
+.calib-cell .cval.muted { font-size: 18px; color: var(--color-text-4); }
+/* Brass: calibration data, not a rating. Full cell width so bar lengths are
+   directly comparable across the five cells — 47% vs 100% should read as a
+   shape difference before either number is read. */
+.calib-cell .cbar { height: 4px; background: var(--color-divider); margin-top: 10px; }
+.calib-cell .cbar > i { display: block; height: 100%; background: var(--brass); }
 .calib-cell .csub {
-  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
-  margin-top: 9px; letter-spacing: 0.02em;
+  font-size: 11px; color: var(--color-text-2); margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.calib-cell .sc-flag {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-text-3); margin-top: 5px;
+}
+/* Sample adequacy by opacity, never colour: any colour-coding would fight the
+   number's own prominence, so the untrustworthy figures physically recede
+   instead. With .warn-thin and the ⚠ glyph that is three redundant cues. */
+.calib-cell.thin .cval, .calib-cell.thin .cbar { opacity: 0.42; }
+/* Stated as a footnote, deliberately not a sixth tile: HOLD makes no
+   directional claim, and an empty percentage would imply a missing measurement
+   rather than an inapplicable one. */
+.sc-hold {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-3); margin: 10px 0 0;
 }
 
 /* 2 ── By-name ledger: header + click-to-expand rows */
@@ -2228,31 +2246,14 @@ details.led-details[open] > summary {
   .cal-event { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; }
   .cal-text { min-width: 0; }
 
-  /* Signal-Tracker calibration band: 4-across tiles overflowed the viewport
-     (each needs ~100px of ~87 available). 2×2 with re-drawn hairlines. */
+  /* Hit-rate tiles: five across overflows a phone (each needs ~100px of ~87
+     available). The hairlines are the grid's own gaps, so nothing to re-draw. */
   .calib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .calib-cell { padding: 14px; }
-  .calib-cell:nth-child(even) { border-right: 0; }
-  .calib-cell:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+  .calib-cell { padding: 12px 14px 14px; }
 }
 
-/* ── Signal Tracker: scorecard plain-language + what-we've-changed strip ── */
-.calib-cell .sc-verb {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-3);
-  letter-spacing: 0.04em; margin: 3px 0 9px; text-transform: uppercase;
-}
-.calib-cell .sc-flag {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 7px;
-}
-.calib-cell .sc-flag.thin { color: #f59e0b; }
-/* Thin sample (rate shown but below the decision-grade floor): recede the whole
-   read so a shaky rate can't masquerade as a confident one. Ghost the numeral
-   and hollow the bar (opacity/border keep it theme-agnostic); the amber ⚠ flag
-   stays full-strength as the explanation. */
-.calib-cell.thin .cval { opacity: 0.4; }
-.calib-cell.thin .cbar { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); }
-.calib-cell.thin .cbar > i { opacity: 0.32; }
-
+/* ── Signal Tracker: what-we've-changed strip ──
+   (The scorecard tile rules live with the .calib-* block above.) */
 .chg-log { border-top: 1px solid var(--rule); margin-top: 4px; }
 .chg-item {
   display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px;
