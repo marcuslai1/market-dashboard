@@ -733,6 +733,15 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   }
   .masthead .title { font-size: 22px; }
   .masthead .right { align-items: flex-start; text-align: left; }
+  /* The sidebar-expand chip is FIXED at top-left (top:6, ~28px tall). The
+     density pass moved the masthead to y=16, so wherever that chip exists — the
+     phone default, sidebar collapsed — it clipped the wordmark ("E MARKET
+     REPORT"). Nudge the masthead clear of it instead of restoring the container
+     padding, so the reclaimed space is only given back where the chip is. */
+  body:has([data-testid="stExpandSidebarButton"]) .masthead,
+  body:has([data-testid="stSidebarCollapsedControl"]) .masthead {
+    margin-top: 24px;
+  }
 }
 @media (max-width: 400px) {
   .masthead .title { font-size: 20px; }
