@@ -40,6 +40,7 @@ from lib.data_loader import (
     list_report_dates,
     load_all_reports,
     load_earnings_cascades,
+    load_macro_history,
     load_paper_nav,
     load_report,
     load_signal_log,
@@ -305,6 +306,7 @@ def _page_briefing() -> None:
             report.get("macro_summary", ""), geo,
             report.get("commodities_note", ""),
             report.get("macro_indicators", {}),
+            load_macro_history(),
         )
         _right = risks_card_html(geo) + calendar_card_html(
             events, lane="ledger", cascades=load_earnings_cascades(),

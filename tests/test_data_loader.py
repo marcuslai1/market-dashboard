@@ -136,6 +136,83 @@ def test_data_fingerprint_stable_when_nothing_changes(tmp_path, monkeypatch):
     (tmp_path / "morning_report_2026-01-01.json").write_text("{}", encoding="utf-8")
     assert dl.data_fingerprint() == dl.data_fingerprint()
 
+# ── Macro print history (Briefing prints-grid sparklines) ──
+# Reports carry no FRED series history, so the trend line is rebuilt from the
+# archive: one report per calendar month, deduped by observation date.
+
+def test_history_sample_takes_the_newest_date_in_each_ten_day_bucket():
+    dates = ["2026-01-02", "2026-01-09", "2026-01-14", "2026-01-20",
+             "2026-01-26", "2026-01-30"]
+    assert dl._history_sample(dates, 12) == ["2026-01-09", "2026-01-20", "2026-01-30"]
+
+
+def test_history_sample_is_bounded_and_keeps_the_newest_buckets():
+    dates = [f"2026-{m:02d}-15" for m in range(1, 13)]
+    assert dl._history_sample(dates, 3) == ["2026-10-15", "2026-11-15", "2026-12-15"]
+
+
+def test_history_sample_always_keeps_the_newest_date():
+    dates = [f"2026-03-{d:02d}" for d in range(1, 25)]
+    assert dl._history_sample(dates, 30)[-1] == "2026-03-24"
+
+
+def test_history_sample_handles_empty_corpus():
+    assert dl._history_sample([], 12) == []
+
+
+def _write_report(tmp_path, date_str, asof, value):
+    (tmp_path / f"morning_report_{date_str}.json").write_text(
+        json.dumps({"macro_indicators": {"CPI (YoY)": {"value": value, "asof": asof}}}),
+        encoding="utf-8",
+    )
+
+
+def test_load_macro_history_dedupes_by_observation_date(tmp_path, monkeypatch):
+    """Three months of reports carrying two distinct CPI observations yield two
+    points — the archive stores the same print every day until the next one."""
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    _write_report(tmp_path, "2026-01-31", "2025-12-01", 3.1)
+    _write_report(tmp_path, "2026-02-28", "2025-12-01", 3.1)
+    _write_report(tmp_path, "2026-03-31", "2026-02-01", 3.5)
+    _bump(tmp_path)
+    assert dl.load_macro_history()["CPI (YoY)"] == [3.1, 3.5]
+
+
+def test_load_macro_history_prefers_the_latest_revision(tmp_path, monkeypatch):
+    """FRED revises prints. The newest report's value for an observation date
+    wins, so the line shows what FRED says now, not what it said first."""
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    _write_report(tmp_path, "2026-01-31", "2025-12-01", 3.1)
+    _write_report(tmp_path, "2026-02-28", "2025-12-01", 3.4)   # revised up
+    _bump(tmp_path)
+    assert dl.load_macro_history()["CPI (YoY)"] == [3.4]
+
+
+def test_load_macro_history_caps_the_point_count(tmp_path, monkeypatch):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    for i in range(1, 11):
+        _write_report(tmp_path, f"2026-{i:02d}-28", f"2026-{i:02d}-01", float(i))
+    _bump(tmp_path)
+    assert dl.load_macro_history(points=4)["CPI (YoY)"] == [7.0, 8.0, 9.0, 10.0]
+
+
+def test_load_macro_history_skips_gap_rows(tmp_path, monkeypatch):
+    """A FRED gap row has no value; it must not enter the series as a zero."""
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    (tmp_path / "morning_report_2026-01-31.json").write_text(
+        json.dumps({"macro_indicators": {"CPI (YoY)": {"status": "gap"}}}),
+        encoding="utf-8",
+    )
+    _bump(tmp_path)
+    assert dl.load_macro_history() == {}
+
+
+def test_load_macro_history_empty_corpus_returns_empty(tmp_path, monkeypatch):
+    monkeypatch.setattr(dl, "DATA_DIR", tmp_path)
+    _bump(tmp_path)
+    assert dl.load_macro_history() == {}
+
+
 # ── Capex Pulse loaders (hand-maintained data files) ──
 def test_load_capex_quarterly_returns_seeded_dict():
     d = dl.load_capex_quarterly()

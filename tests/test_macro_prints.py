@@ -1,5 +1,13 @@
 """Tests for components.briefing.macro.macro_prints_html — FRED Core-5 strip."""
-from components.briefing.macro import macro_prints_html, risks_card_html
+import re
+
+from components.briefing.macro import (
+    _SPARK_H,
+    _SPARK_PAD,
+    _spark_points,
+    macro_prints_html,
+    risks_card_html,
+)
 
 
 def _ind():
@@ -40,6 +48,111 @@ def test_gap_row_renders_na():
 def test_empty_returns_blank():
     assert macro_prints_html({}) == ""
     assert macro_prints_html(None) == ""
+
+
+# --- Sparkline + cell chrome (prints-grid redesign 2026-07-25) ---------------
+# The trend line is reconstructed from the report archive (lib.data_loader
+# .load_macro_history) because macro_indicators carry no series history. These
+# pin the rules that keep it honest: no line invented from too few points, no
+# crash on a flat series, and a constant cell height either way.
+
+def test_sparkline_renders_a_polyline_from_history():
+    html = macro_prints_html(_ind(), {"CPI (YoY)": [3.1, 3.4, 3.3, 3.9]})
+    assert "<polyline" in html
+    assert "var(--brass)" in html            # data axis, never a signal hue
+    assert 'vector-effect="non-scaling-stroke"' in html
+
+
+def test_sparkline_tail_is_reseated_on_the_report_not_the_archive():
+    """FRED revises. May payrolls entered the corpus at 172k and were revised to
+    129k; the report's own prior/value are authoritative, so the line cannot end
+    somewhere the delta beneath it disagrees with."""
+    d = {"value": 57.0, "prior": 129.0, "chg": -72.0, "asof": "2026-06-01",
+         "series_id": "PAYEMS", "age_days": 53}
+    pts = _spark_points(d, [115.0, 172.0])       # archive's stale 172k tail
+    assert pts == [129.0, 57.0]
+
+
+def test_sparkline_keeps_archive_points_older_than_the_reported_pair():
+    d = {"value": 3.5, "prior": 4.2}
+    assert _spark_points(d, [3.1, 3.3, 4.3, 3.5]) == [3.1, 3.3, 4.2, 3.5]
+
+
+def test_report_alone_still_yields_a_line():
+    """Prior and value are two real observations — every cell gets a silhouette
+    even before the archive is deep enough to add older points."""
+    assert _spark_points({"value": 3.5, "prior": 4.2}, None) == [4.2, 3.5]
+    assert "<polyline" in macro_prints_html(_ind())
+
+
+def test_gap_row_draws_no_line():
+    """No value and no prior is not a trend — reserve the box, draw nothing."""
+    assert _spark_points({"status": "gap"}, None) == []
+    html = macro_prints_html({"CPI (YoY)": {"status": "gap", "series_id": "CPIAUCSL"}})
+    assert "<polyline" not in html
+
+
+def test_line_less_cell_keeps_the_spark_box_for_baseline_alignment():
+    """A line-less cell must still reserve the box, or its delta/date row rides
+    up and the row loses its common baseline."""
+    ind = _ind()
+    ind["Core PCE (YoY)"] = {"status": "gap", "series_id": "PCEPILFE"}
+    html = macro_prints_html(ind)
+    assert html.count('class="fp-spark"') == 4   # 4 rows, one of them line-less
+    assert '<div class="fp-spark"></div>' in html
+
+
+def test_flat_series_does_not_divide_by_zero():
+    ind = _row("Fed funds (eff.)", "DFF", 2, False, asof="2026-06-30", value=3.63)
+    ind["Fed funds (eff.)"]["prior"] = 3.63
+    html = macro_prints_html(ind, {"Fed funds (eff.)": [3.63, 3.63, 3.63]})
+    assert "<polyline" in html
+    assert "nan" not in html.lower()
+    # A rate that never moved is drawn on the centre line, not autoscaled.
+    centre = _SPARK_PAD + (_SPARK_H - 2 * _SPARK_PAD) / 2
+    assert re.search(rf'points="[\d.]+,{centre:.1f} [\d.]+,{centre:.1f}', html)
+
+
+def test_sub_basis_point_noise_is_drawn_as_near_flat():
+    """The effective rate held 3.62-3.63 all quarter. Autoscaling that 1bp
+    spread to the cell height drew a violent zigzag on the print the FOMC
+    decision turns on; the flat band keeps it inside a fifth of the height."""
+    ind = _row("Fed funds (eff.)", "DFF", 2, False, asof="2026-07-22", value=3.63)
+    ind["Fed funds (eff.)"]["prior"] = 3.63
+    html = macro_prints_html(ind, {"Fed funds (eff.)": [3.62, 3.63, 3.62, 3.63]})
+    ys = [float(y) for _x, y in
+          (p.split(",") for p in re.search(r'points="([^"]+)"', html).group(1).split())]
+    assert max(ys) - min(ys) < 0.2 * _SPARK_H
+
+
+def test_a_real_move_still_uses_the_full_height():
+    """The band must damp noise only — a 0.1pp move in unemployment is real."""
+    ind = _row("Unemployment", "UNRATE", 20, False, asof="2026-06-01", value=4.2)
+    ind["Unemployment"]["prior"] = 4.3
+    html = macro_prints_html(ind, {"Unemployment": [4.3, 4.2]})
+    ys = [float(y) for _x, y in
+          (p.split(",") for p in re.search(r'points="([^"]+)"', html).group(1).split())]
+    assert max(ys) - min(ys) == _SPARK_H - 2 * _SPARK_PAD
+
+
+def test_endpoint_marker_is_not_a_circle():
+    """preserveAspectRatio="none" scales x and y differently, so a <circle>
+    would render as an ellipse. The marker is a zero-length round-capped path,
+    drawn in stroke space and therefore immune to the stretch."""
+    html = macro_prints_html(_ind(), {"CPI (YoY)": [3.3, 3.9, 4.3, 3.5]})
+    assert "<circle" not in html
+    assert 'stroke-linecap="round"' in html
+
+
+def test_fomc_relevant_prints_are_flagged():
+    ind = _ind()
+    ind["Fed funds (eff.)"] = {"value": 3.63, "chg": 0.0, "asof": "2026-07-22",
+                              "age_days": 2, "series_id": "DFF"}
+    html = macro_prints_html(ind)
+    # CPI + Fed funds carry the accent rail; unemployment and payrolls do not.
+    assert html.count('data-key="1"') == 2
+    assert '<div class="fp-cell" data-key="1"><div class="fp-label">CPI' in html
+    assert '<div class="fp-cell"><div class="fp-label">Unemployment' in html
 
 
 # --- Release-aware freshness (known series_id) -------------------------------
