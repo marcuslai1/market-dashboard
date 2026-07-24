@@ -1026,10 +1026,12 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   border-bottom: 1px dashed var(--rule);
   padding: 6px 0;
 }
+/* Metric labels take the same steel as the section headers — they were the last
+   grey micro-type left in the drilldown and read as unlabelled noise. */
 .tk-drilldown .dd-metric .lbl {
-  font-family: var(--mono); font-size: 9.5px;
-  color: var(--ink-3); text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-family: var(--font-display); font-size: 10px;
+  color: var(--eyebrow); text-transform: uppercase;
+  letter-spacing: 0.12em; font-weight: 600;
 }
 .tk-drilldown .dd-metric .val {
   font-family: var(--mono); font-size: 13px;
