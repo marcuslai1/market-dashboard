@@ -266,7 +266,7 @@ def test_advisory_note_names_lanes_and_caveat():
 
 
 # ── renderers ──
-from components.paper_book import _positions_table_html, _stats_html, _verdict_html
+from components.paper_book import _positions_table_html
 
 _BLOCK = {
     "policy_id": "v1_flat10", "inception": "2026-04-19", "as_of": "2026-07-03",

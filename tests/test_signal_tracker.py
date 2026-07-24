@@ -10,6 +10,8 @@ from components.signal_tracker import (
     _changelog_strip_html,
     _changelog_sub,
     _classify_episode_verdict,
+    _hold_footnote_html,
+    _method_html,
     _readiness_html,
     _ret_num_cell,
     _scorecard_html,
@@ -274,7 +276,6 @@ def test_readiness_empty_is_blank():
 
 
 # ── Redesign (spec 2026-07-25 §5): trust meter + methodology paragraph ──
-from components.signal_tracker import _method_html
 
 _CI_SINGLE = {"signal_performance": {
     "CAUTION": {"n_matured_10d": 96, "n_alpha_10d": 96,
@@ -319,7 +320,6 @@ def test_method_points_at_this_page_not_the_briefing():
 
 
 # ── Redesign (spec 2026-07-25 §5.3): the hit-rate tiles ──
-from components.signal_tracker import _hold_footnote_html
 
 
 def test_tiles_are_five_cells_of_one_hairline_grid():
