@@ -169,22 +169,36 @@ def _spark_svg(values, label: str) -> str:
     )
 
 
+def _numeric(seq) -> list:
+    return [float(v) for v in (seq or [])
+            if isinstance(v, (int, float)) and not isinstance(v, bool)]
+
+
 def _spark_points(d: dict, archive) -> list:
-    """The series to plot for one cell: archive run, tail re-seated on the report.
+    """The series to plot for one cell.
 
-    FRED revises. The archive's newest two points are the same two observations
-    the report states as ``prior`` and ``value``, but frozen at the version
-    published on the day each report was written — May payrolls entered the
-    corpus at 172k and were later revised to 129k. Plotting the stale pair would
-    put a line ending at 172k directly above a delta reading "▼72k from 129k".
-    The report is authoritative for its own two figures, so they replace the
-    archive's tail; only the older points come from the corpus.
+    Preferred source is the report's own ``history`` — the pipeline ships the
+    last 7 readings of the displayed metric (macro_data._build_history), drawn
+    from the same FRED fetch as ``value``, so it is revision-current, in the
+    right units, and ends on ``value`` by construction. Used verbatim.
 
-    A report with both figures therefore always yields at least two points, so
-    every cell gets a line even before the archive is deep.
+    Reports written before that field existed fall back to the run rebuilt from
+    the archive, with its tail re-seated on the report. FRED revises: the
+    archive's newest two points are the observations the report states as
+    ``prior`` and ``value``, but frozen at the version published the day each
+    report was written — May payrolls entered the corpus at 172k and were later
+    revised to 129k. Plotting the stale pair would put a line ending at 172k
+    directly above a delta reading "▼72k from 129k". The report is authoritative
+    for its own two figures, so they replace the archive's tail; only the older
+    points come from the corpus.
+
+    Either way a report carrying both figures yields at least two points, so
+    every cell gets a line even with no history at all.
     """
-    pts = [float(v) for v in (archive or [])
-           if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    shipped = _numeric(d.get("history"))
+    if len(shipped) >= 2:
+        return shipped
+    pts = _numeric(archive)
     prior, value = d.get("prior"), d.get("value")
     if isinstance(prior, (int, float)) and isinstance(value, (int, float)):
         return [*pts[:-2], float(prior), float(value)]
