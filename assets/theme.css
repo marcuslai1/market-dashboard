@@ -2314,17 +2314,42 @@ details.led-details[open] > summary {
 @media (max-width: 900px) {
   .pb-stats { grid-template-columns: repeat(2, 1fr) !important; }
 }
-.pb-banner { font-size: 12px; font-style: italic; color: var(--ink-3);
-  margin: 6px 0 0; }
+/* The only italic on the page — which is exactly why it is noticeable. */
+.pb-banner { font-size: 12px; font-style: italic; color: var(--color-text-3);
+  line-height: 1.5; margin: 10px 0 0; max-width: 96ch; }
 /* Both captions sit below the plot. Terracotta marks a trust limitation, brass
    a measurement — never a rating in either case. */
 .pb-chartnote { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
   opacity: 0.66; margin: 8px 0 0; max-width: 96ch; }
 .pb-chartnote .lim { color: var(--stress); }
 .pb-chartnote .val { color: var(--brass); font-variant-numeric: tabular-nums; }
-.pb-variants { font-family: var(--mono); font-size: 11.5px;
-  color: var(--ink-2); margin: 10px 0 0; }
-.pb-variants b { color: var(--ink); font-weight: 600; }
+/* The lane grid takes border-top: 0 so it butts directly against its own
+   eyebrow rule — the label and the grid then read as one object. */
+.pb-lane-eyebrow {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--eyebrow);
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: 6px; margin: 18px 0 0;
+}
+.pb-lanes { border-top: 0; }
+.pb-lane { padding: 12px 14px 14px; }
+.pb-lane-label {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.pb-lane-head { color: var(--accent); }
+/* Measurements → brass; the stop-out count is an input → neutral. */
+.pb-lane-ret {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--brass); font-variant-numeric: tabular-nums; margin-top: 6px;
+}
+.pb-lane-stops {
+  display: block; font-size: 11px; color: var(--color-text-3); margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .pb-lanes { grid-template-columns: repeat(2, 1fr) !important; }
+}
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }
 
