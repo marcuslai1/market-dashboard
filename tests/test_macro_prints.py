@@ -63,6 +63,18 @@ def test_sparkline_renders_a_polyline_from_history():
     assert 'vector-effect="non-scaling-stroke"' in html
 
 
+def test_shipped_history_wins_over_the_archive():
+    """Once the pipeline ships `history`, it is the better source: same FRED
+    fetch as `value`, so revision-current and already ending on it. No splice."""
+    d = {"value": 3.5, "prior": 4.2, "history": [3.1, 3.3, 3.6, 4.2, 3.5]}
+    assert _spark_points(d, [9.9, 9.9, 9.9]) == [3.1, 3.3, 3.6, 4.2, 3.5]
+
+
+def test_one_point_history_falls_back_rather_than_drawing_nothing():
+    d = {"value": 3.5, "prior": 4.2, "history": [3.5]}
+    assert _spark_points(d, [3.1, 3.3, 4.3, 3.5]) == [3.1, 3.3, 4.2, 3.5]
+
+
 def test_sparkline_tail_is_reseated_on_the_report_not_the_archive():
     """FRED revises. May payrolls entered the corpus at 172k and were revised to
     129k; the report's own prior/value are authoritative, so the line cannot end
