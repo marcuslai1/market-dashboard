@@ -55,14 +55,12 @@ def _bucket_pill_html(e: dict) -> str:
     bucket = e.get("sg_bucket")
     if not bucket:
         return ""
-    active = bucket.startswith("DURING")
-    color = "var(--ink-2)" if active else "var(--ink-3)"
-    return (
-        f'<span style="font-family:var(--mono);font-size:9px;'
-        f'letter-spacing:0.08em;border:1px solid var(--rule);border-radius:3px;'
-        f'padding:1px 5px;margin-left:7px;color:{color};white-space:nowrap;'
-        f'vertical-align:1px;">{_escape_dollars(bucket)}</span>'
-    )
+    # Logistical metadata, so it is the LIGHTEST chip on the row — quieter than
+    # the steel severity chip it sits beside, and square like everything else.
+    # data-active keeps the one bit that actually matters (the print lands while
+    # the reader is awake) as a single muted step up, not a colour change.
+    active = ' data-active="1"' if bucket.startswith("DURING") else ""
+    return f'<span class="cal-timing"{active}>{_escape_dollars(bucket)}</span>'
 
 
 def _timing_line_html(e: dict) -> str:
