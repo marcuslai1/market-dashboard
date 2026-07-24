@@ -50,6 +50,54 @@ def _pick_action_ticker(wl: dict) -> tuple[str | None, dict | None]:
     return candidates[0]
 
 
+def _entry_target_invalidation_html(d: dict, ccy: str) -> str:
+    """The entry / target / invalidation triplet (design-spec §7).
+
+    Levels come straight from the report: ``reentry_zone.level`` for entry,
+    ``risk_reward.upside_target`` / ``.invalidation`` for the exits. Target and
+    invalidation carry the price up/down palette — they are price levels, not
+    signals. Returns "" when the report carries none of the three.
+    """
+    rr = d.get("risk_reward") or {}
+    rz = d.get("reentry_zone") or {}
+    entry = rz.get("level")
+    target = rr.get("upside_target")
+    invalid = rr.get("invalidation")
+    if not (entry or target is not None or invalid is not None):
+        return ""
+    up_pct = rr.get("upside_pct")
+    down_pct = rr.get("downside_pct")
+
+    def _cell(label: str, value: str, sub: str, color: str = "var(--ink)") -> str:
+        return (
+            f'<div class="ac-tri-cell">'
+            f'<div class="ac-tri-label">{label}</div>'
+            f'<div class="ac-tri-val" style="color:{color};">{value}</div>'
+            f'<div class="ac-tri-sub">{sub}</div>'
+            f'</div>'
+        )
+
+    entry_val = _escape_dollars(str(entry)) if entry else "—"
+    entry_sub = _escape_dollars(rz.get("source") or "on the setup")
+    target_val = _price_str(target, ccy) if target is not None else "—"
+    target_sub = (
+        f'{_sign(up_pct)}{_fmt_num(up_pct, 0)}% · {_escape_dollars(rr.get("upside_reason") or "")}'
+        if up_pct is not None else _escape_dollars(rr.get("upside_reason") or "")
+    )
+    inv_val = _price_str(invalid, ccy) if invalid is not None else "—"
+    inv_sub = (
+        f'−{_fmt_num(down_pct, 1)}% · {_escape_dollars(rr.get("invalidation_reason") or "")}'
+        if down_pct is not None else _escape_dollars(rr.get("invalidation_reason") or "")
+    )
+    return (
+        '<div class="ac-triplet">'
+        + _cell("Entry", entry_val, entry_sub)
+        + _cell("Target", target_val, target_sub, "var(--up)")
+        + _cell("Invalidation", inv_val, inv_sub, "var(--down)")
+        + '</div>'
+    )
+
+
 def action_card_html(wl: dict, events: list) -> str:
     """Return the Today's-Trade card as an HTML string ("" when nothing is
     actionable).
@@ -100,6 +148,7 @@ def action_card_html(wl: dict, events: list) -> str:
         f'line-height:1.5;">{_escape_dollars(block_text)}</div>'
         if block_text else ""
     )
+    triplet_html = _entry_target_invalidation_html(d, ccy)
 
     # When the report flags the headline R:R as distorted by a too-tight stop,
     # rr_display() returns the deeper-stop sizing ratio the writeup itself cites
@@ -136,6 +185,7 @@ def action_card_html(wl: dict, events: list) -> str:
         f'<div style="color:var(--ink-2);font-size:14px;line-height:1.55;max-width:60ch;">'
         f'{_escape_dollars(body)}</div>'
         f'{block_html}'
+        f'{triplet_html}'
         f'</div>'
         # Right column — price stats (Last / level / delta / R:R).
         f'<div class="ac-price">'

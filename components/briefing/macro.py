@@ -132,8 +132,9 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
                     macro_indicators: dict | None = None) -> str:
     """Return the Macro Note card markup (lede lane).
 
-    Body contains: lede paragraph, optional commodities note rule, optional
-    portfolio-implication block, and the scenario-odds bar + legend.
+    Body = context + portfolio implication: lede paragraph, optional commodities
+    note, the FRED Core-5 prints, and the portfolio-implication block. The
+    scenario-odds bar + narrative now live on the Scenario Log (scenario_odds_html).
     """
     body = ""
     if macro_summary:
@@ -152,99 +153,101 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
             '<strong style="color:var(--ink);">Portfolio implication.</strong> '
             f'{_escape_dollars(geo.get("portfolio_action", ""))}</div>'
         )
+    # Scenario odds + per-scenario narrative moved to the Scenario Log tab
+    # (overhaul 2026-07-24): they are macro *probability*, not "what's driving
+    # prices". The Macro note stays context + portfolio implication. Rendered on
+    # the Scenario Log via scenario_odds_html() below.
+
+    return card_container(
+        eyebrow="THE MACRO NOTE",
+        headline="What's driving prices",
+        body_html=body,
+        lane="lede",
+    )
+
+
+_SCEN_COLORS = {
+    "base": "var(--accent)",
+    "optimistic": "var(--up)",
+    "pessimistic": "var(--down)",
+    "wildcard": "var(--brass)",
+}
+_SCEN_LABELS = {
+    "base": "Base case",
+    "optimistic": "Optimistic",
+    "pessimistic": "Pessimistic",
+    "wildcard": "Wildcard",
+}
+_SCEN_ORDER = ["base", "optimistic", "pessimistic", "wildcard"]
+
+
+def scenario_odds_html(geo: dict) -> str:
+    """Scenario-odds bar + per-scenario narrative, for the Scenario Log tab.
+
+    Moved off the Briefing's Macro note (overhaul 2026-07-24): this is macro
+    probability, so it belongs with the scenarios it describes. Returns "" when
+    the report carries no probabilities/scenarios. Colours come from the DATA/
+    structure palette, never signal hues (design-spec §3).
+    """
+    geo = geo or {}
     probs = geo.get("probabilities") or {}
+    scenarios = geo.get("scenarios") or {}
+    if not probs and not scenarios:
+        return ""
+
+    body = ""
     if probs:
-        # Scenario odds are probabilities, not signals — they use the DATA/
-        # structure palette, never signal hues (design-spec §3): base = accent,
-        # optimistic = up, pessimistic = down, wildcard = brass.
-        colors = {
-            "base":        "var(--accent)",
-            "optimistic":  "var(--up)",
-            "pessimistic": "var(--down)",
-            "wildcard":    "var(--brass)",
-        }
-        labels = {"base": "Base case", "optimistic": "Optimistic",
-                  "pessimistic": "Pessimistic", "wildcard": "Wildcard"}
         segs, keys = "", ""
-        for k in ["base", "optimistic", "pessimistic", "wildcard"]:
+        for k in _SCEN_ORDER:
             v = probs.get(k, 0) or 0
             if v:
                 segs += (
                     f'<div class="odds-segment" data-scenario="{k}" '
-                    f'style="width:{v}%;background:{colors[k]};'
+                    f'style="width:{v}%;background:{_SCEN_COLORS[k]};'
                     f'display:flex;align-items:center;justify-content:center;'
                     f'color:var(--paper);font-family:var(--mono);'
                     f'font-size:11px;font-weight:600;">{v}%</div>'
                 )
             keys += (
                 f'<div><span style="display:inline-block;width:8px;height:8px;'
-                f'background:{colors[k]};margin-right:6px;"></span>'
-                f'{labels[k]}</div>'
+                f'background:{_SCEN_COLORS[k]};margin-right:6px;"></span>'
+                f'{_SCEN_LABELS[k]}</div>'
             )
         body += (
-            '<div style="margin-top:18px;">'
-            '<div style="font-family:var(--mono);font-size:10px;'
-            'letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-3);'
-            'margin-bottom:8px;">Scenario odds</div>'
             '<div style="display:flex;height:24px;border:1px solid var(--rule-strong);'
-            f'margin-bottom:8px;">{segs}</div>'
-            # Flex row (not a 2x2 grid) so the legend reads left-to-right in the
-            # same order as the bar segments above it.
-            '<div style="display:flex;flex-wrap:wrap;'
-            'gap:6px 20px;font-family:var(--mono);font-size:11px;'
-            f'color:var(--ink-3);">{keys}</div>'
-            '</div>'
+            f'margin-bottom:10px;">{segs}</div>'
+            '<div style="display:flex;flex-wrap:wrap;gap:6px 20px;'
+            'font-family:var(--mono);font-size:11px;color:var(--ink-3);'
+            f'margin-bottom:16px;">{keys}</div>'
         )
 
-    # Scenario descriptions — what each odds segment actually means for the
-    # portfolio. The odds bar above carries the probabilities; this carries the
-    # narrative. Keyed in the same order/colour as the bar. Hidden when absent.
-    scenarios = geo.get("scenarios") or {}
     if scenarios:
-        sc_colors = {
-            "base":        "var(--accent)",
-            "optimistic":  "var(--up)",
-            "pessimistic": "var(--down)",
-            "wildcard":    "var(--brass)",
-        }
-        sc_labels = {"base": "Base case", "optimistic": "Optimistic",
-                     "pessimistic": "Pessimistic", "wildcard": "Wildcard"}
-        sc_rows = ""
-        for k in ["base", "optimistic", "pessimistic", "wildcard"]:
+        for k in _SCEN_ORDER:
             sc = scenarios.get(k)
-            # Shape-drift days (2026-07-22) ship the scenario as a bare
-            # string — the string IS the description.
+            # Shape-drift days (2026-07-22) ship the scenario as a bare string.
             desc = (sc.get("description") if isinstance(sc, dict)
                     else sc if isinstance(sc, str) else None)
             if not desc:
                 continue
             pct = probs.get(k)
             pct_s = f" · {pct}%" if pct else ""
-            sc_rows += (
-                f'<div style="margin-bottom:8px;padding-left:10px;'
-                f'border-left:2px solid {sc_colors[k]};">'
+            body += (
+                f'<div style="margin-bottom:10px;padding-left:10px;'
+                f'border-left:2px solid {_SCEN_COLORS[k]};">'
                 f'<div style="font-family:var(--mono);font-size:10px;'
                 f'letter-spacing:0.08em;text-transform:uppercase;'
-                f'color:{sc_colors[k]};margin-bottom:2px;">'
-                f'{sc_labels[k]}{pct_s}</div>'
+                f'color:{_SCEN_COLORS[k]};margin-bottom:2px;">'
+                f'{_SCEN_LABELS[k]}{pct_s}</div>'
                 f'<div style="font-size:12.5px;color:var(--ink-2);'
                 f'line-height:1.5;">{_escape_dollars(desc)}</div>'
                 f'</div>'
             )
-        if sc_rows:
-            # Collapsed by default (declutter pass 2026-07-21): four narrative
-            # paragraphs cost ~500px below an odds bar that already carries the
-            # probabilities. The summary line keeps the section discoverable;
-            # the narratives are one click away.
-            body += (
-                '<details class="mn-scen"><summary class="mn-scen-summary">'
-                'What each scenario means</summary>'
-                f'<div class="mn-scen-body">{sc_rows}</div></details>'
-            )
 
+    if not body:
+        return ""
     return card_container(
-        eyebrow="THE MACRO NOTE",
-        headline="What's driving prices",
+        eyebrow="SCENARIO ODDS",
+        headline="How the week could break",
         body_html=body,
         lane="lede",
     )
