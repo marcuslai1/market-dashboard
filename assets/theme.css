@@ -660,13 +660,24 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   text-transform: uppercase;
   color: var(--ink-3);
 }
+/* Wordmark + kicker on one baseline row, so the brand is a single line. */
+.masthead-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
 .masthead .title {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: 2.6rem;
-  line-height: 0.95;
+  /* !important beats the global `h1 { font-size: 2.4rem !important }`. Sized
+     down from 2.6rem in the 2026-07-24 density pass — the wordmark was the
+     tallest thing in the header for the least information. */
+  font-size: 1.8rem !important;
+  line-height: 1.05;
   letter-spacing: -0.02em;
-  margin: 4px 0 0;
+  margin: 0;
   /* Streamlit sets overflow-wrap:break-word globally, which was splitting the
      wordmark mid-word ("Marke|t Repor|t") once the two-column masthead starved
      the title column. Force whole-word wrapping so it can only break between
@@ -706,7 +717,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   /* !important to beat the global `h1 { font-size: 2.4rem !important }` rule —
      the wordmark is an <h1 class="title">, so without it the responsive sizes
      are ignored and the title stays large enough to wrap onto three lines. */
-  .masthead .title { font-size: 2.05rem !important; }
+  .masthead .title { font-size: 1.5rem !important; }
   .masthead .right { text-align: left; }
 }
 @media (max-width: 400px) {

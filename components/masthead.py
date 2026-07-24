@@ -64,9 +64,11 @@ def render_masthead_and_nav(current: str) -> str:
 
     st.markdown(
         f'<div class="masthead">'
-        f'<div>'
-        f'<div class="kicker">Morning Briefing · Signal Intelligence Daily</div>'
+        # Wordmark and kicker sit on ONE baseline row (2026-07-24): stacked, they
+        # made the masthead two tall lines for what is a single brand line.
+        f'<div class="masthead-brand">'
         f'<h1 class="title">The <em>Market</em> Report</h1>'
+        f'<div class="kicker">Morning Briefing · Signal Intelligence Daily</div>'
         f'</div>'
         f'<div class="right">'
         f'<div class="date">{long_date}</div>'
