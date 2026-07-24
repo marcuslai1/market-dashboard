@@ -698,15 +698,19 @@ def _episodes_cached(
 def render_signal_tracker_page(
     reports: dict, prices_df: pd.DataFrame, cache_key: tuple | None = None,
 ) -> None:
-    """Render the Signal Tracker page — the Performance Ledger.
+    """Render the Signal Tracker page — the study page, read in sequence.
 
-    Four tiers, verdict-first:
-      1. Readiness meter + scorecard — is the pipeline systematically any good?
-         Corpus-wide by design: per-signal calibration is a property of the
-         system, so the name filter deliberately does not touch it.
+    The page is a descending trust argument: each block answers the doubt the
+    one above it raises (spec 2026-07-25). Section 1, the calibration row, is
+    rendered by the caller from the latest report; this function covers the
+    rest:
+      1. Trust meter + hit-rate tiles — is the record big enough to trust, and
+         how has each signal actually done? Corpus-wide by design: per-signal
+         calibration is a property of the system, so the name filter
+         deliberately does not touch it.
       1c. Paper book — the pipeline's mechanical paper portfolio (NAV vs
          SPY/SOXX), rendered from exports only; also corpus-wide.
-      2. What we've changed — dated methodology strip.
+      2. What we've changed — the dated methodology spine.
       3. Detail drawers (collapsed) — by-name ledger + signal changes; the
          name filter lives here and scopes only these.
 
