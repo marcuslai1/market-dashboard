@@ -452,7 +452,10 @@ def _changelog_strip_html(entries: list) -> str:
             f'<span class="chg-note">{note}</span>'
             f'</div></div>'
         )
-    return f'<div class="chg-log">{items}</div>' if items else ""
+    # .spine supplies the 112px date column; entries stay plain prose because
+    # they describe the page's colour rules, and demonstrating those inside the
+    # description would be noisy.
+    return f'<div class="spine chg-log">{items}</div>' if items else ""
 
 
 _REGIME_UNIVERSE = 3  # trend_up / chop / trend_down — the weather we need to see
@@ -762,13 +765,8 @@ def render_signal_tracker_page(
     changelog = load_changelog()
     strip = _changelog_strip_html(changelog)
     if strip:
-        st.markdown(
-            '<div class="section-head" style="margin-top:30px;">'
-            "<h2>What we've changed</h2>"
-            f'<span class="sub">{_changelog_sub(changelog)}</span>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        render_section_head("What we've changed", _changelog_sub(changelog),
+                            masthead=True)
         st.markdown(strip, unsafe_allow_html=True)
 
     # ── 3. Detail drawers (collapsed — the page leads with the scorecard) ──
