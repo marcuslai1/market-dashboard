@@ -214,20 +214,27 @@
 .blueprint > .corner.tr { top: -4.5px; right: -4.5px; }
 .blueprint > .corner.bl { bottom: -4.5px; left: -4.5px; }
 .blueprint > .corner.br { bottom: -4.5px; right: -4.5px; }
+/* Card header = kicker + hairline. No bar, no background, no box. Hierarchy is
+   steel eyebrow (what this is) -> hairline -> content (the substance). */
 .card-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--rule);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--color-divider);
 }
+/* --eyebrow, NOT the base accent: the base steel is tuned for ~3:1 (fine for a
+   tab underline, too weak for 11px text), so the eyebrow uses a deeper/lighter
+   step of the same steel — deep-on-light, light-on-dark, same hue family.
+   And NOT the card's signal colour: the eyebrow labels the section, the pill and
+   rail carry the signal, so a signal hue never doubles as decoration. */
 .card-head .eyebrow {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.13em;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--eyebrow);
 }
 .card-head .card-headline {
   font-family: var(--serif);
@@ -785,15 +792,28 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
 .pulse-grid {
   display: grid; grid-template-columns: repeat(5, 1fr);   /* 5-benchmark tape (was 8) — fills the width */
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  /* Two-weight logic: the TOP rule is full-strength --color-text — a shelf the
+     numbers sit on, opening the data band (in dark mode it reads as the bright
+     "white line", but it is the text token inverted, so it re-themes). The
+     BOTTOM is a faint hairline that closes the band without competing. Firm
+     start, soft finish, so the eye is pushed down into the tape, not boxed in.
+     Neutral text colour, never steel/signal: a rule is structure, and structure
+     must not be readable as navigation or as a signal. */
+  border-top: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-divider);
   padding: 12px 0;
   margin: 12px 0 6px;
 }
+/* Cells are peers — SPY is not more important than QQQ — so the separators
+   between them stay whisper-light; only the horizontal top rule is strong,
+   because that is the one edge with a hierarchy job. Full-strength verticals
+   would read as a spreadsheet grid and fight the wireframe grammar.
+   No `gap` on purpose: the cells must sit flush so their borders touch and form
+   continuous lines. Every cell keeps its right rule (including the last), so the
+   strip closes on its right edge at the same weight. */
 .pulse-cell {
-  padding: 0 14px; border-right: 1px solid var(--rule);
+  padding: 0 14px; border-right: 1px solid var(--color-divider);
 }
-.pulse-cell:last-child { border-right: 0; }
 .pulse-cell .plabel {
   font-family: var(--mono); font-size: 10px;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
@@ -981,12 +1001,17 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   padding: var(--card-pad-y) var(--card-pad-x);   /* density-aware (was 18px 22px 22px) */
   border-bottom: 1px solid var(--rule);
 }
+/* Drilldown section headers (Thesis break condition, Regime Change Pending,
+   Risk & Reward, Technicals, Key Levels, Valuation, …) take the SAME kicker
+   treatment as every card eyebrow: deep-steel --eyebrow, 11px, 0.14em, over a
+   hairline. One label colour across the whole app, and more legible than the
+   old 10px muted grey. */
 .tk-drilldown .dd-section {
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--font-display); font-size: 11px;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 600;
-  margin: 18px 0 8px; padding-bottom: 4px;
-  border-bottom: 1px solid var(--rule);
+  color: var(--eyebrow); font-weight: 600;
+  margin: 18px 0 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
 }
 .tk-drilldown .dd-section:first-child { margin-top: 0; }
 .tk-drilldown .dd-line {
@@ -1164,10 +1189,10 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   align-items: center;
   gap: 9px;
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-3);
+  color: var(--eyebrow);   /* the page's opening kicker — same steel as every card eyebrow */
   margin-bottom: 11px;
 }
 .posture-dot { width: 9px; height: 9px; display: inline-block; flex: 0 0 auto; }
