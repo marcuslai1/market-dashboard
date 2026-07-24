@@ -1,7 +1,10 @@
 """Tests for the Briefing signal-calibration band (review P1-2)."""
+from pathlib import Path
+
 from components.briefing.calibration import (
     _MIN_MATURED_N,
     _calibration_html,
+    _headline_html,
     _is_low_confidence,
     _scorecard_rows,
     _scorecard_table_html,
@@ -297,9 +300,6 @@ def test_calibration_html_field_absent_renders_pre_adoption_markup():
 
 
 # ── Redesign (spec 2026-07-25 §4): colour roles on the calibration row ──
-from pathlib import Path
-
-from components.briefing.calibration import _headline_html
 
 _THEME_CSS = (Path(__file__).resolve().parent.parent / "assets" / "theme.css").read_text(
     encoding="utf-8"
