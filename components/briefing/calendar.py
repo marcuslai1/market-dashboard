@@ -14,7 +14,7 @@ import re
 from datetime import datetime as _dt
 
 from lib.cards import card_container
-from lib.charts import STATUS_NEG, STATUS_POS, SURFACE_2_FALLBACK
+from lib.charts import SURFACE_2_FALLBACK
 from lib.formatters import _escape_attr, _escape_dollars, display_ticker
 
 
@@ -114,8 +114,8 @@ def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
                    for a in aliases):
             continue
         rows = ""
-        for side, color, mark in (("bull", STATUS_POS, "▲"),
-                                  ("bear", STATUS_NEG, "▼")):
+        for side, color, mark in (("bull", "var(--up)", "▲"),
+                                  ("bear", "var(--down)", "▼")):
             d = cfg.get(side) or {}
             if not d.get("read"):
                 continue

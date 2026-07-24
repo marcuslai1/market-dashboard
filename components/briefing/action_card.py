@@ -76,7 +76,9 @@ def action_card_html(wl: dict, events: list) -> str:
     rr_label, _, rr_adjusted = rr_display(d.get("risk_reward"))
 
     price_str = _price_str(price, ccy)
-    delta_color = SIGNAL_COLORS["BUY"] if (chg or 0) >= 0 else SIGNAL_COLORS["CAUTION"]
+    # Price delta uses the dedicated up/down palette, never a signal hue
+    # (design-spec §3: signal colours live only on pills/rails).
+    delta_color = "var(--up)" if (chg or 0) >= 0 else "var(--down)"
     delta_str = f"{_sign(chg)}{_fmt_num(chg, 2)}%" if chg is not None else ""
     # "today" is a lie during extended hours — name the session instead.
     delta_when = {"PRE": "pre-mkt", "POST": "after-hrs"}.get(
