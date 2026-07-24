@@ -26,6 +26,15 @@ _PRINT_ORDER = [
     "Fed funds (eff.)",
 ]
 
+# Into the July 29 FOMC, inflation and the effective rate are the two prints the
+# decision actually turns on; the other three are context. They carry a 2px
+# accent rail at the cell's top edge — the same marker language as the row rails
+# and the catalyst chip's left tick — rather than a fill or a bolder value: cards
+# in this system are line drawings, never surfaces, and weighting the number
+# would make it compete with the other three. Steel, not a signal colour, because
+# the prominence is structural, not a rating.
+_KEY_PRINTS = {"CPI (YoY)", "Fed funds (eff.)"}
+
 
 def _fmt_value(label: str, d: dict) -> str:
     v = d.get("value")
@@ -87,14 +96,115 @@ def _fmt_freshness(d: dict) -> str:
     return f"{bits}{stale}"
 
 
-def macro_prints_html(indicators: dict) -> str:
+# Sparkline geometry, in viewBox units. The SVG stretches to whatever width the
+# cell has (preserveAspectRatio="none"), so these are shape, not pixels.
+_SPARK_W, _SPARK_H, _SPARK_PAD = 100.0, 28.0, 3.0
+
+# A sparkline autoscales to its own range, which turns noise into drama: the
+# effective fed funds rate sat at 3.62-3.63 all quarter, and scaling that 1bp
+# spread to the full cell height drew a violent zigzag on the one print the FOMC
+# decision most turns on. The floor says a series whose entire range is under 2%
+# of its own level is, on this axis, flat — and draws it that way. Unit-agnostic
+# (it reads as a fraction of the level, so it works for percents and job counts
+# alike) and wide of every real move in the Core-5: it damps the held policy
+# rate and leaves a 0.1pp move in CPI or unemployment at full height.
+_SPARK_FLAT_BAND = 0.02
+
+
+def _spark_svg(values, label: str) -> str:
+    """Inline trend line for one print cell, oldest→latest. "" if < 2 points.
+
+    Five numbers in five identical boxes have no silhouette — the grid read as a
+    spec dump. A line gives each cell a distinct profile (you can tell them apart
+    peripherally) and makes "cooling from +129k" visible instead of asserted in
+    prose. It is also the honest way to show a stale print: you see the whole
+    run, not one frozen figure.
+
+    Brass, like the delta: this is measured data, and the data axis of the
+    palette carries no valence — a falling CPI is good, falling payrolls is bad,
+    so nothing here may borrow the signal hues. Stroke-width 1.5 matches the
+    design system's icon stroke, so the line reads as part of the same
+    thin-stroke technical vocabulary rather than an imported chart.
+    """
+    pts = [float(v) for v in (values or [])
+           if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    if len(pts) < 2:
+        return ""
+    lo, hi = min(pts), max(pts)
+    n = len(pts)
+    # Plot into the wider of the observed range and the flat band, centred on the
+    # series' midpoint. A series that never moved (or moved within the band) then
+    # sits on or near the centre line — which also disposes of the divide-by-zero
+    # a zero range would otherwise cause.
+    mid = (hi + lo) / 2
+    half = max(hi - lo, _SPARK_FLAT_BAND * max(abs(v) for v in pts)) / 2
+
+    def _x(i: int) -> float:
+        return _SPARK_PAD + (_SPARK_W - 2 * _SPARK_PAD) * (i / (n - 1))
+
+    def _y(v: float) -> float:
+        frac = 0.5 if half == 0 else (v - (mid - half)) / (2 * half)
+        return _SPARK_PAD + (_SPARK_H - 2 * _SPARK_PAD) * (1 - frac)
+
+    poly = " ".join(f"{_x(i):.1f},{_y(v):.1f}" for i, v in enumerate(pts))
+    ex, ey = _x(n - 1), _y(pts[-1])
+    return (
+        f'<svg class="fp-spark" viewBox="0 0 {_SPARK_W:g} {_SPARK_H:g}" '
+        f'preserveAspectRatio="none" role="img" '
+        f'aria-label="{label}: trend across the last {n} readings, '
+        f'oldest to latest">'
+        # vector-effect keeps the stroke exactly 1.5px however far the viewBox is
+        # stretched — without it the non-uniform scaling distorts the line.
+        f'<polyline points="{poly}" fill="none" stroke="var(--brass)" '
+        f'stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" '
+        f'vector-effect="non-scaling-stroke"/>'
+        # The latest-reading marker is a ZERO-LENGTH round-capped path, not a
+        # <circle>: preserveAspectRatio="none" scales x and y differently, which
+        # would squash a circle into an ellipse. A round cap is drawn in stroke
+        # space, so non-scaling-stroke keeps it a true dot at any cell width.
+        f'<path d="M{ex:.1f},{ey:.1f} L{ex:.1f},{ey:.1f}" stroke="var(--brass)" '
+        f'stroke-width="4" stroke-linecap="round" '
+        f'vector-effect="non-scaling-stroke"/>'
+        f'</svg>'
+    )
+
+
+def _spark_points(d: dict, archive) -> list:
+    """The series to plot for one cell: archive run, tail re-seated on the report.
+
+    FRED revises. The archive's newest two points are the same two observations
+    the report states as ``prior`` and ``value``, but frozen at the version
+    published on the day each report was written — May payrolls entered the
+    corpus at 172k and were later revised to 129k. Plotting the stale pair would
+    put a line ending at 172k directly above a delta reading "▼72k from 129k".
+    The report is authoritative for its own two figures, so they replace the
+    archive's tail; only the older points come from the corpus.
+
+    A report with both figures therefore always yields at least two points, so
+    every cell gets a line even before the archive is deep.
+    """
+    pts = [float(v) for v in (archive or [])
+           if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    prior, value = d.get("prior"), d.get("value")
+    if isinstance(prior, (int, float)) and isinstance(value, (int, float)):
+        return [*pts[:-2], float(prior), float(value)]
+    return pts
+
+
+def macro_prints_html(indicators: dict, history: dict | None = None) -> str:
     """Return a compact FRED Core-5 prints table (or "" when no data).
 
     Valence-neutral (no green/red) — the strip reports figures, it does not
     editorialize direction as good/bad. Renders nothing when the block is empty
     (FRED key unset, or pre-FRED reports), so old reports stay clean.
+
+    ``history`` maps a print label to its chronological observation values (see
+    ``lib.data_loader.load_macro_history``) and supplies the older points of the
+    per-cell sparkline. Optional — a cell still plots the report's own
+    prior→value pair without it, just with a shorter run.
     """
     indicators = indicators or {}
+    history = history or {}
     cells = ""
     any_row = False
     for label in _PRINT_ORDER:
@@ -106,10 +216,19 @@ def macro_prints_html(indicators: dict) -> str:
         val = _escape_dollars(_fmt_value(label, d))
         delta = _fmt_delta(label, d) if has_val else ""
         fresh = _escape_dollars(_fmt_freshness(d)) if has_val else "unavailable"
+        # Cell order is label → value → shape → change → date: what it is, where
+        # it stands, how it got here, the last move, when. The trend sits
+        # directly under the number it belongs to. A series too short to plot
+        # keeps an empty box of the same height, so the delta/date row stays on
+        # one baseline across all five cells instead of jogging up.
+        spark = (_spark_svg(_spark_points(d, history.get(label)), label)
+                 or '<div class="fp-spark"></div>')
+        key_attr = ' data-key="1"' if label in _KEY_PRINTS else ''
         cells += (
-            f'<div class="fp-cell">'
+            f'<div class="fp-cell"{key_attr}>'
             f'<div class="fp-label">{label}</div>'
             f'<div class="fp-value">{val}</div>'
+            f'{spark}'
             f'<div class="fp-meta">'
             f'<span class="fp-delta">{delta}</span>'
             f'<span class="fp-month">{fresh}</span>'
@@ -129,12 +248,16 @@ def macro_prints_html(indicators: dict) -> str:
 
 
 def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
-                    macro_indicators: dict | None = None) -> str:
+                    macro_indicators: dict | None = None,
+                    macro_history: dict | None = None) -> str:
     """Return the Macro Note card markup (lede lane).
 
     Body = context + portfolio implication: lede paragraph, optional commodities
     note, the FRED Core-5 prints, and the portfolio-implication block. The
     scenario-odds bar + narrative now live on the Scenario Log (scenario_odds_html).
+
+    ``macro_history`` is the per-series observation run behind the prints
+    sparklines; optional, so callers that only have today's report still render.
     """
     body = ""
     if macro_summary:
@@ -148,7 +271,7 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
             'border-top:1px solid var(--rule);">'
             f'{_escape_dollars(commodities_note)}</div>'
         )
-    body += macro_prints_html(macro_indicators or {})
+    body += macro_prints_html(macro_indicators or {}, macro_history)
     if geo.get("portfolio_action"):
         body += (
             '<div class="macro-action">'
