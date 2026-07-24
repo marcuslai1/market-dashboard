@@ -161,3 +161,14 @@ def test_fundamentals_capex_pulse_shows_a_verdict():
     page = " ".join(str(m.value) for m in at.markdown)
     assert any(v in page for v in
                ("INTACT", "DIGESTING", "CRACKING", "INSUFFICIENT DATA"))
+
+
+def test_tracker_page_emits_the_scope_marker():
+    """The page's drawer grammar is scoped with .stApp:has(.tracker-page); if
+    the marker stops rendering, every drawer quietly reverts."""
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_tracker_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    assert 'class="tracker-page"' in " ".join(str(m.value) for m in at.markdown)
