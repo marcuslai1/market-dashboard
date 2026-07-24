@@ -14,7 +14,7 @@ from collections import Counter
 import streamlit as st
 
 from lib.cards import card_container, render_section_head
-from lib.catalog import SIGNAL_ORDER
+from lib.catalog import SIGNAL_COLORS, SIGNAL_ORDER
 from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
 from lib.pills import _signal_pill_html, signal_text_color
 
@@ -142,15 +142,33 @@ def _clusters_html(clusters: dict, watchlist: dict, extension_regime=None) -> st
     return f'<div class="cl-band">{"".join(blocks)}</div>'
 
 
-def clusters_strip_html(clusters: dict, watchlist: dict, extension_regime=None) -> str:
-    """Compact per-cluster showcase for the Briefing (design revision
-    2026-07-24): one scannable line per group — name · signal mix · extension
-    breadth · the key development — with NO expanders. The full anchor tables
-    live on the Clusters tab. Returns "" when the report carries no clusters.
+# Single-letter count tags. ACCUMULATE and AVOID both start with "A", so AVOID
+# takes X rather than a silently-colliding letter.
+_SIG_TAG = {"BUY": "B", "ACCUMULATE": "A", "WATCH": "W",
+            "HOLD": "H", "CAUTION": "C", "AVOID": "X"}
 
-    Signal-mix counts keep their signal colours (they *are* signals, so the
-    hue is on-palette per design-spec §3); the extension count turns terracotta
-    only when names are hard-blocked.
+
+def cluster_anchor_count(clusters: dict) -> int:
+    """Total names across all clusters — the figure the modal trigger cites."""
+    return sum(
+        len(c.get("tickers") or [])
+        for c in (clusters or {}).values() if isinstance(c, dict)
+    )
+
+
+def clusters_strip_html(clusters: dict, watchlist: dict, extension_regime=None) -> str:
+    """The Briefing's Clusters card — one row per group, verdict-first.
+
+    Row anatomy (design revision 2026-07-24): a 3px left rail in the group's
+    DOMINANT signal colour (the row *is* the group, so the whole edge carries
+    its state — you scan the left margin and see the shape before reading a
+    word), then a fixed 130px name / flexible distribution bar / 62px extension
+    grid, then the punch line and its note.
+
+    The distribution bar is a legitimate use of signal hues: it is literally a
+    count of signals. Widths are proportional, and the counts beside it repeat
+    the figure exactly — redundant encoding, so the bar gives proportion at a
+    glance and the number gives precision for anyone who wants it.
     """
     if not clusters:
         return ""
@@ -159,35 +177,47 @@ def clusters_strip_html(clusters: dict, watchlist: dict, extension_regime=None) 
         if not isinstance(c, dict):
             continue
         tickers = c.get("tickers", []) or []
-        mix = "".join(
-            f'<span class="clx-sig" style="color:{signal_text_color(sig)};">'
-            f'{n}&nbsp;{_escape_dollars(sig)}</span>'
-            for sig, n in _signal_mix(tickers, watchlist)
+        mix = _signal_mix(tickers, watchlist)
+        total = sum(n for _s, n in mix) or 1
+        dominant = max(mix, key=lambda kv: kv[1])[0] if mix else ""
+        rail = SIGNAL_COLORS.get(dominant, "var(--color-divider)")
+
+        segments = "".join(
+            f'<span style="width:{(n / total) * 100:.4f}%;'
+            f'background:{SIGNAL_COLORS.get(sig, "var(--color-text-4)")};"></span>'
+            for sig, n in mix
         )
-        ext = ""
+        counts = "".join(
+            f'<b style="color:{signal_text_color(sig)};">{n}{_SIG_TAG.get(sig, "?")}</b>'
+            for sig, n in mix
+        )
+
+        ext_html = ""
         breadth = _extension_breadth(tickers, extension_regime)
         if breadth is not None:
-            n_ext, total = breadth
+            n_ext, n_tot = breadth
             warn = ' data-warn="1"' if n_ext else ""
-            ext = f'<span class="clx-ext"{warn}>{n_ext}/{total}&nbsp;ext</span>'
-        dev = c.get("key_development") or ""
-        dev_html = f'<span class="clx-dev">{_escape_dollars(dev)}</span>' if dev else ""
+            ext_html = f'<div class="clx-ext"{warn}>{n_ext}/{n_tot}&nbsp;ext</div>'
+
+        punch = c.get("thesis_status") or c.get("key_development") or ""
+        note = c.get("key_development") if c.get("thesis_status") else c.get("summary")
         rows += (
-            f'<div class="clx-row">'
-            f'<span class="clx-name">'
-            f'{_escape_dollars(str(name).replace("_", " ").title())}</span>'
-            f'<span class="clx-mix">{mix}{ext}</span>'
-            f'{dev_html}'
+            f'<div class="clx-row" style="border-left-color:{rail};">'
+            f'<div class="clx-name">'
+            f'{_escape_dollars(str(name).replace("_", " "))}</div>'
+            f'<div class="clx-bar">'
+            f'<span class="clx-track">{segments}</span>'
+            f'<span class="clx-counts">{counts}</span>'
             f'</div>'
+            f'{ext_html or "<div></div>"}'
+            + (f'<div class="clx-punch">{_escape_dollars(punch)}</div>' if punch else "")
+            + (f'<div class="clx-note">{_escape_dollars(note)}</div>' if note else "")
+            + '</div>'
         )
-    body = (
-        f'{rows}'
-        f'<div class="strip-more">Full anchors on the <b>Clusters</b> tab</div>'
-    )
     return card_container(
-        eyebrow="CLUSTERS · WHERE EACH GROUP STANDS",
+        eyebrow='Clusters<span class="eb-sub"> · where each group stands</span>',
         headline="",
-        body_html=body,
+        body_html=rows,
         lane="lede",
     )
 

@@ -26,6 +26,7 @@ from components.briefing import (
     render_pulse,
 )
 from components.briefing.action_card import action_card_html
+from components.briefing.clusters import cluster_anchor_count
 from components.briefing.calendar import calendar_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.stance import stance_band_html
@@ -118,6 +119,35 @@ mark_mounted()
 # script, AFTER the sidebar has assigned LIVE_PRICES / DATE_START / DATE_END —
 # the functions read those module globals at call time.
 # ════════════════════════════════════════════
+# ── Drill-in modals ──
+# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
+# opens as a dialog from the matching Briefing card, so drilling in never leaves
+# the page. st.dialog supplies the dimmed backdrop, click-outside dismiss and
+# close control natively; theme.css only styles the surface so it wears the same
+# blueprint grammar (square corners, 2px masthead-weight header rule) as the
+# page behind it — "zooming into the same document, not opening a different app".
+@st.dialog("Where each group stands", width="large")
+def _clusters_dialog(report: dict) -> None:
+    from components.briefing import render_clusters
+    render_clusters(
+        report.get("clusters", {}),
+        report.get("watchlist", {}),
+        report.get("extension_regime"),
+    )
+
+
+@st.dialog("Fundamentals — the full measure list", width="large")
+def _fundamentals_dialog(watchlist: dict) -> None:
+    # Deliberately NOT render_capex_pulse(): that carries an st.expander, and a
+    # Streamlit widget inside a dialog reruns the script, which dismisses the
+    # dialog. The measure list and the earnings scorecard are pure markup
+    # (the latter uses native <details>), so the dialog stays put.
+    from components.briefing import render_earnings
+    from components.briefing.fundamentals import fundamentals_detail_html
+    st.markdown(fundamentals_detail_html(), unsafe_allow_html=True)
+    render_earnings(watchlist)
+
+
 def _page_briefing() -> None:
     _dates = list_report_dates()
     if not _dates:
@@ -137,6 +167,18 @@ def _page_briefing() -> None:
         st.error("No readable report files found in data/.")
         st.stop()
     _prev_report = load_report(_prev_date) if _prev_date else None
+
+    # Drill-in dialogs are opened HERE, on the main script run — deliberately
+    # outside the body fragment below. A fragment rerun only patches its own DOM
+    # subtree, so a dialog opened inside one executes but never attaches (the
+    # content renders into nothing). The card buttons therefore set a flag and
+    # request a full-app rerun; we pop it here and open the dialog at page level.
+    _pending_modal = (st.session_state.pop("_open_modal", None)
+                      or st.query_params.get("modal"))
+    if _pending_modal == "clusters":
+        _clusters_dialog(_base_report)
+    elif _pending_modal == "fundamentals":
+        _fundamentals_dialog(_base_report.get("watchlist", {}))
 
     # Live prices are the only per-minute-changing input on the Briefing, and the
     # Yahoo fetch can stall for a few seconds. Rendering the body inside a fragment
@@ -218,18 +260,39 @@ def _page_briefing() -> None:
         # verdicts (right, capex + earnings). The deep evidence — anchor tables,
         # capex datasheet, trend charts — stays on the Clusters and Fundamentals
         # tabs (progressive disclosure). Same 1.55fr/1fr grid as the main band.
+        # st.columns (not the CSS grid) because each column needs a real
+        # st.button to open its modal, and a widget can't live inside an
+        # st.markdown HTML string. Same 1.55/1 ratio as the band below.
+        # st.columns (not the CSS grid) because each card ends in a real
+        # st.button, and a widget can't live inside an st.markdown string. The
+        # keyed container IS the card frame (theme.css strips the inner .card's
+        # border), so the button sits in normal flow as the card's LAST CHILD —
+        # left-aligned to the content edge, shrink-to-fit, 12px below the last
+        # row. Cards size to their own content (align-items:start), so the two
+        # buttons do not share a baseline — that is intended.
         _cl_strip = clusters_strip_html(
             report.get("clusters", {}), watchlist, report.get("extension_regime")
         )
         _fx_strip = fundamentals_strip_html(watchlist)
         if _cl_strip or _fx_strip:
-            st.markdown(
-                f'<div class="briefing-grid">'
-                f'<div class="bg-col">{_cl_strip}</div>'
-                f'<div class="bg-col">{_fx_strip}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+            _cl_col, _fx_col = st.columns([1.55, 1], gap="large")
+            with _cl_col:
+                if _cl_strip:
+                    with st.container(key="clusters_card"):
+                        st.markdown(_cl_strip, unsafe_allow_html=True)
+                        _n = cluster_anchor_count(report.get("clusters", {}))
+                        if st.button(f"View all {_n} anchors →",
+                                     key="open_clusters_modal"):
+                            st.session_state["_open_modal"] = "clusters"
+                            st.rerun(scope="app")
+            with _fx_col:
+                if _fx_strip:
+                    with st.container(key="fundamentals_card"):
+                        st.markdown(_fx_strip, unsafe_allow_html=True)
+                        if st.button("View all measures →",
+                                     key="open_fundamentals_modal"):
+                            st.session_state["_open_modal"] = "fundamentals"
+                            st.rerun(scope="app")
 
         # Briefing body — 1.55fr / 1fr grid (design-spec §6), composed as ONE
         # st.markdown so CSS grid sees the two columns as siblings
@@ -323,32 +386,9 @@ def _page_watchlist() -> None:
     _render_watchlist_body()
 
 
-def _page_clusters() -> None:
-    # Cluster band moved off the Briefing (overhaul 2026-07) to its own tab, so
-    # the per-group theses + anchor tables get room to breathe. render_clusters
-    # carries its own section head. Latest report only.
-    from components.briefing import render_clusters
-    _dates = list_report_dates()
-    if not _dates:
-        st.error("No report files found in data/.")
-        st.stop()
-    _report = load_report(_dates[-1])
-    render_clusters(
-        _report.get("clusters", {}),
-        _report.get("watchlist", {}),
-        _report.get("extension_regime"),
-    )
-
-
-def _page_fundamentals() -> None:
-    # Fundamentals tab (overhaul 2026-07): the AI Capex Pulse (hero digestion
-    # scorecard) and the Earnings Scorecard — the two fundamental cross-checks —
-    # together, off the Briefing. Each render_* carries its own section head.
-    from components.briefing import render_capex_pulse, render_earnings
-    _dates = list_report_dates()
-    _report = load_report(_dates[-1]) if _dates else {}
-    render_capex_pulse()
-    render_earnings(_report.get("watchlist", {}))
+# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
+# opens as a modal from the matching Briefing card, so the reader drills in
+# without leaving the page — see _clusters_dialog / _fundamentals_dialog above.
 
 
 def _page_signal_tracker() -> None:
@@ -424,8 +464,6 @@ def _page_terminology() -> None:
 _PAGES = {
     "Briefing": st.Page(_page_briefing, title="Briefing", url_path="briefing", default=True),
     "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
-    "Clusters": st.Page(_page_clusters, title="Clusters", url_path="clusters"),
-    "Fundamentals": st.Page(_page_fundamentals, title="Fundamentals", url_path="fundamentals"),
     "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
     "Retrospective": st.Page(_page_retrospective, title="Retrospective", url_path="retrospective"),
     "Pipeline Stats": st.Page(_page_pipeline_stats, title="Pipeline Stats", url_path="pipeline-stats"),
