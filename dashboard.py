@@ -26,8 +26,8 @@ from components.briefing import (
     render_pulse,
 )
 from components.briefing.action_card import action_card_html
-from components.briefing.clusters import cluster_anchor_count
 from components.briefing.calendar import calendar_card_html
+from components.briefing.clusters import cluster_anchor_count
 from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
@@ -394,8 +394,8 @@ def _page_watchlist() -> None:
 
 
 def _page_signal_tracker() -> None:
-    from components.signal_tracker import render_signal_tracker_page
     from components.briefing import render_calibration
+    from components.signal_tracker import render_signal_tracker_page
 
     # Signal calibration moved off the Briefing (overhaul 2026-07): "how have
     # today's signals actually performed" is the Tracker's own subject, so it
@@ -426,9 +426,9 @@ def _page_retrospective() -> None:
 
 
 def _page_scenario_log() -> None:
-    from components.scenario_log import render_scenario_log_page
     from components.briefing import render_catalyst_playbook
     from components.briefing.macro import scenario_odds_html
+    from components.scenario_log import render_scenario_log_page
 
     # Scenario odds + the Macro Trigger Map both moved off the Briefing (overhaul
     # 2026-07): the scenario-probability bar and the per-event bull/bear playbook
