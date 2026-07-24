@@ -271,3 +271,48 @@ def test_readiness_multiregime_signal_counts_decision_grade():
 def test_readiness_empty_is_blank():
     assert _readiness_html({}) == ""
     assert _readiness_html(None) == ""
+
+
+# ── Redesign (spec 2026-07-25 §5): trust meter + methodology paragraph ──
+from components.signal_tracker import _method_html
+
+_CI_SINGLE = {"signal_performance": {
+    "CAUTION": {"n_matured_10d": 96, "n_alpha_10d": 96,
+                "single_regime": True, "regimes_present": ["trend_up"]},
+}}
+
+
+def test_trust_meter_is_one_blueprint_card():
+    """The caveat must be impossible to read separately from the numbers it
+    limits, so it lives in the same frame — not a second card, not a footnote."""
+    html = _readiness_html(_CI_SINGLE)
+    assert "blueprint" in html
+    assert html.count("blueprint") == 1
+    assert "directional" in html.lower()
+
+
+def test_trust_meter_stats_use_the_shared_tick():
+    html = _readiness_html(_CI_SINGLE)
+    assert html.count('class="stat-tick"') == 3
+
+
+def test_trust_meter_does_not_borrow_watch_amber():
+    """The warn state changes the sentence; it must not borrow WATCH's hue."""
+    assert "#f59e0b" not in _readiness_html(_CI_SINGLE)
+
+
+def test_method_bolds_only_the_three_load_bearing_phrases():
+    """Bolding is by what breaks comprehension if missed, not by keyword
+    importance: what counts as right for each family, and that this is not the
+    alpha view."""
+    html = _method_html()
+    assert html.count("<b>") == 3
+    assert "<b>rise</b>" in html and "<b>drop</b>" in html
+    assert "<b>raw price direction</b>" in html
+
+
+def test_method_points_at_this_page_not_the_briefing():
+    """The calibration band moved onto this page in the 2026-07 overhaul — the
+    old pointer sent readers to a band that is no longer there."""
+    html = _method_html()
+    assert "Briefing" not in html
