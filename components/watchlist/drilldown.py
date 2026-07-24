@@ -44,15 +44,25 @@ def _consensus_str(rec, n_analysts) -> str:
     return label
 
 
-def _drilldown_metrics_html(items: list[tuple[str, str]]) -> str:
-    visible = [(label, value) for label, value in items if value not in (None, "", "—")]
+def _drilldown_metrics_html(items: list[tuple]) -> str:
+    """Metric grid. Items are ``(label, value)`` or ``(label, value, colour)``.
+
+    The optional third element tints the VALUE — use the price up/down palette
+    for directional figures (an "avg down move" should read as a down move) or
+    the data palette; never a signal hue, which belongs only on pills and rails.
+    """
+    visible = [it for it in items if it[1] not in (None, "", "—")]
     if not visible:
         return ""
-    cells = "".join(
-        f'<div class="dd-metric"><div class="lbl">{label}</div>'
-        f'<div class="val">{value}</div></div>'
-        for label, value in visible
-    )
+    cells = ""
+    for item in visible:
+        label, value = item[0], item[1]
+        colour = item[2] if len(item) > 2 else ""
+        style = f' style="color:{colour};"' if colour else ""
+        cells += (
+            f'<div class="dd-metric"><div class="lbl">{label}</div>'
+            f'<div class="val"{style}>{value}</div></div>'
+        )
     return f'<div class="dd-metric-grid">{cells}</div>'
 
 
@@ -485,14 +495,16 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
     if has_rr:
         parts.append(_drilldown_section_html("Risk & Reward"))
         if upside_target is not None:
-            line = f"<strong>Upside target.</strong> {_p(upside_target)}"
+            line = (f'<strong style="color:var(--up);">Upside target.</strong> '
+                    f'{_p(upside_target)}')
             if upside_pct is not None:
                 line += f" (+{_fmt_num(upside_pct, 1)}%)"
             if upside_reason:
                 line += f" — {_escape_dollars(upside_reason)}"
             parts.append(f'<div class="dd-line">{line}</div>')
         if invalidation is not None:
-            line = f"<strong>Invalidation.</strong> {_p(invalidation)}"
+            line = (f'<strong style="color:var(--down);">Invalidation.</strong> '
+                    f'{_p(invalidation)}')
             if inv_pct is not None:
                 line += f" (-{_fmt_num(inv_pct, 1)}%)"
             if invalidation_reason:
@@ -505,13 +517,16 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
                                      "tight-stop distorted" if rr_obj.get("rr_distorted") else "")
                          if b]
         _rr_qual = f" ({' · '.join(_rr_qual_bits)})" if _rr_qual_bits else ""
+        # R:R ratios are computed data, so they take the brass data tone; the
+        # structural-support level is a downside price, so it takes --down.
         rr_metrics = [
-            ("Headline R:R", f"{rr_label}{_rr_qual}" if rr_label else "—"),
-            ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—"),
+            ("Headline R:R", f"{rr_label}{_rr_qual}" if rr_label else "—", "var(--brass)"),
+            ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—", "var(--brass)"),
             (
                 "Structural support",
                 f"{_p(structural)} (-{_fmt_num(struct_pct, 1)}%)"
                 if structural else "—",
+                "var(--down)",
             ),
         ]
         parts.append(_drilldown_metrics_html(rr_metrics))
@@ -623,14 +638,14 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
         if avg_up is not None and impl_up is not None:
             parts.append(
                 f'<div class="dd-line">'
-                f'<strong>Bull case.</strong> {_p(impl_up)} '
+                f'<strong style="color:var(--up);">Bull case.</strong> {_p(impl_up)} '
                 f'({_sign(avg_up)}{_fmt_num(avg_up, 1)}% avg of {n_priors} priors)'
                 f'</div>'
             )
         if avg_dn is not None and impl_lo is not None:
             parts.append(
                 f'<div class="dd-line">'
-                f'<strong>Bear case.</strong> {_p(impl_lo)} '
+                f'<strong style="color:var(--down);">Bear case.</strong> {_p(impl_lo)} '
                 f'({_fmt_num(avg_dn, 1)}% avg of {n_priors} priors)'
                 f'</div>'
             )
@@ -646,24 +661,30 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
                 f'All {n_priors} priors moved up — no symmetric bear-side reference.'
                 f'</div>'
             )
+        # Directional figures carry the price up/down palette so an "avg down
+        # move" reads as a down move; the date/countdown stay neutral.
         band_metrics = [
             ("Earnings date", earn_date),
             ("Days until", str(days_until) if days_until is not None else "—"),
             (
                 "Avg up move",
                 f"{_sign(avg_up)}{_fmt_num(avg_up, 1)}%" if avg_up is not None else "—",
+                "var(--up)",
             ),
             (
                 "Avg down move",
                 f"{_fmt_num(avg_dn, 1)}%" if avg_dn is not None else "—",
+                "var(--down)",
             ),
             (
                 "Max up move",
                 f"{_sign(max_up)}{_fmt_num(max_up, 1)}%" if max_up is not None else "—",
+                "var(--up)",
             ),
             (
                 "Max down move",
                 f"{_fmt_num(max_dn, 1)}%" if max_dn is not None else "—",
+                "var(--down)",
             ),
         ]
         parts.append(_drilldown_metrics_html(band_metrics))
