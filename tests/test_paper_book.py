@@ -984,3 +984,15 @@ def test_advisory_lanes_are_neutral_and_brass_not_two_more_categories():
     from components.paper_book import _ADVISORY_COLORS
     assert set(_ADVISORY_COLORS.values()) == {CHART_MUTED, CHART_ACCENT_SOFT}
     assert CHART_ACCENT not in _ADVISORY_COLORS.values()
+
+
+def test_lane_labels_fall_back_to_the_chart_legend_names():
+    """The exported variants array carries the ext-exit replays too. As a cell
+    title a raw policy_id sits beside four clean labels, so every id we already
+    have a name for must use it."""
+    html = _variants_html({"variants": [
+        {"policy_id": "v1_trail10", "nav_return_pct": 1.0, "stops": 18},
+        {"policy_id": "v1_tc_ext_100", "nav_return_pct": 5.1, "stops": 10},
+    ]})
+    assert "ext-exit 10/5" in html
+    assert "v1_tc_ext_100" not in html

@@ -283,6 +283,21 @@ _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
                 "v1_nostop10": "no-stop", "v1_wide10": "wide"}
 
 
+def _lane_label(policy_id: str) -> str:
+    """Reader label for a lane, falling back through every map we own.
+
+    The exported ``variants`` array is not limited to the four stop-rule lanes —
+    the ext-exit replays appear there too, and those already have labels in
+    ``_ADVISORY_CURVES`` (used by the chart legend). Consulting both keeps a raw
+    policy_id off the page; in the lane grid an unlabelled id sits as a cell
+    title beside four clean ones, which is far louder than it was mid-sentence.
+    Unknown ids still fall through to the escaped id rather than being dropped.
+    """
+    return (_LANE_LABELS.get(policy_id)
+            or _ADVISORY_CURVES.get(policy_id)
+            or _escape_dollars(str(policy_id)))
+
+
 def _variants_html(block: dict | None) -> str:
     """Advisory stop-rule lanes, one compact line under the stats.
 
@@ -303,15 +318,13 @@ def _variants_html(block: dict | None) -> str:
         nav = v.get("nav_return_pct")
         if not isinstance(nav, (int, float)):
             continue
-        label = (_LANE_LABELS.get(v["policy_id"])
-                 or _escape_dollars(str(v["policy_id"])))
+        label = _lane_label(v["policy_id"])
         lanes.append((label, nav, v.get("stops"), False))
     if not lanes:
         return ""
     head_nav = block.get("nav_return_pct")
     if isinstance(head_nav, (int, float)):
-        label = (_LANE_LABELS.get(block.get("policy_id"))
-                 or _escape_dollars(str(block.get("policy_id") or "book")))
+        label = _lane_label(block.get("policy_id") or "book")
         stops = (block.get("trade_counts") or {}).get("stop")
         lanes.insert(0, (label, head_nav, stops, True))
 
