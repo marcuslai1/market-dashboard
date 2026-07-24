@@ -620,11 +620,14 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
             "low_bar_underdog": "Low bar / underdog",
             "neutral": "Neutral",
         }.get(archetype, archetype or "—")
+        # Health axis, not signals: the archetype characterises the SETUP, so it
+        # takes the data palette (brass = watch / neutral, terracotta = stressed)
+        # rather than a BUY/CAUTION hue. "Neutral" was grey and read as absent.
         archetype_color = {
-            "priced_for_perfection": STATUS_NEG,
-            "low_bar_underdog": STATUS_POS,
-            "neutral": STATUS_NEUTRAL,
-        }.get(archetype, STATUS_NEUTRAL)
+            "priced_for_perfection": "var(--stress)",
+            "low_bar_underdog": "var(--up)",
+            "neutral": "var(--brass)",
+        }.get(archetype, "var(--brass)")
         section_label = f"Earnings setup — {temporal_phrase}" if temporal_phrase else "Earnings setup"
         parts.append(_drilldown_section_html(section_label))
         if archetype:
