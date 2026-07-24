@@ -915,3 +915,52 @@ def test_render_paper_book_without_trades_is_unchanged():
     joined = " ".join(m.value for m in at.markdown)
     assert "completed trade" not in joined         # no history, no verdict line
     assert "P&amp;L so far" not in joined          # positions table as today
+
+
+# ── Redesign (spec 2026-07-25 §6.3): chart chrome ──
+from components.paper_book import _chart_head_html, _legend_swatch, _nav_fig
+from lib.charts import CHART_ACCENT, CHART_ACCENT_SOFT, CHART_MUTED
+
+_REBASED = pd.DataFrame({"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
+                         "Paper book": [100000.0, 99710.0],
+                         "SPY": [100000.0, 104430.0]})
+
+
+def test_legend_swatch_is_a_real_line_sample():
+    """Legend and plot must use identical encoding, so the swatch is the series'
+    actual width and dash pattern — not a colour square."""
+    solid = _legend_swatch("var(--brass)", 2.4, dash=False)
+    dashed = _legend_swatch(CHART_MUTED, 1.4, dash=True)
+    assert "<svg" in solid and 'stroke-width="2.4"' in solid
+    assert "stroke-dasharray" in dashed
+    assert "stroke-dasharray" not in solid
+    assert "non-scaling-stroke" in solid
+
+
+def test_chart_head_carries_the_axis_eyebrow_and_a_legend_entry_per_series():
+    html = _chart_head_html(_REBASED, None)
+    assert "pb-chart-head" in html
+    assert html.count("<svg") == 2
+    assert "Paper book" in html and "SPY" in html
+    assert "value of" in html.lower()          # the axis description
+    assert html.count('class="corner') == 4    # blueprint registration marks
+    assert "$" not in html                     # escaped for the markdown parser
+
+
+def test_nav_fig_hides_plotly_legend_and_ranks_series_by_weight():
+    """Hierarchy by weight, not just hue: the subject is heaviest, the benchmark
+    thinner, the hypothetical replays thinnest and dashed."""
+    fig = _nav_fig(_REBASED, None)
+    assert fig.layout.showlegend is False
+    widths = {tr.name: tr.line.width for tr in fig.data}
+    assert widths["Paper book"] == 2.4
+    assert widths["SPY"] == 1.6
+
+
+def test_advisory_lanes_are_neutral_and_brass_not_two_more_categories():
+    """Two arbitrary palette hues read as two more categories; neutral plus a
+    brass tint reads as 'variants of the subject and the benchmark'. The tint is
+    NOT the subject's own brass — a replay must not look like the book."""
+    from components.paper_book import _ADVISORY_COLORS
+    assert set(_ADVISORY_COLORS.values()) == {CHART_MUTED, CHART_ACCENT_SOFT}
+    assert CHART_ACCENT not in _ADVISORY_COLORS.values()

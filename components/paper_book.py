@@ -19,7 +19,9 @@ import streamlit as st
 from lib.cards import render_section_head
 from lib.charts import (
     CHART_ACCENT,
+    CHART_ACCENT_SOFT,
     CHART_LINE,
+    CHART_MUTED,
     CHART_PALETTE,
     PLOTLY_CONFIG,
     STATUS_NEG,
@@ -842,8 +844,12 @@ _ADVISORY_CURVES = {
     "v1_tc_ext_100": "ext-exit 10/5",
     "v1_tc_ext_100_b30": "ext-exit 30/15",
 }
-_ADVISORY_COLORS = {"ext-exit 10/5": CHART_PALETTE[2],    # sage
-                    "ext-exit 30/15": CHART_PALETTE[3]}   # dusty mauve
+# One neutral, one brass-tinted — variants of the subject and the benchmark, not
+# two more categories. Two arbitrary palette hues (the old sage / dusty mauve)
+# read as new series with meanings of their own. The tint is dimmed rather than
+# CHART_ACCENT itself: a replay must never be mistaken for the book.
+_ADVISORY_COLORS = {"ext-exit 10/5": CHART_MUTED,
+                    "ext-exit 30/15": CHART_ACCENT_SOFT}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
@@ -874,26 +880,81 @@ def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
     return out.sort_values("date").reset_index(drop=True)
 
 
+# Series widths — hierarchy by weight, not just hue. A reader who knows nothing
+# can still tell which line is the point.
+_W_SUBJECT, _W_BENCH, _W_REPLAY = 2.4, 1.6, 1.4
+
+
+def _legend_swatch(color: str, width: float, dash: bool) -> str:
+    """An 18px rule at the series' real width and dash pattern.
+
+    Actual line samples rather than colour squares, so the legend and the plot
+    use identical encoding — the dashes say "hypothetical" before the caption is
+    read. non-scaling-stroke keeps a hairline a hairline as the SVG stretches.
+    """
+    dash_attr = ' stroke-dasharray="4 3"' if dash else ""
+    return (
+        '<svg class="pb-swatch" viewBox="0 0 18 6" width="18" height="6" '
+        'aria-hidden="true"><line x1="0" y1="3" x2="18" y2="3" '
+        f'stroke="{color}" stroke-width="{width}"{dash_attr} '
+        'vector-effect="non-scaling-stroke"/></svg>'
+    )
+
+
+def _chart_head_html(rebased: pd.DataFrame,
+                     advisory: pd.DataFrame | None) -> str:
+    """Header row for the chart card: steel axis eyebrow left, legend right.
+
+    Also carries the four blueprint registration marks, which position against
+    the bordered container the chart sits in.
+    """
+    entries = []
+    for name in [c for c in rebased.columns if c != "date" and c in _CHART_SERIES]:
+        width = _W_SUBJECT if name == "Paper book" else _W_BENCH
+        entries.append((name, _SERIES_COLORS.get(name, CHART_LINE), width, False))
+    if advisory is not None and not advisory.empty:
+        for name in [c for c in advisory.columns if c != "date"]:
+            entries.append((name, _ADVISORY_COLORS.get(name, CHART_LINE),
+                            _W_REPLAY, True))
+    legend = "".join(
+        f'<span class="pb-legend-item">{_legend_swatch(color, width, dash)}'
+        f"{_escape_dollars(name)}</span>"
+        for name, color, width, dash in entries
+    )
+    # Escaped: a raw "$" in injected markdown is read as a LaTeX delimiter.
+    axis = _escape_dollars(f"Value of {_money(NOTIONAL_START)} invested at start")
+    return (
+        '<i class="corner tl"></i><i class="corner tr"></i>'
+        '<i class="corner bl"></i><i class="corner br"></i>'
+        '<div class="pb-chart-head">'
+        f'<span class="eyebrow">{axis}</span>'
+        f'<span class="pb-legend">{legend}</span>'
+        "</div>"
+    )
+
+
 def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
+    """The NAV plot as a line drawing: no axis box, no filled plot area, and no
+    Plotly legend — the header row above carries it, with real line samples."""
     fig = go.Figure()
     for name in [c for c in rebased.columns
                  if c != "date" and c in _CHART_SERIES]:
         fig.add_scatter(
             x=rebased["date"], y=rebased[name], mode="lines", name=name,
             line=dict(color=_SERIES_COLORS.get(name, CHART_LINE),
-                      width=2.2 if name == "Paper book" else 1.4),
+                      width=_W_SUBJECT if name == "Paper book" else _W_BENCH),
         )
     if advisory is not None and not advisory.empty:
         for name in [c for c in advisory.columns if c != "date"]:
             fig.add_scatter(
                 x=advisory["date"], y=advisory[name], mode="lines", name=name,
                 line=dict(color=_ADVISORY_COLORS.get(name, CHART_LINE),
-                          width=1.2, dash="dash"),
+                          width=_W_REPLAY, dash="dash"),
             )
-    fig.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0),
-                      legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                      yaxis_title=f"value of {_money(NOTIONAL_START)} "
-                                  "invested at start")
+    fig.update_layout(height=260, margin=dict(l=0, r=0, t=6, b=0),
+                      showlegend=False)
+    fig.update_xaxes(showline=False, zeroline=False)
+    fig.update_yaxes(showline=False, zeroline=False, title=None)
     return style_fig(fig)
 
 
@@ -904,9 +965,11 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
     names = [c for c in advisory.columns if c != "date"]
     if not names:
         return ""
+    # Terracotta on the limitation only — it marks a trust limit, never a rating.
     return ('<p class="pb-chartnote">Dashed: exit-on-extension replay lanes '
             f'({", ".join(names)} — BUY%/add-on% of the book) · '
-            "hypothesis-grade, one regime · not the headline book.</p>")
+            '<span class="lim">hypothesis-grade, one regime</span> · '
+            "not the headline book.</p>")
 
 
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
@@ -917,9 +980,11 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
     if valid.empty:
         return ""
     ret = (valid.iloc[-1] / NOTIONAL_START - 1.0) * 100.0
-    return (f'<p class="pb-chartnote">SOXX {ret:+.1f}% over this window is '
-            f"left off the chart so the book-vs-SPY gap stays readable — "
-            f"full series in the data table.</p>")
+    # Brass on the figure: a measurement. The exclusion is disclosed rather than
+    # silent — a +32% series would flatten the gap the chart exists to show.
+    return (f'<p class="pb-chartnote">SOXX <span class="val">{ret:+.1f}%</span> '
+            f"over this window is left off the chart so the book-vs-SPY gap "
+            f"stays readable — full series in the data table.</p>")
 
 
 def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
@@ -960,8 +1025,14 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         st.markdown(_verdict_html(block) + _stats_html(block),
                     unsafe_allow_html=True)
     if not rebased.empty:
-        st.plotly_chart(_nav_fig(rebased, advisory), use_container_width=True,
-                        config=PLOTLY_CONFIG)
+        # st.container(border=True) is the only wrapper a Plotly element can sit
+        # inside; the tracker-scoped CSS turns it into the blueprint frame, and
+        # the injected corner marks position against it.
+        with st.container(border=True):
+            st.markdown(_chart_head_html(rebased, advisory),
+                        unsafe_allow_html=True)
+            st.plotly_chart(_nav_fig(rebased, advisory),
+                            use_container_width=True, config=PLOTLY_CONFIG)
         note = _soxx_note_html(rebased) + _advisory_note_html(advisory)
         if note:
             st.markdown(note, unsafe_allow_html=True)
