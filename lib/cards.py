@@ -19,15 +19,18 @@ def render_section_head(title: str, sub: str = "") -> None:
 
 
 def card_container(*, eyebrow: str, headline: str = "", body_html: str, lane: str = "lede") -> str:
-    """Editorial card primitive — returns an HTML string.
+    """Blueprint card primitive — returns an HTML string.
 
-    The caller is responsible for ``st.markdown(..., unsafe_allow_html=True)``.
-    ``lane`` is a semantic attribute consumed by the lane grid (visual Step 5);
-    until then, cards render in document order (stacked vertically).
+    Blueprint aesthetic (design-spec §5): transparent fill, square corners, a
+    single hairline border, and a small ``+`` registration mark at each of the
+    four corners. The caller emits it via ``st.markdown(..., unsafe_allow_html
+    =True)``. ``lane`` is the semantic attribute the lane grid consumes.
     """
     headline_html = f'<h2 class="card-headline">{headline}</h2>' if headline else ''
     return (
-        f'<div class="card" data-lane="{lane}">'
+        f'<div class="card blueprint" data-lane="{lane}">'
+        f'<i class="corner tl"></i><i class="corner tr"></i>'
+        f'<i class="corner bl"></i><i class="corner br"></i>'
         f'<div class="card-head">'
         f'<span class="eyebrow">{eyebrow}</span>'
         f'{headline_html}'

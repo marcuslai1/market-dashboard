@@ -180,14 +180,38 @@
   }
 }
 
-/* ── Editorial card primitive (lib/cards.py::card_container) ── */
+/* ── Blueprint card primitive (lib/cards.py::card_container) ──
+   design-spec §5: transparent fill, square corners, single hairline border,
+   four "+" registration marks. Line drawing, never a filled/rounded surface. */
 .card {
-  background: var(--surface-1);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-card);
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
   padding: var(--card-pad-y) var(--card-pad-x);
   margin-bottom: var(--card-gap);
+  position: relative;   /* containing block for the corner marks */
 }
+/* "+" registration marks — a small cross centred on each corner of the border. */
+.blueprint > .corner {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: var(--color-text-3);
+  pointer-events: none;
+}
+.blueprint > .corner::before,
+.blueprint > .corner::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+  opacity: 0.7;
+}
+.blueprint > .corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.blueprint > .corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+.blueprint > .corner.tl { top: -4.5px; left: -4.5px; }
+.blueprint > .corner.tr { top: -4.5px; right: -4.5px; }
+.blueprint > .corner.bl { bottom: -4.5px; left: -4.5px; }
+.blueprint > .corner.br { bottom: -4.5px; right: -4.5px; }
 .card-head {
   display: flex;
   align-items: baseline;
@@ -217,7 +241,9 @@
   color: var(--ink-2);
 }
 
-.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
+/* font-variant-numeric inherits, so setting it on the app root gives every
+   number tabular figures (design-spec §5) — Barlow isn't monospaced. */
+.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
 .main .block-container { max-width: 1200px; padding-top: 18px; padding-bottom: 80px; }  /* spec §6: 1200px centred */
 [data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 

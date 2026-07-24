@@ -14,7 +14,6 @@ import re
 from datetime import datetime as _dt
 
 from lib.cards import card_container
-from lib.catalog import SIGNAL_COLORS
 from lib.formatters import _escape_dollars
 
 # Core-5 rate-relevant prints, fixed display order. Other FRED series
@@ -155,11 +154,14 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
         )
     probs = geo.get("probabilities") or {}
     if probs:
+        # Scenario odds are probabilities, not signals — they use the DATA/
+        # structure palette, never signal hues (design-spec §3): base = accent,
+        # optimistic = up, pessimistic = down, wildcard = brass.
         colors = {
-            "base":        SIGNAL_COLORS["ACCUMULATE"],
-            "optimistic":  SIGNAL_COLORS["BUY"],
-            "pessimistic": SIGNAL_COLORS["CAUTION"],
-            "wildcard":    SIGNAL_COLORS["WATCH"],
+            "base":        "var(--accent)",
+            "optimistic":  "var(--up)",
+            "pessimistic": "var(--down)",
+            "wildcard":    "var(--brass)",
         }
         labels = {"base": "Base case", "optimistic": "Optimistic",
                   "pessimistic": "Pessimistic", "wildcard": "Wildcard"}
@@ -200,10 +202,10 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
     scenarios = geo.get("scenarios") or {}
     if scenarios:
         sc_colors = {
-            "base":        SIGNAL_COLORS["ACCUMULATE"],
-            "optimistic":  SIGNAL_COLORS["BUY"],
-            "pessimistic": SIGNAL_COLORS["CAUTION"],
-            "wildcard":    SIGNAL_COLORS["WATCH"],
+            "base":        "var(--accent)",
+            "optimistic":  "var(--up)",
+            "pessimistic": "var(--down)",
+            "wildcard":    "var(--brass)",
         }
         sc_labels = {"base": "Base case", "optimistic": "Optimistic",
                      "pessimistic": "Pessimistic", "wildcard": "Wildcard"}

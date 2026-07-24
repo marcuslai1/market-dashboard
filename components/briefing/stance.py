@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from lib.cards import card_container
 from lib.catalog import SIGNAL_COLORS, SIGNAL_ORDER
-from lib.charts import INK_FALLBACK, STATUS_NEG
+from lib.charts import INK_FALLBACK
 from lib.formatters import _escape_dollars
 
 
@@ -25,7 +25,7 @@ def stance_band_html(snapshot: dict, total_tracked: int) -> str:
     stance = snapshot.get("overall_stance", "—")
     posture = snapshot.get("risk_posture", "")
     counts = snapshot.get("signal_counts", {})
-    deck_color = SIGNAL_COLORS.get("CAUTION", STATUS_NEG)
+    deck_color = "var(--accent)"   # structural accent dot, not a signal hue (spec §3)
 
     # Card 1 — Stance deck (lede lane).
     stance_body = (
