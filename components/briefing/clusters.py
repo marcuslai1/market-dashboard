@@ -13,10 +13,10 @@ from collections import Counter
 
 import streamlit as st
 
-from lib.cards import render_section_head
+from lib.cards import card_container, render_section_head
 from lib.catalog import SIGNAL_ORDER
 from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
-from lib.pills import _signal_pill_html
+from lib.pills import _signal_pill_html, signal_text_color
 
 
 def _norm(ticker: str) -> str:
@@ -140,6 +140,56 @@ def _clusters_html(clusters: dict, watchlist: dict, extension_regime=None) -> st
     if not blocks:
         return '<div class="cl-band cl-empty">No cluster breakdown in this report.</div>'
     return f'<div class="cl-band">{"".join(blocks)}</div>'
+
+
+def clusters_strip_html(clusters: dict, watchlist: dict, extension_regime=None) -> str:
+    """Compact per-cluster showcase for the Briefing (design revision
+    2026-07-24): one scannable line per group — name · signal mix · extension
+    breadth · the key development — with NO expanders. The full anchor tables
+    live on the Clusters tab. Returns "" when the report carries no clusters.
+
+    Signal-mix counts keep their signal colours (they *are* signals, so the
+    hue is on-palette per design-spec §3); the extension count turns terracotta
+    only when names are hard-blocked.
+    """
+    if not clusters:
+        return ""
+    rows = ""
+    for name, c in clusters.items():
+        if not isinstance(c, dict):
+            continue
+        tickers = c.get("tickers", []) or []
+        mix = "".join(
+            f'<span class="clx-sig" style="color:{signal_text_color(sig)};">'
+            f'{n}&nbsp;{_escape_dollars(sig)}</span>'
+            for sig, n in _signal_mix(tickers, watchlist)
+        )
+        ext = ""
+        breadth = _extension_breadth(tickers, extension_regime)
+        if breadth is not None:
+            n_ext, total = breadth
+            warn = ' data-warn="1"' if n_ext else ""
+            ext = f'<span class="clx-ext"{warn}>{n_ext}/{total}&nbsp;ext</span>'
+        dev = c.get("key_development") or ""
+        dev_html = f'<span class="clx-dev">{_escape_dollars(dev)}</span>' if dev else ""
+        rows += (
+            f'<div class="clx-row">'
+            f'<span class="clx-name">'
+            f'{_escape_dollars(str(name).replace("_", " ").title())}</span>'
+            f'<span class="clx-mix">{mix}{ext}</span>'
+            f'{dev_html}'
+            f'</div>'
+        )
+    body = (
+        f'{rows}'
+        f'<div class="strip-more">Full anchors on the <b>Clusters</b> tab</div>'
+    )
+    return card_container(
+        eyebrow="CLUSTERS · WHERE EACH GROUP STANDS",
+        headline="",
+        body_html=body,
+        lane="lede",
+    )
 
 
 def render_clusters(clusters: dict, watchlist: dict, extension_regime=None) -> None:

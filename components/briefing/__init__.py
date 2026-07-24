@@ -12,13 +12,16 @@ from components.briefing.calibration import render_calibration
 from components.briefing.capex_pulse import render_capex_pulse
 from components.briefing.catalyst_playbook import render_catalyst_playbook
 from components.briefing.changes import render_changes
-from components.briefing.clusters import render_clusters
+from components.briefing.clusters import clusters_strip_html, render_clusters
 from components.briefing.contrarians import render_contrarian_candidates
 from components.briefing.earnings import render_earnings
+from components.briefing.fundamentals import fundamentals_strip_html
 from components.briefing.pulse import render_pulse
 
 __all__ = [
     "action_card_html",
+    "clusters_strip_html",
+    "fundamentals_strip_html",
     "render_action_card",
     "render_calibration",
     "render_capex_pulse",

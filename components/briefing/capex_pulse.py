@@ -206,6 +206,23 @@ def _trend_fig(pivot: pd.DataFrame):
     return style_fig(fig)
 
 
+def capex_verdict() -> dict | None:
+    """The AI Capex Pulse verdict — ``{tone, label, gloss}`` — for the Briefing's
+    compact Fundamentals strip (the full datasheet + charts stay on the
+    Fundamentals tab).
+
+    Returns None when there is no capex/fundamentals data. Shares the cached
+    fundamentals frame with ``render_capex_pulse`` (``_fundamentals_cached`` is
+    memoized on the cheap fingerprint), so it adds no heavy recompute.
+    """
+    capex = parse_capex(load_capex_quarterly())
+    fund_df = _fundamentals_cached(data_fingerprint(), load_all_reports())
+    if not capex["series"] and fund_df.empty:
+        return None
+    chips = build_chips(capex, fund_df, clock_today())
+    return compute_verdict(capex, fund_df, chips)
+
+
 def render_capex_pulse() -> None:
     """The AI Capex Pulse band (Briefing). Degrades chip-by-chip, never crashes."""
     capex = parse_capex(load_capex_quarterly())

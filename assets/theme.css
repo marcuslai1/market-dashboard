@@ -1172,6 +1172,80 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 /* Cards in a column stack on the flex gap, not their own bottom margin (which
    would double-space against it — same reasoning as .lane-wrapper > .card). */
 .briefing-grid .card { margin-bottom: 0; }
+
+/* ── Compact internals strips: Clusters + Fundamentals (Briefing) ──
+   Verdict-first, line-drawing rows separated by hairlines — no filled boxes.
+   The deep evidence lives on the Clusters / Fundamentals tabs. */
+.clx-row,
+.fx-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px 14px;
+  padding: 9px 0;
+  border-top: 1px solid var(--color-divider);
+  flex-wrap: wrap;
+}
+.clx-row:first-child,
+.fx-row:first-child { border-top: 0; padding-top: 2px; }
+.clx-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 108px;
+}
+.clx-mix {
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+.clx-sig { white-space: nowrap; font-weight: 600; }
+.clx-ext { color: var(--color-text-3); }
+.clx-ext[data-warn="1"] { color: var(--stress); }
+.clx-dev {
+  flex: 1 1 100%;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.fx-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  min-width: 62px;
+}
+.fx-verdict {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.fx-gloss {
+  flex: 1 1 100%;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+.strip-more {
+  margin-top: 14px;
+  padding-top: 9px;
+  border-top: 1px solid var(--color-divider);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.strip-more b { color: var(--color-text-2); font-weight: 600; }
 @media (max-width: 899px) {
   .briefing-grid {
     grid-template-columns: 1fr;
