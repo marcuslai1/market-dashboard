@@ -54,25 +54,32 @@ def render_masthead_and_nav(current: str) -> str:
     # cheaply and loads just the one report, never the whole corpus.
     dates = list_report_dates()
     latest = dates[-1] if dates else "—"
-    market_date = _escape_dollars(
-        load_report(latest).get("meta", {}).get("market_date", "—")
-    )
+    _market_raw = load_report(latest).get("meta", {}).get("market_date", "")
+
+    # Compact date grammar (header spec): "Fri 24 Jul 2026" over
+    # "LAST CLOSE · THU 23 JUL · 11:30 SGT" — actionable date big, provenance small.
     try:
-        long_date = date.fromisoformat(latest).strftime("%A, %B %d, %Y")
+        long_date = date.fromisoformat(latest).strftime("%a %d %b %Y")
     except ValueError:
         long_date = latest
+    try:
+        close_str = date.fromisoformat(str(_market_raw)).strftime("%a %d %b")
+    except (ValueError, TypeError):
+        close_str = _escape_dollars(str(_market_raw) or "—")
 
     st.markdown(
         f'<div class="masthead">'
-        # Wordmark and kicker sit on ONE baseline row (2026-07-24): stacked, they
-        # made the masthead two tall lines for what is a single brand line.
+        # Wordmark and tagline share one baseline row so the brand is a single
+        # line; the wordmark is a <span>, not an <h1>, so it neither fights the
+        # global `h1 !important` sizing nor competes with the posture headline
+        # for the page's one <h1>.
         f'<div class="masthead-brand">'
-        f'<h1 class="title">The <em>Market</em> Report</h1>'
-        f'<div class="kicker">Morning Briefing · Signal Intelligence Daily</div>'
+        f'<span class="title">The Market Report</span>'
+        f'<span class="kicker">Morning Briefing · Signal Intelligence Daily</span>'
         f'</div>'
         f'<div class="right">'
         f'<div class="date">{long_date}</div>'
-        f'<div>Singapore · 11:30 SGT · Last close {market_date}</div>'
+        f'<div class="date-sub">Last close · {close_str} · 11:30 SGT</div>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True,
