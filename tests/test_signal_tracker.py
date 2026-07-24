@@ -363,3 +363,26 @@ def test_hold_is_a_footnote_not_a_sixth_tile():
     assert "188" in note and "not scored" in note
     assert "calib-cell" not in note
     assert _hold_footnote_html(0) == ""
+
+
+def test_changelog_is_a_date_spine_not_a_stack_of_cards():
+    """A changelog is a list of records; framing each entry would make five
+    paragraphs look like five products."""
+    html = _changelog_strip_html([
+        {"date": "2026-07-04", "title": "Honest flags", "note": "small-sample"},
+        {"date": "2026-07-02", "title": "Older", "note": "note"},
+    ])
+    assert 'class="spine chg-log"' in html
+    assert "blueprint" not in html and "card" not in html
+    assert html.count('class="chg-item"') == 2
+
+
+def test_changelog_entries_stay_plain_prose():
+    """These entries describe the colour rules; demonstrating them inside the
+    description would be noisy."""
+    html = _changelog_strip_html(
+        [{"date": "2026-07-04", "title": "Brass bars",
+          "note": "brass rather than grey, deliberately not the signal palette"}]
+    )
+    assert "<b>" not in html
+    assert "var(--brass)" not in html and "var(--stress)" not in html

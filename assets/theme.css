@@ -2258,22 +2258,31 @@ details.led-details[open] > summary {
 
 /* ── Signal Tracker: what-we've-changed strip ──
    (The scorecard tile rules live with the .calib-* block above.) */
-.chg-log { border-top: 1px solid var(--rule); margin-top: 4px; }
-.chg-item {
-  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px;
-  padding: 11px 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+/* Layout comes from .spine (112px | 1fr). Hairlines between entries only — no
+   cards: a changelog is a list of records, and framing each one would make five
+   paragraphs look like five products. */
+.chg-log { margin-top: 4px; }
+/* The tick is --color-divider, not accent: every entry is a peer, so the ticks
+   give the column rhythm without implying hierarchy. */
+.chg-date {
+  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--color-text-3); border-left: 2px solid var(--color-divider);
+  padding-left: 10px; font-variant-numeric: tabular-nums;
 }
-.chg-date { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .chg-body { min-width: 0; }
 .chg-title {
-  display: block; font-family: var(--mono); font-size: 12px;
-  color: var(--ink); letter-spacing: 0.02em; margin-bottom: 3px;
+  display: block; font-family: var(--font-display); font-size: 15px;
+  font-weight: 600; color: var(--color-text); margin-bottom: 4px;
 }
+/* The only long-form prose on the site — a tighter measure and generous leading,
+   set for genuine paragraph reading. */
 .chg-note {
-  font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
+  display: block; font-size: 13px; line-height: 1.6;
+  color: var(--color-text-2); opacity: 0.7; max-width: 96ch;
 }
 @media (max-width: 720px) {
-  .chg-item { grid-template-columns: 1fr; gap: 3px; }
+  .spine > * { grid-template-columns: 1fr; gap: 6px; }
+  .chg-date { border-left: 0; padding-left: 0; }
 }
 
 /* Readiness ("trust") meter above the scorecard */
