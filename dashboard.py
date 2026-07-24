@@ -19,7 +19,12 @@ import streamlit as st
 # The Briefing body keeps only the glance blocks; the study blocks (clusters,
 # calibration, earnings, catalyst map, contrarians, capex) moved to their own
 # tabs (overhaul 2026-07) and are imported lazily inside those page functions.
-from components.briefing import render_changes, render_pulse
+from components.briefing import (
+    clusters_strip_html,
+    fundamentals_strip_html,
+    render_changes,
+    render_pulse,
+)
 from components.briefing.action_card import action_card_html
 from components.briefing.calendar import calendar_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
@@ -204,6 +209,24 @@ def _page_briefing() -> None:
             watchlist,
             _prev_report.get("watchlist", {}) if _prev_report else {},
         )
+
+        # Market internals — compact, verdict-first showcase (design revision
+        # 2026-07-24): Clusters (left, per-group one-liners) + the Fundamentals
+        # verdicts (right, capex + earnings). The deep evidence — anchor tables,
+        # capex datasheet, trend charts — stays on the Clusters and Fundamentals
+        # tabs (progressive disclosure). Same 1.55fr/1fr grid as the main band.
+        _cl_strip = clusters_strip_html(
+            report.get("clusters", {}), watchlist, report.get("extension_regime")
+        )
+        _fx_strip = fundamentals_strip_html(watchlist)
+        if _cl_strip or _fx_strip:
+            st.markdown(
+                f'<div class="briefing-grid">'
+                f'<div class="bg-col">{_cl_strip}</div>'
+                f'<div class="bg-col">{_fx_strip}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
         # Briefing body — 1.55fr / 1fr grid (design-spec §6), composed as ONE
         # st.markdown so CSS grid sees the two columns as siblings

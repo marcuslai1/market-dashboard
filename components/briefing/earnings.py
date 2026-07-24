@@ -159,6 +159,16 @@ def _earnings_html(watchlist: dict) -> str:
     return f'<details class="eps-band eps-details">{"".join(parts)}</details>'
 
 
+def earnings_headline(watchlist: dict) -> str | None:
+    """The Earnings Scorecard one-line headline (e.g. "6 of 6 beat last quarter ·
+    6 accelerating") for the Briefing's compact Fundamentals strip. None when no
+    watchlist entry carries ``eps_trajectory``."""
+    rows = _eps_rows(watchlist)
+    if not rows:
+        return None
+    return _headline(rows)
+
+
 def render_earnings(watchlist: dict) -> None:
     """Briefing earnings-scorecard band — per-ticker ``eps_trajectory`` (review P1-2).
 
