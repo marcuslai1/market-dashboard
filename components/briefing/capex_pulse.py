@@ -206,21 +206,36 @@ def _trend_fig(pivot: pd.DataFrame):
     return style_fig(fig)
 
 
-def capex_verdict() -> dict | None:
-    """The AI Capex Pulse verdict — ``{tone, label, gloss}`` — for the Briefing's
-    compact Fundamentals strip (the full datasheet + charts stay on the
-    Fundamentals tab).
-
-    Returns None when there is no capex/fundamentals data. Shares the cached
-    fundamentals frame with ``render_capex_pulse`` (``_fundamentals_cached`` is
-    memoized on the cheap fingerprint), so it adds no heavy recompute.
-    """
+def _capex_inputs():
+    """Shared ``(capex, fund_df)`` load, or ``(None, None)`` when there is no
+    data. ``_fundamentals_cached`` is memoized on the cheap fingerprint, so the
+    Briefing card, its modal and the band all share one computation."""
     capex = parse_capex(load_capex_quarterly())
     fund_df = _fundamentals_cached(data_fingerprint(), load_all_reports())
     if not capex["series"] and fund_df.empty:
+        return None, None
+    return capex, fund_df
+
+
+def capex_chips() -> list:
+    """The measure chips (capex, rev, gap, val, fragile); [] when no data.
+
+    The Briefing's Fundamentals card reads ``val`` and ``fragile`` from these;
+    the modal renders all of them as the numbered measure list.
+    """
+    capex, fund_df = _capex_inputs()
+    if capex is None:
+        return []
+    return build_chips(capex, fund_df, clock_today())
+
+
+def capex_verdict() -> dict | None:
+    """The AI Capex Pulse verdict — ``{tone, label, gloss}`` — for the Briefing's
+    Fundamentals card. None when there is no capex/fundamentals data."""
+    capex, fund_df = _capex_inputs()
+    if capex is None:
         return None
-    chips = build_chips(capex, fund_df, clock_today())
-    return compute_verdict(capex, fund_df, chips)
+    return compute_verdict(capex, fund_df, build_chips(capex, fund_df, clock_today()))
 
 
 def render_capex_pulse() -> None:

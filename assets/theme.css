@@ -1260,76 +1260,253 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 /* ── Compact internals strips: Clusters + Fundamentals (Briefing) ──
    Verdict-first, line-drawing rows separated by hairlines — no filled boxes.
    The deep evidence lives on the Clusters / Fundamentals tabs. */
-.clx-row,
-.fx-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px 14px;
-  padding: 9px 0;
+/* Eyebrow descriptor after the middot: the label names the block, the
+   descriptor is a whisper of context — two importance levels in one line
+   without a second font size. */
+.eyebrow .eb-sub { color: var(--color-text-4); font-weight: 400; }
+
+/* ── Clusters card rows ──
+   3px left rail in the group's DOMINANT signal colour: the row IS the group, so
+   the whole edge carries its state and you read the left margin before any
+   text. Same rail language as the watchlist rows. */
+.clx-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 62px;
+  gap: 5px 12px;
+  align-items: center;
+  border-left: 3px solid var(--color-divider);
   border-top: 1px solid var(--color-divider);
-  flex-wrap: wrap;
+  padding: 11px 0 13px 12px;
 }
-.clx-row:first-child,
-.fx-row:first-child { border-top: 0; padding-top: 2px; }
+.clx-row:first-child { border-top: 0; }
 .clx-name {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
-  min-width: 108px;
 }
-.clx-mix {
+/* Distribution bar: proportion at a glance, exact counts beside it (redundant
+   encoding). Signal hues are legitimate here — it is literally a count of
+   signals. 1px border keeps it a wireframe object, not a filled chart. */
+.clx-bar { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.clx-track {
+  display: flex;
+  flex: 1 1 auto;
+  height: 10px;
+  min-width: 40px;
+  border: 1px solid var(--color-divider);
+  overflow: hidden;
+}
+.clx-track > span { display: block; height: 100%; }
+.clx-counts {
   display: inline-flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.02em;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
-.clx-sig { white-space: nowrap; font-weight: 600; }
-.clx-ext { color: var(--color-text-3); }
+.clx-counts b { font-weight: 700; }
+/* Extension is context, not the verdict — quietest treatment, far edge. */
+.clx-ext {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  color: var(--color-text-4);
+  white-space: nowrap;
+}
 .clx-ext[data-warn="1"] { color: var(--stress); }
-.clx-dev {
-  flex: 1 1 100%;
+/* Verdict-first: the punch line is the loudest text in the row; the numbers
+   above justify it and the note below explains it. */
+.clx-punch {
+  grid-column: 1 / -1;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text);
+  margin-top: 3px;
+}
+.clx-note {
+  grid-column: 1 / -1;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--color-text-2);
 }
+
+/* ── Fundamentals card rows ──
+   Fixed label column so all three verdict words start at the same x and the eye
+   tracks a clean vertical line of verdicts down the card. */
+.fx-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 4px 10px;
+  align-items: baseline;
+  border-top: 1px solid var(--color-divider);
+  padding: 11px 0 12px;
+}
+.fx-row:first-child { border-top: 0; }
 .fx-label {
-  font-family: var(--mono);
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-3);
-  min-width: 62px;
 }
 .fx-verdict {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-text);
 }
-.fx-gloss {
-  flex: 1 1 100%;
+.fx-note {
+  grid-column: 2 / -1;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--color-text-2);
 }
-.strip-more {
-  margin-top: 14px;
-  padding-top: 9px;
+
+/* ── Modal trigger ──
+   A bordered ghost BUTTON, not a text link, because it does something (opens a
+   dialog) rather than navigating. Square hairline obeys the blueprint grammar;
+   steel marks it as structure/navigation, never a signal. */
+.st-key-open_clusters_modal button,
+.st-key-open_fundamentals_modal button {
+  /* Sized to the card's EYEBROW (10px), never to body or verdict text: this is a
+     tertiary, shrink-to-fit ghost affordance, not a call-to-action. The one
+     prominent control in this system is the accent-filled primary action —
+     everything else, including this, is a small hairline box that recedes.
+     If it is ever as tall as a table row or as wide as the card, it is wrong. */
+  display: inline-flex !important;
+  align-self: flex-start !important;   /* stop the flex parent stretching it */
+  width: auto !important;
+  min-width: 0 !important;
+  background: transparent !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 0 !important;
+  color: var(--eyebrow) !important;
+  font-family: var(--font-display) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  padding: 7px 12px !important;
+  line-height: 1.1 !important;
+  /* Streamlit gives buttons a min-height that made this as tall as a table row
+     (40px). A tertiary control must hug its own padding. */
+  min-height: 0 !important;
+  height: auto !important;
+}
+/* Streamlit nests the label in its own element, which carries the base font
+   size — without this the button renders at body size however the <button> is
+   styled, which is what made it read as a primary CTA. */
+.st-key-open_clusters_modal button *,
+.st-key-open_fundamentals_modal button * {
+  font-family: var(--font-display) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  line-height: 1.1 !important;
+  color: inherit !important;
+}
+.st-key-open_clusters_modal button:hover,
+.st-key-open_fundamentals_modal button:hover {
+  background: transparent !important;
+  border-color: var(--eyebrow) !important;
+  color: var(--color-text) !important;
+}
+/* The keyed CONTAINER is the card frame, so the trigger button can sit in
+   normal flow as the card's last child (a widget cannot live inside an
+   st.markdown string). The inner .card therefore gives up its own border and
+   bottom padding; the container takes them. */
+.st-key-clusters_card,
+.st-key-fundamentals_card {
+  position: relative;
+  border: 1px solid var(--color-divider);
+  padding-bottom: var(--card-pad-y);
+}
+.st-key-clusters_card .card,
+.st-key-fundamentals_card .card {
+  border: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Left-aligned to the card's content edge, shrink-to-fit, 12px below the last
+   row — a bit more air than the row-to-row gap, so it reads as an action rather
+   than another data row. The last row's own hairline is the divider above it. */
+.st-key-clusters_card .stButton,
+.st-key-fundamentals_card .stButton {
+  margin: 12px 0 0 var(--card-pad-x);
+  display: flex;
+  justify-content: flex-start;
+  width: auto !important;
+}
+
+/* ── Modal: the full numbered measure list ── */
+.fxd-row {
+  display: grid;
+  grid-template-columns: 34px 190px 90px 1fr;
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 10px 0;
   border-top: 1px solid var(--color-divider);
-  font-family: var(--mono);
-  font-size: 9.5px;
+}
+.fxd-row:first-child { border-top: 0; }
+.fxd-no {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--color-text-4);
+  letter-spacing: 0.08em;
+}
+.fxd-measure {
+  font-family: var(--font-display);
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-text-3);
+  color: var(--eyebrow);
+  font-weight: 600;
 }
-.strip-more b { color: var(--color-text-2); font-weight: 600; }
+.fxd-value {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brass);          /* the data axis */
+}
+.fxd-note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+@media (max-width: 719px) {
+  .fxd-row { grid-template-columns: 30px 1fr; }
+  .fxd-value, .fxd-note { grid-column: 2 / -1; }
+}
+
+/* ── Drill-in dialog ──
+   The ONE deliberate exception to "cards are transparent": the design system
+   names the dialog the top elevation, so it takes an opaque surface to lift it
+   off the dimmed page. It keeps square corners and a hairline border, and its
+   title carries the 2px --color-text masthead rule, so drilling in reads as
+   zooming into the same document rather than opening a different app. */
+[data-testid="stDialog"] div[role="dialog"] {
+  background: var(--color-bg) !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+[data-testid="stDialog"] div[role="dialog"] h2 {
+  font-family: var(--font-display) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--color-text) !important;
+  border-bottom: 2px solid var(--color-text);
+  padding-bottom: 10px !important;
+  margin-bottom: 4px !important;
+}
 
 /* Action card entry / target / invalidation triplet (design-spec §7) */
 .ac-triplet {
