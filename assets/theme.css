@@ -193,27 +193,31 @@
   margin-bottom: var(--card-gap);
   position: relative;   /* containing block for the corner marks */
 }
-/* "+" registration marks — a small cross centred on each corner of the border. */
-.blueprint > .corner {
+/* "+" registration marks — a small cross centred on each corner of the border.
+   Selector is bare `.corner` (not `.blueprint > .corner`) so the marks also
+   work inside the paper-book chart card, whose frame is a Streamlit container
+   the marks cannot be direct children of. `.corner` is only ever emitted by
+   card_container and _chart_head_html. */
+.corner {
   position: absolute;
   width: 9px;
   height: 9px;
   color: var(--color-text-3);
   pointer-events: none;
 }
-.blueprint > .corner::before,
-.blueprint > .corner::after {
+.corner::before,
+.corner::after {
   content: "";
   position: absolute;
   background: currentColor;
   opacity: 0.7;
 }
-.blueprint > .corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
-.blueprint > .corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
-.blueprint > .corner.tl { top: -4.5px; left: -4.5px; }
-.blueprint > .corner.tr { top: -4.5px; right: -4.5px; }
-.blueprint > .corner.bl { bottom: -4.5px; left: -4.5px; }
-.blueprint > .corner.br { bottom: -4.5px; right: -4.5px; }
+.corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+.corner.tl { top: -4.5px; left: -4.5px; }
+.corner.tr { top: -4.5px; right: -4.5px; }
+.corner.bl { bottom: -4.5px; left: -4.5px; }
+.corner.br { bottom: -4.5px; right: -4.5px; }
 /* Card header = kicker + hairline. No bar, no background, no box. Hierarchy is
    steel eyebrow (what this is) -> hairline -> content (the substance). */
 .card-head {
@@ -2312,8 +2316,12 @@ details.led-details[open] > summary {
 }
 .pb-banner { font-size: 12px; font-style: italic; color: var(--ink-3);
   margin: 6px 0 0; }
-.pb-chartnote { font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-  margin: 2px 0 6px; }
+/* Both captions sit below the plot. Terracotta marks a trust limitation, brass
+   a measurement — never a rating in either case. */
+.pb-chartnote { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
+  opacity: 0.66; margin: 8px 0 0; max-width: 96ch; }
+.pb-chartnote .lim { color: var(--stress); }
+.pb-chartnote .val { color: var(--brass); font-variant-numeric: tabular-nums; }
 .pb-variants { font-family: var(--mono); font-size: 11.5px;
   color: var(--ink-2); margin: 10px 0 0; }
 .pb-variants b { color: var(--ink); font-weight: 600; }
@@ -2669,3 +2677,28 @@ details.led-details[open] > summary {
   font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--eyebrow);
 }
+
+/* ── Paper-book chart card ──
+   The chart is a line drawing like everything else on the page: a hairline
+   frame, a header row, and a rule between the header and the plot. The frame is
+   a Streamlit bordered container because that is the only wrapper a Plotly
+   element can sit inside; position:relative makes it the containing block for
+   the injected corner marks. */
+.stApp:has(.tracker-page) [data-testid="stVerticalBlockBorderWrapper"] {
+  position: relative; border: 1px solid var(--color-divider);
+  border-radius: 0; background: transparent;
+}
+.pb-chart-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 10px;
+  border-bottom: 1px solid var(--color-divider); padding-bottom: 8px;
+}
+.pb-legend { display: flex; flex-wrap: wrap; gap: 14px; }
+/* Swatches are real line samples, so the legend and the plot use identical
+   encoding — a colour square would encode nothing about weight or dash. */
+.pb-legend-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.pb-swatch { flex: none; }
