@@ -246,7 +246,9 @@
 /* font-variant-numeric inherits, so setting it on the app root gives every
    number tabular figures (design-spec §5) — Barlow isn't monospaced. */
 .stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
-.main .block-container { max-width: 1200px; padding-top: 18px; padding-bottom: 80px; }  /* spec §6: 1200px centred */
+/* One 1200px centred column, padding 16px 28px 0 (header spec); the bottom pad
+   is scroll room, not part of the spec's header geometry. */
+.main .block-container { max-width: 1200px; padding: 16px 28px 80px; }
 [data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 
 /* Hide default Streamlit chrome. The header is both hidden AND collapsed to
@@ -284,7 +286,7 @@ header[data-testid="stHeader"] {
 .main .block-container,
 [data-testid="stMainBlockContainer"],
 .stMainBlockContainer {
-  padding-top: 2.2rem !important;
+  padding-top: 16px !important;   /* header spec: 16px 28px 0 */
 }
 
 /* Typography */
@@ -445,18 +447,14 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 .topnav-wrap { display: none; }
 
 .st-key-page_nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--paper);
-  /* Span the full content width so the sticky background + baseline rule cover
-     the whole strip. Without this the stElementContainer shrinks to the tab
-     row's own width (~924px vs ~1130px of content), leaving the rightmost
-     table columns to scroll visibly past the nav's right edge. */
+  /* No sticky and NO background fill: sticky needs a fill to stop content
+     showing through, and a fill/box around the nav is exactly what the header
+     spec forbids. Span the full content width so the row's rule runs edge to
+     edge of the column. */
   width: 100% !important;
   align-self: stretch !important;
-  margin-bottom: 16px;
-  padding-top: 6px;
+  margin-bottom: 0;
+  padding-top: 0;
 }
 .st-key-page_nav .stRadio > label {
   display: none !important;
@@ -469,61 +467,40 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
      panned horizontally on phones. */
   position: relative;
   flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  /* Full-width section bar (UX 2026-07-07): tabs justified edge-to-edge like a
-     newspaper contents band — the old left-packed strip left a dead zone to
-     the right and read as plain text links. The gap survives as the minimum
-     spacing once the strip overflows and space-between has no room to give. */
-  justify-content: space-between;
-  gap: 10px !important;
+  /* Wrap, never scroll: with gap (not margins) the spacing is identical whether
+     the tabs sit on one line or reflow to two, and it survives adding/removing
+     a tab without touching per-item spacing. */
+  flex-wrap: wrap !important;
+  justify-content: flex-start;
+  gap: 26px !important;
+  padding: 11px 0 0 !important;
   border: none !important;
-  /* One hairline above, one below (2026-07-24 cleanup): the old 3px double
-     "Oxford" rule rendered as two extra lines in an already line-heavy header.
-     The active tab's accent underline carries the strip instead. */
-  border-top: 1px solid var(--color-divider) !important;
+  /* ONE 1px divider, below only. The masthead's 2px --color-text rule bounds the
+     header zone above; this lighter rule closes the tab row inside it. Two
+     border weights = two levels of hierarchy, with nothing but line thickness. */
   border-bottom: 1px solid var(--color-divider) !important;
-  overflow-x: auto;
-  /* Horizontal scroll only. Leaving overflow-y at its default lets CSS compute
-     it to `auto` (when one axis is clipped the other's `visible` becomes
-     `auto`), so the ~2px of extra height from the raised folio numerals spawns
-     a phantom vertical scrollbar with up/down arrows at the strip's right edge. */
-  overflow-y: hidden;
-  /* Keep the active tab off the flush edge when it scrolls into view, so the
-     :focus/checked underline never clips a neighbour to nothing. */
-  scroll-padding-inline: 22px;
-  /* A slim scrollbar is the affordance: it appears ONLY when the strip actually
-     overflows (7 tabs rarely fit with the sidebar open), and at ANY width — the
-     old fade cue was ≤820px only, so wide desktop users had no hint that
-     Terminology / Report Comparison sat off-screen. A dark-on-dark edge shadow
-     was invisible on --paper, so a real (thin) bar is the honest signal. */
-  scrollbar-width: thin;                                   /* Firefox */
-  scrollbar-color: var(--rule-strong) transparent;
-}
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar { height: 5px; }
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-track { background: transparent; }
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-thumb {
-  background: var(--rule-strong); border-radius: 3px;
-}
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-3);
 }
 .st-key-page_nav [role="radiogroup"] > label {
-  flex: 0 0 auto;                 /* keep on one line, never shrink */
+  flex: 0 0 auto;
   white-space: nowrap;
-  font-family: var(--mono) !important;
-  font-size: 12.5px !important;   /* was 11px — the strip read as fine print */
-  letter-spacing: 0.06em !important;  /* 0.08em overflowed by 5px with the sidebar open */
+  /* Same label grammar as every other eyebrow on the site, so navigation reads
+     as system chrome rather than content. */
+  font-family: var(--font-display) !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase;
-  /* Idle tabs are --ink-3 so the active white + accent underline clearly leads
-     (ref briefing.jpg). This was moved to --ink-2 when --ink-3 sat below
-     AA-comfort; the 2026-07-24 ramp lift puts --ink-3 at ~7:1 on --color-bg, so
-     it is comfortably legible AND properly muted again. */
-  color: var(--ink-3) !important;
-  padding: 11px 0 12px !important;
-  margin-bottom: -2px !important;
+  font-weight: 600;
+  color: var(--color-text-3) !important;   /* muted: pushes the other tabs back */
+  padding: 0 0 9px !important;             /* the gap the active underline sits in */
+  /* Spacing comes from the row's gap ONLY. BaseWeb ships margin-right:16px on
+     every label, which double-spaced on top of the 26px gap and pushed the 10th
+     tab onto a second line by a single pixel (1270px into a 1269px row).
+     The -1px bottom overlaps the row's 1px rule so the 2px accent underline sits
+     IN it rather than stacking a second line beneath it. */
+  margin: 0 0 -1px !important;
   cursor: pointer;
+  /* Always reserve the 2px so a tab never shifts when it activates. */
   border-bottom: 2px solid transparent !important;
-  font-weight: 500;
   background: transparent !important;
   transition: color var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out);
@@ -544,13 +521,16 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   margin: 0 !important;
 }
 .st-key-page_nav [role="radiogroup"] > label:hover {
-  color: var(--ink-2) !important;
-  border-bottom-color: var(--rule-strong) !important;
+  color: var(--color-text-2) !important;
 }
+/* Active tab carries TWO redundant cues — full-strength text AND the 2px accent
+   underline — so the current section is obvious at a glance even to someone who
+   can't distinguish the steel accent. The accent is the structural/navigation
+   colour (never a signal, never data), so nav state can't be read as a BUY /
+   CAUTION cue. 2px echoes the masthead rule: the active tab "connects" to it. */
 .st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
-  color: var(--ink) !important;
-  font-weight: 600;
-  border-bottom-color: var(--accent) !important;   /* 2px accent underline = active tab (spec §6); was --watch, a signal hue */
+  color: var(--color-text) !important;
+  border-bottom-color: var(--accent) !important;
 }
 /* Keyboard focus ring on the active tab label (matches the summary treatment). */
 .st-key-page_nav [role="radiogroup"] > label:has(input:focus-visible) {
@@ -565,24 +545,14 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 
 /* Narrow viewports: tighten the strip so more tabs fit before it scrolls, and
    fade the right edge to hint that the off-screen tabs are reachable by scroll. */
+/* Narrow: tighten the row so fewer tabs wrap. The old sidebar-chip indent hack
+   is gone with the sticky nav — the chip can no longer sit on top of the strip. */
 @media (max-width: 820px) {
-  .st-key-page_nav [role="radiogroup"] { gap: 13px !important; }
-  /* The fixed sidebar-expand chip (top:6 left:8, z-index 61) sits ON TOP of the
-     sticky nav once the page scrolls, hiding the "01 Briefing" tab behind it.
-     When the chip exists (sidebar collapsed — the phone default), indent the
-     strip so the first tab clears it. :has() is the gate; browsers without it
-     keep today's behavior. */
-  body:has([data-testid="stExpandSidebarButton"]) .st-key-page_nav [role="radiogroup"],
-  body:has([data-testid="stSidebarCollapsedControl"]) .st-key-page_nav [role="radiogroup"] {
-    padding-left: 44px;
-  }
+  .st-key-page_nav [role="radiogroup"] { gap: 16px !important; row-gap: 4px !important; }
   .st-key-page_nav [role="radiogroup"] > label {
-    font-size: 10.5px !important;
-    letter-spacing: 0.06em !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
   }
-  /* Edge-fade affordance is handled by the always-on scroll-shadow on the
-     radiogroup itself (see above) — it reveals on whichever side overflows, so
-     the old right-only ::after fade here is no longer needed. */
 }
 
 /* Dataframes */
@@ -647,18 +617,22 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 /* Header carries as few rules as possible (owner review 2026-07-24, ref
    briefing.jpg): the wordmark has NO rule under it — the nav strip's single
    hairline is the only separator above the content. */
+/* ── Header row 1: masthead ────────────────────────────────────────────────
+   Identity (left) + metadata (right) on ONE flex row. align-items:flex-end —
+   not center — so both blocks share a bottom edge and the rule below reads as
+   one clean line even though they are different heights.
+   The 2px --color-text rule is the HEAVIEST on the page: it anchors the
+   masthead as the top of the document, the way the rule under a newspaper
+   nameplate does. Everything else is 1px hairlines, so this one line does the
+   work of saying "title zone ends here". No boxes, no fills, no shadows. */
 .masthead {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  border-bottom: 2px solid var(--color-text);
   padding-bottom: 12px;
-  margin: 4px 0 0;
-}
-.masthead .kicker {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  margin: 0;
 }
 /* Wordmark + kicker on one baseline row, so the brand is a single line. */
 .masthead-brand {
@@ -668,37 +642,57 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   flex-wrap: wrap;
   min-width: 0;
 }
+/* Condensed + uppercase + slightly negative tracking: the one element allowed to
+   read as an engineered MARK rather than a word. */
 .masthead .title {
-  font-family: var(--serif);
+  font-family: var(--font-display);
   font-weight: 600;
-  /* !important beats the global `h1 { font-size: 2.4rem !important }`. Sized
-     down from 2.6rem in the 2026-07-24 density pass — the wordmark was the
-     tallest thing in the header for the least information. */
-  font-size: 1.8rem !important;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--color-text);
   margin: 0;
   /* Streamlit sets overflow-wrap:break-word globally, which was splitting the
-     wordmark mid-word ("Marke|t Repor|t") once the two-column masthead starved
-     the title column. Force whole-word wrapping so it can only break between
-     words (and the responsive collapse below gives it room to). */
+     wordmark mid-word ("Marke|t Repor|t"). Force whole-word wrapping. */
   overflow-wrap: normal;
   word-break: keep-all;
   hyphens: none;
 }
-.masthead .title em { font-style: italic; font-weight: 500; color: var(--ink-2); }
-.masthead .right {
-  text-align: right;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-3);
-  line-height: 1.55;
+/* Wide tracking is the deliberate counterpoint to the tight wordmark: tiny +
+   spaced-out reads as a system label, and the low contrast keeps it subordinate.
+   Baseline-aligned with the wordmark (not centred) so they feel typeset together. */
+.masthead .kicker {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  line-height: 1;
 }
+.masthead .right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 0;
+}
+/* Verdict-first, applied to metadata: the actionable date is big and bright,
+   its provenance small and muted beneath it. */
 .masthead .right .date {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--ink);
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+.masthead .right .date-sub {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  line-height: 1.4;
 }
 /* .masthead-strip (Issue No. / The Signal Desk / Updated) was removed in the
    2026-07-24 header cleanup — it was a whole extra rule + line of chrome whose
@@ -710,19 +704,15 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    and scale the wordmark so it fits phone widths on one or two clean lines. */
 @media (max-width: 820px) {
   .masthead {
-    grid-template-columns: 1fr;
-    align-items: start;
-    row-gap: 6px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
-  /* !important to beat the global `h1 { font-size: 2.4rem !important }` rule —
-     the wordmark is an <h1 class="title">, so without it the responsive sizes
-     are ignored and the title stays large enough to wrap onto three lines. */
-  .masthead .title { font-size: 1.5rem !important; }
-  .masthead .right { text-align: left; }
+  .masthead .title { font-size: 22px; }
+  .masthead .right { align-items: flex-start; text-align: left; }
 }
 @media (max-width: 400px) {
-  .masthead .title { font-size: 1.7rem !important; line-height: 1.02; }
-  .masthead-strip { gap: 8px; flex-wrap: wrap; }
+  .masthead .title { font-size: 20px; }
 }
 
 /* Section heads (used inside Briefing) */
@@ -946,12 +936,13 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    it, so the redundant-at-this-width .tk-scroll scroller is released. The
    :has() gate scopes both rules to the watchlist grid (the only .tk-scroll
    with a .tk-row.head child); phones keep the horizontal swipe untouched.
-   top must track the rendered nav height — remeasure if the nav changes. */
+   top is 0 because the nav is no longer sticky (2026-07-24 header rebuild) —
+   there is nothing pinned above to offset against. */
 @media (min-width: 1100px) {
   .tk-scroll:has(> .tk-row.head) { overflow-x: visible; }
   .tk-scroll > .tk-row.head {
     position: sticky;
-    top: 58px;                     /* measured .st-key-page_nav height */
+    top: 0;
     z-index: 30;
     background: var(--paper);
   }
