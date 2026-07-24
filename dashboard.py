@@ -383,12 +383,17 @@ def _page_retrospective() -> None:
 def _page_scenario_log() -> None:
     from components.scenario_log import render_scenario_log_page
     from components.briefing import render_catalyst_playbook
+    from components.briefing.macro import scenario_odds_html
 
-    # Macro Trigger Map moved off the Briefing (overhaul 2026-07): the per-event
-    # bull/bear playbook belongs with the scenarios it conditions. Latest report.
+    # Scenario odds + the Macro Trigger Map both moved off the Briefing (overhaul
+    # 2026-07): the scenario-probability bar and the per-event bull/bear playbook
+    # belong with the scenarios they describe. Latest report.
     _cat_dates = list_report_dates()
     if _cat_dates:
         _cat_latest = load_report(_cat_dates[-1])
+        _odds = scenario_odds_html(_cat_latest.get("geopolitical", {}))
+        if _odds:
+            st.markdown(_odds, unsafe_allow_html=True)
         render_catalyst_playbook(_cat_latest.get("macro_trigger_map", []) or [])
     render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
 
