@@ -1163,19 +1163,23 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   color: var(--color-text-3);
 }
 
-/* The one place body-length text uses the HEADING font: at 19px condensed it
-   reads as a newspaper standfirst — larger and airier than ordinary body — which
-   marks it as the card's opening statement. 62ch caps the measure. */
+/* The one place body-length text uses the HEADING font: condensed, it reads as a
+   newspaper standfirst — larger and airier than ordinary body — which marks it
+   as the card's opening statement. 58ch caps the measure. */
 /* !important: Streamlit's markdown-container `p` rule out-specifies a bare
    class and was pinning this to 14px body size. */
+/* 17px, down from 19px: condensed across ~10 lines the lede overpowered the
+   card and pushed the prints grid below the block's fold. Still a standfirst —
+   larger than body, in the heading font — but the card's dominant element is
+   now the content, not the intro. */
 .macro-lead {
   font-family: var(--font-display) !important;
-  font-size: 19px !important;
+  font-size: 17px !important;
   font-weight: 400 !important;
-  line-height: 1.42 !important;
+  line-height: 1.45 !important;
   color: var(--color-text) !important;
   margin: 0 0 14px;
-  max-width: 62ch;
+  max-width: 58ch;
 }
 /* Steel left-border is the callout device: it flags "this is the takeaway"
    without a fill or a coloured box. Steel because it is structural emphasis,
@@ -1199,26 +1203,63 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
   background: var(--color-divider); border: 1px solid var(--color-divider);
 }
-.fp-cell { background: var(--color-bg); padding: 9px 10px; min-width: 0; }
+/* The rail is declared transparent rather than omitted so flagged and unflagged
+   cells keep identical internal height — no 2px jog along the row. */
+.fp-cell {
+  background: var(--color-bg); padding: 0 11px 10px; min-width: 0;
+  border-top: 2px solid transparent;
+}
+/* Structural flag, not a rating: the prints the FOMC decision turns on. Steel,
+   because a signal hue here would read as a verdict on the number. */
+.fp-cell[data-key] { border-top-color: var(--accent); }
+/* Steel, matching every other block label on the page (card kickers, dialog
+   eyebrows, group headers) — grey left this grid feeling like a different
+   document. The deep --eyebrow step, not the base accent: at 9.5px the label
+   needs the extra contrast. */
 .fp-label {
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--color-text-3);
+  text-transform: uppercase; color: var(--eyebrow); padding-top: 9px;
 }
 .fp-value {
   font-family: var(--font-display); font-size: 19px; font-weight: 600;
   color: var(--color-text); line-height: 1.15; margin-top: 3px;
 }
+/* Stretches to the cell's width; also applied to the empty placeholder div a
+   too-short series renders, so the meta row stays on one baseline. */
+.fp-spark { display: block; width: 100%; height: 26px; margin: 7px 0 6px; }
 .fp-meta {
-  display: flex; justify-content: space-between; gap: 6px; margin-top: 2px;
+  display: flex; justify-content: space-between; align-items: center; gap: 6px;
   font-family: var(--font-display); font-size: 9.5px;
 }
-/* Deltas stay MUTED, never up/down green-red: a falling CPI is good but falling
-   payrolls is bad, so colouring the arrows would assert a judgment the data
-   does not support. */
-.fp-delta { color: var(--color-text-3); white-space: nowrap; }
-.fp-month { color: var(--color-text-4); text-align: right; white-space: nowrap; }
+/* Deltas are BRASS, never up/down green-red: a falling CPI is good but falling
+   payrolls is bad, so colouring the arrows by direction would assert a judgment
+   the data does not carry. Brass is the palette's data axis — genuinely
+   coloured, unmistakably not the signal hues, and carrying no valence at all.
+   It says "this is a measurement". Muted grey was the correct rejection of
+   green/red but the wrong replacement: at 10.5px regular the arrows were
+   visually absent. */
+.fp-delta {
+  color: var(--brass); font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+/* An outline chip, not loose text: the vintage of the data is a deliberate,
+   visible qualifier reinforcing the "latest available, not live" caveat above
+   the grid. It also anchors the cell's bottom-right against the label at
+   top-left. --color-text-3, not the -4 disabled step the loose text used: the
+   hairline border does the quieting, and -4 is 2.8:1 (fails AA) — unacceptable
+   at 8.5px. */
+.fp-month {
+  border: 1px solid var(--color-divider); padding: 1px 5px;
+  font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--color-text-3); text-align: right; white-space: nowrap;
+}
 @media (max-width: 900px) {
   .fp-grid { grid-template-columns: repeat(2, 1fr); }
+  /* An odd cell count leaves the last grid slot empty, and an empty slot shows
+     the divider ground the cells sit on — a solid block of rule colour closing
+     the row. Span the orphan across both columns instead. Keyed off :last-child
+     so it holds for any row count the report supplies, not just five. */
+  .fp-cell:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
 .colophon {
