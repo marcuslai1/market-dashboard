@@ -477,10 +477,11 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   justify-content: space-between;
   gap: 10px !important;
   border: none !important;
-  /* Oxford rule above (heavy double), hairline below — the band reads as a
-     deliberate strip rather than a row of floating labels. */
-  border-top: 3px double var(--rule-strong) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;  /* quiet hairline — let the amber active marker carry the strip */
+  /* One hairline above, one below (2026-07-24 cleanup): the old 3px double
+     "Oxford" rule rendered as two extra lines in an already line-heavy header.
+     The active tab's accent underline carries the strip instead. */
+  border-top: 1px solid var(--color-divider) !important;
+  border-bottom: 1px solid var(--color-divider) !important;
   overflow-x: auto;
   /* Horizontal scroll only. Leaving overflow-y at its default lets CSS compute
      it to `auto` (when one axis is clipped the other's `visible` becomes
@@ -513,7 +514,11 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   font-size: 12.5px !important;   /* was 11px — the strip read as fine print */
   letter-spacing: 0.06em !important;  /* 0.08em overflowed by 5px with the sidebar open */
   text-transform: uppercase;
-  color: var(--ink-2) !important; /* was ink-3 — idle tabs sat below AA-comfort */
+  /* Idle tabs are --ink-3 so the active white + accent underline clearly leads
+     (ref briefing.jpg). This was moved to --ink-2 when --ink-3 sat below
+     AA-comfort; the 2026-07-24 ramp lift puts --ink-3 at ~7:1 on --color-bg, so
+     it is comfortably legible AND properly muted again. */
+  color: var(--ink-3) !important;
   padding: 11px 0 12px !important;
   margin-bottom: -2px !important;
   cursor: pointer;
@@ -554,33 +559,9 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border-radius: 2px;
 }
 
-/* —— Folio index —— amber section numerals (01–07) injected via ::before so the
-   Python st.radio labels stay plain strings. Each numeral sits as a small raised
-   superscript before its label, reading like a newspaper contents page. Dim when
-   idle, full amber on the active section. */
-.st-key-page_nav [role="radiogroup"] > label::before {
-  font-family: var(--mono);
-  font-size: 10px;                /* scaled with the 12.5px labels */
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--accent);   /* was #f59e0b (a signal hue); folio numerals are structure, not signal */
-  opacity: 0.5;
-  margin-right: 6px;
-  vertical-align: 3px;            /* raise the numeral like a section folio */
-  transition: opacity var(--dur-fast) var(--ease-out);
-}
-.st-key-page_nav [role="radiogroup"] > label:nth-child(1)::before { content: "01"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(2)::before { content: "02"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(3)::before { content: "03"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(4)::before { content: "04"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(5)::before { content: "05"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(6)::before { content: "06"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(7)::before { content: "07"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(8)::before { content: "08"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(9)::before { content: "09"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(10)::before { content: "10"; }
-.st-key-page_nav [role="radiogroup"] > label:hover::before { opacity: 0.85; }
-.st-key-page_nav [role="radiogroup"] > label:has(input:checked)::before { opacity: 1; }
+/* The folio numerals (01–10 via ::before) were dropped in the 2026-07-24 header
+   cleanup: with ten tabs they were visual noise, and the reference navbar is
+   plain labels with an accent underline on the active one. */
 
 /* Narrow viewports: tighten the strip so more tabs fit before it scrolls, and
    fade the right edge to hint that the off-screen tabs are reachable by scroll. */
@@ -599,7 +580,6 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
     font-size: 10.5px !important;
     letter-spacing: 0.06em !important;
   }
-  .st-key-page_nav [role="radiogroup"] > label::before { margin-right: 5px; }
   /* Edge-fade affordance is handled by the always-on scroll-shadow on the
      radiogroup itself (see above) — it reveals on whichever side overflows, so
      the old right-only ::after fade here is no longer needed. */
@@ -664,11 +644,13 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 .sidebar-status .status-value { color: var(--ink); font-weight: 600; }
 
 /* ── Editorial masthead ── */
+/* Header carries as few rules as possible (owner review 2026-07-24, ref
+   briefing.jpg): the wordmark has NO rule under it — the nav strip's single
+   hairline is the only separator above the content. */
 .masthead {
   display: grid; grid-template-columns: 1fr auto;
   align-items: end;
-  border-bottom: 1.5px solid var(--ink);
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   margin: 4px 0 0;
 }
 .masthead .kicker {
@@ -707,17 +689,9 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   color: var(--ink);
   font-weight: 500;
 }
-.masthead-strip {
-  display: flex; justify-content: space-between;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  padding: 8px 0 12px;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 0;
-}
+/* .masthead-strip (Issue No. / The Signal Desk / Updated) was removed in the
+   2026-07-24 header cleanup — it was a whole extra rule + line of chrome whose
+   only unique datum (the date) already sits in .masthead .right. */
 
 /* Masthead responsive collapse — the 1fr/auto grid never reflowed, so on narrow
    viewports the date block starved the wordmark column and forced ugly wraps.
@@ -1164,24 +1138,17 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   grid-template-columns: 1.55fr 1fr;
   gap: var(--space-5, 40px);
   margin-top: var(--space-5, 40px);
-  /* Cards are DIRECT children emitted in row order, so each row's pair
-     stretches to a common height — the boxes align edge-to-edge and their
-     corner marks sit on the same lines (owner review 2026-07-24). */
-  align-items: stretch;
+  /* Cards hug their own content. Stretching a pair to a common height aligned
+     the boxes but left dead space under the shorter card, which read worse than
+     the slight height difference (owner review 2026-07-24 — reverted). */
+  align-items: start;
 }
-.briefing-grid > .card { min-width: 0; }   /* shrink in-track instead of overflowing */
-.bg-empty { display: block; }              /* spacer: keeps row pairing when a card is absent */
-/* A stretched card whose content is shorter than its row would trail dead space
-   at the bottom. Pin its "detail on the X tab" pointer to the card's foot so the
-   extra height reads as deliberate. Scoped with :has() to the strip cards only,
-   so no other card's internal layout becomes a flex context. */
-.briefing-grid > .card:has(.strip-more) { display: flex; flex-direction: column; }
-.briefing-grid > .card:has(.strip-more) > .card-body {
-  flex: 1 1 auto;
+.briefing-grid > .bg-col {
   display: flex;
   flex-direction: column;
+  gap: var(--space-5, 40px);
+  min-width: 0;   /* let children shrink instead of overflowing the track */
 }
-.briefing-grid > .card .strip-more { margin-top: auto; }
 /* Cards in a column stack on the flex gap, not their own bottom margin (which
    would double-space against it — same reasoning as .lane-wrapper > .card). */
 .briefing-grid .card { margin-bottom: 0; }
@@ -1380,6 +1347,7 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
     grid-template-columns: 1fr;
     gap: var(--space-4, 24px);
   }
+  .briefing-grid > .bg-col { gap: var(--space-4, 24px); }
 }
 
 /* ── Signal color tokens (mirrored from assets/catalog.json) ──── */
