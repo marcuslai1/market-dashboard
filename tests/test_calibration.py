@@ -87,8 +87,9 @@ _WL = {"A": {"signal": "CAUTION"}, "B": {"signal": "CAUTION"}, "C": {"signal": "
 def test_calibration_html_has_scorecard_and_anchored_headline():
     out = _calibration_html(_CI, _WL)
     assert "cal-scorecard" in out
-    # dominant today = CAUTION (2 names); headline names it with its 10d alpha
-    assert "most common today (2&nbsp;names)" in out
+    # dominant today = CAUTION (2 names); headline names it with its 10d alpha.
+    # The count rides in its own span so it can recede (redesign 2026-07-25).
+    assert 'most common today <span class="cal-count">(2&nbsp;names)</span>' in out
     assert "-3.0% α" in out
 
 
@@ -293,3 +294,54 @@ def test_calibration_html_field_absent_renders_pre_adoption_markup():
     assert "cal-fullcorpus" not in out
     assert "half-life" not in out
     assert out.count('<p class="') == 2   # cal-taxonomy + cal-caveat, no more
+
+
+# ── Redesign (spec 2026-07-25 §4): colour roles on the calibration row ──
+from pathlib import Path
+
+from components.briefing.calibration import _headline_html
+
+_THEME_CSS = (Path(__file__).resolve().parent.parent / "assets" / "theme.css").read_text(
+    encoding="utf-8"
+)
+
+_PERF = {"CAUTION": {"n_matured_10d": 96, "n_alpha_10d": 96, "win_rate_pct": 48.0,
+                     "avg_return_10d": -1.2, "alpha_10d": -2.8, "n_episodes": 21,
+                     "alpha_episode_mean_10d": -2.1, "single_regime": False}}
+
+
+def test_headline_alpha_is_brass_not_a_second_verdict():
+    """Alpha measures the signal's performance — it is data, not a rating. In a
+    signal hue it would read as a second CAUTION verdict."""
+    rows = _scorecard_rows(_PERF, {"CAUTION": 21})
+    html = _headline_html(rows, {"CAUTION": 21})
+    assert 'class="cal-alpha"' in html
+    assert "-2.8% α / 10d" in html
+
+
+def test_headline_count_recedes_without_its_own_line():
+    rows = _scorecard_rows(_PERF, {"CAUTION": 21})
+    html = _headline_html(rows, {"CAUTION": 21})
+    assert 'class="cal-count"' in html
+    assert "21" in html and "names" in html
+
+
+def test_confidence_is_a_structural_chip_not_red_text():
+    """Confidence is a structural qualifier — how much to trust the number — so
+    it takes the structural colour, outlined rather than filled."""
+    block = _THEME_CSS.split(".cal-conf {", 1)[1].split("}", 1)[0]
+    assert "var(--accent)" in block
+    assert "var(--caution)" not in block
+
+
+def test_alpha_columns_in_the_body_are_flagged_for_brass():
+    rows = _scorecard_rows(_PERF, {"CAUTION": 21})
+    html = _scorecard_table_html(rows)
+    assert 'class="num alpha"' in html
+
+
+def test_calibration_caveat_is_not_italic():
+    """The paper book's single-regime disclaimer is the only italic on the
+    page — that is why it is noticeable."""
+    block = _THEME_CSS.split(".cal-caveat {", 1)[1].split("}", 1)[0]
+    assert "italic" not in block
