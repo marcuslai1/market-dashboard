@@ -189,3 +189,55 @@ def test_thesis_highlights_escapes_dollars_and_markup():
     assert "&#36;625B" in html        # $ neutralized so Streamlit won't render LaTeX math
     assert "<risk>" not in html        # raw markup escaped, not injected
     assert "&lt;risk&gt;" in html
+
+
+# ── Earnings history — quarter-on-quarter expected vs actual (2026-07-24) ──
+
+def _eh_rows():
+    """Newest-first records like the CSV export; NaN mimics empty CSV cells."""
+    nan = float("nan")
+    return [
+        {"fiscal_label": "2026-Q3", "quarter_end": "2026-07-31",
+         "eps_estimate": 2.08, "eps_actual": nan, "eps_surprise_pct": nan,
+         "revenue_estimate": 91.82e9, "revenue_actual": nan,
+         "revenue_yoy_pct": nan, "gross_margin_pct": nan, "operating_margin_pct": nan},
+        {"fiscal_label": "2026-Q2", "quarter_end": "2026-04-30",
+         "eps_estimate": 1.77, "eps_actual": 1.87, "eps_surprise_pct": 5.6,
+         "revenue_estimate": nan, "revenue_actual": 81.615e9,
+         "revenue_yoy_pct": 85.2, "gross_margin_pct": 74.9, "operating_margin_pct": 65.6},
+        {"fiscal_label": "2026-Q1", "quarter_end": "2026-01-31",
+         "eps_estimate": 1.54, "eps_actual": 1.62, "eps_surprise_pct": -3.1,
+         "revenue_estimate": nan, "revenue_actual": 68.127e9,
+         "revenue_yoy_pct": nan, "gross_margin_pct": nan, "operating_margin_pct": nan},
+    ]
+
+
+def test_earnings_history_renders_section_and_table():
+    html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
+    assert "Earnings history" in html
+    assert "2026-Q2" in html and "1.87" in html
+    assert "81.61B" in html                       # revenue T/B/M formatting
+
+
+def test_earnings_history_absent_is_silent():
+    assert "Earnings history" not in render_drilldown_detail_html("NVDA", {})
+    assert "Earnings history" not in render_drilldown_detail_html(
+        "NVDA", {}, earnings_hist=[])
+
+
+def test_earnings_history_beat_and_miss_encoding():
+    html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
+    assert 'class="eps-beat">▲ +5.6%' in html     # beat: up arrow + green class
+    assert 'class="eps-miss">▼ -3.1%' in html      # miss: down arrow + red class
+
+
+def test_earnings_history_coming_quarter_snapshot():
+    html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
+    assert "upcoming" in html                      # coming-quarter pill
+    assert "91.82B" in html and ">est<" in html    # forward revenue estimate marked
+
+
+def test_earnings_history_missing_margins_render_dash():
+    # 2026-Q1 has null margins → cells must be em-dash, not crash.
+    html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
+    assert "74.9%" in html                          # a present margin still shows
