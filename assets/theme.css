@@ -3,7 +3,11 @@
    The signal palette below (:root --buy … --caution) mirrors
    assets/catalog.json; tests/test_design_tokens.py fails if they drift.
 */
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Type — Industry design system (design-spec §5): Barlow Condensed for
+   headings/labels/numbers, Barlow for body. CDN @import (same channel as the
+   old Newsreader/Inter/JetBrains load) — NOT a pip dependency, so hard-
+   constraint #1 holds. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
 
 :root {
   --paper:    #14140F;
@@ -15,9 +19,16 @@
   --ink-4:    #5E5A50;
   --rule:        rgba(255, 255, 255, 0.08);
   --rule-strong: rgba(255, 255, 255, 0.20);
-  --serif: 'Newsreader', Georgia, serif;
-  --sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
-  --mono:  'JetBrains Mono', ui-monospace, monospace;
+  /* Two Barlow families carry all three legacy roles. --serif/--sans/--mono
+     names are kept as aliases so the ~40 existing selectors resolve unchanged;
+     they now point at Barlow. Numbers were monospaced (JetBrains); Barlow
+     Condensed isn't, so number-bearing selectors get font-variant-numeric:
+     tabular-nums in Phase 3. */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-body:    'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif: var(--font-display);
+  --sans:  var(--font-body);
+  --mono:  var(--font-display);
 
   /* —— Broadsheet, hinged · design tokens (Part 2 §2.7) —— */
   /* Surface tiers — "ink on newsprint" dark layering. Aliased to the
@@ -64,6 +75,98 @@
   /* Grid lanes (lane grid CSS lands in visual Step 5) */
   --grid-cols: 12;
   --grid-gutter: 24px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   OVERHAUL TOKEN LAYER (design-spec §3/§4) — Phase 1.
+   Both theme value sets live here as raw --*-light / --*-dark vars (defined
+   once). "Active" tokens (--color-bg, --accent, …) default to the DARK set.
+   The theme toggle swaps the map by injecting a light override on :root from
+   dashboard.py (same mechanism as the density override below) — no per-
+   component theme logic. Signal RAILS are shared across themes (§3a); only
+   pill text / accent / brass / up-down / base surfaces get per-theme values.
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* —— §4 base surfaces —— */
+  --bg-light:#f2f2f3;             --bg-dark:#17181b;
+  --surface-light:#e9e9ea;        --surface-dark:#202126;
+  --surface-2-light:#dedee0;      --surface-2-dark:#2a2b30;   /* nested */
+  --surface-3-light:#d5d5d8;      --surface-3-dark:#33343a;   /* hover lift */
+  --text-light:#1d1f20;           --text-dark:#e9e8e2;
+  --text-2-light:#494c4f;         --text-2-dark:#c4c5c8;      /* body-secondary */
+  --text-3-light:#6c6f73;         --text-3-dark:#8c8e92;      /* captions/eyebrows */
+  --text-4-light:#a1a3a6;         --text-4-dark:#5c5e62;      /* disabled */
+  --divider-light:rgba(29,31,32,0.16);   --divider-dark:rgba(255,255,255,0.13);
+  --divider-strong-light:rgba(29,31,32,0.28); --divider-strong-dark:rgba(255,255,255,0.22);
+
+  /* —— §3c structure & deltas —— */
+  --accent-light:#5980a6;         --accent-dark:#94bce3;      /* links, focus, tab underline */
+  --eyebrow-light:#416180;        --eyebrow-dark:#9ec7ef;
+  --up-light:#1a7f4b;             --up-dark:#4ade80;          /* price delta up */
+  --down-light:#c0392b;           --down-dark:#f87171;        /* price delta down */
+
+  /* —— §3b data palette (charts / capex / health axes) —— */
+  --brass-light:#7a5f2b;          --brass-dark:#d8b878;       /* primary series */
+  --brass-fill:#c9a66b;                                       /* shared */
+  --muted-fill-light:#b7b7ba;     --muted-fill-dark:#5d5d60;  /* secondary series */
+  --stress-light:#a3453b;         --stress-dark:#e08a80;      /* terracotta */
+
+  /* —— §3a signal PILL TEXT (per theme; rails shared, defined at §Signal tokens) —— */
+  --buy-text-light:#15803d;       --buy-text-dark:#4ade80;
+  --accumulate-text-light:#1f6ea8; --accumulate-text-dark:#5dade2;
+  --watch-text-light:#8a5a00;     --watch-text-dark:#f5b942;
+  --hold-text-light:#4b5563;      --hold-text-dark:#9ca3af;
+  --caution-text-light:#b91c1c;   --caution-text-dark:#f87171;
+  --avoid-text-light:#991b1b;     --avoid-text-dark:#e0a3a3;
+
+  /* —— ACTIVE map (default = dark). Light swap injected from dashboard.py. —— */
+  --color-bg:var(--bg-dark);
+  --color-surface:var(--surface-dark);
+  --color-surface-2:var(--surface-2-dark);
+  --color-surface-3:var(--surface-3-dark);
+  --color-text:var(--text-dark);
+  --color-text-2:var(--text-2-dark);
+  --color-text-3:var(--text-3-dark);
+  --color-text-4:var(--text-4-dark);
+  --color-divider:var(--divider-dark);
+  --color-divider-strong:var(--divider-strong-dark);
+  --accent:var(--accent-dark);
+  --eyebrow:var(--eyebrow-dark);
+  --up:var(--up-dark);
+  --down:var(--down-dark);
+  --brass:var(--brass-dark);
+  --muted-fill:var(--muted-fill-dark);
+  --stress:var(--stress-dark);
+  --buy-text:var(--buy-text-dark);
+  --accumulate-text:var(--accumulate-text-dark);
+  --watch-text:var(--watch-text-dark);
+  --hold-text:var(--hold-text-dark);
+  --caution-text:var(--caution-text-dark);
+  --avoid-text:var(--avoid-text-dark);
+
+  /* —— Spacing scale (§5 asks for whitespace hierarchy; steps proposed in
+     docs/overhaul-plan.md §3). 4px base. —— */
+  --space-1:4px;   /* inline gaps, pill padding */
+  --space-2:8px;   /* label→value, tight stacks */
+  --space-3:16px;  /* intra-card rhythm */
+  --space-4:24px;  /* card interior padding */
+  --space-5:40px;  /* between blocks / grid gutter */
+  --space-6:64px;  /* major section breaks */
+
+  /* —— Legacy token re-aliases: repoint the old warm-newsprint ramp onto the
+     new cool base map so every existing selector adopts the overhaul palette
+     without being individually rewritten. Later cascade wins over the first
+     :root. Phase 3 migrates selectors to the --color-* names directly. —— */
+  --paper:var(--color-bg);
+  --paper-2:var(--color-surface);
+  --paper-3:var(--color-surface-2);
+  --surface-3:var(--color-surface-3);
+  --ink:var(--color-text);
+  --ink-2:var(--color-text-2);
+  --ink-3:var(--color-text-3);
+  --ink-4:var(--color-text-4);
+  --rule:var(--color-divider);
+  --rule-strong:var(--color-divider-strong);
 }
 
 /* Compact-density :root overrides are injected from dashboard.py via a
