@@ -1133,6 +1133,18 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 .cal-impact.HIGH { color: var(--eyebrow); border-color: var(--eyebrow); }
 .cal-impact.MEDIUM { color: var(--color-text-3); }
 .cal-impact.LOW { color: var(--color-text-4); }
+/* Timing chip — the quietest chip on the row: logistical metadata, so a muted
+   outline that recedes behind the steel severity chip it sits next to. Square,
+   like every other box in the system (it used to carry a 3px radius). */
+.cal-timing {
+  display: inline-block;
+  font-family: var(--font-display); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; color: var(--color-text-4);
+  padding: 1px 5px; margin-left: 7px; white-space: nowrap; vertical-align: 1px;
+}
+.cal-timing[data-active="1"] { color: var(--color-text-3); }
 .cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
 /* Scenario read — steel toggle = navigation, never a signal. Collapsed so the
