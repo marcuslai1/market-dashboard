@@ -1,7 +1,14 @@
 """Paper-book band reducers + renderers (spec 2026-07-05-paper-book-band)."""
 import pandas as pd
 
-from components.paper_book import rebase_curves, select_policy, verdict_bits
+from components.paper_book import (
+    _stats_html,
+    _verdict_html,
+    rebase_curves,
+    select_policy,
+    verdict_bits,
+)
+from lib.charts import STATUS_NEG
 
 
 def _nav_df(policy="v1_flat10"):
@@ -75,9 +82,14 @@ def test_rebase_empty_input():
 def test_verdict_trailing():
     text, tone = verdict_bits({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
                                "inception": "2026-04-19"})
-    assert "+4.2%" in text and "+6.1%" in text and "2026-04-19" in text
+    assert "+4.2%" in text and "+6.1%" in text
+    # Humanised inception: the section head already says "paper book", so the
+    # sentence spends its words on the reading, not on ISO punctuation.
+    assert "19 Apr 2026" in text
     # dollar-pot framing (2026-07-17): $100,000 start and both endpoints
     assert "$100,000" in text and "$104,200" in text and "$106,100" in text
+    assert "against SPY at" in text
+    assert not text.startswith("Paper book:")
     assert "trailing" in text
     assert tone == "neg"
 
@@ -86,6 +98,32 @@ def test_verdict_leading():
     text, tone = verdict_bits({"nav_return_pct": 8.0, "spy_return_pct": 6.1})
     assert "leading" in text
     assert tone == "pos"
+
+
+def test_verdict_html_trailing_clause_is_terracotta_not_caution_red():
+    """A stress reading on the book's own performance — not a signal on any
+    stock, so it must not borrow the CAUTION hue."""
+    html = _verdict_html({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
+                          "inception": "2026-04-19"})
+    assert "var(--stress)" in html
+    assert STATUS_NEG not in html
+
+
+def test_verdict_html_returns_carry_market_direction():
+    html = _verdict_html({"nav_return_pct": 8.0, "spy_return_pct": 6.1})
+    assert "var(--up)" in html
+
+
+def test_stats_are_neutral_inputs_not_verdicts():
+    """Cash / positions / entries / add-ons / stop-outs are counts. Colouring
+    them would imply 15 stop-outs is 'bad'."""
+    html = _stats_html({"cash_pct": 42.0, "n_positions": 7,
+                        "trade_counts": {"buy_signal": 5, "accumulate_tranche": 3,
+                                         "stop": 15}})
+    assert 'class="hair-grid pb-stats"' in html
+    assert html.count('class="stat-tick"') == 5
+    for token in ("var(--up)", "var(--down)", "var(--stress)", "var(--brass)"):
+        assert token not in html
 
 
 def test_verdict_seeded_when_returns_none():

@@ -133,7 +133,9 @@ def test_hairline_grid_device_is_single_sourced():
 def test_stat_tick_is_two_px_steel_not_a_signal_rail():
     """2px --accent, deliberately not the 3px rail signal rows use: the tick
     says 'this is one discrete figure', never 'this is a rating'."""
-    block = _THEME_CSS.split(".stat-tick {", 1)[1].split("}", 1)[0]
+    # Anchored to the line-start selector: consumers add their own
+    # ".<scope> .stat-tick" padding rules that would otherwise match first.
+    block = _THEME_CSS.split("\n.stat-tick {", 1)[1].split("}", 1)[0]
     assert "border-left: 2px solid var(--accent)" in block
 
 

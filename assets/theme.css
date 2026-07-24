@@ -2295,11 +2295,21 @@ details.led-details[open] > summary {
 .method b { color: var(--color-text); font-weight: 600; opacity: 1; }
 
 /* ── Signal Tracker · Paper-book band (tier 1c — spec 2026-07-05) ── */
-.pb-verdict { font-size: 19px; line-height: 1.4; color: var(--ink);
-  margin: 2px 0 10px; }
-.pb-stats { display: flex; flex-wrap: wrap; gap: 20px; margin: 0 0 8px; }
-.pb-stat b { display: block; font-size: 15px; color: var(--ink); }
-.pb-stat span { font-size: 11px; color: var(--ink-3); }
+/* A full sentence, not a stat row: the conclusion is the last clause and the
+   only coloured words. */
+.pb-verdict {
+  font-family: var(--font-display); font-size: 20px; line-height: 1.45;
+  color: var(--color-text); margin: 14px 0 12px; max-width: 88ch;
+}
+.pb-verdict .pb-val,
+.pb-verdict .pb-ret { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pb-verdict .pb-clause { font-weight: 600; }
+/* Inputs, not verdicts — all neutral. */
+.pb-stats { margin: 0 0 16px; }
+.pb-stats .stat-tick { padding: 12px 14px 14px; }
+@media (max-width: 900px) {
+  .pb-stats { grid-template-columns: repeat(2, 1fr) !important; }
+}
 .pb-banner { font-size: 12px; font-style: italic; color: var(--ink-3);
   margin: 6px 0 0; }
 .pb-chartnote { font-family: var(--mono); font-size: 11px; color: var(--ink-3);

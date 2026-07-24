@@ -9,6 +9,7 @@ their first valid row; all measurement lives upstream
 """
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 import pandas as pd
@@ -151,23 +152,34 @@ def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
     return out
 
 
+def _human_date(value) -> str:
+    """'2026-04-19' → '19 Apr 2026'; anything unparseable passes through."""
+    if not value:
+        return ""
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return str(value)
+    return f"{parsed.day} {parsed.strftime('%b')} {parsed.year}"
+
+
 def verdict_bits(block: dict) -> tuple[str, str]:
     """(verdict sentence, tone) for the band's lead line.
 
-    Tone ∈ {"pos", "neg", ""} colours the "— …the benchmark" clause. A block
-    whose returns are still ``None`` (seed day / no matured session) reads
-    "seeded", mirroring the upstream Telegram glance line.
+    A full sentence rather than a stat row, and verdict-first: the conclusion is
+    the last clause. Tone ∈ {"pos", "neg", ""} colours it. No "Paper book:"
+    prefix — the section head above already says so. A block whose returns are
+    still ``None`` (seed day / no matured session) reads "seeded", mirroring the
+    upstream Telegram glance line.
     """
     nav = block.get("nav_return_pct")
     spy = block.get("spy_return_pct")
-    since = f" since {block['inception']}" if block.get("inception") else ""
+    since = f" since {_human_date(block['inception'])}" if block.get("inception") else ""
     if nav is None or spy is None:
         return (f"Paper book seeded{since} — first fills pending.", "")
     nav_usd = _money(NOTIONAL_START * (1 + nav / 100.0))
     spy_usd = _money(NOTIONAL_START * (1 + spy / 100.0))
-    body = (f"Paper book: {_money(NOTIONAL_START)} → {nav_usd} "
-            f"({nav:+.1f}%){since} vs SPY (the S&P 500) → {spy_usd} "
-            f"({spy:+.1f}%)")
+    body = (f"{_money(NOTIONAL_START)} → {nav_usd} ({nav:+.1f}%){since}, "
+            f"against SPY at {spy_usd} ({spy:+.1f}%)")
     if nav > spy:
         return (f"{body} — leading the benchmark.", "pos")
     if nav < spy:
@@ -192,16 +204,40 @@ _SERIES_COLORS = {"Paper book": CHART_ACCENT, "SPY": CHART_LINE,
                   "SOXX": CHART_PALETTE[0]}
 
 
+# The verdict clause by branch. "Trailing" is a trust limitation on the book's
+# own performance → terracotta, never the CAUTION hue; "leading" takes the same
+# market-direction system the two returns use; "tracking" makes no reading.
+_VERDICT_CLAUSE_COLOR = {"pos": "var(--up)", "neg": "var(--stress)"}
+
+# _escape_dollars has already turned "$" into "&#36;" by the time these run.
+_MONEY_RE = re.compile(r"&#36;[\d,]+")
+_RET_RE = re.compile(r"\(([-+]\d+\.\d)%\)")
+
+
 def _verdict_html(block: dict) -> str:
-    """Band lead line — plain-English verdict first, house style."""
+    """Band lead line — a full sentence, the conclusion last and the only
+    coloured words.
+
+    The two returns carry market direction (the delta system, deliberately
+    distinct from the signal palette); the money reads as a value; the clause
+    carries the reading.
+    """
     text, tone = verdict_bits(block)
-    color = {"pos": STATUS_POS, "neg": STATUS_NEG}.get(tone)
     head, sep, tail = text.partition(" — ")
+    head = _escape_dollars(head)
+    head = _MONEY_RE.sub(lambda m: f'<span class="pb-val">{m.group(0)}</span>', head)
+    head = _RET_RE.sub(
+        lambda m: '<span class="pb-ret" style="color:'
+                  + ("var(--up)" if m.group(1).startswith("+") else "var(--down)")
+                  + f'">({m.group(1)}%)</span>',
+        head,
+    )
     tail_html = ""
     if sep:
+        color = _VERDICT_CLAUSE_COLOR.get(tone)
         style = f' style="color:{color};"' if color else ""
-        tail_html = f'<span{style}> — {_escape_dollars(tail)}</span>'
-    return f'<p class="pb-verdict">{_escape_dollars(head)}{tail_html}</p>'
+        tail_html = f'<span class="pb-clause"{style}> — {_escape_dollars(tail)}</span>'
+    return f'<p class="pb-verdict">{head}{tail_html}</p>'
 
 
 def _stats_html(block: dict) -> str:
@@ -217,12 +253,17 @@ def _stats_html(block: dict) -> str:
             chips.append((str(n), label))
     if not chips:
         return ""
+    # All neutral: these are inputs, not verdicts. Colouring them would imply
+    # 15 stop-outs is "bad" when it is simply how many there were.
     body = "".join(
-        f'<div class="pb-stat"><b>{_escape_dollars(v)}</b>'
+        f'<div class="stat-tick"><b>{_escape_dollars(v)}</b>'
         f"<span>{label}</span></div>"
         for v, label in chips
     )
-    return f'<div class="pb-stats">{body}</div>'
+    # Column count follows the chips: 5 on today's data, up to 7 when the
+    # AVOID / delist exit reasons are present.
+    return (f'<div class="hair-grid pb-stats" '
+            f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
 def _banner_html(block: dict) -> str:
@@ -913,6 +954,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         "Paper book",
         "A simulated portfolio that follows the signals by rule · "
         "no real money · exists to measure them",
+        masthead=True,
     )
     if block:
         st.markdown(_verdict_html(block) + _stats_html(block),
