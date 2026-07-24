@@ -8,7 +8,7 @@ from components.paper_book import (
     select_policy,
     verdict_bits,
 )
-from lib.charts import STATUS_NEG
+from lib.charts import STATUS_NEG, STATUS_POS
 
 
 def _nav_df(policy="v1_flat10"):
@@ -146,14 +146,34 @@ _VARIANTS = [
 ]
 
 
-def test_variants_html_renders_advisory_lanes():
-    html = _variants_html({"variants": _VARIANTS})
-    assert 'class="pb-variants"' in html
+def test_lane_grid_renders_one_cell_per_lane():
+    html = _variants_html({"variants": _VARIANTS, "nav_return_pct": 3.5,
+                           "policy_id": "v1_flat10",
+                           "trade_counts": {"stop": 15}})
+    assert 'class="hair-grid pb-lanes"' in html
+    assert html.count('class="pb-lane"') == 4      # three variants + headline
     assert "trail" in html and "+1.1%" in html and "18 stop-outs" in html
     assert "no-stop" in html and "+4.0%" in html and "0 stop-outs" in html
-    assert "<b>wide</b>" in html and "+8.3%" in html and "8 stop-outs" in html
+    assert "wide" in html and "+8.3%" in html and "8 stop-outs" in html
     assert "v1_wide10" not in html            # labeled, not raw policy_id
     assert "verdict" not in html.lower()      # framing lives in the banner
+
+
+def test_headline_lane_carries_the_steel_rail_and_says_so():
+    """Without the flag a reader cannot tell which of these numbers is the real
+    book — and +8.3% on the wide lane would look like the headline result."""
+    html = _variants_html({"variants": _VARIANTS, "nav_return_pct": 3.5,
+                           "policy_id": "v1_flat10",
+                           "trade_counts": {"stop": 15}})
+    assert html.count('data-flag="1"') == 1
+    assert "· headline" in html
+
+
+def test_lane_returns_are_brass_and_counts_neutral():
+    html = _variants_html({"variants": _VARIANTS})
+    assert 'class="pb-lane-ret"' in html
+    assert 'class="pb-lane-stops"' in html
+    assert STATUS_POS not in html and STATUS_NEG not in html
 
 
 def test_variants_html_skips_malformed_and_escapes_unknown_ids():
@@ -178,7 +198,7 @@ def test_variants_html_leads_with_labeled_headline_lane():
     block = {"policy_id": "v1_flat10", "nav_return_pct": 3.52,
              "trade_counts": {"stop": 13}, "variants": _VARIANTS}
     html = _variants_html(block)
-    assert "<b>flat</b> +3.5%" in html
+    assert "flat" in html and "+3.5%" in html
     assert "13 stop-outs" in html
     assert "headline" in html                 # the lane is named as the book's own
     assert html.index("flat") < html.index("trail")

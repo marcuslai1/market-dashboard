@@ -296,7 +296,7 @@ def _variants_html(block: dict | None) -> str:
     already leads the band).
     """
     block = block or {}
-    parts = []
+    lanes = []
     for v in block.get("variants") or []:
         if not isinstance(v, dict) or not v.get("policy_id"):
             continue
@@ -305,23 +305,38 @@ def _variants_html(block: dict | None) -> str:
             continue
         label = (_LANE_LABELS.get(v["policy_id"])
                  or _escape_dollars(str(v["policy_id"])))
-        stops = v.get("stops")
-        stop_txt = (f" · {int(stops)} stop-outs"
-                    if isinstance(stops, (int, float)) else "")
-        parts.append(f"<b>{label}</b> {nav:+.1f}%{stop_txt}")
-    if not parts:
+        lanes.append((label, nav, v.get("stops"), False))
+    if not lanes:
         return ""
     head_nav = block.get("nav_return_pct")
     if isinstance(head_nav, (int, float)):
         label = (_LANE_LABELS.get(block.get("policy_id"))
                  or _escape_dollars(str(block.get("policy_id") or "book")))
         stops = (block.get("trade_counts") or {}).get("stop")
-        stop_txt = (f" · {int(stops)} stop-outs"
+        lanes.insert(0, (label, head_nav, stops, True))
+
+    cells = ""
+    for label, nav, stops, is_head in lanes:
+        stop_txt = (f'<span class="pb-lane-stops">{int(stops)} stop-outs</span>'
                     if isinstance(stops, (int, float)) else "")
-        parts.insert(0, f"<b>{label}</b> {head_nav:+.1f}%{stop_txt} (headline)")
-    return ('<p class="pb-variants">Stop-rule lanes: '
-            + " | ".join(parts)
-            + " — same book, only the stop rule differs.</p>")
+        # Steel rail + the word: without it a reader cannot tell which of these
+        # numbers is the real book, and the best-looking lane reads as the
+        # headline result. Never a ranking — the exported banner below carries
+        # the caveat.
+        flag = ' data-flag="1"' if is_head else ""
+        suffix = ' <span class="pb-lane-head">· headline</span>' if is_head else ""
+        cells += (
+            f'<div class="pb-lane"{flag}>'
+            f'<div class="pb-lane-label">{label}{suffix}</div>'
+            f'<div class="pb-lane-ret">{nav:+.1f}%</div>'
+            f"{stop_txt}</div>"
+        )
+    return (
+        '<p class="pb-lane-eyebrow">Stop-rule lanes — same book, only the stop '
+        "rule differs</p>"
+        f'<div class="hair-grid pb-lanes" '
+        f'style="grid-template-columns:repeat({len(lanes)},1fr);">{cells}</div>'
+    )
 
 
 # Exit-reason keys → singular plain-language labels for the history's
