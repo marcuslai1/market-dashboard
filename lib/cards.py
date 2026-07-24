@@ -9,13 +9,21 @@ from __future__ import annotations
 import streamlit as st
 
 
-def render_section_head(title: str, sub: str = "") -> None:
+def _section_head_html(title: str, sub: str = "", masthead: bool = False) -> str:
+    """Editorial section header markup: serif <h2> left, mono sub right.
+
+    ``masthead=True`` gives the Signal Tracker's four peer sections the heavier
+    2px full-strength rule (spec 2026-07-25 §3.5) without moving every other
+    section head on the site. Pure so it can be tested without a Streamlit run.
+    """
+    cls = "section-head masthead" if masthead else "section-head"
+    return (f'<div class="{cls}"><h2>{title}</h2>'
+            f'<span class="sub">{sub}</span></div>')
+
+
+def render_section_head(title: str, sub: str = "", masthead: bool = False) -> None:
     """Editorial section header: serif <h2> on the left, mono sub on the right."""
-    st.markdown(
-        f'<div class="section-head"><h2>{title}</h2>'
-        f'<span class="sub">{sub}</span></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(_section_head_html(title, sub, masthead), unsafe_allow_html=True)
 
 
 def card_container(*, eyebrow: str, headline: str = "", body_html: str, lane: str = "lede") -> str:

@@ -119,3 +119,32 @@ def test_terminology_hex_literals_match_sanctioned_palette():
     assert used, "expected terminology.py to carry its static palette hexes"
     unsanctioned = used - _sanctioned_palette()
     assert not unsanctioned, f"terminology.py colors drifted from the palette: {unsanctioned}"
+
+
+# ── Signal Tracker redesign (spec 2026-07-25): shared devices ──
+
+def test_hairline_grid_device_is_single_sourced():
+    """The FRED prints grid and the tracker's grids must be the same device, so
+    'a grid of cells' always means 'peer measurements, compare across'."""
+    assert ".hair-grid, .fp-grid" in _THEME_CSS
+    assert ".hair-grid > *, .fp-cell" in _THEME_CSS
+
+
+def test_stat_tick_is_two_px_steel_not_a_signal_rail():
+    """2px --accent, deliberately not the 3px rail signal rows use: the tick
+    says 'this is one discrete figure', never 'this is a rating'."""
+    block = _THEME_CSS.split(".stat-tick {", 1)[1].split("}", 1)[0]
+    assert "border-left: 2px solid var(--accent)" in block
+
+
+def test_thin_sample_warning_is_terracotta_never_watch_amber():
+    """Amber is WATCH. A data-quality warning is not a signal, so it takes the
+    data palette's stress colour."""
+    block = _THEME_CSS.split(".warn-thin {", 1)[1].split("}", 1)[0]
+    assert "var(--stress)" in block
+    assert "#f59e0b" not in block
+
+
+def test_masthead_section_head_is_the_two_px_rule():
+    block = _THEME_CSS.split(".section-head.masthead {", 1)[1].split("}", 1)[0]
+    assert "border-bottom: 2px solid var(--color-text)" in block

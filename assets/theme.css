@@ -1199,19 +1199,24 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--color-text-4); margin-bottom: 8px;
 }
-.fp-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+/* Shared with the Signal Tracker's tiles, paper-book stats and stop-rule lanes
+   (spec 2026-07-25 §3.1): a grid of cells always means "peer measurements,
+   compare across", so the construction is declared once for all of them. */
+.hair-grid, .fp-grid {
+  display: grid; gap: 1px;
   background: var(--color-divider); border: 1px solid var(--color-divider);
 }
+.fp-grid { grid-template-columns: repeat(5, 1fr); }
 /* The rail is declared transparent rather than omitted so flagged and unflagged
    cells keep identical internal height — no 2px jog along the row. */
-.fp-cell {
-  background: var(--color-bg); padding: 0 11px 10px; min-width: 0;
+.hair-grid > *, .fp-cell {
+  background: var(--color-bg); min-width: 0;
   border-top: 2px solid transparent;
 }
+.fp-cell { padding: 0 11px 10px; }
 /* Structural flag, not a rating: the prints the FOMC decision turns on. Steel,
    because a signal hue here would read as a verdict on the number. */
-.fp-cell[data-key] { border-top-color: var(--accent); }
+.hair-grid > [data-flag], .fp-cell[data-key] { border-top-color: var(--accent); }
 /* Steel, matching every other block label on the page (card kickers, dialog
    eyebrows, group headers) — grey left this grid feeling like a different
    document. The deep --eyebrow step, not the base accent: at 9.5px the label
@@ -2576,4 +2581,60 @@ details.led-details[open] > summary {
     display: block; font-size: 8.5px; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SIGNAL TRACKER REDESIGN (spec 2026-07-25) — shared devices
+   The page teaches a grammar by repetition. Each device is declared once here
+   and consumed by several sections; the colour roles never overlap.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* A discrete figure: value over label (the site-wide order), with a 2px steel
+   tick. Deliberately 2px — the 3px rail is signal language on watchlist rows
+   and clusters, and must not be confused with "this is a number". */
+.stat-tick { border-left: 2px solid var(--accent); padding-left: 12px; }
+.stat-tick b {
+  display: block; font-family: var(--font-display); font-size: 26px;
+  font-weight: 600; line-height: 1.1; color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.stat-tick span {
+  display: block; font-family: var(--font-display); font-size: 9.5px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-3); margin-top: 4px;
+}
+
+/* Trust limitation, never a rating. Terracotta because amber is WATCH: a
+   data-quality warning is not a signal, so it takes the data palette's stress
+   colour. This keeps the rule intact even where a warning "wants" to be amber. */
+.warn-thin { color: var(--stress); }
+
+/* Date-spine ledger (consumed by "What we've changed"). The fixed date column
+   makes a continuous vertical spine: you scan chronology first, then read
+   across. Tick is --color-divider, not accent — every entry is a peer. */
+.spine { border-top: 1px solid var(--color-divider); }
+.spine > * {
+  display: grid; grid-template-columns: 112px 1fr; gap: 0 20px;
+  padding: 16px 0; border-bottom: 1px solid var(--color-divider);
+}
+
+/* Four peer documents stacked: the masthead-weight rule, used only by the
+   Signal Tracker's section heads. Every other head on the site keeps the 1px
+   hairline, so this stays opt-in. */
+.section-head.masthead { border-bottom: 2px solid var(--color-text); padding-bottom: 10px; }
+.section-head.masthead h2 { font-size: 1.875rem !important; font-weight: 600; }
+
+/* Page-level drill-downs: hairline-bordered, square, steel uppercase summary.
+   Bordered — unlike the inline Week Ahead expander — because these are
+   page-level sections rather than a detail inside a row. Streamlit renders
+   st.expander as a real <details>, so this is CSS only and every widget inside
+   keeps working. Scoped to the page marker so no other page's expanders move.
+   (The chevron already rotates on open — that animation is Streamlit's own.) */
+.stApp:has(.tracker-page) details[data-testid="stExpander"] {
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; margin: 10px 0;
+}
+.stApp:has(.tracker-page) details[data-testid="stExpander"] summary {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--eyebrow);
 }
