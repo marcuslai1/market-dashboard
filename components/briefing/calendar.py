@@ -134,10 +134,17 @@ def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
         if not rows:
             return ""
         why = cfg.get("why") or ""
-        why_html = (f'<div style="margin-top:3px;font-size:10.5px;'
-                    f'color:var(--ink-3);font-style:italic;">'
-                    f'{_escape_dollars(why)}</div>') if why else ""
-        return f'<div style="margin-top:4px;">{why_html}{rows}</div>'
+        why_html = (f'<div class="cal-scen-setup">{_escape_dollars(why)}</div>'
+                    if why else "")
+        # Collapsed by default: glance-vs-study in one control. The calendar
+        # stays scannable and the bull/bear depth is one click away instead of a
+        # wall of text on every marquee row.
+        return (
+            '<details class="cal-scen">'
+            '<summary class="cal-scen-toggle">Scenario read</summary>'
+            f'<div class="cal-scen-body">{why_html}{rows}</div>'
+            '</details>'
+        )
     return ""
 
 
