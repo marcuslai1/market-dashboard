@@ -13,10 +13,10 @@ from collections import Counter
 
 import streamlit as st
 
-from lib.cards import render_section_head
-from lib.catalog import SIGNAL_ORDER
+from lib.cards import card_container, render_section_head
+from lib.catalog import SIGNAL_COLORS, SIGNAL_ORDER
 from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
-from lib.pills import _signal_pill_html
+from lib.pills import _signal_pill_html, signal_text_color
 
 
 def _norm(ticker: str) -> str:
@@ -140,6 +140,86 @@ def _clusters_html(clusters: dict, watchlist: dict, extension_regime=None) -> st
     if not blocks:
         return '<div class="cl-band cl-empty">No cluster breakdown in this report.</div>'
     return f'<div class="cl-band">{"".join(blocks)}</div>'
+
+
+# Single-letter count tags. ACCUMULATE and AVOID both start with "A", so AVOID
+# takes X rather than a silently-colliding letter.
+_SIG_TAG = {"BUY": "B", "ACCUMULATE": "A", "WATCH": "W",
+            "HOLD": "H", "CAUTION": "C", "AVOID": "X"}
+
+
+def cluster_anchor_count(clusters: dict) -> int:
+    """Total names across all clusters — the figure the modal trigger cites."""
+    return sum(
+        len(c.get("tickers") or [])
+        for c in (clusters or {}).values() if isinstance(c, dict)
+    )
+
+
+def clusters_strip_html(clusters: dict, watchlist: dict, extension_regime=None) -> str:
+    """The Briefing's Clusters card — one row per group, verdict-first.
+
+    Row anatomy (design revision 2026-07-24): a 3px left rail in the group's
+    DOMINANT signal colour (the row *is* the group, so the whole edge carries
+    its state — you scan the left margin and see the shape before reading a
+    word), then a fixed 130px name / flexible distribution bar / 62px extension
+    grid, then the punch line and its note.
+
+    The distribution bar is a legitimate use of signal hues: it is literally a
+    count of signals. Widths are proportional, and the counts beside it repeat
+    the figure exactly — redundant encoding, so the bar gives proportion at a
+    glance and the number gives precision for anyone who wants it.
+    """
+    if not clusters:
+        return ""
+    rows = ""
+    for name, c in clusters.items():
+        if not isinstance(c, dict):
+            continue
+        tickers = c.get("tickers", []) or []
+        mix = _signal_mix(tickers, watchlist)
+        total = sum(n for _s, n in mix) or 1
+        dominant = max(mix, key=lambda kv: kv[1])[0] if mix else ""
+        rail = SIGNAL_COLORS.get(dominant, "var(--color-divider)")
+
+        segments = "".join(
+            f'<span style="width:{(n / total) * 100:.4f}%;'
+            f'background:{SIGNAL_COLORS.get(sig, "var(--color-text-4)")};"></span>'
+            for sig, n in mix
+        )
+        counts = "".join(
+            f'<b style="color:{signal_text_color(sig)};">{n}{_SIG_TAG.get(sig, "?")}</b>'
+            for sig, n in mix
+        )
+
+        ext_html = ""
+        breadth = _extension_breadth(tickers, extension_regime)
+        if breadth is not None:
+            n_ext, n_tot = breadth
+            warn = ' data-warn="1"' if n_ext else ""
+            ext_html = f'<div class="clx-ext"{warn}>{n_ext}/{n_tot}&nbsp;ext</div>'
+
+        punch = c.get("thesis_status") or c.get("key_development") or ""
+        note = c.get("key_development") if c.get("thesis_status") else c.get("summary")
+        rows += (
+            f'<div class="clx-row" style="border-left-color:{rail};">'
+            f'<div class="clx-name">'
+            f'{_escape_dollars(str(name).replace("_", " "))}</div>'
+            f'<div class="clx-bar">'
+            f'<span class="clx-track">{segments}</span>'
+            f'<span class="clx-counts">{counts}</span>'
+            f'</div>'
+            f'{ext_html or "<div></div>"}'
+            + (f'<div class="clx-punch">{_escape_dollars(punch)}</div>' if punch else "")
+            + (f'<div class="clx-note">{_escape_dollars(note)}</div>' if note else "")
+            + '</div>'
+        )
+    return card_container(
+        eyebrow='Clusters<span class="eb-sub"> · where each group stands</span>',
+        headline="",
+        body_html=rows,
+        lane="lede",
+    )
 
 
 def render_clusters(clusters: dict, watchlist: dict, extension_regime=None) -> None:

@@ -3,7 +3,11 @@
    The signal palette below (:root --buy … --caution) mirrors
    assets/catalog.json; tests/test_design_tokens.py fails if they drift.
 */
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Type — Industry design system (design-spec §5): Barlow Condensed for
+   headings/labels/numbers, Barlow for body. CDN @import (same channel as the
+   old Newsreader/Inter/JetBrains load) — NOT a pip dependency, so hard-
+   constraint #1 holds. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap');
 
 :root {
   --paper:    #14140F;
@@ -15,9 +19,16 @@
   --ink-4:    #5E5A50;
   --rule:        rgba(255, 255, 255, 0.08);
   --rule-strong: rgba(255, 255, 255, 0.20);
-  --serif: 'Newsreader', Georgia, serif;
-  --sans:  'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
-  --mono:  'JetBrains Mono', ui-monospace, monospace;
+  /* Two Barlow families carry all three legacy roles. --serif/--sans/--mono
+     names are kept as aliases so the ~40 existing selectors resolve unchanged;
+     they now point at Barlow. Numbers were monospaced (JetBrains); Barlow
+     Condensed isn't, so number-bearing selectors get font-variant-numeric:
+     tabular-nums in Phase 3. */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-body:    'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif: var(--font-display);
+  --sans:  var(--font-body);
+  --mono:  var(--font-display);
 
   /* —— Broadsheet, hinged · design tokens (Part 2 §2.7) —— */
   /* Surface tiers — "ink on newsprint" dark layering. Aliased to the
@@ -66,6 +77,100 @@
   --grid-gutter: 24px;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   OVERHAUL TOKEN LAYER (design-spec §3/§4) — Phase 1.
+   Both theme value sets live here as raw --*-light / --*-dark vars (defined
+   once). "Active" tokens (--color-bg, --accent, …) default to the DARK set.
+   The theme toggle swaps the map by injecting a light override on :root from
+   dashboard.py (same mechanism as the density override below) — no per-
+   component theme logic. Signal RAILS are shared across themes (§3a); only
+   pill text / accent / brass / up-down / base surfaces get per-theme values.
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* —— §4 base surfaces —— */
+  --bg-light:#f2f2f3;             --bg-dark:#17181b;
+  --surface-light:#e9e9ea;        --surface-dark:#202126;
+  --surface-2-light:#dedee0;      --surface-2-dark:#2a2b30;   /* nested */
+  --surface-3-light:#d5d5d8;      --surface-3-dark:#33343a;   /* hover lift */
+  --text-light:#1d1f20;           --text-dark:#e9e8e2;
+  /* Body/caption ramp lifted 2026-07-24 (owner review: prose read "dull" in the
+     macro note, cluster/fundamentals strips and the change row). */
+  --text-2-light:#494c4f;         --text-2-dark:#d7d8db;      /* body-secondary */
+  --text-3-light:#6c6f73;         --text-3-dark:#a0a2a7;      /* captions/eyebrows */
+  --text-4-light:#a1a3a6;         --text-4-dark:#5c5e62;      /* disabled */
+  --divider-light:rgba(29,31,32,0.16);   --divider-dark:rgba(255,255,255,0.13);
+  --divider-strong-light:rgba(29,31,32,0.28); --divider-strong-dark:rgba(255,255,255,0.22);
+
+  /* —— §3c structure & deltas —— */
+  --accent-light:#5980a6;         --accent-dark:#94bce3;      /* links, focus, tab underline */
+  --eyebrow-light:#416180;        --eyebrow-dark:#9ec7ef;
+  --up-light:#1a7f4b;             --up-dark:#4ade80;          /* price delta up */
+  --down-light:#c0392b;           --down-dark:#f87171;        /* price delta down */
+
+  /* —— §3b data palette (charts / capex / health axes) —— */
+  --brass-light:#7a5f2b;          --brass-dark:#d8b878;       /* primary series */
+  --brass-fill:#c9a66b;                                       /* shared */
+  --muted-fill-light:#b7b7ba;     --muted-fill-dark:#5d5d60;  /* secondary series */
+  --stress-light:#a3453b;         --stress-dark:#e08a80;      /* terracotta */
+
+  /* —— §3a signal PILL TEXT (per theme; rails shared, defined at §Signal tokens) —— */
+  --buy-text-light:#15803d;       --buy-text-dark:#4ade80;
+  --accumulate-text-light:#1f6ea8; --accumulate-text-dark:#5dade2;
+  --watch-text-light:#8a5a00;     --watch-text-dark:#f5b942;
+  --hold-text-light:#4b5563;      --hold-text-dark:#9ca3af;
+  --caution-text-light:#b91c1c;   --caution-text-dark:#f87171;
+  --avoid-text-light:#991b1b;     --avoid-text-dark:#e0a3a3;
+
+  /* —— ACTIVE map (default = dark). Light swap injected from dashboard.py. —— */
+  --color-bg:var(--bg-dark);
+  --color-surface:var(--surface-dark);
+  --color-surface-2:var(--surface-2-dark);
+  --color-surface-3:var(--surface-3-dark);
+  --color-text:var(--text-dark);
+  --color-text-2:var(--text-2-dark);
+  --color-text-3:var(--text-3-dark);
+  --color-text-4:var(--text-4-dark);
+  --color-divider:var(--divider-dark);
+  --color-divider-strong:var(--divider-strong-dark);
+  --accent:var(--accent-dark);
+  --eyebrow:var(--eyebrow-dark);
+  --up:var(--up-dark);
+  --down:var(--down-dark);
+  --brass:var(--brass-dark);
+  --muted-fill:var(--muted-fill-dark);
+  --stress:var(--stress-dark);
+  --buy-text:var(--buy-text-dark);
+  --accumulate-text:var(--accumulate-text-dark);
+  --watch-text:var(--watch-text-dark);
+  --hold-text:var(--hold-text-dark);
+  --caution-text:var(--caution-text-dark);
+  --avoid-text:var(--avoid-text-dark);
+
+  /* —— Spacing scale (§5 asks for whitespace hierarchy; steps proposed in
+     docs/overhaul-plan.md §3). 4px base. —— */
+  --space-1:4px;   /* inline gaps, pill padding */
+  --space-2:8px;   /* label→value, tight stacks */
+  --space-3:16px;  /* intra-card rhythm */
+  --space-4:24px;  /* card interior padding */
+  --space-5:40px;  /* between blocks / grid gutter */
+  --space-6:64px;  /* major section breaks */
+
+  /* —— Legacy token re-aliases: repoint the old warm-newsprint ramp onto the
+     new cool base map so every existing selector adopts the overhaul palette
+     without being individually rewritten. Later cascade wins over the first
+     :root. Phase 3 migrates selectors to the --color-* names directly. —— */
+  --paper:var(--color-bg);
+  --paper-2:var(--color-surface);
+  --paper-3:var(--color-surface-2);
+  --surface-3:var(--color-surface-3);
+  --ink:var(--color-text);
+  --ink-2:var(--color-text-2);
+  --ink-3:var(--color-text-3);
+  --ink-4:var(--color-text-4);
+  --rule:var(--color-divider);
+  --rule-strong:var(--color-divider-strong);
+}
+
 /* Compact-density :root overrides are injected from dashboard.py via a
    conditional <style> block when st.session_state.density == "compact". */
 
@@ -77,28 +182,59 @@
   }
 }
 
-/* ── Editorial card primitive (lib/cards.py::card_container) ── */
+/* ── Blueprint card primitive (lib/cards.py::card_container) ──
+   design-spec §5: transparent fill, square corners, single hairline border,
+   four "+" registration marks. Line drawing, never a filled/rounded surface. */
 .card {
-  background: var(--surface-1);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-card);
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
   padding: var(--card-pad-y) var(--card-pad-x);
   margin-bottom: var(--card-gap);
+  position: relative;   /* containing block for the corner marks */
 }
+/* "+" registration marks — a small cross centred on each corner of the border. */
+.blueprint > .corner {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: var(--color-text-3);
+  pointer-events: none;
+}
+.blueprint > .corner::before,
+.blueprint > .corner::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+  opacity: 0.7;
+}
+.blueprint > .corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.blueprint > .corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+.blueprint > .corner.tl { top: -4.5px; left: -4.5px; }
+.blueprint > .corner.tr { top: -4.5px; right: -4.5px; }
+.blueprint > .corner.bl { bottom: -4.5px; left: -4.5px; }
+.blueprint > .corner.br { bottom: -4.5px; right: -4.5px; }
+/* Card header = kicker + hairline. No bar, no background, no box. Hierarchy is
+   steel eyebrow (what this is) -> hairline -> content (the substance). */
 .card-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--rule);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--color-divider);
 }
+/* --eyebrow, NOT the base accent: the base steel is tuned for ~3:1 (fine for a
+   tab underline, too weak for 11px text), so the eyebrow uses a deeper/lighter
+   step of the same steel — deep-on-light, light-on-dark, same hue family.
+   And NOT the card's signal colour: the eyebrow labels the section, the pill and
+   rail carry the signal, so a signal hue never doubles as decoration. */
 .card-head .eyebrow {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.13em;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--eyebrow);
 }
 .card-head .card-headline {
   font-family: var(--serif);
@@ -114,8 +250,12 @@
   color: var(--ink-2);
 }
 
-.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); }
-.main .block-container { max-width: 1280px; padding-top: 18px; padding-bottom: 80px; }
+/* font-variant-numeric inherits, so setting it on the app root gives every
+   number tabular figures (design-spec §5) — Barlow isn't monospaced. */
+.stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
+/* One 1200px centred column, padding 16px 28px 0 (header spec); the bottom pad
+   is scroll room, not part of the spec's header geometry. */
+.main .block-container { max-width: 1200px; padding: 16px 28px 80px; }
 [data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 
 /* Hide default Streamlit chrome. The header is both hidden AND collapsed to
@@ -153,7 +293,23 @@ header[data-testid="stHeader"] {
 .main .block-container,
 [data-testid="stMainBlockContainer"],
 .stMainBlockContainer {
-  padding-top: 2.2rem !important;
+  padding-top: 16px !important;   /* header spec: 16px 28px 0 */
+}
+
+/* Reclaim the band above the masthead. It was NOT the header bar (already
+   height:0 below) nor the container padding — dashboard.py injects three
+   style-only st.markdown blocks (theme CSS, first-mount animations, density
+   override) and Streamlit gives each its own element container, which then
+   takes part in the vertical block's row-gap. Collapsing the style-only
+   containers removes that dead space; a <style> still applies while its
+   wrapper is display:none. Scoped to markdown whose ONLY child is a <style>,
+   so no container carrying real content is ever hidden.
+   They are already zero-HEIGHT, but a zero-height flex child still earns its
+   16px row-gap — two of them is the 32px band (16 pad + 16 + 16 = 48px). */
+[data-testid="stElementContainer"]:has(
+  [data-testid="stMarkdownContainer"] > style:only-child
+) {
+  display: none !important;
 }
 
 /* Typography */
@@ -314,18 +470,14 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 .topnav-wrap { display: none; }
 
 .st-key-page_nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--paper);
-  /* Span the full content width so the sticky background + baseline rule cover
-     the whole strip. Without this the stElementContainer shrinks to the tab
-     row's own width (~924px vs ~1130px of content), leaving the rightmost
-     table columns to scroll visibly past the nav's right edge. */
+  /* No sticky and NO background fill: sticky needs a fill to stop content
+     showing through, and a fill/box around the nav is exactly what the header
+     spec forbids. Span the full content width so the row's rule runs edge to
+     edge of the column. */
   width: 100% !important;
   align-self: stretch !important;
-  margin-bottom: 22px;
-  padding-top: 6px;
+  margin-bottom: 0;
+  padding-top: 0;
 }
 .st-key-page_nav .stRadio > label {
   display: none !important;
@@ -338,56 +490,40 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
      panned horizontally on phones. */
   position: relative;
   flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  /* Full-width section bar (UX 2026-07-07): tabs justified edge-to-edge like a
-     newspaper contents band — the old left-packed strip left a dead zone to
-     the right and read as plain text links. The gap survives as the minimum
-     spacing once the strip overflows and space-between has no room to give. */
-  justify-content: space-between;
-  gap: 10px !important;
+  /* Wrap, never scroll: with gap (not margins) the spacing is identical whether
+     the tabs sit on one line or reflow to two, and it survives adding/removing
+     a tab without touching per-item spacing. */
+  flex-wrap: wrap !important;
+  justify-content: flex-start;
+  gap: 26px !important;
+  padding: 11px 0 0 !important;
   border: none !important;
-  /* Oxford rule above (heavy double), hairline below — the band reads as a
-     deliberate strip rather than a row of floating labels. */
-  border-top: 3px double var(--rule-strong) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;  /* quiet hairline — let the amber active marker carry the strip */
-  overflow-x: auto;
-  /* Horizontal scroll only. Leaving overflow-y at its default lets CSS compute
-     it to `auto` (when one axis is clipped the other's `visible` becomes
-     `auto`), so the ~2px of extra height from the raised folio numerals spawns
-     a phantom vertical scrollbar with up/down arrows at the strip's right edge. */
-  overflow-y: hidden;
-  /* Keep the active tab off the flush edge when it scrolls into view, so the
-     :focus/checked underline never clips a neighbour to nothing. */
-  scroll-padding-inline: 22px;
-  /* A slim scrollbar is the affordance: it appears ONLY when the strip actually
-     overflows (7 tabs rarely fit with the sidebar open), and at ANY width — the
-     old fade cue was ≤820px only, so wide desktop users had no hint that
-     Terminology / Report Comparison sat off-screen. A dark-on-dark edge shadow
-     was invisible on --paper, so a real (thin) bar is the honest signal. */
-  scrollbar-width: thin;                                   /* Firefox */
-  scrollbar-color: var(--rule-strong) transparent;
-}
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar { height: 5px; }
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-track { background: transparent; }
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-thumb {
-  background: var(--rule-strong); border-radius: 3px;
-}
-.st-key-page_nav [role="radiogroup"]::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-3);
+  /* ONE 1px divider, below only. The masthead's 2px --color-text rule bounds the
+     header zone above; this lighter rule closes the tab row inside it. Two
+     border weights = two levels of hierarchy, with nothing but line thickness. */
+  border-bottom: 1px solid var(--color-divider) !important;
 }
 .st-key-page_nav [role="radiogroup"] > label {
-  flex: 0 0 auto;                 /* keep on one line, never shrink */
+  flex: 0 0 auto;
   white-space: nowrap;
-  font-family: var(--mono) !important;
-  font-size: 12.5px !important;   /* was 11px — the strip read as fine print */
-  letter-spacing: 0.06em !important;  /* 0.08em overflowed by 5px with the sidebar open */
+  /* Same label grammar as every other eyebrow on the site, so navigation reads
+     as system chrome rather than content. */
+  font-family: var(--font-display) !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase;
-  color: var(--ink-2) !important; /* was ink-3 — idle tabs sat below AA-comfort */
-  padding: 11px 0 12px !important;
-  margin-bottom: -2px !important;
+  font-weight: 600;
+  color: var(--color-text-3) !important;   /* muted: pushes the other tabs back */
+  padding: 0 0 9px !important;             /* the gap the active underline sits in */
+  /* Spacing comes from the row's gap ONLY. BaseWeb ships margin-right:16px on
+     every label, which double-spaced on top of the 26px gap and pushed the 10th
+     tab onto a second line by a single pixel (1270px into a 1269px row).
+     The -1px bottom overlaps the row's 1px rule so the 2px accent underline sits
+     IN it rather than stacking a second line beneath it. */
+  margin: 0 0 -1px !important;
   cursor: pointer;
+  /* Always reserve the 2px so a tab never shifts when it activates. */
   border-bottom: 2px solid transparent !important;
-  font-weight: 500;
   background: transparent !important;
   transition: color var(--dur-fast) var(--ease-out),
               border-color var(--dur-fast) var(--ease-out);
@@ -408,13 +544,16 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   margin: 0 !important;
 }
 .st-key-page_nav [role="radiogroup"] > label:hover {
-  color: var(--ink-2) !important;
-  border-bottom-color: var(--rule-strong) !important;
+  color: var(--color-text-2) !important;
 }
+/* Active tab carries TWO redundant cues — full-strength text AND the 2px accent
+   underline — so the current section is obvious at a glance even to someone who
+   can't distinguish the steel accent. The accent is the structural/navigation
+   colour (never a signal, never data), so nav state can't be read as a BUY /
+   CAUTION cue. 2px echoes the masthead rule: the active tab "connects" to it. */
 .st-key-page_nav [role="radiogroup"] > label:has(input:checked) {
-  color: var(--ink) !important;
-  font-weight: 600;
-  border-bottom-color: var(--watch) !important;   /* amber accent = "you are here" */
+  color: var(--color-text) !important;
+  border-bottom-color: var(--accent) !important;
 }
 /* Keyboard focus ring on the active tab label (matches the summary treatment). */
 .st-key-page_nav [role="radiogroup"] > label:has(input:focus-visible) {
@@ -423,52 +562,20 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
   border-radius: 2px;
 }
 
-/* —— Folio index —— amber section numerals (01–07) injected via ::before so the
-   Python st.radio labels stay plain strings. Each numeral sits as a small raised
-   superscript before its label, reading like a newspaper contents page. Dim when
-   idle, full amber on the active section. */
-.st-key-page_nav [role="radiogroup"] > label::before {
-  font-family: var(--mono);
-  font-size: 10px;                /* scaled with the 12.5px labels */
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #f59e0b;
-  opacity: 0.5;
-  margin-right: 6px;
-  vertical-align: 3px;            /* raise the numeral like a section folio */
-  transition: opacity var(--dur-fast) var(--ease-out);
-}
-.st-key-page_nav [role="radiogroup"] > label:nth-child(1)::before { content: "01"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(2)::before { content: "02"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(3)::before { content: "03"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(4)::before { content: "04"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(5)::before { content: "05"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(6)::before { content: "06"; }
-.st-key-page_nav [role="radiogroup"] > label:nth-child(7)::before { content: "07"; }
-.st-key-page_nav [role="radiogroup"] > label:hover::before { opacity: 0.85; }
-.st-key-page_nav [role="radiogroup"] > label:has(input:checked)::before { opacity: 1; }
+/* The folio numerals (01–10 via ::before) were dropped in the 2026-07-24 header
+   cleanup: with ten tabs they were visual noise, and the reference navbar is
+   plain labels with an accent underline on the active one. */
 
 /* Narrow viewports: tighten the strip so more tabs fit before it scrolls, and
    fade the right edge to hint that the off-screen tabs are reachable by scroll. */
+/* Narrow: tighten the row so fewer tabs wrap. The old sidebar-chip indent hack
+   is gone with the sticky nav — the chip can no longer sit on top of the strip. */
 @media (max-width: 820px) {
-  .st-key-page_nav [role="radiogroup"] { gap: 13px !important; }
-  /* The fixed sidebar-expand chip (top:6 left:8, z-index 61) sits ON TOP of the
-     sticky nav once the page scrolls, hiding the "01 Briefing" tab behind it.
-     When the chip exists (sidebar collapsed — the phone default), indent the
-     strip so the first tab clears it. :has() is the gate; browsers without it
-     keep today's behavior. */
-  body:has([data-testid="stExpandSidebarButton"]) .st-key-page_nav [role="radiogroup"],
-  body:has([data-testid="stSidebarCollapsedControl"]) .st-key-page_nav [role="radiogroup"] {
-    padding-left: 44px;
-  }
+  .st-key-page_nav [role="radiogroup"] { gap: 16px !important; row-gap: 4px !important; }
   .st-key-page_nav [role="radiogroup"] > label {
-    font-size: 10.5px !important;
-    letter-spacing: 0.06em !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
   }
-  .st-key-page_nav [role="radiogroup"] > label::before { margin-right: 5px; }
-  /* Edge-fade affordance is handled by the always-on scroll-shadow on the
-     radiogroup itself (see above) — it reveals on whichever side overflows, so
-     the old right-only ::after fade here is no longer needed. */
 }
 
 /* Dataframes */
@@ -530,60 +637,89 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 .sidebar-status .status-value { color: var(--ink); font-weight: 600; }
 
 /* ── Editorial masthead ── */
+/* Header carries as few rules as possible (owner review 2026-07-24, ref
+   briefing.jpg): the wordmark has NO rule under it — the nav strip's single
+   hairline is the only separator above the content. */
+/* ── Header row 1: masthead ────────────────────────────────────────────────
+   Identity (left) + metadata (right) on ONE flex row. align-items:flex-end —
+   not center — so both blocks share a bottom edge and the rule below reads as
+   one clean line even though they are different heights.
+   The 2px --color-text rule is the HEAVIEST on the page: it anchors the
+   masthead as the top of the document, the way the rule under a newspaper
+   nameplate does. Everything else is 1px hairlines, so this one line does the
+   work of saying "title zone ends here". No boxes, no fills, no shadows. */
 .masthead {
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: end;
-  border-bottom: 1.5px solid var(--ink);
-  padding-bottom: 14px;
-  margin: 4px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  border-bottom: 2px solid var(--color-text);
+  padding-bottom: 12px;
+  margin: 0;
 }
-.masthead .kicker {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+/* Wordmark + kicker on one baseline row, so the brand is a single line. */
+.masthead-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
+/* Condensed + uppercase + slightly negative tracking: the one element allowed to
+   read as an engineered MARK rather than a word. */
 .masthead .title {
-  font-family: var(--serif);
+  font-family: var(--font-display);
   font-weight: 600;
-  font-size: 2.6rem;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  margin: 4px 0 0;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin: 0;
   /* Streamlit sets overflow-wrap:break-word globally, which was splitting the
-     wordmark mid-word ("Marke|t Repor|t") once the two-column masthead starved
-     the title column. Force whole-word wrapping so it can only break between
-     words (and the responsive collapse below gives it room to). */
+     wordmark mid-word ("Marke|t Repor|t"). Force whole-word wrapping. */
   overflow-wrap: normal;
   word-break: keep-all;
   hyphens: none;
 }
-.masthead .title em { font-style: italic; font-weight: 500; color: var(--ink-2); }
+/* Wide tracking is the deliberate counterpoint to the tight wordmark: tiny +
+   spaced-out reads as a system label, and the low contrast keeps it subordinate.
+   Baseline-aligned with the wordmark (not centred) so they feel typeset together. */
+.masthead .kicker {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  line-height: 1;
+}
 .masthead .right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   text-align: right;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-3);
-  line-height: 1.55;
+  min-width: 0;
 }
+/* Verdict-first, applied to metadata: the actionable date is big and bright,
+   its provenance small and muted beneath it. */
 .masthead .right .date {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--ink);
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.15;
 }
-.masthead-strip {
-  display: flex; justify-content: space-between;
-  font-family: var(--mono);
+.masthead .right .date-sub {
+  font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-3);
-  padding: 8px 0 12px;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 0;
+  color: var(--color-text-3);
+  line-height: 1.4;
 }
+/* .masthead-strip (Issue No. / The Signal Desk / Updated) was removed in the
+   2026-07-24 header cleanup — it was a whole extra rule + line of chrome whose
+   only unique datum (the date) already sits in .masthead .right. */
 
 /* Masthead responsive collapse — the 1fr/auto grid never reflowed, so on narrow
    viewports the date block starved the wordmark column and forced ugly wraps.
@@ -591,19 +727,15 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    and scale the wordmark so it fits phone widths on one or two clean lines. */
 @media (max-width: 820px) {
   .masthead {
-    grid-template-columns: 1fr;
-    align-items: start;
-    row-gap: 6px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
-  /* !important to beat the global `h1 { font-size: 2.4rem !important }` rule —
-     the wordmark is an <h1 class="title">, so without it the responsive sizes
-     are ignored and the title stays large enough to wrap onto three lines. */
-  .masthead .title { font-size: 2.05rem !important; }
-  .masthead .right { text-align: left; }
+  .masthead .title { font-size: 22px; }
+  .masthead .right { align-items: flex-start; text-align: left; }
 }
 @media (max-width: 400px) {
-  .masthead .title { font-size: 1.7rem !important; line-height: 1.02; }
-  .masthead-strip { gap: 8px; flex-wrap: wrap; }
+  .masthead .title { font-size: 20px; }
 }
 
 /* Section heads (used inside Briefing) */
@@ -648,8 +780,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
      always fully tiled. minmax(0,1fr) lets tracks shrink below the widest
      label instead of overflowing the card on narrow lanes. */
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;
-  background: var(--rule-strong);
-  border: 1px solid var(--rule-strong);
+  background: var(--color-divider);   /* light hairline grid, no heavy frame — line-drawing idiom */
   margin-top: 18px; margin-bottom: 8px;
 }
 /* Below 1100px the ledger lane narrows to ~1/3 of the page — compact the
@@ -676,16 +807,29 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 }
 
 .pulse-grid {
-  display: grid; grid-template-columns: repeat(8, 1fr);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 14px 0;
-  margin: 18px 0 8px;
+  display: grid; grid-template-columns: repeat(5, 1fr);   /* 5-benchmark tape (was 8) — fills the width */
+  /* Two-weight logic: the TOP rule is full-strength --color-text — a shelf the
+     numbers sit on, opening the data band (in dark mode it reads as the bright
+     "white line", but it is the text token inverted, so it re-themes). The
+     BOTTOM is a faint hairline that closes the band without competing. Firm
+     start, soft finish, so the eye is pushed down into the tape, not boxed in.
+     Neutral text colour, never steel/signal: a rule is structure, and structure
+     must not be readable as navigation or as a signal. */
+  border-top: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-divider);
+  padding: 12px 0;
+  margin: 12px 0 6px;
 }
+/* Cells are peers — SPY is not more important than QQQ — so the separators
+   between them stay whisper-light; only the horizontal top rule is strong,
+   because that is the one edge with a hierarchy job. Full-strength verticals
+   would read as a spreadsheet grid and fight the wireframe grammar.
+   No `gap` on purpose: the cells must sit flush so their borders touch and form
+   continuous lines. Every cell keeps its right rule (including the last), so the
+   strip closes on its right edge at the same weight. */
 .pulse-cell {
-  padding: 0 14px; border-right: 1px solid var(--rule);
+  padding: 0 14px; border-right: 1px solid var(--color-divider);
 }
-.pulse-cell:last-child { border-right: 0; }
 .pulse-cell .plabel {
   font-family: var(--mono); font-size: 10px;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
@@ -695,8 +839,8 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   letter-spacing: -0.01em; margin-top: 2px; color: var(--ink);
 }
 .pulse-cell .pdelta { font-family: var(--mono); font-size: 11px; margin-top: 2px; }
-.up   { color: #22c55e; }
-.down { color: #ef4444; }
+.up   { color: var(--up); }     /* price-delta palette, not the BUY signal hue (spec §3) */
+.down { color: var(--down); }   /* not the CAUTION signal hue */
 .flat { color: var(--ink-3); }
 
 /* ── Extended-hours (PRE/POST) tag ────────────────────────────────────────────
@@ -741,9 +885,9 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    overflowed (Gold/DXY/US10Y/SOXX fell off the right edge). Wrap to two rows of
    four so every benchmark stays visible. */
 @media (max-width: 719px) {
-  .pulse-grid { grid-template-columns: repeat(4, 1fr); }
-  .pulse-cell:nth-child(4n) { border-right: 0; }
-  .pulse-cell:nth-child(n + 5) {
+  .pulse-grid { grid-template-columns: repeat(3, 1fr); }   /* 5-cell tape wraps 3 + 2 on narrow */
+  .pulse-cell:nth-child(3n) { border-right: 0; }
+  .pulse-cell:nth-child(n + 4) {
     border-top: 1px solid var(--rule);
     padding-top: 12px;
     margin-top: 12px;
@@ -828,12 +972,13 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    it, so the redundant-at-this-width .tk-scroll scroller is released. The
    :has() gate scopes both rules to the watchlist grid (the only .tk-scroll
    with a .tk-row.head child); phones keep the horizontal swipe untouched.
-   top must track the rendered nav height — remeasure if the nav changes. */
+   top is 0 because the nav is no longer sticky (2026-07-24 header rebuild) —
+   there is nothing pinned above to offset against. */
 @media (min-width: 1100px) {
   .tk-scroll:has(> .tk-row.head) { overflow-x: visible; }
   .tk-scroll > .tk-row.head {
     position: sticky;
-    top: 58px;                     /* measured .st-key-page_nav height */
+    top: 0;
     z-index: 30;
     background: var(--paper);
   }
@@ -872,12 +1017,17 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   padding: var(--card-pad-y) var(--card-pad-x);   /* density-aware (was 18px 22px 22px) */
   border-bottom: 1px solid var(--rule);
 }
+/* Drilldown section headers (Thesis break condition, Regime Change Pending,
+   Risk & Reward, Technicals, Key Levels, Valuation, …) take the SAME kicker
+   treatment as every card eyebrow: deep-steel --eyebrow, 11px, 0.14em, over a
+   hairline. One label colour across the whole app, and more legible than the
+   old 10px muted grey. */
 .tk-drilldown .dd-section {
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--font-display); font-size: 11px;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 600;
-  margin: 18px 0 8px; padding-bottom: 4px;
-  border-bottom: 1px solid var(--rule);
+  color: var(--eyebrow); font-weight: 600;
+  margin: 18px 0 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
 }
 .tk-drilldown .dd-section:first-child { margin-top: 0; }
 .tk-drilldown .dd-line {
@@ -892,10 +1042,12 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   border-bottom: 1px dashed var(--rule);
   padding: 6px 0;
 }
+/* Metric labels take the same steel as the section headers — they were the last
+   grey micro-type left in the drilldown and read as unlabelled noise. */
 .tk-drilldown .dd-metric .lbl {
-  font-family: var(--mono); font-size: 9.5px;
-  color: var(--ink-3); text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-family: var(--font-display); font-size: 10px;
+  color: var(--eyebrow); text-transform: uppercase;
+  letter-spacing: 0.12em; font-weight: 600;
 }
 .tk-drilldown .dd-metric .val {
   font-family: var(--mono); font-size: 13px;
@@ -935,40 +1087,117 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 }
 .risk-card .text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
 
+/* A fixed 52px date column forms a timeline spine down the left so every date
+   aligns; the flexible right column holds the event and its metadata. Scan the
+   dates first, then read across. */
 .cal-day {
-  display: grid; grid-template-columns: 110px 1fr; gap: 24px;
-  padding: 14px 0; border-bottom: 1px solid var(--rule);
+  display: grid; grid-template-columns: 52px 1fr; gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid var(--color-divider);
 }
+/* Big date, quiet weekday, on a faint rail tick. */
 .cal-date {
-  font-family: var(--serif); font-size: 1.1rem; font-weight: 500; color: var(--ink);
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--color-text);
+  border-left: 2px solid var(--color-divider); padding-left: 10px;
 }
 .cal-date .dow {
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--font-display); font-size: 9px;
   text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--ink-3); display: block; margin-top: 2px;
+  color: var(--color-text-3); display: block; margin-top: 2px;
 }
 .cal-event {
   display: grid; grid-template-columns: 60px 1fr;
   gap: 14px; align-items: baseline; margin-bottom: 8px;
 }
+/* Severity is NOT a signal, so it must not wear signal hues. Was filled
+   signal-red (HIGH) / WATCH-amber (MEDIUM), which let an impact level read as a
+   CAUTION rating. Now a transparent steel OUTLINE chip: it says "impact level"
+   and leaves red meaning only CAUTION. Transparent (vs filled) also keeps it
+   quiet beside the event name. */
 .cal-impact {
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+  font-family: var(--font-display); font-size: 8.5px; letter-spacing: 0.14em;
   text-transform: uppercase; font-weight: 600; padding: 2px 6px;
-  border-radius: 2px; text-align: center; width: fit-content;
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; text-align: center; width: fit-content;
+  color: var(--color-text-4);
 }
-.cal-impact.HIGH { color: #ef4444; background: rgba(239,68,68,0.16); }
-.cal-impact.MEDIUM { color: #f59e0b; background: rgba(245,158,11,0.18); }
-.cal-impact.LOW { color: var(--ink-3); background: rgba(255,255,255,0.05); }
+.cal-impact.HIGH { color: var(--eyebrow); border-color: var(--eyebrow); }
+.cal-impact.MEDIUM { color: var(--color-text-3); }
+.cal-impact.LOW { color: var(--color-text-4); }
 .cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
-.macro-lead {
-  font-family: var(--serif); font-size: 1.2rem; font-weight: 400;
-  line-height: 1.5; color: var(--ink); margin-bottom: 14px;
-  max-width: 70ch;
+/* Scenario read — steel toggle = navigation, never a signal. Collapsed so the
+   calendar stays scannable. */
+.cal-scen { margin-top: 5px; }
+.cal-scen-toggle {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--eyebrow);
 }
+.cal-scen-toggle::-webkit-details-marker { display: none; }
+.cal-scen-toggle::before { content: "▶ "; font-size: 8px; }
+.cal-scen[open] > .cal-scen-toggle::before { content: "▼ "; }
+.cal-scen-setup {
+  margin: 5px 0 4px; font-size: 10.5px; font-style: italic;
+  color: var(--color-text-3);
+}
+
+/* The one place body-length text uses the HEADING font: at 19px condensed it
+   reads as a newspaper standfirst — larger and airier than ordinary body — which
+   marks it as the card's opening statement. 62ch caps the measure. */
+/* !important: Streamlit's markdown-container `p` rule out-specifies a bare
+   class and was pinning this to 14px body size. */
+.macro-lead {
+  font-family: var(--font-display) !important;
+  font-size: 19px !important;
+  font-weight: 400 !important;
+  line-height: 1.42 !important;
+  color: var(--color-text) !important;
+  margin: 0 0 14px;
+  max-width: 62ch;
+}
+/* Steel left-border is the callout device: it flags "this is the takeaway"
+   without a fill or a coloured box. Steel because it is structural emphasis,
+   not a signal. */
 .macro-action {
-  font-size: 13.5px; color: var(--ink-2); line-height: 1.6;
-  border-left: 2px solid var(--rule-strong); padding-left: 12px;
+  font-size: 13.5px; color: var(--color-text-2); line-height: 1.55;
+  border-left: 2px solid var(--accent); padding-left: 13px;
+  margin-top: 16px;
+}
+.macro-action strong { color: var(--color-text); }
+
+/* ── FRED prints: five equal cells reading as one connected instrument ──
+   The 1px-gap-over-a-divider-ground trick draws hairlines between every cell
+   without per-cell borders, echoing the pulse tape at the top of the page. */
+.fp-wrap { margin-top: 18px; }
+.fp-caveat {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-4); margin-bottom: 8px;
+}
+.fp-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--color-divider); border: 1px solid var(--color-divider);
+}
+.fp-cell { background: var(--color-bg); padding: 9px 10px; min-width: 0; }
+.fp-label {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.fp-value {
+  font-family: var(--font-display); font-size: 19px; font-weight: 600;
+  color: var(--color-text); line-height: 1.15; margin-top: 3px;
+}
+.fp-meta {
+  display: flex; justify-content: space-between; gap: 6px; margin-top: 2px;
+  font-family: var(--font-display); font-size: 9.5px;
+}
+/* Deltas stay MUTED, never up/down green-red: a falling CPI is good but falling
+   payrolls is bad, so colouring the arrows would assert a judgment the data
+   does not support. */
+.fp-delta { color: var(--color-text-3); white-space: nowrap; }
+.fp-month { color: var(--color-text-4); text-align: right; white-space: nowrap; }
+@media (max-width: 900px) {
+  .fp-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .colophon {
@@ -992,14 +1221,16 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 .lane-wrapper > [data-lane="ledger"] { grid-column: 8 / 13; }
 .lane-wrapper > [data-lane="strip"]  { grid-column: 1 / -1; }
 
-/* Mid (720-1099px): lede 1-8, ledger 9-12 */
-@media (max-width: 1099px) and (min-width: 720px) {
+/* Mid (900-1099px): lede 1-8, ledger 9-12 */
+@media (max-width: 1099px) and (min-width: 900px) {
   .lane-wrapper > [data-lane="lede"]   { grid-column: 1 / 9; }
   .lane-wrapper > [data-lane="ledger"] { grid-column: 9 / 13; }
 }
 
-/* Narrow (<720px): everything stacks to full width, tighter gutter */
-@media (max-width: 719px) {
+/* Narrow (<900px): stance stacks to full width — matches the .briefing-grid
+   collapse (overhaul: harmonised from 720px so the whole Briefing collapses
+   at one breakpoint). */
+@media (max-width: 899px) {
   .lane-wrapper {
     column-gap: 16px;
     row-gap: 20px;
@@ -1017,6 +1248,408 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
    left an empty band of whitespace below the Signal Distribution counts and
    below the Active Risks list. */
 .lane-wrapper > .card { margin-bottom: 0; align-self: start; }
+
+/* ── Briefing body grid (design-spec §6) ──────────────────────────
+   The Briefing body below the full-width posture/tape/chips is a two-column
+   1.55fr / 1fr grid: dominant lede left (Action, Macro), reference rail right
+   (Risks, Week-ahead). Composed as ONE st.markdown string so CSS grid sees the
+   columns as siblings (DESIGN_HANDOFF §3.4). Collapses to a single column
+   below 900px, lede stack first (docs/overhaul-plan.md §4). */
+.briefing-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: var(--space-5, 40px);
+  margin-top: 26px;   /* was --space-5 (40px) — trimmed in the density pass */
+  /* Cards hug their own content. Stretching a pair to a common height aligned
+     the boxes but left dead space under the shorter card, which read worse than
+     the slight height difference (owner review 2026-07-24 — reverted). */
+  align-items: start;
+}
+.briefing-grid > .bg-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 40px);
+  min-width: 0;   /* let children shrink instead of overflowing the track */
+}
+/* Cards in a column stack on the flex gap, not their own bottom margin (which
+   would double-space against it — same reasoning as .lane-wrapper > .card). */
+.briefing-grid .card { margin-bottom: 0; }
+
+/* ── Posture band — the Briefing's opening verdict (design ref briefing.jpg).
+   Deliberately NOT a card: a bare full-width headline with the distribution
+   folded into the sub-line, so the page opens on the conclusion. */
+.posture-band { margin: 4px 0 20px; }
+.posture-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--eyebrow);   /* the page's opening kicker — same steel as every card eyebrow */
+  margin-bottom: 11px;
+}
+.posture-dot { width: 9px; height: 9px; display: inline-block; flex: 0 0 auto; }
+/* !important throughout: the global h1 rules carry it, and this headline must
+   win on size/family/colour. */
+/* Sized for the DATA, not for a punchy one-liner: the upstream risk_posture is
+   long-form prose (~200 chars), so a big type size on a narrow measure cost 5–7
+   lines (~246px) and pushed the first card off the first screen. A 70ch measure
+   at ~27px lands it in ~3 lines while still reading as the page's headline
+   (owner review 2026-07-24: "too large a font on the starting parts"). */
+.posture-headline {
+  font-family: var(--font-display) !important;
+  font-size: clamp(21px, 2.05vw, 27px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  color: var(--color-text) !important;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  max-width: 70ch;
+}
+.posture-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  line-height: 1.65;
+  max-width: 76ch;
+}
+
+/* ── Overnight change row — seamless chips, no container box ── */
+.changes-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin: 4px 0 16px;
+}
+.chg-lead {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+.chg-lead-down { color: var(--down); font-weight: 600; }
+.chg-lead-up   { color: var(--up);   font-weight: 600; }
+.chg-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 4px 9px 4px 8px;
+  border: 1px solid var(--color-divider);
+  border-left-width: 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.chg-chip b { color: var(--color-text); font-weight: 600; letter-spacing: 0.03em; }
+.chg-sig { font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ── Compact internals strips: Clusters + Fundamentals (Briefing) ──
+   Verdict-first, line-drawing rows separated by hairlines — no filled boxes.
+   The deep evidence lives on the Clusters / Fundamentals tabs. */
+/* Eyebrow descriptor after the middot: the label names the block, the
+   descriptor is a whisper of context — two importance levels in one line
+   without a second font size. */
+.eyebrow .eb-sub { color: var(--color-text-4); font-weight: 400; }
+
+/* ── Clusters card rows ──
+   3px left rail in the group's DOMINANT signal colour: the row IS the group, so
+   the whole edge carries its state and you read the left margin before any
+   text. Same rail language as the watchlist rows. */
+.clx-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 62px;
+  gap: 5px 12px;
+  align-items: center;
+  border-left: 3px solid var(--color-divider);
+  border-top: 1px solid var(--color-divider);
+  padding: 11px 0 13px 12px;
+}
+.clx-row:first-child { border-top: 0; }
+.clx-name {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-text);
+}
+/* Distribution bar: proportion at a glance, exact counts beside it (redundant
+   encoding). Signal hues are legitimate here — it is literally a count of
+   signals. 1px border keeps it a wireframe object, not a filled chart. */
+.clx-bar { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.clx-track {
+  display: flex;
+  flex: 1 1 auto;
+  height: 10px;
+  min-width: 40px;
+  border: 1px solid var(--color-divider);
+  overflow: hidden;
+}
+.clx-track > span { display: block; height: 100%; }
+.clx-counts {
+  display: inline-flex;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.clx-counts b { font-weight: 700; }
+/* Extension is context, not the verdict — quietest treatment, far edge. */
+.clx-ext {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  color: var(--color-text-4);
+  white-space: nowrap;
+}
+.clx-ext[data-warn="1"] { color: var(--stress); }
+/* Verdict-first: the punch line is the loudest text in the row; the numbers
+   above justify it and the note below explains it. */
+.clx-punch {
+  grid-column: 1 / -1;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text);
+  margin-top: 3px;
+}
+.clx-note {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+
+/* ── Fundamentals card rows ──
+   Fixed label column so all three verdict words start at the same x and the eye
+   tracks a clean vertical line of verdicts down the card. */
+.fx-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 4px 10px;
+  align-items: baseline;
+  border-top: 1px solid var(--color-divider);
+  padding: 11px 0 12px;
+}
+.fx-row:first-child { border-top: 0; }
+.fx-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+.fx-verdict {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.fx-note {
+  grid-column: 2 / -1;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+
+/* ── Modal trigger ──
+   A bordered ghost BUTTON, not a text link, because it does something (opens a
+   dialog) rather than navigating. Square hairline obeys the blueprint grammar;
+   steel marks it as structure/navigation, never a signal. */
+.st-key-open_clusters_modal button,
+.st-key-open_fundamentals_modal button {
+  /* Sized to the card's EYEBROW (10px), never to body or verdict text: this is a
+     tertiary, shrink-to-fit ghost affordance, not a call-to-action. The one
+     prominent control in this system is the accent-filled primary action —
+     everything else, including this, is a small hairline box that recedes.
+     If it is ever as tall as a table row or as wide as the card, it is wrong. */
+  display: inline-flex !important;
+  align-self: flex-start !important;   /* stop the flex parent stretching it */
+  width: auto !important;
+  min-width: 0 !important;
+  background: transparent !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 0 !important;
+  color: var(--eyebrow) !important;
+  font-family: var(--font-display) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  padding: 7px 12px !important;
+  line-height: 1.1 !important;
+  /* Streamlit gives buttons a min-height that made this as tall as a table row
+     (40px). A tertiary control must hug its own padding. */
+  min-height: 0 !important;
+  height: auto !important;
+}
+/* Streamlit nests the label in its own element, which carries the base font
+   size — without this the button renders at body size however the <button> is
+   styled, which is what made it read as a primary CTA. */
+.st-key-open_clusters_modal button *,
+.st-key-open_fundamentals_modal button * {
+  font-family: var(--font-display) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  line-height: 1.1 !important;
+  color: inherit !important;
+}
+.st-key-open_clusters_modal button:hover,
+.st-key-open_fundamentals_modal button:hover {
+  background: transparent !important;
+  border-color: var(--eyebrow) !important;
+  color: var(--color-text) !important;
+}
+/* The keyed CONTAINER is the card frame, so the trigger button can sit in
+   normal flow as the card's last child (a widget cannot live inside an
+   st.markdown string). The inner .card therefore gives up its own border and
+   bottom padding; the container takes them. */
+.st-key-clusters_card,
+.st-key-fundamentals_card {
+  position: relative;
+  border: 1px solid var(--color-divider);
+  padding-bottom: var(--card-pad-y);
+}
+.st-key-clusters_card .card,
+.st-key-fundamentals_card .card {
+  border: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Left-aligned to the card's content edge, shrink-to-fit, 12px below the last
+   row — a bit more air than the row-to-row gap, so it reads as an action rather
+   than another data row. The last row's own hairline is the divider above it. */
+.st-key-clusters_card .stButton,
+.st-key-fundamentals_card .stButton {
+  margin: 12px 0 0 var(--card-pad-x);
+  display: flex;
+  justify-content: flex-start;
+  width: auto !important;
+}
+
+/* ── Modal: the full numbered measure list ── */
+.fxd-row {
+  display: grid;
+  grid-template-columns: 34px 190px 90px 1fr;
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-divider);
+}
+.fxd-row:first-child { border-top: 0; }
+.fxd-no {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--color-text-4);
+  letter-spacing: 0.08em;
+}
+.fxd-measure {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--eyebrow);
+  font-weight: 600;
+}
+.fxd-value {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brass);          /* the data axis */
+}
+.fxd-note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-2);
+}
+@media (max-width: 719px) {
+  .fxd-row { grid-template-columns: 30px 1fr; }
+  .fxd-value, .fxd-note { grid-column: 2 / -1; }
+}
+
+/* ── Drill-in dialog ──
+   The ONE deliberate exception to "cards are transparent": the design system
+   names the dialog the top elevation, so it takes an opaque surface to lift it
+   off the dimmed page. It keeps square corners and a hairline border, and its
+   title carries the 2px --color-text masthead rule, so drilling in reads as
+   zooming into the same document rather than opening a different app. */
+[data-testid="stDialog"] div[role="dialog"] {
+  background: var(--color-bg) !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+[data-testid="stDialog"] div[role="dialog"] h2 {
+  font-family: var(--font-display) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--color-text) !important;
+  border-bottom: 2px solid var(--color-text);
+  padding-bottom: 10px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Action card entry / target / invalidation triplet (design-spec §7) */
+.ac-triplet {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px;
+  border-top: 1px solid var(--color-divider);
+}
+.ac-tri-cell {
+  padding: 10px 14px 2px 0;
+  border-right: 1px solid var(--color-divider);
+}
+.ac-tri-cell:not(:first-child) { padding-left: 14px; }
+.ac-tri-cell:last-child { border-right: 0; }
+.ac-tri-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  margin-bottom: 4px;
+}
+.ac-tri-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.ac-tri-sub {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--color-text-3);
+  line-height: 1.4;
+  margin-top: 3px;
+}
+@media (max-width: 520px) {
+  .ac-triplet { grid-template-columns: 1fr; }
+  .ac-tri-cell {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-divider);
+    padding-left: 0;
+  }
+}
+@media (max-width: 899px) {
+  .briefing-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4, 24px);
+  }
+  .briefing-grid > .bg-col { gap: var(--space-4, 24px); }
+}
 
 /* ── Signal color tokens (mirrored from assets/catalog.json) ──── */
 :root {
@@ -1326,10 +1959,14 @@ details.led-details[open] > summary {
   width: 100%; border-collapse: collapse;
   font-family: var(--mono); font-size: 11.5px;
 }
+/* Column headers are labels, so they take the same steel --eyebrow as every
+   other kicker (earnings history, calibration scorecard, EPS scorecard, cluster
+   anchors all share .ep-table). 10px, up from 9px muted grey — they were the
+   smallest, faintest type in the app. */
 .ep-table th {
-  text-align: left; font-size: 9px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--ink-3); font-weight: 600;   /* was --ink-4 (fails AA) */
-  padding: 0 10px 7px; border-bottom: 1px solid var(--rule);
+  text-align: left; font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--eyebrow); font-weight: 600;
+  padding: 0 10px 7px; border-bottom: 1px solid var(--color-divider);
 }
 /* Exemption span for Greek glyphs: uppercase turns α into Α, which is
    pixel-identical to Latin "A" — the alpha columns read as unlabeled. */
