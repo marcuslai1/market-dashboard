@@ -11,6 +11,7 @@ import streamlit as st
 
 from components.paper_book import render_paper_book
 from components.trim_experiment import render_trim_experiment
+from lib.cards import card_container, render_section_head
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
 from lib.data_loader import (
@@ -362,22 +363,26 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
         n = len(valid5)
         color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
         # A shown rate below the decision-grade floor ghosts the whole cell (see
-        # .calib-cell.thin) so a thin sample can't read as confidently as a solid
-        # one — the small ⚠ flag alone is too easy to skim past.
+        # .calib-cell.thin). AVOID's 100% is the least trustworthy figure on the
+        # page and any colour-coding would fight the number's own prominence;
+        # ghosting makes it physically recede, so the eye lands on the cells you
+        # can actually lean on. The design enforces the caveat instead of
+        # printing it.
         cell_thin = False
 
         if n >= MIN_SAMPLES:
             right = int((valid5 <= 0).sum() if mode == "avoid" else (valid5 > 0).sum())
             rate = right / n * 100
-            col = _rate_color(rate)
+            # No inline colour: the bar is brass in CSS, because a hit rate is a
+            # measurement of the signal and never a rating of it.
             val_html = (
                 f'<div class="cval">{rate:.0f}%</div>'
-                f'<div class="cbar"><i style="width:{rate:.0f}%;background:{col};"></i></div>'
+                f'<div class="cbar"><i style="width:{rate:.0f}%;"></i></div>'
             )
             sub = f"right {right} of {n} · 5d"
             if n < DECISION_GRADE_MIN:
                 cell_thin = True
-                flag = f'<div class="sc-flag thin">⚠ thin — only {n} calls</div>'
+                flag = f'<div class="sc-flag warn-thin">⚠ thin — only {n} calls</div>'
             else:
                 flag = f'<div class="sc-flag">n={n} · holding up</div>'
         else:
@@ -387,14 +392,28 @@ def _scorecard_html(acc_df: pd.DataFrame) -> str:
 
         cells += (
             f'<div class="calib-cell{" thin" if cell_thin else ""}">'
-            f'<div class="clabel"><span class="cdot" style="background:{color};"></span>{sig}</div>'
+            f'<div class="clabel" style="color:{color};">'
+            f'<span class="cdot" style="background:{color};"></span>{sig}</div>'
             f'<div class="sc-verb">{verb}</div>'
             f'{val_html}'
             f'<div class="csub">{sub}</div>'
             f'{flag}'
             f'</div>'
         )
-    return f'<div class="calib-grid">{cells}</div>'
+    return f'<div class="hair-grid calib-grid">{cells}</div>'
+
+
+def _hold_footnote_html(hold_count: int) -> str:
+    """HOLD's exclusion, stated as a footnote rather than a sixth tile.
+
+    HOLD carries no directional claim, so a cell with an empty percentage would
+    read as a *missing* measurement rather than an inapplicable one. Empty
+    string when there is nothing to exclude.
+    """
+    if not hold_count:
+        return ""
+    return (f'<p class="sc-hold">Hold · {hold_count} ticker-days · '
+            "not scored (non-directional)</p>")
 
 
 def _changelog_sub(entries: list) -> str:
@@ -433,7 +452,10 @@ def _changelog_strip_html(entries: list) -> str:
             f'<span class="chg-note">{note}</span>'
             f'</div></div>'
         )
-    return f'<div class="chg-log">{items}</div>' if items else ""
+    # .spine supplies the 112px date column; entries stay plain prose because
+    # they describe the page's colour rules, and demonstrating those inside the
+    # description would be noisy.
+    return f'<div class="spine chg-log">{items}</div>' if items else ""
 
 
 _REGIME_UNIVERSE = 3  # trend_up / chop / trend_down — the weather we need to see
@@ -465,23 +487,47 @@ def _readiness_html(calibration_insights) -> str:
     if decision_grade > 0 and n_regimes >= 2:
         verdict = ("Some signals now have cross-regime evidence — still read the "
                    "per-signal sample sizes below before leaning on any one.")
-        tone = ""
     else:
         verdict = ("Read the scorecard as directional, not proven. A second market "
                    "regime — a downturn or a choppy stretch — is what turns this "
                    "into a real verdict.")
-        tone = " warn"
+    # The weak state changes the SENTENCE, not the colour: a warning rail here
+    # would borrow WATCH's amber, and a data-quality caveat is not a signal.
+    # auto auto auto 1fr: the three figures size to their content and cluster
+    # left as a set; the caveat absorbs the rest. Spread evenly across the card
+    # they stop reading as one measurement.
     stats = (
-        f'<div class="rd-stat"><b>{n_regimes} of {_REGIME_UNIVERSE}</b>'
+        f'<div class="stat-tick"><b>{n_regimes} of {_REGIME_UNIVERSE}</b>'
         f"<span>market regimes seen</span></div>"
-        f'<div class="rd-stat"><b>{total_matured}</b>'
+        f'<div class="stat-tick"><b>{total_matured}</b>'
         f"<span>matured calls</span></div>"
-        f'<div class="rd-stat"><b>{decision_grade} of {scored}</b>'
+        f'<div class="stat-tick"><b>{decision_grade} of {scored}</b>'
         f"<span>signals decision-grade</span></div>"
     )
-    return (f'<div class="rd-meter{tone}">'
-            f'<div class="rd-stats">{stats}</div>'
-            f'<div class="rd-verdict">{verdict}</div></div>')
+    # The caveat sits INSIDE the card on purpose: three tidy numbers invite a
+    # false confidence, and the sentence that limits them must be impossible to
+    # read separately from them. A hairline is enough to mark "different kind of
+    # content" without splitting one reading into two cards.
+    body = (f'<div class="rd-grid">{stats}'
+            f'<p class="rd-verdict">{verdict}</p></div>')
+    return card_container(eyebrow="Trust meter", body_html=body)
+
+
+def _method_html() -> str:
+    """How to read the hit-rate tiles, in one paragraph.
+
+    Exactly three phrases are bolded — what counts as right for each signal
+    family, and that these are raw price moves rather than the benchmark-relative
+    view. Those are the three things a reader must not misunderstand; everything
+    else in the sentence can be skimmed.
+    """
+    return (
+        '<p class="method">How often each signal went the right way, 5 sessions '
+        "later. BUY / ACCUMULATE / WATCH count a <b>rise</b> as right; "
+        "CAUTION / AVOID count a <b>drop</b> as right (you avoided it). This is "
+        "<b>raw price direction</b> — the benchmark-relative view (alpha vs the "
+        "market) is the Signal calibration row at the top of this page.</p>"
+    )
 
 
 def _winbar_html(rate: float | None) -> str:
@@ -652,15 +698,19 @@ def _episodes_cached(
 def render_signal_tracker_page(
     reports: dict, prices_df: pd.DataFrame, cache_key: tuple | None = None,
 ) -> None:
-    """Render the Signal Tracker page — the Performance Ledger.
+    """Render the Signal Tracker page — the study page, read in sequence.
 
-    Four tiers, verdict-first:
-      1. Readiness meter + scorecard — is the pipeline systematically any good?
-         Corpus-wide by design: per-signal calibration is a property of the
-         system, so the name filter deliberately does not touch it.
+    The page is a descending trust argument: each block answers the doubt the
+    one above it raises (spec 2026-07-25). Section 1, the calibration row, is
+    rendered by the caller from the latest report; this function covers the
+    rest:
+      1. Trust meter + hit-rate tiles — is the record big enough to trust, and
+         how has each signal actually done? Corpus-wide by design: per-signal
+         calibration is a property of the system, so the name filter
+         deliberately does not touch it.
       1c. Paper book — the pipeline's mechanical paper portfolio (NAV vs
          SPY/SOXX), rendered from exports only; also corpus-wide.
-      2. What we've changed — dated methodology strip.
+      2. What we've changed — the dated methodology spine.
       3. Detail drawers (collapsed) — by-name ledger + signal changes; the
          name filter lives here and scopes only these.
 
@@ -671,11 +721,11 @@ def render_signal_tracker_page(
             the derived frames are memoized on it; when None (tests, ad-hoc
             callers) the transforms run uncached.
     """
-    st.markdown(
-        '<div class="section-head"><h2>Signal Tracker</h2>'
-        '<span class="sub">Track record · calibration</span></div>',
-        unsafe_allow_html=True,
-    )
+    # Scope hook for the page's drawer grammar (spec 2026-07-25 §3.3) — the CSS
+    # is keyed on .stApp:has(.tracker-page) so no other page's expanders move.
+    st.markdown('<span class="tracker-page"></span>', unsafe_allow_html=True)
+    render_section_head("Signal tracker", "Is the record big enough to trust?",
+                        masthead=True)
     if cache_key is not None:
         sig_df, _acc_df_pre = _history_and_accuracy_cached(cache_key, reports, prices_df)
     else:
@@ -693,20 +743,15 @@ def render_signal_tracker_page(
         st.markdown(readiness, unsafe_allow_html=True)
 
     acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
-    st.caption(
-        "How often each signal went the right way, 5 sessions later. "
-        "BUY / ACCUMULATE / WATCH count a **rise** as right; CAUTION / AVOID "
-        "count a **drop** as right (you avoided it). This is **raw price "
-        "direction** — the benchmark-relative view (alpha vs the market) is on "
-        "the Briefing's calibration band."
-    )
+    st.markdown(_method_html(), unsafe_allow_html=True)
     if acc_df.empty:
         st.caption("No signals tracked yet — the scorecard fills in as calls accumulate.")
     else:
         st.markdown(_scorecard_html(acc_df), unsafe_allow_html=True)
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
-        if hold_count:
-            st.caption(f"HOLD: {hold_count} ticker-days, not scored (non-directional).")
+        note = _hold_footnote_html(hold_count)
+        if note:
+            st.markdown(note, unsafe_allow_html=True)
 
     # ── 1c. Paper book — the pipeline's mechanical NAV lane. Corpus-scoped:
     # the name filter below deliberately does not touch it (page contract,
@@ -724,13 +769,8 @@ def render_signal_tracker_page(
     changelog = load_changelog()
     strip = _changelog_strip_html(changelog)
     if strip:
-        st.markdown(
-            '<div class="section-head" style="margin-top:30px;">'
-            "<h2>What we've changed</h2>"
-            f'<span class="sub">{_changelog_sub(changelog)}</span>'
-            "</div>",
-            unsafe_allow_html=True,
-        )
+        render_section_head("What we've changed", _changelog_sub(changelog),
+                            masthead=True)
         st.markdown(strip, unsafe_allow_html=True)
 
     # ── 3. Detail drawers (collapsed — the page leads with the scorecard) ──

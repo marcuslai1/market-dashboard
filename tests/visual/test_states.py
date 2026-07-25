@@ -16,10 +16,16 @@ truncated by that already-fixed viewport. We therefore call
 ``grow_viewport_to_content`` AGAIN after the expand so the full-page screenshot
 captures the newly-added height — which is also what makes each snapshot differ
 from its Task-4 default-page counterpart.
+
+The Retrospective month state is the exception to the "no rerun" note above: its
+month picker is an ``st.radio``, so clicking a segment DOES trigger a Streamlit
+rerun and that test waits for the status widget to detach instead of using a
+fixed settle.
 """
 import pytest
 
 from tests.visual.harness import (
+    SETTLE_TIMEOUT_MS,
     assert_snapshot,
     goto_and_settle,
     grow_viewport_to_content,
@@ -109,3 +115,43 @@ def test_signal_tracker_ledger(streamlit_server, vpage):
     grow_viewport_to_content(vpage)
 
     assert_snapshot(vpage, "signal-tracker-ledger", mask=_masks(vpage))
+
+
+@pytest.mark.visual
+def test_retrospective_resolved_month(streamlit_server, vpage):
+    """Switch the Retrospective to the newest CLOSED month and snapshot it.
+
+    This state is not a nice-to-have: the default page lands on the newest month,
+    whose calls are all inside their 20-session windows, so it can only ever show
+    the pending case — a dash where the hit rate goes, one grey bar, and ⏳ rails
+    down the whole list. The page's actual design (a brass percentage, a green/red
+    composition bar, and ✓/✗ rails carrying an outcome beside a signal pill
+    carrying a rating) exists ONLY on a resolved month, and would otherwise have
+    zero pixel coverage.
+
+    Clicking the segment is a real widget interaction, so unlike the two
+    <details> states above this triggers a Streamlit rerun — hence the
+    status-widget wait rather than a fixed settle.
+    """
+    goto_and_settle(vpage, f"{streamlit_server}/retrospective")
+
+    # The SECOND segment, not a hardcoded month: segments run newest-first, so
+    # index 1 is always the most recently closed month — the one guaranteed to
+    # carry resolved calls as the archive grows.
+    segments = vpage.locator('.st-key-retro_month [role="radiogroup"] > label')
+    assert segments.count() >= 2, "need at least two months in the archive"
+    segments.nth(1).click()
+
+    vpage.wait_for_selector('[data-testid="stStatusWidget"]', state="detached",
+                            timeout=SETTLE_TIMEOUT_MS)
+    vpage.add_style_tag(content="*{animation:none!important;transition:none!important}")
+    vpage.wait_for_timeout(600)
+
+    # Verify we actually landed on a resolved month — otherwise this baseline
+    # would silently duplicate the default page's pending-only coverage.
+    assert "%" in vpage.locator(".rb-hit").inner_text(), "no hit rate on this month"
+    assert vpage.locator('.retro-item[data-bucket="worked"]').count() > 0
+    assert vpage.locator('.retro-item[data-bucket="failed"]').count() > 0
+
+    grow_viewport_to_content(vpage)
+    assert_snapshot(vpage, "retrospective-resolved-month", mask=_masks(vpage))

@@ -88,19 +88,19 @@ def test_tracker_scorecard_survives_empty_name_filter():
     """The scorecard is corpus-wide calibration; the name filter scopes only the
     by-name drawers. Emptying the filter must not blank the scorecard.
 
-    Asserts on 'class="calib-grid"' (the emitted HTML) — bare 'calib-grid' would
-    also match the injected theme.css on any page."""
+    Asserts on 'class="hair-grid calib-grid"' (the emitted HTML) — bare
+    'calib-grid' would also match the injected theme.css on any page."""
     if not glob.glob("data/morning_report_*.json"):
         pytest.skip("no report data checked out")
     at = AppTest.from_function(_tracker_page_app, default_timeout=30)
     at.run()
     assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    assert 'class="calib-grid"' in " ".join(str(m.value) for m in at.markdown)
+    assert 'class="hair-grid calib-grid"' in " ".join(str(m.value) for m in at.markdown)
 
     at.multiselect[0].set_value([]).run()
     assert not at.exception, f"empty filter: {[e.value for e in at.exception]}"
     page = " ".join(str(m.value) for m in at.markdown)
-    assert 'class="calib-grid"' in page, \
+    assert 'class="hair-grid calib-grid"' in page, \
         "scorecard vanished when the name filter was emptied"
 
 
@@ -214,3 +214,12 @@ def test_watchlist_chip_actually_filters_the_book():
     assert after.count('class="tk-group"') == 1
     assert after.count('<details class="tk-details"') < \
         before.count('<details class="tk-details"')
+def test_tracker_page_emits_the_scope_marker():
+    """The page's drawer grammar is scoped with .stApp:has(.tracker-page); if
+    the marker stops rendering, every drawer quietly reverts."""
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_tracker_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    assert 'class="tracker-page"' in " ".join(str(m.value) for m in at.markdown)
