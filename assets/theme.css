@@ -385,22 +385,68 @@ span[class*="material-icons"] {
 /* Dividers */
 hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 
-/* Expanders */
+/* ── Expanders: doors, not objects ──
+   One treatment for every expander on the site. A drill-down is chrome — a way
+   into the room, not a thing in it — so it is a line drawing sized to the card
+   eyebrow, never a filled panel with content typography. If one is ever as tall
+   as a data row, as bright as a heading, or filled, it is wrong.
+
+   These need !important and deep selectors: the testid sits on the WRAPPING
+   DIV (not the <details>), the fill is on that div, the radius comes from an
+   emotion class on <summary>, and the label is a <p> inside a markdown
+   container two levels down. Selectors verified against the live DOM. */
 [data-testid="stExpander"] {
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  margin-bottom: 6px;
+  background: transparent !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
 }
+/* ~38px: about a third of Streamlit's default, so a door never carries the
+   weight of a row of real data. */
 [data-testid="stExpander"] summary {
-  font-family: var(--mono) !important;
-  font-size: 11.5px !important;
-  letter-spacing: 0.06em;
-  color: var(--ink-2) !important;
+  display: flex !important; align-items: center !important; gap: 9px !important;
+  padding: 11px 13px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
 }
-[data-testid="stExpander"] summary span:not([data-testid="stIconMaterial"]):not([class*="material-"]) {
-  font-family: var(--mono) !important;
-  font-weight: 500 !important;
+/* Punctuation on the label rather than a separate icon. It ROTATES instead of
+   swapping glyphs, so open and closed read as the same object. */
+[data-testid="stExpander"] summary::before {
+  content: "\25B6";
+  font-size: 8px; line-height: 1; color: var(--eyebrow); flex: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+[data-testid="stExpander"] details[open] > summary::before { transform: rotate(90deg); }
+/* Streamlit's own Material chevron: sits at text size with a wide gap, reading
+   as a second element. Hide the wrapper so it takes no flex space either. */
+[data-testid="stExpander"] summary span:has(> [data-testid="stIconMaterial"]) {
+  display: none !important;
+}
+/* Sized to the card eyebrow, not to body text — that single change is what
+   declares "this is chrome, not content". Steel because opening a panel is
+   navigation: it must never read as a signal or a data value. */
+[data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p {
+  font-family: var(--font-display) !important;
+  font-size: 10.5px !important; font-weight: 600 !important;
+  text-transform: uppercase !important; letter-spacing: 0.09em !important;
+  color: var(--eyebrow) !important;
+  margin: 0 !important;
+}
+/* No top padding: the body sits directly under the summary. No inner border,
+   no fill, no nested card — the outer 1px box already contains it. */
+[data-testid="stExpanderDetails"] {
+  padding: 0 13px 13px !important;
+  font-size: 12.5px;
+  color: var(--color-text-2);
+}
+/* Consecutive doors read as one set of options, not three separate decisions.
+   Streamlit's vertical block gap is 16px, so -7px lands on 9px. The wrapper
+   testid moved between Streamlit versions (stLayoutWrapper on 1.50,
+   stElementContainer earlier) — match either, since local/CI/cloud differ. */
+[data-testid="stLayoutWrapper"]:has(> [data-testid="stExpander"]) + [data-testid="stLayoutWrapper"]:has(> [data-testid="stExpander"]),
+.stElementContainer:has(> [data-testid="stExpander"]) + .stElementContainer:has(> [data-testid="stExpander"]) {
+  margin-top: -7px !important;
 }
 
 /* Buttons */
@@ -3079,20 +3125,11 @@ details.led-details[open] > summary {
 .section-head.masthead { border-bottom: 2px solid var(--color-text); padding-bottom: 10px; }
 .section-head.masthead h2 { font-size: 1.875rem !important; font-weight: 600; }
 
-/* Page-level drill-downs: hairline-bordered, square, steel uppercase summary.
-   Bordered — unlike the inline Week Ahead expander — because these are
-   page-level sections rather than a detail inside a row. Streamlit renders
-   st.expander as a real <details>, so this is CSS only and every widget inside
-   keeps working. Scoped to the page marker so no other page's expanders move.
-   (The chevron already rotates on open — that animation is Streamlit's own.) */
-.stApp:has(.tracker-page) details[data-testid="stExpander"] {
-  border: 1px solid var(--color-divider); border-radius: 0;
-  background: transparent; margin: 10px 0;
-}
-.stApp:has(.tracker-page) details[data-testid="stExpander"] summary {
-  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--eyebrow);
-}
+/* The page's drill-downs are styled by the site-wide expander treatment near
+   the top of this file — one treatment everywhere, so a door looks like a door
+   on every page. (An earlier scoped block here was dead: it selected
+   `details[data-testid="stExpander"]`, but that testid sits on the wrapping
+   div, so it matched nothing.) */
 
 /* ── Paper-book chart card ──
    The chart is a line drawing like everything else on the page: a hairline
