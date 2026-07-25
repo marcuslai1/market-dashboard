@@ -131,7 +131,9 @@ def group_header_html(signal: str, count: int) -> str:
     three tables. The dot and name take the signal palette because the group *is*
     a signal; this is the only coloured text at heading scale on the page.
     """
-    color = SIGNAL_COLORS.get(signal, "#9F988B")
+    # An unrecognised signal falls back to metadata grey, not to a borrowed
+    # signal hue — a group whose rating we can't name must not look like one.
+    color = SIGNAL_COLORS.get(signal, "var(--color-text-3)")
     return (
         f'<div class="tk-group" style="--sig:{color};" role="row">'
         f'<span class="tk-group-dot"></span>'

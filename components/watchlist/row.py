@@ -8,6 +8,7 @@ Streamlit calls. Drives the click-to-expand watchlist grid in
 from __future__ import annotations
 
 from components.watchlist.drilldown import render_drilldown_detail_html
+from components.watchlist.gauge import extension_gauge_html
 from lib.catalog import CLUSTER_MAP
 from lib.formatters import (
     _ccy_decimals,
@@ -67,20 +68,44 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
     session = d.get("live_session")
     ext_tag = f'<span class="ext-tag">{_escape_attr(session)}</span>' if session else ""
 
+    # Steel, not a signal colour: "something changed today" is a structural fact
+    # about the row, not a rating — and it must not compete with the pill sitting
+    # 100px to its right. Same steel as the ● Changed filter chip.
+    changed_dot = (
+        '<span class="tk-changed" '
+        'title="Signal changed since the prior report"></span>'
+        if signal_changed else ''
+    )
+    # The threshold is what matters, not the value, so the colour does the
+    # interpreting. Terracotta, not red: an overbought reading is a data
+    # condition — 77 on a name that happens to carry CAUTION is not a rating.
+    rsi_zone = (
+        "hot" if rsi is not None and rsi >= 70
+        else "cold" if rsi is not None and rsi <= 30
+        else ""
+    )
+    # The qualifier moves out of the hover title and onto a visible second line.
+    # A title is invisible on touch and to anyone not hunting for it, and this is
+    # the difference between a 1.5:1 that clears the gate and one that doesn't.
+    rr_sub = '<div class="tk-rr-sub">tight-stop adj.</div>' if rr_adjusted else ''
+
     summary = (
         '<summary>'
-        f'<div style="font-weight:600;color:var(--ink);">{display_tk}</div>'
-        f'<div class="name">{CLUSTER_MAP.get(tk, "")}</div>'
+        f'<div class="tk-tick">'
+        f'<div class="tk-tick-id"><span class="tk-tick-tk">{display_tk}</span>'
+        f'{changed_dot}</div>'
+        f'<div class="tk-tick-cluster">{CLUSTER_MAP.get(tk, "")}</div></div>'
         f'<div>{_signal_pill_html(sig)}</div>'
-        f'<div style="text-align:right;">'
-        f'{f"{pfx}{_fmt_num(price, dec)}" if price is not None else "—"}'
-        f'<div class="{_delta_class(chg)}" style="font-size:10.5px;">'
+        f'<div class="tk-last">'
+        f'<div class="tk-last-px">'
+        f'{f"{pfx}{_fmt_num(price, dec)}" if price is not None else "—"}</div>'
+        f'<div class="tk-last-chg {_delta_class(chg)}">'
         f'{_pct_cell(chg, 2)}{ext_tag}</div></div>'
-        f'<div class="{_delta_class(m1)}" style="text-align:right;">'
-        f'{_pct_cell(m1, 1)}</div>'
-        f'<div style="text-align:right;">{_pct_cell(vs50, 1)}</div>'
-        f'<div style="text-align:right;">{_fmt_num(rsi, 0)}</div>'
-        f'<div style="text-align:right;"{rr_title}>{rr_label or "—"}</div>'
+        f'<div class="tk-1mo {_delta_class(m1)}">{_pct_cell(m1, 1)}</div>'
+        f'{extension_gauge_html(vs50)}'
+        f'<div class="tk-rsi" data-zone="{rsi_zone}">{_fmt_num(rsi, 0)}</div>'
+        f'<div class="tk-rr"{rr_title}>'
+        f'<div class="tk-rr-val">{rr_label or "—"}</div>{rr_sub}</div>'
         '</summary>'
     )
 
