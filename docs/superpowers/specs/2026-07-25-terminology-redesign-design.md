@@ -207,12 +207,17 @@ Three steps only, site-wide:
 
 | Step | Size / rule | Use |
 | --- | --- | --- |
-| Page | 30px / 2px rule | the page masthead |
-| Section | 21px / 1px rule | the twelve section heads |
-| Label | 10px eyebrow | index items, door summaries, plate labels |
+| Page | 1.875rem / 2px rule | the page masthead — `.section-head.masthead` |
+| Section | 1.4rem / 1px rule | the twelve section heads — `.section-head` |
+| Label | 10px eyebrow | index items, door summaries, subheads |
 
-On a twelve-section page this is load-bearing: if sections wore the page weight
-the scroll would read as twelve separate documents. Section heads keep the
+Both steps are the site's **existing** shared device (`lib.cards._section_head_html`),
+not a new one: the section head is the plain variant and the page head is the
+masthead variant. Reusing them is worth more than hitting a nominal 21px, and it
+keeps the descriptor treatment identical to every other section on the site.
+
+On a twelve-section page the step is load-bearing: if sections wore the page
+weight the scroll would read as twelve separate documents. Section heads keep the
 right-aligned descriptor so the heading itself can stay two words.
 
 ---
@@ -309,6 +314,13 @@ rule. Drop the `terminology.py` exemption from
 `test_terminology_hex_literals_match_sanctioned_palette` with a check that the
 signal pills reference the canonical `--buy` / `--accumulate` / … tokens. This
 tightens the rule; it does not relax it.
+
+**Live DOM (`tests/visual/test_terminology_dom.py`, new):** the three host risks
+in §4 become assertions rather than hopes — `id` attributes survive
+sanitization and line up with the index hrefs, the inline `--label-w` custom
+property reaches the grid, the rail's `position: sticky` is not defeated by an
+ancestor `overflow`, and the search focus ring resolves to `--accent` rather
+than the framework's amber default.
 
 **Visual:** `terminology` is in `tests/visual/test_pages.py` PAGES, so its
 baseline is regenerated through the Docker harness (PowerShell, not Git Bash).

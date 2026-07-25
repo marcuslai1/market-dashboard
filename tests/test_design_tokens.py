@@ -81,9 +81,11 @@ def test_theme_signal_tints_match_catalog():
 
 # ── P6-1: components must not carry raw hex literals ──
 # The palette pass routed every inline hex through lib/charts constants (or
-# SIGNAL_COLORS). terminology.py is the one sanctioned exception — its colors
-# live inside a large static HTML/CSS block where f-string conversion would
-# fight the CSS braces — so its literals are drift-checked instead.
+# SIGNAL_COLORS). terminology.py used to be the one sanctioned exception — its
+# colors sat inside a large static HTML/CSS block where f-string conversion
+# would have fought the CSS braces. The 2026-07-25 redesign moved that block's
+# CSS into theme.css and its pills onto _signal_pill_html, so the exemption is
+# gone and the rule is now universal.
 _COMPONENTS_DIR = Path(__file__).resolve().parent.parent / "components"
 _HEX_RE = re.compile(r"#[0-9a-fA-F]{6}\b")
 
@@ -103,22 +105,24 @@ def _sanctioned_palette() -> set:
 def test_no_raw_hex_literals_in_components():
     offenders = []
     for py in _COMPONENTS_DIR.rglob("*.py"):
-        if py.name == "terminology.py":
-            continue
         for i, line in enumerate(py.read_text(encoding="utf-8").splitlines(), 1):
             if _HEX_RE.search(line):
                 offenders.append(f"{py.relative_to(_COMPONENTS_DIR)}:{i}: {line.strip()}")
     assert not offenders, "raw hex literals crept back in:\n" + "\n".join(offenders)
 
 
-def test_terminology_hex_literals_match_sanctioned_palette():
-    """terminology.py keeps inline hexes (static HTML block) — they must stay
-    byte-identical to the canonical palette so the reference page can't drift."""
-    src = (_COMPONENTS_DIR / "terminology.py").read_text(encoding="utf-8")
-    used = {m.group(0).lower() for m in _HEX_RE.finditer(src)}
-    assert used, "expected terminology.py to carry its static palette hexes"
-    unsanctioned = used - _sanctioned_palette()
-    assert not unsanctioned, f"terminology.py colors drifted from the palette: {unsanctioned}"
+def test_terminology_pills_come_from_the_canonical_helper():
+    """The reference page renders the six signals with the same pill every other
+    surface uses, so the page that DEFINES a signal cannot show it in a colour
+    the rest of the site doesn't. Previously it hand-rolled tinted spans from
+    inline hexes and had to be drift-checked; now it can't drift."""
+    from components.terminology_content import SECTIONS
+    from lib.catalog import SIGNAL_COLORS
+    from lib.pills import _signal_pill_html
+
+    signals_body = next(s for s in SECTIONS if s["id"] == "signals")["body"]
+    for sig in SIGNAL_COLORS:
+        assert _signal_pill_html(sig) in signals_body, f"{sig} pill is not the shared one"
 
 
 # ── Signal Tracker redesign (spec 2026-07-25): shared devices ──
