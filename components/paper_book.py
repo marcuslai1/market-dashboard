@@ -1052,6 +1052,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     if block:
         st.markdown(_verdict_html(block) + _stats_html(block),
                     unsafe_allow_html=True)
+    chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit
         # inside; the tracker-scoped CSS turns it into the blueprint frame, and
@@ -1064,13 +1065,19 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         note = _soxx_note_html(rebased) + _advisory_note_html(advisory)
         if note:
             st.markdown(note, unsafe_allow_html=True)
-        table = rebased
+        # Held back rather than rendered here: every drill-down on this band is
+        # collected below the stop-rule lanes so the reader finishes the
+        # section's argument and then meets one block of "go deeper" doors.
+        # Rendered inline it was orphaned between the chart caption and the
+        # lanes, which made three instances of one control look scattered.
+        chart_table = rebased
         if not advisory.empty:
-            table = rebased.merge(advisory, on="date", how="left")
-        chart_data_table(table)
+            chart_table = rebased.merge(advisory, on="date", how="left")
     if block:
         st.markdown(_variants_html(block) + _banner_html(block),
                     unsafe_allow_html=True)
+    if chart_table is not None:
+        chart_data_table(chart_table)
     if pos_v2_rows:
         # positions CSV present → the shares/cost-basis view supersedes the
         # block table (addendum 2); the block stays the fallback contract.
