@@ -33,7 +33,7 @@ from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
 from lib.cards import render_section_head
-from lib.catalog import RETIRED_TICKERS, SIGNAL_ORDER, SIGNAL_VERBS
+from lib.catalog import SIGNAL_ORDER, SIGNAL_VERBS
 from lib.clock import today as clock_today
 from lib.data_loader import (
     data_fingerprint,
@@ -371,10 +371,14 @@ def _page_watchlist() -> None:
             and watchlist.get(tk, {}).get("signal", "—") != "—"
         }
 
-        sub_label = f"{sum(1 for tk in watchlist if tk not in RETIRED_TICKERS)} names · click any row to expand"
+        # The name count moved out of the descriptor: the filter chips carry it
+        # now (they double as the book's distribution readout) and the footer
+        # restates it. The descriptor states scope + interaction instead, so
+        # nothing else has to explain that rows expand.
+        sub_label = "The whole book · click any row for the full read"
         if not _is_latest:
             sub_label += f" · viewing {selected_date}"
-        render_section_head("The Watchlist", sub_label)
+        render_section_head("The Watchlist", sub_label, masthead=True)
         _render_live_caption(_live, LIVE_PRICES and _is_latest)
         render_pulse(benchmarks)
         render_watchlist(watchlist, changed_tickers=changed)

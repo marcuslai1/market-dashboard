@@ -809,6 +809,12 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   font-family: var(--mono); font-size: 10px;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
 }
+/* Masthead-weight section head — the site's marker for "top-level document
+   surface". The Watchlist, Signal Tracker and Review heads take it so all
+   three announce themselves the same way; .section-head stays 1px everywhere
+   else, so this must never become the default. */
+.section-head.masthead { border-bottom: 2px solid var(--color-text); padding-bottom: 10px; }
+.section-head.masthead h2 { font-size: 1.875rem !important; font-weight: 600; }
 
 /* ── Briefing-page editorial blocks ── */
 .stance-deck {
@@ -1012,37 +1018,212 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   color: var(--ink); font-weight: 500; letter-spacing: -0.01em;
 }
 
+/* ── The Watchlist grid (redesign 2026-07-25) ─────────────────────────────────
+   Seven ALL-FIXED tracks, no 1fr. Every cell is a number or a short token, and
+   the whole point of the page is that values line up down the column for
+   comparison; a flexible track would let content reflow the grid and break
+   vertical alignment across the signal groups.
+
+   Cluster left the column set (it is a sub-line in the ticker cell now) and its
+   ~100px went to the extension gauge — a deliberate trade, because the gauge is
+   the criterion that GATES ENTRY while the cluster label is context you read
+   once you are already looking at a name. Signal sits second because it is the
+   row's verdict: you should never read four numbers before learning the call.
+
+   Tracks sum to 742px + six 12px gaps = 814px, which fits the ~1060px content
+   width at the 1100px viewport where the sticky-header rule below releases
+   .tk-scroll's overflow. Narrower viewports keep the swipe; below 720px the
+   whole grid reflows to stacked cards. */
 .tk-row {
   display: grid;
-  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
-  gap: 12px; padding: 14px 12px;
-  border-bottom: 1px solid var(--rule);
+  grid-template-columns: 132px 108px 112px 74px 168px 52px 96px;
+  gap: 12px; padding: 12px;
+  border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
 }
-.tk-row.head {
-  border-bottom: 1.5px solid var(--ink);
+/* Two rule weights, on purpose: the strong TOP rule opens the data zone (the
+   same "shelf" logic as the Briefing's pulse tape), the faint BOTTOM rule only
+   separates labels from rows. Reading downward you get a firm start and a soft
+   handoff into the data. */
+.tk-row.tk-head {
+  border-top: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-divider);
   font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-3); padding: 8px 12px;
+  color: var(--color-text-3); padding: 8px 12px;
 }
+.tk-h-right { text-align: right; }
+.tk-h-center { text-align: center; }
 /* Desktop: pin the watchlist column headers under the sticky nav — 29 rows
    plus multi-screen drill-downs left the numeric columns headerless for most
    of the scroll (UX 2026-07-07). Sticky needs a clean vertical scroll chain:
    any overflow-x:auto ancestor becomes the containing scrollport and kills
    it, so the redundant-at-this-width .tk-scroll scroller is released. The
    :has() gate scopes both rules to the watchlist grid (the only .tk-scroll
-   with a .tk-row.head child); phones keep the horizontal swipe untouched.
+   with a .tk-row.tk-head child); phones keep the horizontal swipe untouched.
    top is 0 because the nav is no longer sticky (2026-07-24 header rebuild) —
    there is nothing pinned above to offset against. */
 @media (min-width: 1100px) {
-  .tk-scroll:has(> .tk-row.head) { overflow-x: visible; }
-  .tk-scroll > .tk-row.head {
+  .tk-scroll:has(> .tk-row.tk-head) { overflow-x: visible; }
+  .tk-scroll > .tk-row.tk-head {
     position: sticky;
     top: 0;
     z-index: 30;
     background: var(--paper);
   }
 }
-.tk-row .name { font-family: var(--sans); color: var(--ink-2); }
+
+/* ── Group headers — a labelled divider per signal ─────────────────────────────
+   Dot + name + count + a hairline that fills the remaining width. The dot and
+   name take the signal palette, which is legitimate because the group IS a
+   signal; this is the only coloured text at heading scale on the page.
+
+   11px uppercase, deliberately NOT a real heading size: these are dividers
+   inside ONE table, not sections of a document, and sizing them up would
+   fragment the page into three tables. The trailing flex:1 hairline binds the
+   label to the rows beneath it and gives each group a clean top edge without
+   introducing a second border weight.
+
+   Why group at all when the rows are already sorted by rank: a sort is only
+   legible if you already know the rank order. Explicit groups with counts make
+   the ordering self-documenting, let a reader skip 21 CAUTION names outright,
+   and give the eye rest points in a long scroll. */
+.tk-group { display: flex; align-items: center; gap: 8px; padding: 20px 12px 6px; }
+.tk-group-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sig); }
+.tk-group-name {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sig);
+}
+.tk-group-count {
+  font-size: 11px; color: var(--color-text-4);
+  font-variant-numeric: tabular-nums;
+}
+.tk-group-rule { flex: 1; height: 1px; background: var(--color-divider); }
+
+/* ── Row cells ────────────────────────────────────────────────────────────── */
+.tk-tick { min-width: 0; }
+.tk-tick-id { display: flex; align-items: center; gap: 6px; }
+.tk-tick-tk { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Clipped to one line on purpose. A long cluster name ("AI power infrastructure")
+   wrapped to three lines and made its row visibly taller than its neighbours,
+   which defeats a scanning surface: uniform row height is what lets the eye run
+   down a column. The full name is stated in the drill-down header. */
+.tk-tick-cluster {
+  font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-3); opacity: 0.45; margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Steel, NOT a signal colour: "something changed today" is a structural fact
+   about the row, not a rating — and if it were amber or red it would compete
+   with the pill sitting 100px to its right. Same steel as the ● Changed chip,
+   so the connection needs no legend. */
+.tk-changed {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex: 0 0 auto;
+}
+.tk-last { text-align: right; }
+.tk-last-px { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.tk-last-chg { font-size: 11px; }
+.tk-1mo { text-align: right; font-variant-numeric: tabular-nums; }
+.tk-rsi { text-align: right; font-variant-numeric: tabular-nums; }
+/* The threshold is what matters, not the value, so the colour does the
+   interpreting. Terracotta rather than red because an overbought reading is a
+   DATA CONDITION: 77 on a name that happens to carry CAUTION is not a rating. */
+.tk-rsi[data-zone="hot"], .tk-rsi[data-zone="cold"] { color: var(--stress); }
+.tk-rr { text-align: right; }
+.tk-rr-val { font-size: 13px; font-variant-numeric: tabular-nums; }
+/* Always visible on the few rows it applies to. It used to hide in a title
+   attribute — invisible on touch — and it is the difference between a 1.5:1
+   that clears the gate and one that doesn't. */
+.tk-rr-sub { font-size: 8.5px; opacity: 0.42; letter-spacing: 0.04em; }
+
+/* ── The extension gauge — the page's one visual ───────────────────────────────
+   vs 50-day is the mechanical block criterion: every other column is an input to
+   judgment, this one is a rule. A signed number makes the reader compare +14.3%
+   against a threshold they have to remember; a centred bar makes "too far right"
+   a shape. Centred (not left-anchored) because the quantity is signed and zero
+   is meaningful — the 50-day IS the reference, and below it is the interesting
+   other direction, not the "small" end of a magnitude scale. */
+.tk-ext { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tk-ext-track {
+  position: relative; width: 100%; height: 9px;
+  border: 1px solid var(--color-divider);
+}
+/* Steel, and over-tall (top/bottom -2px) so it stays visible where a bar
+   crosses it. A structural reference mark, not data. */
+.tk-ext-zero {
+  position: absolute; left: 50%; top: -2px; bottom: -2px;
+  width: 1px; background: var(--accent);
+  z-index: 1;                  /* paints OVER a bar that crosses it */
+}
+.tk-ext-fill { position: absolute; top: 0; bottom: 0; }
+/* Brass is the data axis; terracotta marks the threshold crossing. NEVER
+   green/red — that would read as "good/bad", which is wrong in both directions:
+   −17.5% is not "bad", it is "not extended, but broken". Neither hue is a signal
+   colour, which matters because the gauge sits three columns from the pill. */
+.tk-ext-fill[data-tone="under"] { background: var(--brass); }
+.tk-ext-fill[data-tone="over"] { background: var(--stress); }
+.tk-ext-num { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.tk-ext-empty { text-align: center; }
+
+/* ── Filter chips, sort line, method note, footer ──────────────────────────────
+   Steel, because filtering is NAVIGATION, never a rating. The 14% wash is the
+   one background on the page, justified because a selected chip among adjacent
+   chips reads too weakly on a border change alone.
+
+   Scoped through .st-key-wl_filter — the container class Streamlit stamps for a
+   keyed widget — rather than a data-testid chain: testids on button internals
+   have moved between the local 1.50 / CI 1.58 / cloud-latest versions this app
+   spans, and the key class has not. Both aria-pressed and aria-checked are
+   listed for the same reason. */
+.st-key-wl_filter button {
+  border: 1px solid var(--color-divider) !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  color: var(--color-text-3) !important;
+  font-family: var(--font-display) !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 4px 10px !important;
+}
+/* Streamlit renders the selected pill as a distinct button KIND
+   (BaseButtonKind.PILLS_ACTIVE → data-testid="stBaseButton-pillsActive"), not as
+   an aria state on the same button. The aria selectors ride along in case a
+   future version moves to them — this app spans local 1.50 / CI 1.58 /
+   cloud-latest, and losing the active state silently would be invisible in
+   tests. */
+.st-key-wl_filter button[data-testid="stBaseButton-pillsActive"],
+.st-key-wl_filter button[aria-pressed="true"],
+.st-key-wl_filter button[aria-checked="true"] {
+  border-color: var(--accent) !important;
+  background: color-mix(in srgb, var(--accent) 14%, transparent) !important;
+  color: var(--color-text) !important;
+}
+/* 8px, not the Review's joined gap:0 segments — these are independent options
+   rather than one exclusive time axis. Spacing says "separate options"; joining
+   says "one control, one value". */
+.st-key-wl_filter [role="group"], .st-key-wl_filter [data-testid="stButtonGroup"] {
+  gap: 8px !important;
+}
+/* The page's only statement of its own ordering AND its survivorship-bias
+   exclusion. Small, but on a dense table a reader otherwise cannot tell whether
+   row order means anything. */
+.tk-sortline {
+  font-size: 9.5px; opacity: 0.45; letter-spacing: 0.04em; margin: 2px 0 10px;
+}
+/* Exactly three bolded phrases — the three pieces of encoding a reader cannot
+   infer from looking. Bolding is by what breaks comprehension if missed, never
+   by keyword importance. */
+.tk-method {
+  font-size: 12.5px; opacity: 0.60; line-height: 1.6; max-width: 96ch;
+  margin: 18px 0 0; border-top: 1px solid var(--color-divider); padding-top: 12px;
+}
+.tk-method b { color: var(--color-text); font-weight: 600; }
+.tk-foot {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-3); margin: 10px 0 0;
+}
+.tk-changed-legend { display: inline-block; vertical-align: 1px; }
 .sig-pill {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -1056,13 +1237,16 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
 /* Native <details> drill-down — entire ticker row is the click target */
 details.tk-details { margin: 0; padding: 0; border: 0; background: transparent; }
+/* Must stay in lockstep with .tk-row above — the static column header and every
+   row are the same seven-track grid, and the whole page depends on values lining
+   up down the column. */
 details.tk-details > summary {
   list-style: none;
   cursor: pointer;
   display: grid;
-  grid-template-columns: 80px 1fr 110px 110px 80px 100px 60px 70px;
-  gap: 12px; padding: 14px 12px;
-  border-bottom: 1px solid var(--rule);
+  grid-template-columns: 132px 108px 112px 74px 168px 52px 96px;
+  gap: 12px; padding: 12px;
+  border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
   transition: background 0.12s;
 }
@@ -1070,7 +1254,6 @@ details.tk-details > summary::-webkit-details-marker { display: none; }
 details.tk-details > summary::marker { content: ""; }
 details.tk-details > summary:hover { background: var(--paper-2); }
 details.tk-details[open] > summary { background: var(--paper-2); border-bottom-color: var(--rule-strong); }
-details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-2); }
 .tk-drilldown {
   background: var(--paper-2);
   padding: var(--card-pad-y) var(--card-pad-x);   /* density-aware (was 18px 22px 22px) */
@@ -1112,24 +1295,174 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   font-family: var(--mono); font-size: 13px;
   margin-top: 2px; color: var(--ink);
 }
+/* ── The drill-down card (redesign 2026-07-25) ─────────────────────────────────
+   The shipped body stacked fifteen undifferentiated dd-sections, so "this trade
+   is blocked" could sit below four paragraphs of analysis. Reading order is now
+   the argument: identity → flags → entry block → verdict → what changed → what
+   to do → the levels you act on → evidence in two columns → three drawers.
+
+   The card carries the row's own signal rail on its left edge, so the expanded
+   body is visibly the same object as the row that opened it. */
+.tk-drilldown .dd-card { border-left: 3px solid var(--color-divider); padding-left: 18px; }
+.tk-drilldown .dd-card[data-signal="BUY"]        { border-left-color: var(--buy); }
+.tk-drilldown .dd-card[data-signal="ACCUMULATE"] { border-left-color: var(--accumulate); }
+.tk-drilldown .dd-card[data-signal="WATCH"]      { border-left-color: var(--watch); }
+.tk-drilldown .dd-card[data-signal="HOLD"]       { border-left-color: var(--ink-3); }
+.tk-drilldown .dd-card[data-signal="CAUTION"]    { border-left-color: var(--caution); }
+.tk-drilldown .dd-card[data-signal="AVOID"]      { border-left-color: var(--avoid); }
+
+/* Restates identity, because an open drill-down can be taller than the viewport
+   and a reader who has scrolled into the evidence needs to know whose it is. */
+.tk-drilldown .dd-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; margin-bottom: 12px;
+}
+.tk-drilldown .dd-head-tk {
+  font-family: var(--font-display); font-size: 22px; font-weight: 700;
+  line-height: 1.1;
+}
+.tk-drilldown .dd-head-sub {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-3); margin-top: 2px;
+}
+.tk-drilldown .dd-head-right { text-align: right; flex: 0 0 auto; }
+.tk-drilldown .dd-head-px {
+  font-size: 16px; font-variant-numeric: tabular-nums; margin-bottom: 5px;
+}
+
+/* Terracotta because it is a GATE CONDITION, not a rating — and first, because
+   "the trade is blocked" outranks every piece of analysis below it. A hairline
+   box rather than the old amber fill: amber is WATCH's hue. */
 .tk-drilldown .dd-entry-block {
-  background: rgba(245,158,11,0.16);
-  color: #fbb454;
-  padding: 8px 12px;
-  border-left: 3px solid #f59e0b80;
-  font-family: var(--mono); font-size: 11.5px;
-  margin-bottom: 12px;
+  border: 1px solid var(--color-divider);
+  border-left: 3px solid var(--stress);
+  background: transparent;
+  color: var(--color-text-2);
+  padding: 10px 14px; margin: 0 0 16px;
+  font-size: 12.5px; line-height: 1.5;
 }
-.tk-drilldown .dd-headline {
-  font-family: var(--serif); font-size: 1.15rem;
-  font-weight: 500; color: var(--ink);
-  margin-bottom: 8px; line-height: 1.35;
+/* Verdict-first: the largest text in the block. */
+.tk-drilldown .dd-verdict {
+  font-family: var(--font-display); font-size: 21px; font-weight: 500;
+  color: var(--color-text); line-height: 1.25; margin: 0 0 8px;
 }
+/* The ONLY italic in the block, which is why it reads as a parenthetical update
+   rather than part of the thesis. */
+.tk-drilldown .dd-delta {
+  font-style: italic; opacity: 0.78; font-size: 13px;
+  line-height: 1.55; margin: 0 0 10px; max-width: 72ch;
+}
+/* Larger and darker than any other prose here, because it is the actionable
+   instruction. Everything below it is evidence. */
 .tk-drilldown .dd-whatdo {
-  font-family: var(--sans); font-size: 14px;
-  line-height: 1.6; color: var(--ink-2);
-  max-width: 75ch; margin-bottom: 14px;
+  font-family: var(--sans); font-size: 14px; line-height: 1.6;
+  color: var(--color-text); max-width: 66ch; margin: 0 0 18px;
 }
+
+/* ── The levels plate ─────────────────────────────────────────────────────────
+   Promoted out of the section stack into a grid because PRICE LEVELS ARE WHAT
+   YOU ACT ON — they should be findable without reading. Four colours, each by
+   role: the two prices you are hoping for and fearing take market direction, the
+   trigger stays neutral, and the ratio is brass because it is a measurement
+   rather than a level you could put an order at. */
+.tk-drilldown .dd-levels {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px; background: var(--color-divider);
+  border: 1px solid var(--color-divider); margin: 0 0 20px;
+}
+.tk-drilldown .dd-lv { background: var(--color-bg); padding: 12px 14px; min-width: 0; }
+.tk-drilldown .dd-lv-lbl {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--eyebrow); font-weight: 600;
+}
+.tk-drilldown .dd-lv-val {
+  font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  font-variant-numeric: tabular-nums; margin-top: 4px; line-height: 1.15;
+}
+.tk-drilldown .dd-lv-sub {
+  font-size: 10px; color: var(--color-text-4); margin-top: 3px; line-height: 1.4;
+}
+
+/* ── The evidence: measurements left, the argument right ───────────────────── */
+.tk-drilldown .dd-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+}
+/* DASHED, not solid, to distinguish "reference rows inside a card" from the
+   solid row dividers of the table above. */
+.tk-drilldown .dd-pair {
+  display: flex; justify-content: space-between; gap: 12px;
+  border-bottom: 1px dashed var(--color-divider);
+  padding: 6px 0; font-size: 12.5px;
+}
+.tk-drilldown .dd-pair-lbl { color: var(--color-text-3); }
+.tk-drilldown .dd-pair-val {
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+/* Column eyebrows — same steel kicker as every card label on the site. */
+.tk-drilldown .dd-eyebrow {
+  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--eyebrow); font-weight: 600;
+  margin: 0 0 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.tk-drilldown .dd-cols .dd-eyebrow:not(:first-child) { margin-top: 20px; }
+/* Numbering makes the pillars a FINITE ARGUMENT rather than a bullet dump —
+   "these three things, and here is what would break them". */
+.tk-drilldown .dd-pillar {
+  display: flex; gap: 10px; align-items: baseline;
+  margin-bottom: 8px; font-size: 13px; line-height: 1.5;
+  color: var(--color-text-2);
+}
+.tk-drilldown .dd-pillar-n {
+  font-variant-numeric: tabular-nums; color: var(--color-text-4);
+  font-size: 11px; flex: 0 0 auto;
+}
+.tk-drilldown .dd-highlight {
+  border-left: 2px solid var(--brass); padding-left: 10px;
+  margin: 0 0 6px; font-size: 12.5px; line-height: 1.5;
+  color: var(--color-text-2);
+}
+/* Deliberately LAST and terracotta: it is the falsifier. */
+.tk-drilldown .dd-break {
+  border-left: 2px solid var(--stress); padding-left: 10px;
+  font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
+}
+
+/* ── Drawers — the material only an auditor wants ─────────────────────────────
+   Collapsed by default so the drill-down has a floor. Raw <details> because
+   st.expander cannot live inside a markdown-injected <details> — but these ARE
+   expanders to a reader, so they take the site's door grammar (see "Expanders:
+   doors, not objects" above) to the letter: transparent, 1px divider hairline,
+   square, ~38px tall, label at the card-eyebrow size in steel, and a caret that
+   ROTATES rather than swapping glyphs so open and closed read as one object.
+   The only difference is that these need no !important — nothing of Streamlit's
+   is fighting them. Consecutive doors sit 9px apart, same as up there. */
+.tk-drilldown details.dd-drawer {
+  border: 1px solid var(--color-divider);
+  background: transparent;
+}
+.tk-drilldown details.dd-drawer + details.dd-drawer { margin-top: 9px; }
+.tk-drilldown details.dd-drawer:first-of-type { margin-top: 20px; }
+.tk-drilldown details.dd-drawer > summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 13px;
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--eyebrow);
+}
+.tk-drilldown details.dd-drawer > summary::-webkit-details-marker { display: none; }
+.tk-drilldown details.dd-drawer > summary::marker { content: ""; }
+.tk-drilldown details.dd-drawer > summary::before {
+  content: "\25B6";
+  font-size: 8px; line-height: 1; color: var(--eyebrow); flex: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.tk-drilldown details.dd-drawer[open] > summary::before { transform: rotate(90deg); }
+.tk-drilldown details.dd-drawer > summary:hover { color: var(--color-text); }
+/* No top padding: the body sits directly under the summary, and the outer 1px
+   box already contains it. */
+.tk-drilldown .dd-drawer-body { padding: 0 13px 13px; }
+.tk-drilldown .dd-drawer-body .dd-section:first-child { margin-top: 4px; }
 
 .risk-card {
   padding: 12px 0 12px 14px;
@@ -1826,20 +2159,26 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
 /* Expand affordance — a small caret prefixing the ticker in each clickable row,
    rotating from ▸ to ▾ on open. Previously discoverability rested entirely on
    hover + the "click any row to expand" caption. Scoped to the <summary>'s
-   first cell (the ticker) so the static `.tk-row.head` / `.led-head` rows —
+   first cell (the ticker) so the static `.tk-row.tk-head` / `.led-head` rows —
    which are plain divs, not <details> — never get a caret. Placed inside the
    ticker cell (not as an absolute overlay) so it can't collide with the
-   right-aligned R:R / Worst values. */
-details.tk-details > summary > div:first-child::before,
+   right-aligned R:R / Worst values.
+
+   The Watchlist's ticker cell became a two-line container in the 2026-07-25
+   redesign (ticker + changed-dot above, cluster below), so its caret anchors on
+   the INNER .tk-tick-id flex row. Anchoring it on the cell itself would put the
+   caret on a line of its own above the ticker. */
+details.tk-details > summary > .tk-tick .tk-tick-id::before,
 details.led-details > summary > div:first-child::before {
   content: "\25B8";                /* ▸ */
   color: var(--ink-3);
   font-size: 8.5px;
   margin-right: 6px;
   display: inline-block;
+  flex: 0 0 auto;
   transition: transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
 }
-details.tk-details[open] > summary > div:first-child::before,
+details.tk-details[open] > summary > .tk-tick .tk-tick-id::before,
 details.led-details[open] > summary > div:first-child::before {
   transform: rotate(90deg);
 }
@@ -2999,30 +3338,40 @@ details.led-details[open] > summary {
    makes it win (same convention as the action-card phone block). */
 @media (max-width: 719px) {
   /* ── Watchlist ledger → stacked cards ──
-     Summary cell order is fixed by row.py: 1 ticker · 2 cluster · 3 signal ·
-     4 last+Δ · 5 1mo · 6 vs50 · 7 RSI · 8 R:R. Header row hidden — the
-     labels move into each card so every value stays self-describing. */
-  .tk-scroll > .tk-row.head { display: none; }
+     Summary cell order is fixed by row.py and is SEVEN cells since the 2026-07-25
+     redesign: 1 ticker(+cluster) · 2 signal · 3 last+Δ · 4 1mo · 5 vs50 gauge ·
+     6 RSI · 7 R:R. Cluster is no longer its own cell — it rides inside the
+     ticker cell, so the old div.name rule is gone. Header row hidden: the labels
+     move into each card so every value stays self-describing. */
+  .tk-scroll > .tk-row.tk-head { display: none; }
+  .tk-group { padding: 16px 4px 4px; }
   details.tk-details > summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px 12px;
     padding: 13px 4px;
   }
   details.tk-details > summary > div:nth-child(1) { grid-area: 1 / 1 / 2 / 3; }
-  details.tk-details > summary > div:nth-child(3) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
-  details.tk-details > summary > div.name { grid-area: 2 / 1 / 3 / 4; margin-top: -6px; font-size: 12px; }
+  details.tk-details > summary > div:nth-child(2) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
   /* metric cells: value left-aligned under a small-caps label (the inline
      text-align:right from row.py must lose here, hence !important) */
-  details.tk-details > summary > div:nth-child(n + 4) { text-align: left !important; }
-  details.tk-details > summary > div:nth-child(n + 4)::before {
+  details.tk-details > summary > div:nth-child(n + 3) { text-align: left !important; }
+  details.tk-details > summary > div:nth-child(n + 3)::before {
     display: block; font-size: 8.5px; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
-  details.tk-details > summary > div:nth-child(4)::before { content: "Last · Δ"; }
-  details.tk-details > summary > div:nth-child(5)::before { content: "1mo"; }
-  details.tk-details > summary > div:nth-child(6)::before { content: "vs 50-day"; }
-  details.tk-details > summary > div:nth-child(7)::before { content: "RSI"; }
-  details.tk-details > summary > div:nth-child(8)::before { content: "R:R"; }
+  details.tk-details > summary > div:nth-child(3)::before { content: "Last · Δ"; }
+  details.tk-details > summary > div:nth-child(4)::before { content: "1mo"; }
+  details.tk-details > summary > div:nth-child(5)::before { content: "vs 50-day"; }
+  details.tk-details > summary > div:nth-child(6)::before { content: "RSI"; }
+  details.tk-details > summary > div:nth-child(7)::before { content: "R:R"; }
+  /* A 168px centred bar cannot survive a stacked card, so the track drops and
+     the signed figure — the same information — stays. */
+  .tk-ext-track { display: none; }
+  .tk-ext { align-items: flex-start; }
+  /* The card's two-column evidence and four-cell plate stack on a phone. */
+  .tk-drilldown .dd-cols { grid-template-columns: 1fr; gap: 20px; }
+  .tk-drilldown .dd-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tk-drilldown .dd-card { padding-left: 12px; }
 
   /* ── By-name ledger (tracker) → stacked cards ──
      Cell order from signal_tracker.py: 1 name · 2 cluster · 3 signal ·

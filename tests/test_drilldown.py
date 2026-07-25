@@ -241,3 +241,193 @@ def test_earnings_history_missing_margins_render_dash():
     # 2026-Q1 has null margins → cells must be em-dash, not crash.
     html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
     assert "74.9%" in html                          # a present margin still shows
+
+
+# ── Redesign 2026-07-25: verdict-first card, levels plate, three drawers ──
+# The shipped drill-down stacked fifteen undifferentiated sections, so "the trade
+# is blocked" could sit below four paragraphs of analysis. These tests pin the
+# reading order, not just the presence of the blocks.
+_MU = {
+    "signal": "CAUTION",
+    "price": 990.0,
+    "currency": "USD",
+    "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
+    "entry_block_reader": "Entry blocked: up 16.1% in five sessions.",
+    "reentry_zone": {"level": "$952.20", "source": "sma50"},
+    "risk_reward": {
+        "invalidation": 952.2, "upside_target": 1089.12,
+        "ratio": 2.6, "ratio_label": "2.6:1",
+        "upside_pct": 10.0, "downside_pct": 3.8,
+    },
+    "writeup": {
+        "headline": "An 11.3% surge reclaims the 50-day.",
+        "prior_period_delta_narrative": "Rating held from yesterday.",
+        "what_to_do": "Wait for the move to settle.",
+        "thesis_break_condition": "A close back below the 50-day.",
+        "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
+    },
+    "support_legs": ["HBM sold out", "Pricing power", "Capex discipline"],
+}
+
+
+def test_card_carries_the_rows_signal_rail():
+    html = render_drilldown_detail_html("MU", _MU)
+    assert 'class="dd-card"' in html
+    assert 'data-signal="CAUTION"' in html
+
+
+def test_entry_block_precedes_the_verdict_headline():
+    # The trade is blocked: the most consequential fact goes before the analysis,
+    # not mid-list.
+    html = render_drilldown_detail_html("MU", _MU)
+    assert html.index("dd-entry-block") < html.index("dd-verdict")
+
+
+def test_verdict_precedes_what_changed_which_precedes_what_to_do():
+    html = render_drilldown_detail_html("MU", _MU)
+    assert html.index("dd-verdict") < html.index("dd-delta") < html.index("dd-whatdo")
+
+
+def test_identity_header_leads_the_card():
+    html = render_drilldown_detail_html("MU", _MU)
+    assert html.index("dd-head-tk") < html.index("dd-entry-block")
+    # _ccy_prefix already yields the HTML entity, so Streamlit never reads a
+    # price pair as LaTeX math.
+    assert "&#36;990.00" in html
+
+
+def test_levels_plate_has_four_cells_in_role_colours():
+    html = render_drilldown_detail_html("MU", _MU)
+    assert html.count("dd-lv-val") == 4
+    assert "952.20" in html                      # trigger
+    assert "var(--up)" in html                   # target: a price you hope for
+    assert "var(--down)" in html                 # invalidation: one you fear
+    assert "var(--brass)" in html                # R:R: a measurement, not a price
+
+
+def test_levels_plate_drops_to_three_cells_without_an_rr_ratio():
+    d = dict(_MU, risk_reward={"invalidation": 952.2, "upside_target": 1089.12})
+    assert render_drilldown_detail_html("MU", d).count("dd-lv-val") == 3
+
+
+def test_levels_plate_absent_when_the_report_has_no_levels():
+    d = {"signal": "HOLD", "price": 100.0}
+    assert "dd-lv-val" not in render_drilldown_detail_html("MSFT", d)
+
+
+def test_pillars_are_numbered_and_the_falsifier_is_last():
+    html = render_drilldown_detail_html("MU", _MU)
+    assert ">01<" in html and ">03<" in html
+    assert html.index("dd-pillar") < html.index("dd-break")
+
+
+def test_technicals_and_valuation_share_the_left_column():
+    html = render_drilldown_detail_html("MU", dict(_MU, vs_sma50_pct=3.9))
+    assert "dd-col-left" in html and "dd-col-right" in html
+    assert html.index("dd-col-left") < html.index("dd-col-right")
+
+
+def test_valuation_no_longer_repeats_the_cluster():
+    # Stated in the card header and the grid row already; a third printing is
+    # noise in a column of measurements.
+    html = render_drilldown_detail_html("MU", dict(_MU, valuation={"forward_pe": 15.3}))
+    assert "dd-pair-lbl\">Cluster<" not in html
+
+
+def test_three_drawers_are_collapsed_details_not_st_expanders():
+    # They live inside a markdown-injected <details>, where st.expander cannot.
+    d = dict(
+        _MU,
+        pre_earnings_band={"earnings_date": "2026-08-01", "days_until": 7},
+        accumulate_gates={"g1_signal_eligible": True},
+    )
+    html = render_drilldown_detail_html("MU", d)
+    assert html.count('<details class="dd-drawer">') == 3
+    assert "<details class=\"dd-drawer\" open" not in html   # collapsed by default
+
+
+def test_a_drawer_with_no_populated_block_does_not_render():
+    html = render_drilldown_detail_html("MU", _MU)   # no band, no gates, no RCP
+    assert "Pipeline detail" not in html
+
+
+def test_every_relocated_block_still_renders_somewhere():
+    d = dict(
+        _MU,
+        pre_earnings_band={"earnings_date": "2026-08-01", "days_until": 7,
+                           "setup_archetype": "neutral"},
+        accumulate_gates={"g1_signal_eligible": True, "all_mechanical_pass": False},
+        rcp_state={"current_phase": "cooling_off", "sessions_since_gap": 3},
+        support_zones=[900.0], resistance_zones=[1100.0],
+        avoid_source={"publication": "Reuters", "headline_fragment": "x"},
+        earnings_results_in_news={"headline": "beat"},
+        catalyst={"catalyst_event": "HBM contract", "narrative_only": True},
+        thesis_highlights=["HBM is sold out through 2027"],
+    )
+    html = render_drilldown_detail_html("MU", d)
+    for needle in ("Earnings setup", "Risk &amp; reward detail", "Pipeline detail",
+                   "Signal eligible", "Regime Change Pending", "Support",
+                   "Resistance", "Reuters", "beat", "HBM contract",
+                   "Thesis highlights", "Headline R:R"):
+        assert needle in html, needle
+    # "Wide-stop R:R" is absent here on purpose: this fixture carries neither
+    # wide_stop_rr nor sizing_rr, and an absent metric drops out rather than
+    # printing a gap (see test_wide_stop_rr_falls_back_to_sizing_rr).
+    assert "Wide-stop R:R" not in html
+
+
+def test_data_quality_warnings_do_not_borrow_the_watch_hue():
+    # Amber is WATCH. A momentum divergence is a data condition, not a rating —
+    # and the pill is three inches away, so a second verdict colour would read as
+    # a second verdict.
+    from lib.charts import STATUS_WARN_SOFT
+    html = render_drilldown_detail_html(
+        "MU", dict(_MU, momentum_warn=True, momentum_warn_reasons=["vol thin"])
+    )
+    assert STATUS_WARN_SOFT not in html
+    assert "var(--stress)" in html
+
+
+def test_both_halves_of_the_left_column_are_labelled():
+    # Without eyebrows the tape readings and the multiples run together into one
+    # undifferentiated list, and the right column already labels its parts.
+    html = render_drilldown_detail_html(
+        "MU", dict(_MU, vs_sma50_pct=3.9, valuation={"forward_pe": 15.3})
+    )
+    assert 'class="dd-eyebrow">Technicals<' in html
+    assert 'class="dd-eyebrow">Valuation<' in html
+    assert html.index("Technicals") < html.index("Valuation")
+
+
+def test_an_absent_half_takes_its_eyebrow_with_it():
+    html = render_drilldown_detail_html("MSFT", {"signal": "HOLD"})
+    assert "dd-eyebrow\">Valuation<" not in html
+
+
+# ── Composite pair values must not print an em-dash inside their own units ──
+# Caught by a sweep of all 102 reports: a present cluster-median P/E with an
+# absent cluster delta rendered "25.6x (—%)" — the same absent-value bug the row
+# cells were fixed for in the 2026-07-07 UX review, inherited by the pair list.
+def test_cluster_median_pe_without_a_delta_drops_the_parenthetical():
+    d = {"valuation": {"cluster_median_pe": 25.6}}      # no pe_vs_cluster_pct
+    html = render_drilldown_detail_html("CRWV", d)
+    assert "25.6x" in html
+    assert "—%" not in html
+    assert "(" not in html.split("25.6x")[1][:6]
+
+
+def test_cluster_median_pe_with_a_delta_keeps_it():
+    d = {"valuation": {"cluster_median_pe": 25.6, "pe_vs_cluster_pct": -37.0}}
+    html = render_drilldown_detail_html("CRWV", d)
+    assert "25.6x (-37%)" in html
+
+
+def test_sma50_without_a_direction_drops_the_parenthetical():
+    html = render_drilldown_detail_html("NVDA", {"sma50": 209.38})
+    assert "209.38" in html
+    assert "(—)" not in html
+
+
+def test_rsi_without_a_zone_has_no_trailing_space():
+    html = render_drilldown_detail_html("NVDA", {"rsi_14": 53})
+    assert ">53</span>" in html
