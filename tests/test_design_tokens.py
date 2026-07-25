@@ -111,6 +111,35 @@ def test_no_raw_hex_literals_in_components():
     assert not offenders, "raw hex literals crept back in:\n" + "\n".join(offenders)
 
 
+def test_metric_family_tokens_match_the_chart_map():
+    """The Pipeline page paints its five hues from CSS (cells, rails, swatches)
+    and from Plotly (the cost bars). Two sources for one palette is a drift
+    risk, so they are asserted equal — the CSS dark value is the canonical one
+    because that is the theme the app actually ships."""
+    from lib.charts import METRIC_COLORS
+
+    for key, want in METRIC_COLORS.items():
+        got = _theme_token(f"--metric-{key}-dark")
+        assert got.lower() == want.lower(), (
+            f"--metric-{key}-dark is {got} but lib.charts says {want}"
+        )
+    # Every hue also needs a light sibling, like every other token in the file.
+    for key in METRIC_COLORS:
+        assert _theme_token(f"--metric-{key}-light")
+
+
+def test_metric_palette_avoids_the_reserved_hues():
+    """The metric palette is only legal because it cannot be mistaken for a
+    signal rating or a price move. If a metric hue ever collides with one of
+    those, that argument collapses."""
+    from lib.charts import METRIC_COLORS, STATUS_NEG, STATUS_POS, STATUS_WARN
+
+    reserved = {c.lower() for c in SIGNAL_COLORS.values()}
+    reserved |= {STATUS_POS.lower(), STATUS_NEG.lower(), STATUS_WARN.lower()}
+    clash = {k: v for k, v in METRIC_COLORS.items() if v.lower() in reserved}
+    assert not clash, f"metric hues collide with a reserved palette: {clash}"
+
+
 def test_terminology_pills_come_from_the_canonical_helper():
     """The reference page renders the six signals with the same pill every other
     surface uses, so the page that DEFINES a signal cannot show it in a colour
