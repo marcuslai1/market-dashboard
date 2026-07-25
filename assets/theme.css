@@ -759,6 +759,12 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   font-family: var(--mono); font-size: 10px;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
 }
+/* Masthead-weight section head — the site's marker for "top-level document
+   surface". The Watchlist, Signal Tracker and Review heads take it so all
+   three announce themselves the same way; .section-head stays 1px everywhere
+   else, so this must never become the default. */
+.section-head.masthead { border-bottom: 2px solid var(--color-text); padding-bottom: 10px; }
+.section-head.masthead h2 { font-size: 1.875rem !important; font-weight: 600; }
 
 /* ── Briefing-page editorial blocks ── */
 .stance-deck {
