@@ -13,6 +13,7 @@ Plotly canvas output all come from that image.
 | `briefing`, `watchlist`, `signal-tracker`, `pipeline-stats`, `scenario-log`, `report-comparison`, `terminology` | `test_pages.py` | the 7 pages, each captured full-page |
 | `watchlist-nvda-drilldown` | `test_states.py` | NVDA row `<details>` expanded |
 | `signal-tracker-ledger` | `test_states.py` | first by-name episode ledger row expanded |
+| `retrospective-resolved-month` | `test_states.py` | second month segment selected — the only capture of a hit rate, a green/red composition bar and ✓/✗ rails, since the default month is always still open |
 
 `test_harness_unit.py` unit-tests the pure comparator (no browser); `test_smoke.py`
 asserts the app boots. Comparison is anti-aliasing-aware (`pixelmatch
