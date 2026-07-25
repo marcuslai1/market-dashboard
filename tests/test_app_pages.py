@@ -163,6 +163,57 @@ def test_fundamentals_capex_pulse_shows_a_verdict():
                ("INTACT", "DIGESTING", "CRACKING", "INSUFFICIENT DATA"))
 
 
+def _watchlist_page_app():
+    """Boot ONLY the Watchlist grid (see _tracker_page_app for why a non-default
+    page can't be driven through dashboard.py). ASCII-only source, same reason.
+
+    MU is fed in as a changed ticker so the Changed chip and the row's steel dot
+    both have something to show regardless of which report is checked out."""
+    import glob
+    import json
+
+    from components.watchlist import render_watchlist
+
+    files = sorted(glob.glob("data/morning_report_*.json"))
+    with open(files[-1], encoding="utf-8") as fh:
+        report = json.load(fh)
+    render_watchlist(report.get("watchlist", {}), changed_tickers={"MU"})
+
+
+def test_watchlist_renders_chips_groups_gauge_and_footer():
+    """The redesigned grid's four structural pieces (spec 2026-07-25)."""
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_watchlist_page_app, default_timeout=60)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    blob = " ".join(str(m.value) for m in at.markdown)
+    assert 'class="tk-group"' in blob        # explicit signal groups
+    assert 'class="tk-ext-track"' in blob    # the extension gauge
+    assert 'class="tk-foot"' in blob         # the legend footer
+    assert 'class="tk-sortline"' in blob     # the page states its own ordering
+    # A real widget, so the filter survives the 60s live-price fragment rerun
+    # instead of resetting to All once a minute.
+    assert at.pills[0].label == "Show"
+
+
+def test_watchlist_chip_actually_filters_the_book():
+    """Filtering is Python-side: picking a signal must shrink the rendered rows
+    AND leave exactly one group header, never an empty one."""
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_watchlist_page_app, default_timeout=60)
+    at.run()
+    before = " ".join(str(m.value) for m in at.markdown)
+    n_groups_before = before.count('class="tk-group"')
+    assert n_groups_before > 1, "fixture report has only one signal group"
+
+    at.pills[0].set_value("HOLD").run()
+    assert not at.exception, f"filtered: {[e.value for e in at.exception]}"
+    after = " ".join(str(m.value) for m in at.markdown)
+    assert after.count('class="tk-group"') == 1
+    assert after.count('<details class="tk-details"') < \
+        before.count('<details class="tk-details"')
 def test_tracker_page_emits_the_scope_marker():
     """The page's drawer grammar is scoped with .stApp:has(.tracker-page); if
     the marker stops rendering, every drawer quietly reverts."""
