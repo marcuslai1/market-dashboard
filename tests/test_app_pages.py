@@ -225,6 +225,19 @@ def test_pipeline_page_leads_with_a_verdict():
         assert f'data-metric="{key}"' in page, f"{key} cell missing from the strip"
 
 
+def test_pipeline_totals_are_labelled_as_range_clipped():
+    """Every figure on the page inherits the range chip, so a range-clipped
+    total must not be labelled a lifetime one. Calling it "spent since cutover"
+    when the sidebar had clipped it to a month was the same class of error as
+    the cumsum this redesign fixed — and too small a pixel change for the
+    visual baseline to catch, so it is asserted on the markup."""
+    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
+    at.run()
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "Spent in range" in page
+    assert "since cutover" not in page, "a clipped total claims to be all-time"
+
+
 def test_pipeline_page_states_that_the_palette_rules_changed():
     """A reader arriving from the Watchlist needs to know green/red are absent
     here. That disclosure is the cost of giving one page its own palette."""

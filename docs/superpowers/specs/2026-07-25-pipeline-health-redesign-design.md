@@ -257,6 +257,11 @@ arbitrary categorical colours say "five unrelated categories". Indigo rather
 than gold so composition reads apart from money, and because it ties to the
 strip's input-tokens cell — the metric this section explains.
 
+The ramp runs **most-saturated = largest**. On a light ground that reads as
+"darkest is largest"; on this dark ground the saturated end is the *lighter*
+one, and inverting it to put literal darkness on the biggest band would make the
+dominant share the least visible thing in the bar.
+
 **Making the bands discernible.** A single-hue ramp is hard to discriminate at
 adjacent steps, so the encoding is made redundant four times over:
 

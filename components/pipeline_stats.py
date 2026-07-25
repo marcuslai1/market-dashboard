@@ -348,15 +348,19 @@ def render_pipeline_stats_page(reports: dict) -> None:
             f'<div class="pm-tile" data-metric="cost"><div class="pm-tile-label">'
             f'Run rate</div><div class="pm-tile-val">{_money(cost["monthly"], 2)}'
             f'<span class="pm-tile-unit">/mo</span></div>'
-            f'<div class="pm-tile-sub">at {cost["runs"]} runs since cutover</div></div>'
+            f'<div class="pm-tile-sub">from {cost["runs"]} runs in range</div></div>'
             f'<div class="pm-tile" data-counterfactual="1"><div class="pm-tile-label">'
             f'Without cache</div><div class="pm-tile-val">'
             f'{_money(cost["monthly_uncached"], 2)}<span class="pm-tile-unit">/mo</span>'
             f'</div><div class="pm-tile-sub" data-metric="cache">cache saves '
             f'{_money(cost["saving_per_run"])} a run</div></div>'
-            f'<div class="pm-tile"><div class="pm-tile-label">Spent since cutover'
+            # "Spent in range", not "since cutover": every figure on this page
+            # inherits the range chip at the top, and this one is no exception.
+            # Labelling a range-clipped total as a lifetime total is the same
+            # class of error as the cumsum this redesign fixed.
+            f'<div class="pm-tile"><div class="pm-tile-label">Spent in range'
             f'</div><div class="pm-tile-val">{_money(cost["total"], 2)}</div>'
-            f'<div class="pm-tile-sub">excludes pre-cutover runs</div></div>'
+            f'<div class="pm-tile-sub">post-cutover runs only</div></div>'
             '</div>',
             unsafe_allow_html=True,
         )
