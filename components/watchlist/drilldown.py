@@ -277,12 +277,17 @@ def _levels_plate_html(d: dict, ccy: str) -> str:
 def _technicals_pairs_html(d: dict, price_fn) -> str:
     sma50 = d.get("sma50")
     sma50_rising = d.get("sma50_rising")
+    # An unknown direction drops the parenthetical entirely rather than printing
+    # "(—)". A composite value must never carry an em-dash inside its own units:
+    # that reads as a broken figure rather than an absent one (the bug the row
+    # cells were fixed for in the 2026-07-07 UX review).
     sma_status = (
-        "rising" if sma50_rising is True
-        else "declining" if sma50_rising is False
-        else "—"
+        " (rising)" if sma50_rising is True
+        else " (declining)" if sma50_rising is False
+        else ""
     )
     rsi = d.get("rsi_14")
+    rsi_zone = d.get("rsi_zone", "")
     vol_sig = d.get("volume_signal", "")
     vol_ratio = d.get("vol_ratio")
     chg5 = d.get("5d_pct")
@@ -295,12 +300,12 @@ def _technicals_pairs_html(d: dict, price_fn) -> str:
         ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
         ("vs 200-day",
          f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
-        ("SMA50", f"{price_fn(sma50)} ({sma_status})" if sma50 else "—"),
+        ("SMA50", f"{price_fn(sma50)}{sma_status}" if sma50 else "—"),
         ("Days above SMA50",
          str(d.get("days_above_sma50"))
          if d.get("days_above_sma50") is not None else "—"),
         ("RSI (14d)",
-         f'{_fmt_num(rsi, 0)} {d.get("rsi_zone", "")}' if rsi else "—"),
+         f"{_fmt_num(rsi, 0)}{f' {rsi_zone}' if rsi_zone else ''}" if rsi else "—"),
         ("Volume signal",
          f"{vol_sig} ({_fmt_num(vol_ratio, 2)}x)" if vol_sig else "—"),
         ("5-day return",
@@ -336,9 +341,12 @@ def _valuation_pairs_html(d: dict) -> str:
     eps_g = consensus.get("earnings_growth_pct")
     return _pairs_html([
         ("Forward P/E", f"{_fmt_num(fpe, 1)}x" if fpe else "—"),
+        # The vs-cluster delta is often absent while the median is present; when
+        # it is, the parenthetical drops rather than printing "(—%)".
         ("Cluster median P/E",
-         f"{_fmt_num(cluster_med_pe, 1)}x "
-         f"({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
+         f"{_fmt_num(cluster_med_pe, 1)}x"
+         + (f" ({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
+            if pe_vs_cluster is not None else "")
          if cluster_med_pe else "—"),
         ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
         ("Revenue growth",

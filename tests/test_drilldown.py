@@ -402,3 +402,32 @@ def test_both_halves_of_the_left_column_are_labelled():
 def test_an_absent_half_takes_its_eyebrow_with_it():
     html = render_drilldown_detail_html("MSFT", {"signal": "HOLD"})
     assert "dd-eyebrow\">Valuation<" not in html
+
+
+# ── Composite pair values must not print an em-dash inside their own units ──
+# Caught by a sweep of all 102 reports: a present cluster-median P/E with an
+# absent cluster delta rendered "25.6x (—%)" — the same absent-value bug the row
+# cells were fixed for in the 2026-07-07 UX review, inherited by the pair list.
+def test_cluster_median_pe_without_a_delta_drops_the_parenthetical():
+    d = {"valuation": {"cluster_median_pe": 25.6}}      # no pe_vs_cluster_pct
+    html = render_drilldown_detail_html("CRWV", d)
+    assert "25.6x" in html
+    assert "—%" not in html
+    assert "(" not in html.split("25.6x")[1][:6]
+
+
+def test_cluster_median_pe_with_a_delta_keeps_it():
+    d = {"valuation": {"cluster_median_pe": 25.6, "pe_vs_cluster_pct": -37.0}}
+    html = render_drilldown_detail_html("CRWV", d)
+    assert "25.6x (-37%)" in html
+
+
+def test_sma50_without_a_direction_drops_the_parenthetical():
+    html = render_drilldown_detail_html("NVDA", {"sma50": 209.38})
+    assert "209.38" in html
+    assert "(—)" not in html
+
+
+def test_rsi_without_a_zone_has_no_trailing_space():
+    html = render_drilldown_detail_html("NVDA", {"rsi_14": 53})
+    assert ">53</span>" in html
