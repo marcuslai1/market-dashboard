@@ -2386,11 +2386,12 @@ details.led-details[open] > summary {
    Page order is caveat → time control → verdict → evidence → method: the
    honesty banner sits above every number so no figure is read unqualified.
 
-   Deliberately page-scoped. The head does NOT reuse .section-head (a 1px-ruled
-   h2 shared by every section on the site — unifying it to this 2px masthead
-   weight is a tracked follow-up, not a change to make while a second surface is
-   mid-redesign), and the banner does NOT reuse .briefing-banner (filled,
-   rounded, --caution-railed: the three things §4 of the spec rules out).
+   Mostly page-scoped. The head is the SHARED .section-head.masthead variant
+   (2px full-strength rule + 30px/600) — this page carried its own .retro-head
+   copy of that treatment until the shared variant arrived with the Signal
+   Tracker redesign; one device should not be spelled two ways. The banner does
+   NOT reuse .briefing-banner (filled, rounded, --caution-railed: the three
+   things §4 of the spec rules out).
 
    The one hard rule this page exists to prove: signal colour and outcome colour
    appear on the SAME row and mean different things. The pill carries the rating
@@ -2404,35 +2405,10 @@ details.led-details[open] > summary {
    used for text, so the quietest row text (dates, levels) lands on --ink-3 and
    gets its recessive weight from size and letterspacing instead. */
 
-/* §3 Page head. 2px full-strength is the masthead rule weight: this is a
-   top-level document surface, not a section inside one. The descriptor carries
-   the page's premise so the title can stay one word. */
-.retro-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  gap: 20px;
-  border-bottom: 2px solid var(--color-text);
-  padding-bottom: 10px;
-  margin: 0 0 var(--space-4);
-}
-.retro-head h1 {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: var(--font-display);
-  font-size: 30px !important;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  color: var(--color-text);
-}
-.retro-descriptor {
-  flex: 0 1 auto;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-align: right;
-  color: var(--color-text-3);
-}
+/* §3 Page head: render_section_head(..., masthead=True). The 2px full-strength
+   rule says "top-level document surface, not a section inside one", and the
+   right-aligned sub carries the page's premise so the title can stay one word.
+   No rules here — the shared variant already is this treatment. */
 
 /* §4 Honesty banner. Terracotta (--stress), never a signal colour: this is a
    trust limitation about the verdicts, not a rating on any stock — so it can
@@ -2822,8 +2798,6 @@ details.led-details[open] > summary {
    edge to the top, so the divider always separates panels along the axis they
    are actually stacked on. */
 @media (max-width: 719px) {
-  .retro-head { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .retro-descriptor { text-align: left; }
   .retro-board { grid-template-columns: 1fr; }
   .rb-panel { padding: 18px 20px; }
   .rb-comp, .rb-paper {

@@ -20,6 +20,7 @@ import pandas as pd
 import streamlit as st
 
 from components.paper_book import select_policy
+from lib.cards import render_section_head
 from lib.formatters import _escape_dollars, display_ticker
 from lib.pills import _signal_pill_html
 
@@ -360,11 +361,15 @@ def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame,
     Deliberately NOT clipped by the sidebar date filter: the month picker is
     this page's own time control and the archive should always be complete.
     """
-    st.markdown(
-        '<div class="retro-head"><h1>Retrospective</h1>'
-        '<span class="retro-descriptor">What we called, and what actually '
-        'happened — month by month</span></div>',
-        unsafe_allow_html=True,
+    # masthead=True is the shared 2px full-strength rule + 30px/600 head (the
+    # Signal Tracker's peer sections use the same variant). This page had its own
+    # copy of that treatment until the shared variant landed; one device, one
+    # implementation — "a top-level document surface" should not be spelled two
+    # different ways.
+    render_section_head(
+        "Retrospective",
+        "What we called, and what actually happened — month by month",
+        masthead=True,
     )
 
     # The caveat comes before any number. After a 67% hit rate it would be a
