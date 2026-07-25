@@ -202,6 +202,51 @@ def test_terminology_no_match_says_so():
     assert "0 of 12 sections match" in page
 
 
+def _pipeline_page_app():
+    """Boot ONLY the Pipeline health page (see _tracker_page_app for why
+    non-default pages can't be driven through dashboard.py). ASCII-only."""
+    from components.pipeline_stats import render_pipeline_stats_page
+    from lib.data_loader import load_all_reports
+
+    render_pipeline_stats_page(load_all_reports())
+
+
+def test_pipeline_page_leads_with_a_verdict():
+    """The page's whole point is answering "is this healthy?" before any
+    number. If the band ever stops rendering, the page is telemetry again."""
+    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert 'class="pm-verdict' in page
+    assert any(w in page for w in ("Healthy", "Watch", "Over budget"))
+    # Five metric identities, each carrying its own hue via data-metric.
+    for key in ("cost", "cache", "input", "gen", "articles"):
+        assert f'data-metric="{key}"' in page, f"{key} cell missing from the strip"
+
+
+def test_pipeline_totals_are_labelled_as_range_clipped():
+    """Every figure on the page inherits the range chip, so a range-clipped
+    total must not be labelled a lifetime one. Calling it "spent since cutover"
+    when the sidebar had clipped it to a month was the same class of error as
+    the cumsum this redesign fixed — and too small a pixel change for the
+    visual baseline to catch, so it is asserted on the markup."""
+    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
+    at.run()
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "Spent in range" in page
+    assert "since cutover" not in page, "a clipped total claims to be all-time"
+
+
+def test_pipeline_page_states_that_the_palette_rules_changed():
+    """A reader arriving from the Watchlist needs to know green/red are absent
+    here. That disclosure is the cost of giving one page its own palette."""
+    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
+    at.run()
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "No signal colours" in page
+
+
 def test_briefing_renders_action_card():
     """The single-action callout stays on the Briefing (design-spec §1 block 4).
     Post-overhaul it composes into the 1.55fr/1fr grid via action_card_html, so
