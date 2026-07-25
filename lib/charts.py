@@ -27,6 +27,7 @@ PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True, "doubleClick": Fal
 # reads as a signal, and free of the off-brand magenta/indigo (#ec4899 /#6366f1)
 # the Plotly defaults introduced. Muted, mid-luminance tones that sit on --paper.
 CHART_ACCENT = "#C9A66B"   # warm brass — primary single-series bars/lines
+CHART_ACCENT_SOFT = "#9C8355"  # dimmed brass — hypothetical replays of a brass subject
 CHART_MUTED = "#5E5A50"    # ink-4 — de-emphasised / historical / "base" series
 CHART_LINE = "#908A7C"     # ink-3 — trend / threshold overlays (7d avg, cutover)
 CHART_PALETTE = [

@@ -197,7 +197,7 @@ def _scorecard_table_html(rows: list) -> str:
         n_cell = _fmt_num(r["n"], 0)
         if has_ep and r["n_episodes"] is not None:
             n_cell = f'{n_cell} · {int(r["n_episodes"])} ep'
-        ep_td = (f'<td class="num" data-l="alpha/ep">{_pct(r["ep_mean"])}</td>'
+        ep_td = (f'<td class="num alpha" data-l="alpha/ep">{_pct(r["ep_mean"])}</td>'
                  if has_ep else "")
         trs.append(
             f"<tr{lc}><td>{_signal_pill_html(r['signal'], small=True)}</td>"
@@ -205,7 +205,7 @@ def _scorecard_table_html(rows: list) -> str:
             f'<td class="num" data-l="n">{n_cell}</td>'
             f'<td class="num" data-l="Win">{win}</td>'
             f'<td class="num" data-l="Avg 10d">{_pct(r["avg"])}</td>'
-            f'<td class="num" data-l="alpha">{_pct(r["alpha"])}</td>{ep_td}</tr>'
+            f'<td class="num alpha" data-l="alpha">{_pct(r["alpha"])}</td>{ep_td}</tr>'
         )
     # α headers ride in a .lc span: .ep-table th uppercases text, and Greek α
     # capitalizes to Α — pixel-identical to Latin "A" (UX 2026-07-07).
@@ -250,9 +250,13 @@ def _headline_html(rows: list, today_counts) -> str:
             return (
                 '<span class="cal-headline">'
                 f"{_signal_pill_html(dominant, small=True)}"
-                f'<span class="cal-head-txt">most common today ({n}&nbsp;{names}) · '
-                f'{_pct(row["alpha"])} α / 10d · '
-                f'<span class="cal-conf" title="{conf_tip}">{conf}</span></span></span>'
+                f'<span class="cal-head-txt">most common today '
+                f'<span class="cal-count">({n}&nbsp;{names})</span> · '
+                # Brass: alpha is a measurement of the signal's performance, not
+                # a second verdict on it. Red here would read as another CAUTION.
+                f'<b class="cal-alpha">{_pct(row["alpha"])} α / 10d</b> · '
+                f'<span class="cal-conf" title="{conf_tip}">{conf}</span>'
+                "</span></span>"
             )
     return '<span class="cal-headline cal-head-txt">Signal calibration · 60-day window</span>'
 
@@ -308,7 +312,9 @@ def render_calibration(calibration_insights: dict | None, watchlist: dict) -> No
     ci = calibration_insights or {}
     if not ci.get("signal_performance"):
         return
-    render_section_head("Signal Calibration", "How today's signals have actually performed")
+    render_section_head("Signal calibration",
+                        "How today's signals have actually performed",
+                        masthead=True)
     st.markdown(
         _calibration_html(ci, watchlist),
         unsafe_allow_html=True,

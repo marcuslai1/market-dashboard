@@ -119,3 +119,46 @@ def test_terminology_hex_literals_match_sanctioned_palette():
     assert used, "expected terminology.py to carry its static palette hexes"
     unsanctioned = used - _sanctioned_palette()
     assert not unsanctioned, f"terminology.py colors drifted from the palette: {unsanctioned}"
+
+
+# ── Signal Tracker redesign (spec 2026-07-25): shared devices ──
+
+def test_hairline_grid_device_is_single_sourced():
+    """The FRED prints grid and the tracker's grids must be the same device, so
+    'a grid of cells' always means 'peer measurements, compare across'."""
+    assert ".hair-grid, .fp-grid" in _THEME_CSS
+    assert ".hair-grid > *, .fp-cell" in _THEME_CSS
+
+
+def test_stat_tick_is_two_px_steel_not_a_signal_rail():
+    """2px --accent, deliberately not the 3px rail signal rows use: the tick
+    says 'this is one discrete figure', never 'this is a rating'."""
+    # Anchored to the line-start selector: consumers add their own
+    # ".<scope> .stat-tick" padding rules that would otherwise match first.
+    block = _THEME_CSS.split("\n.stat-tick {", 1)[1].split("}", 1)[0]
+    assert "border-left: 2px solid var(--accent)" in block
+
+
+def test_thin_sample_warning_is_terracotta_never_watch_amber():
+    """Amber is WATCH. A data-quality warning is not a signal, so it takes the
+    data palette's stress colour."""
+    block = _THEME_CSS.split(".warn-thin {", 1)[1].split("}", 1)[0]
+    assert "var(--stress)" in block
+    assert "#f59e0b" not in block
+
+
+def test_masthead_section_head_is_the_two_px_rule():
+    block = _THEME_CSS.split(".section-head.masthead {", 1)[1].split("}", 1)[0]
+    assert "border-bottom: 2px solid var(--color-text)" in block
+
+
+def test_tile_bar_fills_the_cell_so_lengths_compare():
+    """47% vs 100% must read as a shape difference before either number is
+    read, which a capped bar width prevents."""
+    block = _THEME_CSS.split(".calib-cell .cbar {", 1)[1].split("}", 1)[0]
+    assert "max-width" not in block
+
+
+def test_tile_meaning_line_holds_a_shared_baseline():
+    block = _THEME_CSS.split(".calib-cell .sc-verb {", 1)[1].split("}", 1)[0]
+    assert "min-height: 24px" in block
