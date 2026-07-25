@@ -1430,21 +1430,38 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 
 /* ── Drawers — the material only an auditor wants ─────────────────────────────
    Collapsed by default so the drill-down has a floor. Raw <details> because
-   st.expander cannot live inside a markdown-injected <details>. */
+   st.expander cannot live inside a markdown-injected <details> — but these ARE
+   expanders to a reader, so they take the site's door grammar (see "Expanders:
+   doors, not objects" above) to the letter: transparent, 1px divider hairline,
+   square, ~38px tall, label at the card-eyebrow size in steel, and a caret that
+   ROTATES rather than swapping glyphs so open and closed read as one object.
+   The only difference is that these need no !important — nothing of Streamlit's
+   is fighting them. Consecutive doors sit 9px apart, same as up there. */
 .tk-drilldown details.dd-drawer {
-  border: 1px solid var(--color-divider); margin-top: 10px;
+  border: 1px solid var(--color-divider);
+  background: transparent;
 }
+.tk-drilldown details.dd-drawer + details.dd-drawer { margin-top: 9px; }
+.tk-drilldown details.dd-drawer:first-of-type { margin-top: 20px; }
 .tk-drilldown details.dd-drawer > summary {
-  cursor: pointer; list-style: none; padding: 9px 12px;
-  font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--eyebrow); font-weight: 600;
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 13px;
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--eyebrow);
 }
 .tk-drilldown details.dd-drawer > summary::-webkit-details-marker { display: none; }
 .tk-drilldown details.dd-drawer > summary::marker { content: ""; }
-.tk-drilldown details.dd-drawer > summary::after { content: "+"; float: right; }
-.tk-drilldown details.dd-drawer[open] > summary::after { content: "−"; }
+.tk-drilldown details.dd-drawer > summary::before {
+  content: "\25B6";
+  font-size: 8px; line-height: 1; color: var(--eyebrow); flex: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.tk-drilldown details.dd-drawer[open] > summary::before { transform: rotate(90deg); }
 .tk-drilldown details.dd-drawer > summary:hover { color: var(--color-text); }
-.tk-drilldown .dd-drawer-body { padding: 0 12px 14px; }
+/* No top padding: the body sits directly under the summary, and the outer 1px
+   box already contains it. */
+.tk-drilldown .dd-drawer-body { padding: 0 13px 13px; }
 .tk-drilldown .dd-drawer-body .dd-section:first-child { margin-top: 4px; }
 
 .risk-card {
