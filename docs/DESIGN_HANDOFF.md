@@ -47,8 +47,10 @@ market-dashboard/
 │   │                       #   contrarians, capex_pulse, macro, calendar
 │   ├── watchlist/          # watchlist.py (list), row.py (ticker row), drilldown.py (detail)
 │   ├── signal_tracker.py, retrospective.py, scenario_log.py,
-│   ├── pipeline_stats.py, report_comparison.py, terminology.py,
-│   ├── paper_book.py, trim_experiment.py
+│   ├── pipeline_stats.py, report_comparison.py, paper_book.py,
+│   ├── trim_experiment.py
+│   ├── terminology.py      # reference page: index rail, search, section render
+│   ├── terminology_content.py  #   its twelve sections as data (copy only)
 ├── data/                   # morning_report_YYYY-MM-DD.json (one per trading day),
 │                           #   changelog.json, capex_quarterly.json, earnings_cascades.json,
 │                           #   market_data.csv, claude_analysis.csv

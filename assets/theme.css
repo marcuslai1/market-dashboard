@@ -3504,3 +3504,288 @@ details.led-details[open] > summary {
   text-transform: uppercase; color: var(--color-text-3);
 }
 .pb-swatch { flex: none; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   TERMINOLOGY & METHOD — the reference document
+
+   A reference page is arrived at, not read, so the page is built for finding:
+   a sticky index rail, a search that drops non-matching sections, and three
+   visually distinct layers per entry (plain answer / precise rule / audit
+   trail). Colour marks CATEGORY here, never emphasis — squint and the page
+   should be near-monochrome with a few coloured pills. Emphasis comes from
+   size and weight, because a reference page that colours for emphasis becomes
+   unreadable at length.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Search ──
+   A form control in a line-drawing system: square, transparent, one hairline.
+   The focus ring is ACCENT — Streamlit's default primary ring is amber, and
+   amber is WATCH. No signal hue may ever appear on a form control; selecting
+   and searching are structure, so they take steel. */
+.st-key-term_search div[data-baseweb="input"],
+.st-key-term_search div[data-baseweb="base-input"] {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: 1px solid var(--color-divider) !important;
+}
+.st-key-term_search input {
+  background: transparent !important;
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--color-text) !important;
+  padding: 9px 12px !important;
+}
+.st-key-term_search input::placeholder {
+  color: var(--color-text-4); font-family: var(--font-body);
+}
+.st-key-term_search div[data-baseweb="input"]:focus-within {
+  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent); outline-offset: 2px;
+  box-shadow: none !important;
+}
+
+/* Idle it states the page's structure; with a query it reports the result
+   count. One element, two jobs — see status_line(). */
+.term-status {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--color-text-3); margin: 8px 0 28px;
+}
+
+/* ── Layout ──
+   220px rail + 1fr body. The 1fr is load-bearing: a content column with no
+   flexible track collapses to its minimum. align-items:start so the sticky
+   column is not stretched to the body's height (a stretched column cannot
+   stick). */
+.term-layout {
+  display: grid; grid-template-columns: 220px 1fr;
+  gap: 40px; align-items: start;
+}
+
+/* ── Index rail ──
+   Vertical, not a top nav bar: twelve entries with names as long as "Entry
+   Block & Catalyst Context" wrap into an unreadable block horizontally. Label
+   grammar identical to every other kicker on the site — this is navigation
+   chrome, never content, and steel is the structure colour. The strong rule
+   under the head is the same weight that opens a data zone elsewhere. */
+.term-index { position: sticky; top: 20px; }
+.term-index-head {
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-text-3);
+  border-bottom: 1px solid var(--color-text);
+  padding-bottom: 7px; margin-bottom: 4px;
+}
+.term-index-item {
+  display: block; font-family: var(--font-display); font-size: 10px;
+  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  line-height: 1.35; padding: 7px 0 7px 12px;
+  border-left: 2px solid var(--color-divider);
+  color: var(--eyebrow); text-decoration: none;
+}
+/* Streamlit underlines every anchor in a markdown container, and an underlined
+   nav rail reads as a stack of web links rather than as chrome — the one thing
+   the label grammar exists to prevent. Its rule wins on specificity, so this
+   one has to shout. */
+.term-index a.term-index-item,
+.term-index a.term-index-item:hover,
+.term-index a.term-index-item:visited { text-decoration: none !important; }
+a.term-index-item:hover {
+  color: var(--color-text); border-left-color: var(--accent);
+}
+/* Non-matching entries stay listed (the index is how a reader learns what the
+   page holds) but render as inert spans, dimmed. Matching ones take the accent
+   tick only while a search is actually narrowing the page. */
+.term-index-item.is-dim { color: var(--color-text-4); }
+.term-index:has(.is-dim) .is-match {
+  border-left-color: var(--accent); color: var(--color-text);
+}
+
+/* ── Sections ── */
+.term-section { scroll-margin-top: 24px; margin-bottom: 46px; }
+.term-section:last-child { margin-bottom: 10px; }
+.term-section .section-head { margin-top: 0; }
+
+/* Layer 1 — the plain answer. The heading font at body length reads as a
+   standfirst: visibly larger and airier than prose, which marks it as the
+   answer rather than the first of many paragraphs. Ninety percent of readers
+   can stop here and the design should let them. */
+.term-answer {
+  font-family: var(--font-display); font-size: 18px; font-weight: 400;
+  line-height: 1.5; color: var(--color-text);
+  max-width: 66ch; margin: 14px 0 20px;
+}
+.term-answer b { font-weight: 600; }
+
+.term-subhead {
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-text-3); margin: 26px 0 8px;
+}
+
+/* ── Layer 2a — formula plates ──
+   Transparent with a hairline box and one steel edge; the old plates carried a
+   --paper-3 fill, and filled surfaces break the line-drawing rule. Real
+   monospace is the single justified font exception on the site: formulas need
+   character alignment, and --mono is aliased to Barlow Condensed, which is
+   not monospaced. overflow-x so a long line scrolls rather than reflowing and
+   destroying the alignment. Variable names sit on the data axis (brass) — a
+   variable is a data reference and must not read as a signal or a link.
+
+   The element is a <div>, not a <pre> — Streamlit overrides the `pre` renderer
+   and a raw one arrives class-less with its newlines collapsed. Hence the
+   explicit white-space, and the font-style reset on <var>, whose browser
+   default is italic. */
+.term-plate {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 12.5px; line-height: 1.65; color: var(--color-text);
+  background: transparent; border: 1px solid var(--color-divider);
+  border-left: 2px solid var(--accent); border-radius: 0;
+  padding: 12px 14px; margin: 6px 0 20px;
+  white-space: pre-wrap; overflow-x: auto;
+}
+.term-plate var { color: var(--brass); font-style: normal; }
+
+/* ── Layer 2b — entry rows ──
+   Fixed label column, 1fr content, hairline rows. Every definition starts at
+   the same x, so labels form a scannable vertical edge. align-items:start,
+   never center — a two-line definition beside a one-word label top-aligns
+   rather than floating in the middle. Measure is capped on the TEXT, not by
+   narrowing the grid, so the column is not wasted. */
+.term-grid { margin: 6px 0 20px; border-top: 1px solid var(--color-divider); }
+.term-row {
+  display: grid; grid-template-columns: var(--label-w, 132px) 1fr;
+  gap: 18px; align-items: start;
+  padding: 11px 0; border-bottom: 1px solid var(--color-divider);
+}
+.term-label {
+  font-family: var(--font-display); font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0.03em; color: var(--color-text); line-height: 1.4;
+}
+.term-def {
+  font-family: var(--font-body); font-size: 13px; line-height: 1.6;
+  color: var(--color-text-2); max-width: 76ch;
+}
+.term-def b, .term-limit b, .term-note b { color: var(--color-text); font-weight: 600; }
+.term-def var, .term-def code,
+.term-door-body var, .term-note var {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px; color: var(--brass); font-style: normal;
+}
+/* The condition under a definition — quieter, because it answers "when", and
+   the reader is here for "what". */
+.term-trigger {
+  margin-top: 6px; font-size: 12px; line-height: 1.55;
+  color: var(--color-text-3);
+}
+
+/* Favourable → mixed → unfavourable. NOT the signal palette: an R:R band and
+   an earnings archetype are readings, not ratings, and amber here would read
+   as WATCH. Up-green / brass / terracotta is the site's good–bad axis outside
+   the six signals. */
+.term-grid-axis .term-row {
+  padding-left: 12px; border-left: 3px solid transparent;
+}
+.term-row[data-axis="good"]  { border-left-color: var(--up); }
+.term-row[data-axis="mixed"] { border-left-color: var(--brass); }
+.term-row[data-axis="poor"]  { border-left-color: var(--stress); }
+
+/* A cutoff is a measurement, so band chips sit on the data axis. */
+.term-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.term-chip {
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--brass); border: 1px solid var(--color-divider);
+  padding: 2px 7px;
+}
+.term-tag {
+  font-family: var(--font-display); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-3); border: 1px solid var(--color-divider);
+  padding: 1px 5px; margin-left: 6px;
+}
+
+/* The one or two places where the rule genuinely is a sentence. */
+.term-note {
+  font-family: var(--font-body); font-size: 13px; line-height: 1.65;
+  color: var(--color-text-2); max-width: 76ch; margin: 10px 0 18px;
+}
+
+/* ── The wait gradient ──
+   Four sentences describing a scale become the scale. Signal-palette colour is
+   legitimate: these ARE the signals. The bar carries the horizon that the
+   words "days / weeks / quarters" can only assert. */
+.term-gradient { margin: 8px 0 18px; }
+.tg-row {
+  display: grid; grid-template-columns: 84px 76px 1fr;
+  gap: 14px; align-items: center; padding: 9px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.tg-row[data-signal="HOLD"]    { --sig: var(--hold);    --sig-text: var(--hold-text); }
+.tg-row[data-signal="CAUTION"] { --sig: var(--caution); --sig-text: var(--caution-text); }
+.tg-row[data-signal="AVOID"]   { --sig: var(--avoid);   --sig-text: var(--avoid-text); }
+.tg-name {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--sig-text);
+}
+.tg-horizon {
+  font-family: var(--font-body); font-size: 12px; color: var(--color-text-3);
+}
+.tg-track { display: block; }
+.tg-bar { display: block; height: 8px; background: var(--sig); }
+
+/* ── Layer 3 — doors ──
+   Raw <details> because st.expander cannot live inside markdown-injected HTML,
+   but these ARE expanders to a reader, so they take the site's door grammar to
+   the letter: transparent, 1px hairline, square, ~38px tall, label at the
+   card-eyebrow size in steel, and a caret that ROTATES rather than swapping
+   glyphs so open and closed read as one object. */
+.term-door { border: 1px solid var(--color-divider); background: transparent; }
+.term-door + .term-door { margin-top: 9px; }
+.term-door:first-of-type { margin-top: 18px; }
+.term-door > summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 13px;
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--eyebrow);
+}
+.term-door > summary::-webkit-details-marker { display: none; }
+.term-door > summary::marker { content: ""; }
+.term-door > summary::before {
+  content: "\25B6";
+  font-size: 8px; line-height: 1; color: var(--eyebrow); flex: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.term-door[open] > summary::before { transform: rotate(90deg); }
+.term-door > summary:hover { color: var(--color-text); }
+.term-door > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.term-door-body { padding: 0 13px 13px; }
+.term-door-body p {
+  font-family: var(--font-body); font-size: 12.5px; line-height: 1.65;
+  color: var(--color-text-2); max-width: 74ch; margin: 4px 0 10px;
+}
+.term-door-body p:last-child { margin-bottom: 0; }
+.term-door-body b { color: var(--color-text); font-weight: 600; }
+
+/* Terracotta is the site's one colour for a trust limitation — a warning at a
+   glance that can never be mistaken for a signal. */
+.term-limits { margin: 12px 0 18px; }
+.term-limit {
+  border-left: 3px solid var(--stress); padding: 3px 0 3px 12px;
+  margin-bottom: 13px;
+  font-family: var(--font-body); font-size: 13px; line-height: 1.6;
+  color: var(--color-text-2); max-width: 76ch;
+}
+.term-limit:last-child { margin-bottom: 0; }
+
+.term-empty {
+  font-family: var(--font-body); font-size: 13.5px; line-height: 1.6;
+  color: var(--color-text-3); max-width: 66ch; padding: 22px 0;
+}
+
+/* The rail is an accelerator, not a requirement: below 900px it un-sticks and
+   lands above the content as a jump list. */
+@media (max-width: 900px) {
+  .term-layout { grid-template-columns: 1fr; gap: 22px; }
+  .term-index { position: static; }
+}

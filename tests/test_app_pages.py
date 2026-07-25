@@ -125,6 +125,83 @@ def test_terminology_defines_decay_half_life_and_shrinkage():
     assert "50%" in page               # the skeptical hit-rate prior
 
 
+# ── Terminology redesign (spec 2026-07-25) ──
+# The page is built for finding, so the tests are about finding: the index can
+# never drift from the sections, and search must actually remove sections rather
+# than merely highlight them. page_html/section_html are pure, so most of this
+# needs no AppTest run.
+
+
+def test_terminology_index_and_sections_cannot_drift():
+    """One array drives the rail and the body — the rule that keeps a
+    twelve-section reference page honest as sections are added."""
+    from components.terminology import SECTIONS, page_html
+
+    ids = [s["id"] for s in SECTIONS]
+    assert len(set(ids)) == len(ids), f"duplicate section ids: {ids}"
+
+    html = page_html(SECTIONS, set(ids))
+    for sid in ids:
+        assert html.count(f'id="{sid}"') == 1, f"{sid}: not exactly one anchor target"
+        assert html.count(f'href="#{sid}"') == 1, f"{sid}: not exactly one index link"
+
+
+def test_terminology_every_section_has_a_plain_answer_and_keywords():
+    """Layer 1 is the whole premise: if a section has no plain answer, the
+    reader who arrived for one term has nothing to read. The keyword string IS
+    the search index — a section without one is unfindable."""
+    from components.terminology import SECTIONS
+
+    for sec in SECTIONS:
+        assert sec["answer"].strip(), f"{sec['id']}: no plain-language answer"
+        assert len(sec["kw"].split()) >= 4, f"{sec['id']}: keyword list too thin"
+
+
+def test_terminology_history_doors_are_dated():
+    """Method history is shelved separately from definition, and the date rides
+    in the summary so a reader can judge relevance without opening it."""
+    import re
+
+    from components.terminology import SECTIONS, section_html
+
+    dated = 0
+    for sec in SECTIONS:
+        html = section_html(sec)
+        for date, label, _ in sec["history"]:
+            assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", date), f"{sec['id']}: {date!r}"
+            assert f"Method history · {label} · {date}" in html
+            dated += 1
+    assert dated >= 4, "expected the 07-18/05-30 method notes to survive as history"
+
+
+def test_terminology_search_removes_non_matching_sections():
+    """Section-level and decisive. A glossary lookup is 'which part of the page
+    covers this', not 'highlight every occurrence' — hiding answers that
+    question; highlighting leaves you still scrolling."""
+    at = AppTest.from_function(_terminology_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
+
+    at.text_input(key="term_search").set_value("peg").run()
+    assert not at.exception, f"search: {[e.value for e in at.exception]}"
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert 'id="valuation"' in page, "the matching section was dropped"
+    assert 'id="rr"' not in page, "a non-matching section still rendered"
+    assert "1 of 12 sections matches" in page
+    # The rail still lists everything: it is how a reader learns what exists.
+    assert page.count("term-index-item") == 12
+
+
+def test_terminology_no_match_says_so():
+    at = AppTest.from_function(_terminology_page_app, default_timeout=30)
+    at.run()
+    at.text_input(key="term_search").set_value("zzzz").run()
+    assert not at.exception, f"no-match: {[e.value for e in at.exception]}"
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "No section matches that term" in page
+    assert "0 of 12 sections match" in page
+
+
 def test_briefing_renders_action_card():
     """The single-action callout stays on the Briefing (design-spec §1 block 4).
     Post-overhaul it composes into the 1.55fr/1fr grid via action_card_html, so
