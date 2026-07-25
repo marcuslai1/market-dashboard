@@ -1,7 +1,14 @@
 """Paper-book band reducers + renderers (spec 2026-07-05-paper-book-band)."""
 import pandas as pd
 
-from components.paper_book import rebase_curves, select_policy, verdict_bits
+from components.paper_book import (
+    _stats_html,
+    _verdict_html,
+    rebase_curves,
+    select_policy,
+    verdict_bits,
+)
+from lib.charts import STATUS_NEG, STATUS_POS
 
 
 def _nav_df(policy="v1_flat10"):
@@ -75,9 +82,14 @@ def test_rebase_empty_input():
 def test_verdict_trailing():
     text, tone = verdict_bits({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
                                "inception": "2026-04-19"})
-    assert "+4.2%" in text and "+6.1%" in text and "2026-04-19" in text
+    assert "+4.2%" in text and "+6.1%" in text
+    # Humanised inception: the section head already says "paper book", so the
+    # sentence spends its words on the reading, not on ISO punctuation.
+    assert "19 Apr 2026" in text
     # dollar-pot framing (2026-07-17): $100,000 start and both endpoints
     assert "$100,000" in text and "$104,200" in text and "$106,100" in text
+    assert "against SPY at" in text
+    assert not text.startswith("Paper book:")
     assert "trailing" in text
     assert tone == "neg"
 
@@ -86,6 +98,32 @@ def test_verdict_leading():
     text, tone = verdict_bits({"nav_return_pct": 8.0, "spy_return_pct": 6.1})
     assert "leading" in text
     assert tone == "pos"
+
+
+def test_verdict_html_trailing_clause_is_terracotta_not_caution_red():
+    """A stress reading on the book's own performance — not a signal on any
+    stock, so it must not borrow the CAUTION hue."""
+    html = _verdict_html({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
+                          "inception": "2026-04-19"})
+    assert "var(--stress)" in html
+    assert STATUS_NEG not in html
+
+
+def test_verdict_html_returns_carry_market_direction():
+    html = _verdict_html({"nav_return_pct": 8.0, "spy_return_pct": 6.1})
+    assert "var(--up)" in html
+
+
+def test_stats_are_neutral_inputs_not_verdicts():
+    """Cash / positions / entries / add-ons / stop-outs are counts. Colouring
+    them would imply 15 stop-outs is 'bad'."""
+    html = _stats_html({"cash_pct": 42.0, "n_positions": 7,
+                        "trade_counts": {"buy_signal": 5, "accumulate_tranche": 3,
+                                         "stop": 15}})
+    assert 'class="hair-grid pb-stats"' in html
+    assert html.count('class="stat-tick"') == 5
+    for token in ("var(--up)", "var(--down)", "var(--stress)", "var(--brass)"):
+        assert token not in html
 
 
 def test_verdict_seeded_when_returns_none():
@@ -108,14 +146,34 @@ _VARIANTS = [
 ]
 
 
-def test_variants_html_renders_advisory_lanes():
-    html = _variants_html({"variants": _VARIANTS})
-    assert 'class="pb-variants"' in html
+def test_lane_grid_renders_one_cell_per_lane():
+    html = _variants_html({"variants": _VARIANTS, "nav_return_pct": 3.5,
+                           "policy_id": "v1_flat10",
+                           "trade_counts": {"stop": 15}})
+    assert 'class="hair-grid pb-lanes"' in html
+    assert html.count('class="pb-lane"') == 4      # three variants + headline
     assert "trail" in html and "+1.1%" in html and "18 stop-outs" in html
     assert "no-stop" in html and "+4.0%" in html and "0 stop-outs" in html
-    assert "<b>wide</b>" in html and "+8.3%" in html and "8 stop-outs" in html
+    assert "wide" in html and "+8.3%" in html and "8 stop-outs" in html
     assert "v1_wide10" not in html            # labeled, not raw policy_id
     assert "verdict" not in html.lower()      # framing lives in the banner
+
+
+def test_headline_lane_carries_the_steel_rail_and_says_so():
+    """Without the flag a reader cannot tell which of these numbers is the real
+    book — and +8.3% on the wide lane would look like the headline result."""
+    html = _variants_html({"variants": _VARIANTS, "nav_return_pct": 3.5,
+                           "policy_id": "v1_flat10",
+                           "trade_counts": {"stop": 15}})
+    assert html.count('data-flag="1"') == 1
+    assert "· headline" in html
+
+
+def test_lane_returns_are_brass_and_counts_neutral():
+    html = _variants_html({"variants": _VARIANTS})
+    assert 'class="pb-lane-ret"' in html
+    assert 'class="pb-lane-stops"' in html
+    assert STATUS_POS not in html and STATUS_NEG not in html
 
 
 def test_variants_html_skips_malformed_and_escapes_unknown_ids():
@@ -140,7 +198,7 @@ def test_variants_html_leads_with_labeled_headline_lane():
     block = {"policy_id": "v1_flat10", "nav_return_pct": 3.52,
              "trade_counts": {"stop": 13}, "variants": _VARIANTS}
     html = _variants_html(block)
-    assert "<b>flat</b> +3.5%" in html
+    assert "flat" in html and "+3.5%" in html
     assert "13 stop-outs" in html
     assert "headline" in html                 # the lane is named as the book's own
     assert html.index("flat") < html.index("trail")
@@ -228,7 +286,7 @@ def test_advisory_note_names_lanes_and_caveat():
 
 
 # ── renderers ──
-from components.paper_book import _positions_table_html, _stats_html, _verdict_html
+from components.paper_book import _positions_table_html
 
 _BLOCK = {
     "policy_id": "v1_flat10", "inception": "2026-04-19", "as_of": "2026-07-03",
@@ -877,3 +935,64 @@ def test_render_paper_book_without_trades_is_unchanged():
     joined = " ".join(m.value for m in at.markdown)
     assert "completed trade" not in joined         # no history, no verdict line
     assert "P&amp;L so far" not in joined          # positions table as today
+
+
+# ── Redesign (spec 2026-07-25 §6.3): chart chrome ──
+from components.paper_book import _chart_head_html, _legend_swatch, _nav_fig
+from lib.charts import CHART_ACCENT, CHART_ACCENT_SOFT, CHART_MUTED
+
+_REBASED = pd.DataFrame({"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
+                         "Paper book": [100000.0, 99710.0],
+                         "SPY": [100000.0, 104430.0]})
+
+
+def test_legend_swatch_is_a_real_line_sample():
+    """Legend and plot must use identical encoding, so the swatch is the series'
+    actual width and dash pattern — not a colour square."""
+    solid = _legend_swatch("var(--brass)", 2.4, dash=False)
+    dashed = _legend_swatch(CHART_MUTED, 1.4, dash=True)
+    assert "<svg" in solid and 'stroke-width="2.4"' in solid
+    assert "stroke-dasharray" in dashed
+    assert "stroke-dasharray" not in solid
+    assert "non-scaling-stroke" in solid
+
+
+def test_chart_head_carries_the_axis_eyebrow_and_a_legend_entry_per_series():
+    html = _chart_head_html(_REBASED, None)
+    assert "pb-chart-head" in html
+    assert html.count("<svg") == 2
+    assert "Paper book" in html and "SPY" in html
+    assert "value of" in html.lower()          # the axis description
+    assert html.count('class="corner') == 4    # blueprint registration marks
+    assert "$" not in html                     # escaped for the markdown parser
+
+
+def test_nav_fig_hides_plotly_legend_and_ranks_series_by_weight():
+    """Hierarchy by weight, not just hue: the subject is heaviest, the benchmark
+    thinner, the hypothetical replays thinnest and dashed."""
+    fig = _nav_fig(_REBASED, None)
+    assert fig.layout.showlegend is False
+    widths = {tr.name: tr.line.width for tr in fig.data}
+    assert widths["Paper book"] == 2.4
+    assert widths["SPY"] == 1.6
+
+
+def test_advisory_lanes_are_neutral_and_brass_not_two_more_categories():
+    """Two arbitrary palette hues read as two more categories; neutral plus a
+    brass tint reads as 'variants of the subject and the benchmark'. The tint is
+    NOT the subject's own brass — a replay must not look like the book."""
+    from components.paper_book import _ADVISORY_COLORS
+    assert set(_ADVISORY_COLORS.values()) == {CHART_MUTED, CHART_ACCENT_SOFT}
+    assert CHART_ACCENT not in _ADVISORY_COLORS.values()
+
+
+def test_lane_labels_fall_back_to_the_chart_legend_names():
+    """The exported variants array carries the ext-exit replays too. As a cell
+    title a raw policy_id sits beside four clean labels, so every id we already
+    have a name for must use it."""
+    html = _variants_html({"variants": [
+        {"policy_id": "v1_trail10", "nav_return_pct": 1.0, "stops": 18},
+        {"policy_id": "v1_tc_ext_100", "nav_return_pct": 5.1, "stops": 10},
+    ]})
+    assert "ext-exit 10/5" in html
+    assert "v1_tc_ext_100" not in html
