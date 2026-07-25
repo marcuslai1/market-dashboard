@@ -7,6 +7,8 @@ Streamlit calls. Drives the click-to-expand watchlist grid in
 """
 from __future__ import annotations
 
+import re
+
 from components.watchlist.drilldown import render_drilldown_detail_html
 from components.watchlist.gauge import extension_gauge_html
 from lib.catalog import CLUSTER_MAP
@@ -33,6 +35,30 @@ def _pct_cell(value, decimals: int) -> str:
     if value is None:
         return "—"
     return f"{_sign(value)}{_fmt_num(value, decimals)}%"
+
+
+def _rr_cell(label: str, adjusted: bool) -> tuple[str, str]:
+    """``(value, sub)`` for the R:R cell.
+
+    Two cases need a sub-line. An *adjusted* ratio says so, because the visible
+    figure is the tight-stop-corrected one and that is the difference between a
+    1.5:1 that clears the gate and one that doesn't.
+
+    And a *non-ratio* label — the pipeline's "N/A -- at or below invalidation"
+    for a name sitting under its own stop — is a sentence, which wrapped to three
+    lines in a 96px column and made its row visibly taller than its neighbours.
+    On a scanning surface uniform row height is what lets the eye run a column,
+    so the value collapses to "n/a" and the reason drops to the sub-line. Not a
+    hover title: a title is invisible on touch, which is the bug this cell's
+    other half exists to fix.
+    """
+    if not label:
+        return "—", ""
+    if ":" in label:
+        return label, "tight-stop adj." if adjusted else ""
+    # "N/A -- reason" / "N/A — reason" / bare "N/A"
+    reason = re.split(r"\s*(?:--|—|-)\s*", label, maxsplit=1)
+    return "n/a", reason[1].strip() if len(reason) > 1 else ""
 
 
 def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
@@ -83,10 +109,9 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
         else "cold" if rsi is not None and rsi <= 30
         else ""
     )
-    # The qualifier moves out of the hover title and onto a visible second line.
-    # A title is invisible on touch and to anyone not hunting for it, and this is
-    # the difference between a 1.5:1 that clears the gate and one that doesn't.
-    rr_sub = '<div class="tk-rr-sub">tight-stop adj.</div>' if rr_adjusted else ''
+    rr_val, rr_sub_text = _rr_cell(rr_label, rr_adjusted)
+    rr_sub = (f'<div class="tk-rr-sub">{_escape_dollars(rr_sub_text)}</div>'
+              if rr_sub_text else '')
 
     summary = (
         '<summary>'
@@ -104,7 +129,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
         f'{extension_gauge_html(vs50)}'
         f'<div class="tk-rsi" data-zone="{rsi_zone}">{_fmt_num(rsi, 0)}</div>'
         f'<div class="tk-rr"{rr_title}>'
-        f'<div class="tk-rr-val">{rr_label or "—"}</div>{rr_sub}</div>'
+        f'<div class="tk-rr-val">{rr_val}</div>{rr_sub}</div>'
         '</summary>'
     )
 

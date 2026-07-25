@@ -416,7 +416,16 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
     price_str = _p(price) if price is not None else "—"
     wu = _writeup_for_render(d)
 
-    left = _technicals_pairs_html(d, _p) + _valuation_pairs_html(d)
+    # Each half of the left column gets its own eyebrow. Without them the two
+    # sets run together into one undifferentiated nineteen-row list, and a reader
+    # cannot tell where the tape readings end and the multiples begin — the right
+    # column already labels its parts, so this is also the consistent treatment.
+    tech = _technicals_pairs_html(d, _p)
+    val = _valuation_pairs_html(d)
+    left = (
+        (f'<div class="dd-eyebrow">Technicals</div>{tech}' if tech else "")
+        + (f'<div class="dd-eyebrow">Valuation</div>{val}' if val else "")
+    )
     right = _thesis_html(d)
     cols = (
         f'<div class="dd-cols"><div class="dd-col-left">{left}</div>'

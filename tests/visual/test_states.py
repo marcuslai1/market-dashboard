@@ -46,12 +46,16 @@ def test_watchlist_nvda_drilldown(streamlit_server, vpage):
     """Expand the NVDA watchlist row and snapshot its revealed drill-down."""
     goto_and_settle(vpage, f"{streamlit_server}/watchlist")
 
-    # The NVDA row is the one <details class="tk-details"> whose summary carries
-    # the ticker cell with exact text "NVDA" (verified unique: 1 of 29 rows).
+    # The NVDA row is the one <details class="tk-details"> whose SUMMARY's ticker
+    # cell reads exactly "NVDA". Both halves of that are load-bearing since the
+    # 2026-07-25 redesign: the ticker now also appears in the drill-down card's
+    # own header, and the drill-down carries three nested <details class=
+    # "dd-drawer"> — so a bare get_by_text("NVDA") can match twice per row and a
+    # bare .locator("summary") resolves to four elements and trips strict mode.
     nvda = vpage.locator(
-        "details.tk-details", has=vpage.get_by_text("NVDA", exact=True)
+        'details.tk-details:has(> summary .tk-tick-tk:text-is("NVDA"))'
     )
-    nvda.locator("summary").click()
+    nvda.locator("> summary").click()
 
     # Verify the expansion actually happened before snapshotting: the native
     # <details> is now open and its drill-down body is visible (collapsed rows
