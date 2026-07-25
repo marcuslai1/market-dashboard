@@ -1,33 +1,53 @@
-"""Watchlist drill-down detail HTML builder.
+"""Watchlist drill-down card — the body that unfolds beneath a clicked row.
 
-Pure HTML-string generation — no Streamlit calls. The output is intended to be
-embedded inside a ``<details>`` element rendered by ``components.watchlist.row``.
+Pure HTML-string generation — no Streamlit calls. The output is embedded inside
+the ``<details>`` element rendered by ``components.watchlist.row``.
+
+**Reading order is the whole argument** (spec 2026-07-25 §9). The shipped version
+stacked fifteen undifferentiated ``dd-section`` blocks, so the fact that a trade
+was *blocked* could sit below four paragraphs of analysis. This version is
+ordered by consequence:
+
+1. identity — restated, because an open drill-down can be taller than the
+   viewport and lose the row that opened it;
+2. flags — the status chips, the reasons this name is rated the way it is;
+3. the entry block — the single most consequential fact, so it goes first;
+4. the verdict headline, then what changed, then what to do;
+5. the levels plate — what you would actually act on;
+6. the evidence, in two columns: measurements left, the argument right;
+7. three collapsed drawers for the material only an auditor wants.
+
+Colour is by role throughout (spec §2): the signal palette appears only on the
+card's rail and its pill; ``--up``/``--down`` mean price direction; ``--brass``
+means measurement; ``--stress`` means a gate, a threshold crossed, or a
+falsifier. A *reason* for a rating never wears the rating's own colour.
 """
 from __future__ import annotations
 
+from components.watchlist.drilldown_drawers import (
+    STRESS,
+    render_drawers_html,
+)
 from lib.catalog import CLUSTER_MAP
 from lib.charts import (
-    ACCENT_LINK,
     STATUS_INFO,
-    STATUS_MUTED,
     STATUS_NEG,
     STATUS_NEUTRAL,
     STATUS_POS,
     STATUS_WARN,
-    STATUS_WARN_SOFT,
 )
 from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
+    _escape_attr,
     _escape_dollars,
     _fmt_num,
-    _safe_href,
     _sign,
+    _writeup_for_render,
+    display_ticker,
 )
-
-
-def _drilldown_section_html(title: str) -> str:
-    return f'<div class="dd-section">{title}</div>'
+from lib.levels import rr_level, trade_levels
+from lib.pills import _signal_pill_html
 
 
 def _consensus_str(rec, n_analysts) -> str:
@@ -44,188 +64,217 @@ def _consensus_str(rec, n_analysts) -> str:
     return label
 
 
-def _drilldown_metrics_html(items: list[tuple]) -> str:
-    """Metric grid. Items are ``(label, value)`` or ``(label, value, colour)``.
+def _pairs_html(items: list[tuple]) -> str:
+    """Label/value reference rows on dashed hairlines.
 
-    The optional third element tints the VALUE — use the price up/down palette
-    for directional figures (an "avg down move" should read as a down move) or
-    the data palette; never a signal hue, which belongs only on pills and rails.
+    Dashed, not solid, to distinguish "reference rows inside a card" from the
+    solid row dividers of the table above. Items are ``(label, value)`` or
+    ``(label, value, colour)``; absent values drop out entirely rather than
+    printing an em-dash, so a thin report shows a short list, not a list of gaps.
     """
     visible = [it for it in items if it[1] not in (None, "", "—")]
     if not visible:
         return ""
-    cells = ""
+    rows = ""
     for item in visible:
-        label, value = item[0], item[1]
         colour = item[2] if len(item) > 2 else ""
         style = f' style="color:{colour};"' if colour else ""
-        cells += (
-            f'<div class="dd-metric"><div class="lbl">{label}</div>'
-            f'<div class="val"{style}>{value}</div></div>'
+        rows += (
+            f'<div class="dd-pair"><span class="dd-pair-lbl">{item[0]}</span>'
+            f'<span class="dd-pair-val"{style}>{item[1]}</span></div>'
         )
-    return f'<div class="dd-metric-grid">{cells}</div>'
+    return rows
 
 
-# ── Earnings history (quarter-on-quarter expected vs actual) ──────────────────
+# ── 1. Identity ───────────────────────────────────────────────────────────────
 
-def _eh_num(v):
-    """The value, or None for missing / NaN (CSV records carry float NaN)."""
-    if v is None:
-        return None
-    if isinstance(v, float) and v != v:
-        return None
-    return v
+def _header_html(tk: str, d: dict, price_str: str) -> str:
+    """Ticker + cluster left, last price + signal pill right.
 
-
-def _eh_big(v) -> str:
-    """Big currency figure with T/B/M suffix (scale-clear, currency-agnostic)."""
-    v = _eh_num(v)
-    if v is None:
-        return "—"
-    try:
-        v = float(v)
-    except (TypeError, ValueError):
-        return "—"
-    a = abs(v)
-    if a >= 1e12:
-        return f"{v / 1e12:.2f}T"
-    if a >= 1e9:
-        return f"{v / 1e9:.2f}B"
-    if a >= 1e6:
-        return f"{v / 1e6:.1f}M"
-    return _fmt_num(v, 0)
-
-
-def _eh_surprise_html(s) -> str:
-    """Beat/miss cell — ▲ green / ▼ red / — muted. Icon + %, never color-alone."""
-    s = _eh_num(s)
-    if s is None:
-        return '<span class="eps-flat">—</span>'
-    if s > 0:
-        return f'<span class="eps-beat">▲ +{_fmt_num(s, 1)}%</span>'
-    if s < 0:
-        return f'<span class="eps-miss">▼ {_fmt_num(s, 1)}%</span>'
-    return f'<span class="eps-flat">{_fmt_num(s, 1)}%</span>'
-
-
-def _eh_sparkline_svg(vals_chrono, w: int = 128, h: int = 26, pad: int = 4) -> str:
-    """Inline SVG trend line of reported EPS (oldest→latest). '' if < 2 points."""
-    pts = [float(v) for v in vals_chrono if _eh_num(v) is not None]
-    if len(pts) < 2:
-        return ""
-    lo, hi = min(pts), max(pts)
-    rng = (hi - lo) or 1.0
-    n = len(pts)
-
-    def _x(i):
-        return pad + (w - 2 * pad) * (i / (n - 1))
-
-    def _y(v):
-        return pad + (h - 2 * pad) * (1 - (v - lo) / rng)
-
-    poly = " ".join(f"{_x(i):.1f},{_y(v):.1f}" for i, v in enumerate(pts))
-    ex, ey = _x(n - 1), _y(pts[-1])
-    return (
-        f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}" '
-        f'preserveAspectRatio="none" role="img" aria-label="Reported EPS trend, '
-        f'oldest to latest">'
-        f'<polyline points="{poly}" fill="none" stroke="var(--ink-3)" '
-        f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-        f'<circle cx="{ex:.1f}" cy="{ey:.1f}" r="2.6" fill="var(--ink)"/></svg>'
-    )
-
-
-def _earnings_history_html(rows) -> str:
-    """Quarter-on-quarter expected-vs-actual table + a reported-EPS sparkline.
-
-    ``rows`` are the ticker's ``earnings_history`` records, newest quarter first
-    (as exported). Returns '' when empty. The coming (not-yet-reported) quarter
-    renders as a tinted 'upcoming' row carrying the estimate only — revenue there
-    is the forward consensus snapshot (marked ``est``), not an actual.
+    Restates identity because the drill-down can be taller than the viewport, and
+    a reader who has scrolled into the evidence needs to know whose evidence it is.
     """
-    if not rows:
-        return ""
-    trs = []
-    reported_eps_newest_first = []
-    for r in rows:
-        label = r.get("fiscal_label") or r.get("quarter_end") or "—"
-        est = _eh_num(r.get("eps_estimate"))
-        act = _eh_num(r.get("eps_actual"))
-        est_s = _fmt_num(est, 2) if est is not None else "—"
-        if act is None:                                   # coming quarter
-            rev = _eh_big(r.get("revenue_estimate"))
-            rev_s = (f'{rev} <span class="eps-flat" style="font-size:9px;">est</span>'
-                     if rev != "—" else "—")
-            cells = (
-                f'<td class="num" data-l="EPS est">{est_s}</td>'
-                f'<td class="num" data-l="EPS act"><span class="eps-flat">—</span></td>'
-                f'<td class="num" data-l="Surprise">'
-                f'<span style="font-family:var(--mono);font-size:9px;'
-                f'letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-3);'
-                f'border:1px solid var(--rule-strong);border-radius:3px;'
-                f'padding:1px 5px;">upcoming</span></td>'
-                f'<td class="num" data-l="Revenue">{rev_s}</td>'
-                f'<td class="num" data-l="Rev YoY">—</td>'
-                f'<td class="num" data-l="Gross m.">—</td>'
-                f'<td class="num" data-l="Op m.">—</td>'
-            )
-            trs.append(f'<tr style="background:rgba(52,152,219,0.05);">'
-                       f'<td>{label}</td>{cells}</tr>')
-            continue
-        reported_eps_newest_first.append(act)
-        yoy = _eh_num(r.get("revenue_yoy_pct"))
-        gm = _eh_num(r.get("gross_margin_pct"))
-        om = _eh_num(r.get("operating_margin_pct"))
-        trs.append(
-            f'<tr><td>{label}</td>'
-            f'<td class="num" data-l="EPS est">{est_s}</td>'
-            f'<td class="num" data-l="EPS act">{_fmt_num(act, 2)}</td>'
-            f'<td class="num" data-l="Surprise">'
-            f'{_eh_surprise_html(r.get("eps_surprise_pct"))}</td>'
-            f'<td class="num" data-l="Revenue">{_eh_big(r.get("revenue_actual"))}</td>'
-            f'<td class="num" data-l="Rev YoY">'
-            f'{f"{_sign(yoy)}{_fmt_num(yoy, 1)}%" if yoy is not None else "—"}</td>'
-            f'<td class="num" data-l="Gross m.">'
-            f'{f"{_fmt_num(gm, 1)}%" if gm is not None else "—"}</td>'
-            f'<td class="num" data-l="Op m.">'
-            f'{f"{_fmt_num(om, 1)}%" if om is not None else "—"}</td></tr>'
+    sig = d.get("signal", "HOLD")
+    return (
+        '<div class="dd-head">'
+        f'<div class="dd-head-id">'
+        f'<div class="dd-head-tk">{_escape_dollars(display_ticker(tk))}</div>'
+        f'<div class="dd-head-sub">{CLUSTER_MAP.get(tk, "")}</div></div>'
+        f'<div class="dd-head-right"><div class="dd-head-px">{price_str}</div>'
+        f'{_signal_pill_html(sig)}</div>'
+        '</div>'
+    )
+
+
+# ── 2. Flags ──────────────────────────────────────────────────────────────────
+
+#: Why a name carries the rating it does. These are *reasons*, so they take
+#: terracotta (a gate condition) or steel (context) — never the signal hues,
+#: which would read as a second verdict beside the pill three inches away.
+_CAUTION_SOURCE_LABELS = {
+    "hard_block": ("Mechanical hard block", STRESS),
+    "claude_override": ("Judgment override", STRESS),
+    "base_scorer": ("Soft caution (base scorer)", STRESS),
+    "rr_gate_fail": ("R:R gate failed", STRESS),
+    "catalyst_override": ("Catalyst override", STATUS_INFO),
+    "rcp_terminal": ("RCP terminal", STRESS),
+    "fragility_single_leg": ("Fragility gate — single leg", STRESS),
+    "avoid_source_missing": ("AVOID unsourced", STRESS),
+}
+
+_SKEW_COLORS = {
+    "bullish": STATUS_POS,
+    "bearish": STATUS_NEG,
+    "mixed": STATUS_WARN,
+    "neutral": STATUS_NEUTRAL,
+}
+
+
+def _chip(text: str, color: str, bg: str = "rgba(255,255,255,0.05)",
+          spaced: bool = True) -> str:
+    ls = "0.10em" if spaced else "0.06em"
+    return (
+        f'<span style="font-family:var(--mono);font-size:10.5px;'
+        f'letter-spacing:{ls};background:{bg};color:{color};'
+        f'padding:3px 8px;border-radius:3px;">{text}</span>'
+    )
+
+
+def _status_chips_html(d: dict) -> str:
+    """The row's flags. Silent on a clean name with no advisories.
+
+    Kept visible rather than drawered: these are the reasons behind the rating,
+    and hiding them would make the pill look unexplained.
+    """
+    chips: list[str] = []
+    signal = d.get("signal", "")
+    caution_source = d.get("caution_source")
+    if caution_source and signal not in {"BUY", "HOLD"}:
+        # Mapped ids show the plain-English label alone — repeating the raw id
+        # beside it leaked pipeline vocabulary into the UI (UX 2026-07-07).
+        # Unmapped ids fall back to the raw id: it is the only label we have.
+        label, color = _CAUTION_SOURCE_LABELS.get(
+            caution_source, (caution_source, STATUS_NEUTRAL)
         )
-    # Sparkline reads oldest→latest; reported rows arrive newest-first.
-    spark = _eh_sparkline_svg(list(reversed(reported_eps_newest_first)))
-    spark_html = (
-        f'<div style="display:flex;align-items:center;gap:8px;margin:2px 0 8px;">'
-        f'<span style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;'
-        f'text-transform:uppercase;color:var(--ink-3);">Reported EPS</span>{spark}</div>'
-        if spark else ""
+        chips.append(_chip(
+            f'<span style="text-transform:uppercase;">{label}</span>', color
+        ))
+    if d.get("momentum_warn"):
+        # Plain-English label; the reason strings stay verbatim — they are report
+        # data (thresholds included), only the chrome is ours. Terracotta, not
+        # amber: a tape divergence is a data condition, and amber is WATCH.
+        reasons = d.get("momentum_warn_reasons") or []
+        reason_str = "; ".join(reasons) if reasons else "tape diverging"
+        chips.append(_chip(
+            f'Momentum warning · {_escape_dollars(reason_str)}', STRESS,
+            "rgba(224,138,128,0.14)", spaced=False,
+        ))
+    anomaly = d.get("data_anomaly")
+    if anomaly:
+        text = str(anomaly).replace("_", " ").replace("=", " = ")
+        chips.append(_chip(
+            f'data anomaly · {_escape_dollars(text)}', STRESS,
+            "rgba(224,138,128,0.14)", spaced=False,
+        ))
+    # News-sentiment skew (P1-2 slice) — the pipeline's per-name read of the day's
+    # headlines. Keeps up/down: this genuinely IS market direction.
+    skew = d.get("news_sentiment_skew")
+    if skew in _SKEW_COLORS:
+        chips.append(_chip(
+            f'<span style="text-transform:uppercase;">news · {skew}</span>',
+            _SKEW_COLORS[skew],
+        ))
+    # Premarket chip — the pipeline-authored phrase captured at report generation,
+    # coloured by the move's sign. Snapshot-time context, deliberately not a live
+    # quote.
+    pm = d.get("premarket") or {}
+    phrase = pm.get("phrase")
+    if phrase:
+        pm_chg = pm.get("pm_chg_pct") or 0
+        color = (STATUS_POS if pm_chg > 0
+                 else STATUS_NEG if pm_chg < 0
+                 else STATUS_NEUTRAL)
+        chips.append(_chip(_escape_dollars(phrase), color, spaced=False))
+    if not chips:
+        return ""
+    return ('<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
+            + "".join(chips) + '</div>')
+
+
+# ── 3-4. The entry block, then the verdict ────────────────────────────────────
+
+def _entry_block_html(d: dict, wu: dict) -> str:
+    """The trade is blocked — stated before any analysis, on a terracotta rail.
+
+    Terracotta because it is a gate condition, not a rating. Prefers the
+    pipeline's plain-language ``entry_block_reader`` (top-level, present from
+    2026-07-18 on); older reports fall back to the raw rule string, which rides
+    the title attribute either way for grep-ability.
+    """
+    raw = wu.get("entry_block")
+    if not raw:
+        return ""
+    reader_text = d.get("entry_block_reader") or raw
+    return (
+        f'<div class="dd-entry-block" title="{_escape_attr(raw)}">'
+        f'ENTRY BLOCK · {_escape_dollars(reader_text)}</div>'
     )
-    table = (
-        '<div class="tk-scroll"><table class="ep-table stack-m">'
-        '<thead><tr><th>Quarter</th><th class="num">EPS est</th>'
-        '<th class="num">EPS act</th><th class="num">Surprise</th>'
-        '<th class="num">Revenue</th><th class="num">Rev YoY</th>'
-        '<th class="num">Gross m.</th><th class="num">Op m.</th></tr></thead>'
-        f'<tbody>{"".join(trs)}</tbody></table></div>'
+
+
+def _verdict_html(wu: dict) -> str:
+    """Headline, then what changed since yesterday, then what to do.
+
+    Verdict-first: the headline is the largest text in the block. The delta
+    narrative is the only italic here, so it reads as a parenthetical update
+    rather than part of the thesis. "What to do" is the largest and darkest prose,
+    because it is the actionable instruction — everything below it is evidence.
+    """
+    parts: list[str] = []
+    if wu.get("headline"):
+        parts.append(
+            f'<div class="dd-verdict">{_escape_dollars(wu["headline"])}</div>'
+        )
+    delta = wu.get("prior_period_delta_narrative")
+    if delta:
+        parts.append(f'<div class="dd-delta">{_escape_dollars(delta)}</div>')
+    if wu.get("what_to_do"):
+        parts.append(
+            f'<div class="dd-whatdo">{_escape_dollars(wu["what_to_do"])}</div>'
+        )
+    return "".join(parts)
+
+
+# ── 5. The levels plate ───────────────────────────────────────────────────────
+
+def _levels_plate_html(d: dict, ccy: str) -> str:
+    """Trigger / target / invalidation / R:R in a four-cell hairline grid.
+
+    Promoted out of the old section stack because **price levels are what you act
+    on** — they should be findable without reading. The field mapping is shared
+    with the Briefing action card's three-cell triplet (``lib.levels``); this is
+    the same device one size up, with the ratio added.
+    """
+    cells = trade_levels(d, ccy, entry_label="Trigger")
+    if not cells:
+        return ""
+    rr = rr_level(d.get("risk_reward"))
+    if rr:
+        cells = [*cells, rr]
+    return (
+        '<div class="dd-levels">'
+        + "".join(
+            f'<div class="dd-lv"><div class="dd-lv-lbl">{c.label}</div>'
+            f'<div class="dd-lv-val" style="color:{c.color};">{c.value}</div>'
+            f'<div class="dd-lv-sub">{c.sub}</div></div>'
+            for c in cells
+        )
+        + '</div>'
     )
-    return spark_html + table
 
 
-def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
-    """HTML-string version of _render_drilldown_detail — returns one block of HTML
-    suitable for embedding inside a <details> element. No Streamlit calls.
+# ── 6. The evidence, two columns ──────────────────────────────────────────────
 
-    ``earnings_hist`` (optional) is the ticker's ``earnings_history`` records
-    (newest quarter first) for the quarter-on-quarter expected-vs-actual table;
-    the caller loads + filters the CSV so this stays Streamlit-free."""
-    ccy = d.get("currency", "USD")
-    pfx = _ccy_prefix(ccy)
-    dec = _ccy_decimals(ccy)
-
-    def _p(v) -> str:
-        """Currency-prefixed price with the right decimal count for this ticker."""
-        return f"{pfx}{_fmt_num(v, dec)}"
-
-    val = d.get("valuation", {}) or {}
-    rr_obj = d.get("risk_reward", {}) or {}
+def _technicals_pairs_html(d: dict, price_fn) -> str:
     sma50 = d.get("sma50")
     sma50_rising = d.get("sma50_rising")
     sma_status = (
@@ -233,501 +282,25 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
         else "declining" if sma50_rising is False
         else "—"
     )
-    days_above = d.get("days_above_sma50")
     rsi = d.get("rsi_14")
-    rsi_zone = d.get("rsi_zone", "")
     vol_sig = d.get("volume_signal", "")
     vol_ratio = d.get("vol_ratio")
     chg5 = d.get("5d_pct")
     m1 = d.get("1mo_pct")
     vs50 = d.get("vs_sma50_pct")
     vs200 = d.get("vs_sma200_pct")
-
-    parts: list[str] = []
-
-    # ── Status strip (caution_source + momentum_warn) ──
-    # Compact, visible without expanding any section. Shown only when there's
-    # something worth flagging — silent on clean BUY/HOLD with no advisories.
-    caution_source = d.get("caution_source")
-    momentum_warn = d.get("momentum_warn")
-    momentum_reasons = d.get("momentum_warn_reasons") or []
-    signal = d.get("signal", "")
-    cs_labels = {
-        "hard_block": ("Mechanical hard block", STATUS_NEG),
-        "claude_override": ("Judgment override", STATUS_WARN),
-        "base_scorer": ("Soft caution (base scorer)", STATUS_WARN),
-        "rr_gate_fail": ("R:R gate failed", STATUS_NEG),
-        "catalyst_override": ("Catalyst override", STATUS_INFO),
-        "rcp_terminal": ("RCP terminal", STATUS_NEG),
-        "fragility_single_leg": ("Fragility gate — single leg", STATUS_WARN),
-        "avoid_source_missing": ("AVOID unsourced", STATUS_WARN),
-    }
-    status_chips: list[str] = []
-    if caution_source and signal not in {"BUY", "HOLD"}:
-        # Mapped ids show the plain-English label alone — repeating the raw id
-        # beside it leaked pipeline vocabulary into the UI (UX 2026-07-07).
-        # Unmapped ids fall back to the raw id: it is the only label we have.
-        label, color = cs_labels.get(
-            caution_source, (caution_source, STATUS_NEUTRAL)
-        )
-        status_chips.append(
-            f'<span style="font-family:var(--mono);font-size:10.5px;'
-            f'letter-spacing:0.10em;text-transform:uppercase;'
-            f'background:rgba(255,255,255,0.05);color:{color};'
-            f'padding:3px 8px;border-radius:3px;">'
-            f'{label}</span>'
-        )
-    if momentum_warn:
-        # Plain-English label; the reason strings stay verbatim — they are
-        # report data (thresholds included), only the chrome is ours.
-        reason_str = "; ".join(momentum_reasons) if momentum_reasons else "tape diverging"
-        status_chips.append(
-            f'<span style="font-family:var(--mono);font-size:10.5px;'
-            f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
-            f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
-            f'Momentum warning · {_escape_dollars(reason_str)}</span>'
-        )
-    data_anomaly = d.get("data_anomaly")
-    if data_anomaly:
-        _anom = str(data_anomaly).replace("_", " ").replace("=", " = ")
-        status_chips.append(
-            f'<span style="font-family:var(--mono);font-size:10.5px;'
-            f'letter-spacing:0.06em;background:rgba(245,158,11,0.16);'
-            f'color:{STATUS_WARN_SOFT};padding:3px 8px;border-radius:3px;">'
-            f'data anomaly · {_escape_dollars(_anom)}</span>'
-        )
-    # News-sentiment skew chip (P1-2 slice) — the pipeline's per-name read of
-    # the day's headlines, colored by lean. Absent on ~half the corpus → silent.
-    _skew = d.get("news_sentiment_skew")
-    _skew_colors = {
-        "bullish": STATUS_POS,
-        "bearish": STATUS_NEG,
-        "mixed": STATUS_WARN,
-        "neutral": STATUS_NEUTRAL,
-    }
-    if _skew in _skew_colors:
-        status_chips.append(
-            f'<span style="font-family:var(--mono);font-size:10.5px;'
-            f'letter-spacing:0.10em;text-transform:uppercase;'
-            f'background:rgba(255,255,255,0.05);color:{_skew_colors[_skew]};'
-            f'padding:3px 8px;border-radius:3px;">news · {_skew}</span>'
-        )
-    # Premarket chip (P1-2 slice) — the pipeline-authored phrase captured at
-    # report generation ("premarket -0.9% vs prior close"), colored by the
-    # move's sign. Snapshot-time context, deliberately not a live quote.
-    _pm_phrase = (d.get("premarket") or {}).get("phrase")
-    if _pm_phrase:
-        _pm_chg = (d.get("premarket") or {}).get("pm_chg_pct")
-        _pm_color = (
-            STATUS_POS if (_pm_chg or 0) > 0
-            else STATUS_NEG if (_pm_chg or 0) < 0
-            else STATUS_NEUTRAL
-        )
-        status_chips.append(
-            f'<span style="font-family:var(--mono);font-size:10.5px;'
-            f'letter-spacing:0.06em;background:rgba(255,255,255,0.05);'
-            f'color:{_pm_color};padding:3px 8px;border-radius:3px;">'
-            f'{_escape_dollars(_pm_phrase)}</span>'
-        )
-    if status_chips:
-        parts.append(
-            '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'
-            + "".join(status_chips) + '</div>'
-        )
-
-    # ── Thesis break condition ──
-    # Pipeline-injected single sentence: what would invalidate the thesis.
-    # High-signal exit guidance — surfaced near the top of the drill-down.
-    thesis_break = (d.get("writeup") or {}).get("thesis_break_condition")
-    if thesis_break:
-        parts.append(_drilldown_section_html("Thesis break condition"))
-        parts.append(
-            f'<div class="dd-line" style="color:var(--ink-2);">'
-            f'{_escape_dollars(thesis_break)}</div>'
-        )
-
-    # ── RCP state ──
-    rcp = d.get("rcp_state")
-    if rcp:
-        rcp_phase = rcp.get("current_phase", "")
-        rcp_sessions = rcp.get("sessions_since_gap")
-        rcp_terminal_outcome = rcp.get("terminal_outcome", "")
-        rcp_path_a = rcp.get("path_a_level")
-        rcp_path_b = rcp.get("path_b_level")
-        _TERMINAL_PHASES = {"failed", "expired", "invalidated"}
-        _rcp_phase_colors = {
-            "gap_day": STATUS_NEG,
-            "cooling_off": STATUS_WARN,
-            "graduation_watch": ACCENT_LINK,
-            "path_a_confirmed": STATUS_POS,
-            "path_b_confirmed": STATUS_POS,
-            "failed": STATUS_MUTED,
-            "expired": STATUS_MUTED,
-            "invalidated": STATUS_MUTED,
-        }
-        rcp_color = _rcp_phase_colors.get(rcp_phase, STATUS_NEUTRAL)
-        rcp_phase_label = rcp_phase.replace("_", " ").title()
-        sessions_note = (
-            f"  ·  {rcp_sessions} sessions since gap" if rcp_sessions is not None else ""
-        )
-        parts.append(_drilldown_section_html("Regime Change Pending"))
-        # One-line gloss: this was the least self-explanatory block on the
-        # site (casual-reader review 2026-07-12) — phase chips and "sessions
-        # since gap" meant nothing without the rule they belong to.
-        parts.append(
-            '<div class="dd-line" style="color:var(--ink-3);font-size:12px;'
-            'line-height:1.5;">A single-session move of 10%+ on real news reset '
-            'this chart — old trend anchors like the 50-day average no longer '
-            'apply. The name re-qualifies only by proving the new level: holding '
-            'a retest (Path A) or breaking above the post-gap range (Path B) '
-            'within 60 sessions.</div>'
-        )
-        parts.append(
-            f'<div class="dd-line">'
-            f'<span style="font-family:var(--mono);font-size:11px;letter-spacing:0.10em;'
-            f'text-transform:uppercase;background:rgba(255,255,255,0.05);color:{rcp_color};'
-            f'padding:3px 8px;border-radius:3px;font-weight:600;">{rcp_phase_label}</span>'
-            f'<span style="color:var(--ink-3);font-size:12px;">{sessions_note}</span>'
-            f'</div>'
-        )
-        if rcp_phase not in _TERMINAL_PHASES:
-            _rcp_metrics: list[tuple[str, str]] = []
-            if rcp_path_a is not None:
-                _rcp_metrics.append(("Path A graduation", _p(rcp_path_a)))
-            if rcp_path_b is not None:
-                _rcp_metrics.append(("Path B graduation", _p(rcp_path_b)))
-            if rcp_sessions is not None:
-                _rcp_metrics.append(("Sessions remaining", str(max(0, 60 - rcp_sessions))))
-            if _rcp_metrics:
-                parts.append(_drilldown_metrics_html(_rcp_metrics))
-        else:
-            if rcp_terminal_outcome:
-                parts.append(
-                    f'<div class="dd-line" style="color:var(--ink-3);font-style:italic;">'
-                    f'{_escape_dollars(rcp_terminal_outcome)}</div>'
-                )
-            parts.append(
-                f'<div class="dd-line" style="color:{STATUS_MUTED};font-size:12px;">'
-                'New step-function catalyst required before re-entry.</div>'
-            )
-
-    # ── Catalyst block ──
-    # As of 2026-05-30 the catalyst path is narrative-only: the pipeline
-    # emits facts (catalyst_event/source/date) with narrative_only=True and
-    # no longer produces catalyst_rr / position_tier / extension relaxation.
-    # Legacy reports (pre-2026-05-30) carry the old entry-path shape; this
-    # block renders both — R:R / tier / paper-trade framing appear only when
-    # the legacy fields are actually present.
-    catalyst = d.get("catalyst") or {}
-    if catalyst:
-        narrative_only = bool(catalyst.get("narrative_only"))
-        c_rr = d.get("catalyst_rr") or catalyst.get("catalyst_rr") or {}
-        c_tier = d.get("catalyst_position_tier") or catalyst.get("catalyst_position_tier") or {}
-        c_type = catalyst.get("type") or catalyst.get("catalyst_type") or ""
-        c_headline = (catalyst.get("catalyst_event") or catalyst.get("headline")
-                      or catalyst.get("description") or "")
-        c_source = catalyst.get("catalyst_source") or catalyst.get("source") or ""
-        c_url = catalyst.get("url") or ""
-        c_date = (catalyst.get("catalyst_date") or catalyst.get("date")
-                  or catalyst.get("event_date") or "")
-        c_pre_price = catalyst.get("pre_catalyst_close")
-        c_rr_ratio = c_rr.get("ratio") or c_rr.get("ratio_raw")
-        c_rr_inv = c_rr.get("invalidation")
-        c_tier_name = c_tier.get("tier") or ""
-        c_max_size = c_tier.get("max_size_pct")
-        is_entry_path = bool(c_rr_ratio or c_tier_name)
-
-        title = ("Catalyst context · narrative only"
-                 if narrative_only or not is_entry_path
-                 else "Catalyst entry path · paper trade only")
-        parts.append(_drilldown_section_html(title))
-        if c_headline:
-            head_html = (
-                f'<div class="dd-line"><strong>{_escape_dollars(c_type) or "Catalyst"}.</strong> '
-                f'{_escape_dollars(c_headline)}'
-            )
-            if c_source:
-                head_html += f' <span style="color:var(--ink-3);">— {_escape_dollars(c_source)}</span>'
-            _c_href = _safe_href(c_url)
-            if _c_href:
-                head_html += (
-                    f' <a href="{_c_href}" target="_blank" rel="noopener noreferrer" '
-                    f'style="color:var(--ink-3);font-family:var(--mono);'
-                    f'font-size:11px;">[link]</a>'
-                )
-            head_html += '</div>'
-            parts.append(head_html)
-        cat_metrics = [("Catalyst date", c_date or "—")]
-        # Entry-path numerics are legacy-only; show them solely when present.
-        if is_entry_path:
-            cat_metrics += [
-                ("Catalyst R:R", f"{_fmt_num(c_rr_ratio, 2)}:1" if c_rr_ratio else "—"),
-                ("Gap-fill invalidation",
-                 _p(c_rr_inv) if c_rr_inv else (
-                     _p(c_pre_price) if c_pre_price else "—")),
-                ("Position tier",
-                 f"{c_tier_name} ({_fmt_num(c_max_size, 0)}% max)"
-                 if c_tier_name and c_max_size is not None else (c_tier_name or "—")),
-            ]
-        else:
-            cat_metrics.append(("Signal impact", "Context only — does not change the signal"))
-        parts.append(_drilldown_metrics_html(cat_metrics))
-
-    upside_target = rr_obj.get("upside_target")
-    upside_pct = rr_obj.get("upside_pct")
-    upside_reason = rr_obj.get("upside_reason", "")
-    invalidation = rr_obj.get("invalidation")
-    invalidation_reason = rr_obj.get("invalidation_reason", "")
-    inv_pct = rr_obj.get("downside_pct")
-    structural = rr_obj.get("structural_support")
-    struct_pct = rr_obj.get("structural_support_pct")
-    wide_stop = rr_obj.get("wide_stop_rr")
-    if wide_stop is None:
-        # Newer reports carry the same deeper-stop ratio under `sizing_rr`
-        # (R:R sized to structural support). Surface it here so the corrective
-        # "wide-stop" number isn't blank for tight-invalidation names — exactly
-        # where it matters and the headline R:R is distorted (UX-BR-2/WL-1/TM-1).
-        wide_stop = (rr_obj.get("sizing_rr") or {}).get("ratio")
-    rr_label = rr_obj.get("ratio_label", "")
-    rr_quality = rr_obj.get("rr_quality", "")
-
-    has_rr = any(v is not None for v in [upside_target, invalidation, structural, wide_stop])
-    if has_rr:
-        parts.append(_drilldown_section_html("Risk & Reward"))
-        if upside_target is not None:
-            line = (f'<strong style="color:var(--up);">Upside target.</strong> '
-                    f'{_p(upside_target)}')
-            if upside_pct is not None:
-                line += f" (+{_fmt_num(upside_pct, 1)}%)"
-            if upside_reason:
-                line += f" — {_escape_dollars(upside_reason)}"
-            parts.append(f'<div class="dd-line">{line}</div>')
-        if invalidation is not None:
-            line = (f'<strong style="color:var(--down);">Invalidation.</strong> '
-                    f'{_p(invalidation)}')
-            if inv_pct is not None:
-                line += f" (-{_fmt_num(inv_pct, 1)}%)"
-            if invalidation_reason:
-                line += f" — {_escape_dollars(invalidation_reason)}"
-            parts.append(f'<div class="dd-line">{line}</div>')
-        # A distorted headline (too-tight stop inflating the ratio) is flagged
-        # on the stat itself — the row/action card already show the corrected
-        # sizing R:R, so an unmarked 22.5:1 here read as a contradiction.
-        _rr_qual_bits = [b for b in (rr_quality,
-                                     "tight-stop distorted" if rr_obj.get("rr_distorted") else "")
-                         if b]
-        _rr_qual = f" ({' · '.join(_rr_qual_bits)})" if _rr_qual_bits else ""
-        # R:R ratios are computed data, so they take the brass data tone; the
-        # structural-support level is a downside price, so it takes --down.
-        rr_metrics = [
-            ("Headline R:R", f"{rr_label}{_rr_qual}" if rr_label else "—", "var(--brass)"),
-            ("Wide-stop R:R", f"{_fmt_num(wide_stop, 2)}:1" if wide_stop else "—", "var(--brass)"),
-            (
-                "Structural support",
-                f"{_p(structural)} (-{_fmt_num(struct_pct, 1)}%)"
-                if structural else "—",
-                "var(--down)",
-            ),
-        ]
-        parts.append(_drilldown_metrics_html(rr_metrics))
-
-    # ── ACCUMULATE Gates ──
-    # The 6 mechanical gates the pipeline pre-computes for every ticker.
-    # Always rendered so readers can see why a name does or doesn't qualify.
-    gates = d.get("accumulate_gates") or {}
-    if gates:
-        gate_labels = {
-            "g1_signal_eligible": "Signal eligible",
-            "g2_rr_above_2": "R:R ≥ 2.0",
-            "g3_rr_observed": "R:R observed",
-            "g5_no_earnings_7d": "No earnings ≤7d",
-            "g6_vix_ok": "VIX < 30",
-            "g8_rr_robust": "R:R robust",
-        }
-        all_pass = gates.get("all_mechanical_pass")
-        chip_html_list: list[str] = []
-        for gkey, glabel in gate_labels.items():
-            gate_val = gates.get(gkey)
-            if gate_val is True:
-                bg, fg, mark = "rgba(34,197,94,0.18)", STATUS_POS, "✓"
-            elif gate_val is False:
-                bg, fg, mark = "rgba(239,68,68,0.18)", STATUS_NEG, "✗"
-            else:
-                bg, fg, mark = "rgba(255,255,255,0.05)", "var(--ink-3)", "—"
-            chip_html_list.append(
-                f'<span style="display:inline-flex;align-items:center;gap:5px;'
-                f'background:{bg};color:{fg};padding:4px 9px;border-radius:3px;'
-                f'font-family:var(--mono);font-size:11px;font-weight:600;'
-                f'letter-spacing:0.04em;">'
-                f'<span style="font-size:13px;">{mark}</span>{glabel}</span>'
-            )
-        summary_color = (
-            STATUS_POS if all_pass is True
-            else STATUS_NEG if all_pass is False
-            else "var(--ink-3)"
-        )
-        summary_text = (
-            "All mechanical gates pass — Claude judgment determines ACCUMULATE"
-            if all_pass is True
-            else "One or more mechanical gates fail — ACCUMULATE blocked"
-            if all_pass is False
-            else "Gate status unknown"
-        )
-        parts.append(_drilldown_section_html("ACCUMULATE gates"))
-        parts.append(
-            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'
-            + "".join(chip_html_list) + '</div>'
-        )
-        parts.append(
-            f'<div class="dd-line" style="color:{summary_color};font-size:12.5px;">'
-            f'{summary_text}</div>'
-        )
-        # Abstained gates — couldn't be evaluated on incomplete data (NOT the
-        # same as a failed gate). Listed so a degraded run reads honestly.
-        _abstained = gates.get("abstained") or []
-        if _abstained:
-            _ab_items = "".join(
-                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
-                f'· <strong>{_escape_dollars(str(a.get("gate", "")))}</strong> '
-                f'not evaluated — {_escape_dollars(str(a.get("reason", "")))}</div>'
-                for a in _abstained if isinstance(a, dict)
-            )
-            if _ab_items:
-                parts.append(
-                    '<div style="margin-top:6px;">'
-                    '<div style="font-family:var(--mono);font-size:10px;'
-                    'letter-spacing:0.08em;text-transform:uppercase;'
-                    'color:var(--ink-3);margin-bottom:4px;">Abstained gates</div>'
-                    f'{_ab_items}</div>'
-                )
-
-    band = d.get("pre_earnings_band") or {}
-    if band:
-        days_until = band.get("days_until")
-        earn_date = band.get("earnings_date") or "—"
-        temporal_phrase = band.get("temporal_phrase") or ""
-        n_priors = band.get("n_priors")
-        avg_up = band.get("avg_up_pct")
-        avg_dn = band.get("avg_down_pct")
-        max_up = band.get("max_up_pct")
-        max_dn = band.get("max_down_pct")
-        impl_up = band.get("implied_upper")
-        impl_lo = band.get("implied_lower")
-        archetype = band.get("setup_archetype")
-        rationale = band.get("setup_rationale") or ""
-        archetype_pretty = {
-            "priced_for_perfection": "Priced for perfection",
-            "low_bar_underdog": "Low bar / underdog",
-            "neutral": "Neutral",
-        }.get(archetype, archetype or "—")
-        # Health axis, not signals: the archetype characterises the SETUP, so it
-        # takes the data palette (brass = watch / neutral, terracotta = stressed)
-        # rather than a BUY/CAUTION hue. "Neutral" was grey and read as absent.
-        archetype_color = {
-            "priced_for_perfection": "var(--stress)",
-            "low_bar_underdog": "var(--up)",
-            "neutral": "var(--brass)",
-        }.get(archetype, "var(--brass)")
-        section_label = f"Earnings setup — {temporal_phrase}" if temporal_phrase else "Earnings setup"
-        parts.append(_drilldown_section_html(section_label))
-        if archetype:
-            parts.append(
-                f'<div class="dd-line">'
-                f'<strong style="color:{archetype_color};">{archetype_pretty}</strong>'
-                f' — {_escape_dollars(rationale)}'
-                f'</div>'
-            )
-        # Implied bull / bear from prior-print averages.
-        if avg_up is not None and impl_up is not None:
-            parts.append(
-                f'<div class="dd-line">'
-                f'<strong style="color:var(--up);">Bull case.</strong> {_p(impl_up)} '
-                f'({_sign(avg_up)}{_fmt_num(avg_up, 1)}% avg of {n_priors} priors)'
-                f'</div>'
-            )
-        if avg_dn is not None and impl_lo is not None:
-            parts.append(
-                f'<div class="dd-line">'
-                f'<strong style="color:var(--down);">Bear case.</strong> {_p(impl_lo)} '
-                f'({_fmt_num(avg_dn, 1)}% avg of {n_priors} priors)'
-                f'</div>'
-            )
-        if avg_up is None and avg_dn is not None:
-            parts.append(
-                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
-                f'All {n_priors} priors moved down — no symmetric bull-side reference.'
-                f'</div>'
-            )
-        if avg_dn is None and avg_up is not None:
-            parts.append(
-                f'<div class="dd-line" style="color:var(--ink-3);font-size:12px;">'
-                f'All {n_priors} priors moved up — no symmetric bear-side reference.'
-                f'</div>'
-            )
-        # Directional figures carry the price up/down palette so an "avg down
-        # move" reads as a down move; the date/countdown stay neutral.
-        band_metrics = [
-            ("Earnings date", earn_date),
-            ("Days until", str(days_until) if days_until is not None else "—"),
-            (
-                "Avg up move",
-                f"{_sign(avg_up)}{_fmt_num(avg_up, 1)}%" if avg_up is not None else "—",
-                "var(--up)",
-            ),
-            (
-                "Avg down move",
-                f"{_fmt_num(avg_dn, 1)}%" if avg_dn is not None else "—",
-                "var(--down)",
-            ),
-            (
-                "Max up move",
-                f"{_sign(max_up)}{_fmt_num(max_up, 1)}%" if max_up is not None else "—",
-                "var(--up)",
-            ),
-            (
-                "Max down move",
-                f"{_fmt_num(max_dn, 1)}%" if max_dn is not None else "—",
-                "var(--down)",
-            ),
-        ]
-        parts.append(_drilldown_metrics_html(band_metrics))
-
-    # ── Earnings history (quarter-on-quarter expected vs actual) ──
-    # Sits right after the pre-earnings setup: "here's the setup for the coming
-    # print" → "here's the last 8 quarters' beat/miss + revenue." Data comes
-    # from the separate earnings_history.csv, threaded in by the caller (this
-    # module stays Streamlit-free). Silent when the ticker has no rows.
-    _eh_section = _earnings_history_html(earnings_hist) if earnings_hist else ""
-    if _eh_section:
-        parts.append(_drilldown_section_html("Earnings history"))
-        parts.append(_eh_section)
-
-    # ── Thesis highlights ──
-    # Pipeline-emitted guardrail bullets that matched the day's news (~5/29 names);
-    # e.g. MSFT "~45% of $625B RPO is OpenAI-linked". Surfaced as an amber-bordered
-    # list above Technicals — closes the one live surfacing gap (2026-07-04).
-    _thesis_highlights = [
-        str(b).strip() for b in (d.get("thesis_highlights") or []) if b and str(b).strip()
-    ]
-    if _thesis_highlights:
-        parts.append(_drilldown_section_html("Thesis highlights"))
-        for _hl in _thesis_highlights:
-            parts.append(
-                f'<div class="dd-line" style="border-left:2px solid {STATUS_WARN};'
-                f'padding-left:10px;margin:0 0 6px;color:var(--ink-2);">'
-                f'{_escape_dollars(_hl)}</div>'
-            )
-
-    parts.append(_drilldown_section_html("Technicals"))
-    drawdown_3mo = d.get("drawdown_3mo_pct")
     vs_cluster = d.get("vs_cluster_chg_pct")
-    tech_metrics = [
+    drawdown_3mo = d.get("drawdown_3mo_pct")
+    return _pairs_html([
         ("vs 50-day", f"{_sign(vs50)}{_fmt_num(vs50, 1)}%" if vs50 is not None else "—"),
-        ("vs 200-day", f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
-        ("SMA50",
-         f"{_p(sma50)} ({sma_status})" if sma50 else "—"),
-        ("Days above SMA50", str(days_above) if days_above is not None else "—"),
-        ("RSI (14d)", f"{_fmt_num(rsi, 0)} {rsi_zone}" if rsi else "—"),
+        ("vs 200-day",
+         f"{_sign(vs200)}{_fmt_num(vs200, 1)}%" if vs200 is not None else "—"),
+        ("SMA50", f"{price_fn(sma50)} ({sma_status})" if sma50 else "—"),
+        ("Days above SMA50",
+         str(d.get("days_above_sma50"))
+         if d.get("days_above_sma50") is not None else "—"),
+        ("RSI (14d)",
+         f'{_fmt_num(rsi, 0)} {d.get("rsi_zone", "")}' if rsi else "—"),
         ("Volume signal",
          f"{vol_sig} ({_fmt_num(vol_ratio, 2)}x)" if vol_sig else "—"),
         ("5-day return",
@@ -737,127 +310,128 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
         # P1-2 slice: the day's move relative to the cluster median — the
         # pipeline's relative-strength read, rendered nowhere until 2026-07-02.
         ("vs cluster (1d)",
-         f"{_sign(vs_cluster)}{_fmt_num(vs_cluster, 2)}%" if vs_cluster is not None else "—"),
+         f"{_sign(vs_cluster)}{_fmt_num(vs_cluster, 2)}%"
+         if vs_cluster is not None else "—"),
         ("3mo drawdown",
          f"{_fmt_num(drawdown_3mo, 1)}%" if drawdown_3mo is not None else "—"),
-    ]
-    parts.append(_drilldown_metrics_html(tech_metrics))
+    ])
 
-    supports = d.get("support_zones") or []
-    resistances = d.get("resistance_zones") or []
-    if supports or resistances:
-        parts.append(_drilldown_section_html("Key Levels"))
-        if supports:
-            parts.append(
-                '<div class="dd-line"><strong>Support:</strong> '
-                + ", ".join(_p(s) for s in supports)
-                + '</div>'
-            )
-        if resistances:
-            parts.append(
-                '<div class="dd-line"><strong>Resistance:</strong> '
-                + ", ".join(_p(r) for r in resistances)
-                + '</div>'
-            )
 
+def _valuation_pairs_html(d: dict) -> str:
+    """The valuation pairs.
+
+    ``Cluster`` is deliberately absent: it is stated twice already — in the card
+    header above and in the grid row's ticker cell — so a third printing would
+    just be a row of noise in a column of measurements.
+    """
+    val = d.get("valuation") or {}
+    consensus = val.get("analyst_consensus") or {}
     fpe = val.get("forward_pe")
-    peg = val.get("peg_ratio")
-    rev_g = val.get("revenue_growth_pct")
     cluster_med_pe = val.get("cluster_median_pe")
     pe_vs_cluster = val.get("pe_vs_cluster_pct")
+    rev_g = val.get("revenue_growth_pct")
     fcf_y = val.get("fcf_yield_pct")
     div_y = val.get("dividend_yield_pct")
     pb = val.get("price_to_book")
-    consensus = (val.get("analyst_consensus") or {})
-    rec = consensus.get("recommendation", "")
-    n_analysts = consensus.get("num_analysts")
     eps_g = consensus.get("earnings_growth_pct")
-
-    val_metrics = [
-        ("Cluster", CLUSTER_MAP.get(tk, "—")),
+    return _pairs_html([
         ("Forward P/E", f"{_fmt_num(fpe, 1)}x" if fpe else "—"),
         ("Cluster median P/E",
-         f"{_fmt_num(cluster_med_pe, 1)}x ({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
+         f"{_fmt_num(cluster_med_pe, 1)}x "
+         f"({_sign(pe_vs_cluster)}{_fmt_num(pe_vs_cluster, 0)}%)"
          if cluster_med_pe else "—"),
-        ("PEG", _fmt_num(peg, 2)),
+        ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
         ("Revenue growth",
          f"{_sign(rev_g)}{_fmt_num(rev_g, 1)}%" if rev_g is not None else "—"),
-        ("FCF yield", f"{_sign(fcf_y)}{_fmt_num(fcf_y, 2)}%" if fcf_y is not None else "—"),
+        ("FCF yield",
+         f"{_sign(fcf_y)}{_fmt_num(fcf_y, 2)}%" if fcf_y is not None else "—"),
         ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
         ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),
-        ("Analyst consensus", _consensus_str(rec, n_analysts)),
+        ("Analyst consensus",
+         _consensus_str(consensus.get("recommendation"),
+                        consensus.get("num_analysts"))),
         ("Est. EPS growth",
          f"{_sign(eps_g)}{_fmt_num(eps_g, 1)}%" if eps_g is not None else "—"),
+    ])
+
+
+def _thesis_html(d: dict) -> str:
+    """Numbered pillars, the news-matched highlights, then the falsifier.
+
+    Numbering makes the pillars a **finite argument** rather than a bullet dump —
+    "these three things, and here is what would break them". The break condition
+    is deliberately last and terracotta, because it is the falsifier.
+    """
+    parts: list[str] = []
+    legs = d.get("support_legs")
+    if legs is not None:
+        parts.append('<div class="dd-eyebrow">Thesis pillars</div>')
+        if d.get("caution_source") == "fragility_single_leg":
+            parts.append(
+                f'<div class="dd-line" style="color:{STRESS};font-size:12.5px;">'
+                'Single-leg fragility gate triggered — signal capped to WATCH.'
+                '</div>'
+            )
+        for i, leg in enumerate(legs or [], 1):
+            parts.append(
+                f'<div class="dd-pillar"><span class="dd-pillar-n">{i:02d}</span>'
+                f'<span class="dd-pillar-t">{_escape_dollars(str(leg))}</span></div>'
+            )
+    # Pipeline-emitted guardrail bullets that matched the day's news (~5/32 names)
+    # — thesis evidence, so they sit with the pillars rather than in a drawer.
+    highlights = [
+        str(b).strip() for b in (d.get("thesis_highlights") or []) if b and str(b).strip()
     ]
-    parts.append(_drilldown_section_html("Valuation"))
-    parts.append(_drilldown_metrics_html(val_metrics))
-
-    # ── Thesis pillars (support_legs) ──
-    support_legs = d.get("support_legs")
-    if support_legs is not None:
-        is_fragility = d.get("caution_source") == "fragility_single_leg"
-        parts.append(_drilldown_section_html("Thesis pillars"))
-        if is_fragility:
+    if highlights:
+        parts.append('<div class="dd-eyebrow">Thesis highlights</div>')
+        for hl in highlights:
             parts.append(
-                f'<div class="dd-line" style="color:{STATUS_WARN};font-size:12.5px;">'
-                'Single-leg fragility gate triggered — signal capped to WATCH.</div>'
+                f'<div class="dd-highlight">{_escape_dollars(hl)}</div>'
             )
-        leg_color = STATUS_NEG if is_fragility else STATUS_POS
-        for _leg in (support_legs or []):
-            parts.append(
-                f'<div class="dd-line" style="display:flex;align-items:baseline;gap:8px;">'
-                f'<span style="color:{leg_color};font-size:14px;flex-shrink:0;">·</span>'
-                f'<span>{_escape_dollars(str(_leg))}</span>'
-                f'</div>'
-            )
-
-    # ── Avoid source citation ──
-    avoid_source = d.get("avoid_source")
-    if avoid_source and isinstance(avoid_source, dict):
-        _av_pub = avoid_source.get("publication", "")
-        _av_frag = avoid_source.get("headline_fragment", "")
-        _av_date = avoid_source.get("date", "")
-        _av_url = avoid_source.get("url", "")
-        if _av_pub or _av_frag:
-            parts.append(_drilldown_section_html("Avoid source"))
-            _cite_parts: list[str] = []
-            if _av_pub:
-                _cite_parts.append(f'<strong>{_escape_dollars(_av_pub)}</strong>')
-            if _av_frag:
-                _cite_parts.append(f'"{_escape_dollars(_av_frag)}"')
-            if _av_date:
-                _cite_parts.append(
-                    f'<span style="color:var(--ink-3);">{_escape_dollars(_av_date)}</span>'
-                )
-            _cite_html = " · ".join(_cite_parts)
-            _av_href = _safe_href(_av_url)
-            if _av_href:
-                _cite_html += (
-                    f' <a href="{_av_href}" target="_blank" rel="noopener noreferrer" '
-                    f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
-                )
-            parts.append(f'<div class="dd-line">{_cite_html}</div>')
-
-    # ── Earnings results in news ──
-    ern = d.get("earnings_results_in_news")
-    if ern and isinstance(ern, dict):
-        _ern_headline = ern.get("headline", "")
-        _ern_source = ern.get("source", "")
-        _ern_url = ern.get("url", "")
-        if _ern_headline:
-            parts.append(_drilldown_section_html("Earnings result"))
-            _ern_html = f'<div class="dd-line">"{_escape_dollars(_ern_headline)}"'
-            if _ern_source:
-                _ern_html += (
-                    f' <span style="color:var(--ink-3);">— {_escape_dollars(_ern_source)}</span>'
-                )
-            _ern_href = _safe_href(_ern_url)
-            if _ern_href:
-                _ern_html += (
-                    f' <a href="{_ern_href}" target="_blank" rel="noopener noreferrer" '
-                    f'style="color:var(--ink-3);font-family:var(--mono);font-size:11px;">[link]</a>'
-                )
-            _ern_html += '</div>'
-            parts.append(_ern_html)
-
+    break_cond = (d.get("writeup") or {}).get("thesis_break_condition")
+    if break_cond:
+        parts.append('<div class="dd-eyebrow">Thesis break condition</div>')
+        parts.append(f'<div class="dd-break">{_escape_dollars(break_cond)}</div>')
     return "".join(parts)
+
+
+# ── The card ──────────────────────────────────────────────────────────────────
+
+def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
+    """The whole drill-down body for one ticker, as an HTML string.
+
+    ``earnings_hist`` (optional) is the ticker's ``earnings_history`` records,
+    newest quarter first; the caller loads and filters the CSV so this module
+    stays Streamlit-free. Absent → the Earnings drawer's history half is silent.
+    """
+    ccy = d.get("currency", "USD")
+    pfx = _ccy_prefix(ccy)
+    dec = _ccy_decimals(ccy)
+
+    def _p(v) -> str:
+        """Currency-prefixed price with the right decimal count for this ticker."""
+        return f"{pfx}{_fmt_num(v, dec)}"
+
+    price = d.get("price")
+    price_str = _p(price) if price is not None else "—"
+    wu = _writeup_for_render(d)
+
+    left = _technicals_pairs_html(d, _p) + _valuation_pairs_html(d)
+    right = _thesis_html(d)
+    cols = (
+        f'<div class="dd-cols"><div class="dd-col-left">{left}</div>'
+        f'<div class="dd-col-right">{right}</div></div>'
+        if (left or right) else ""
+    )
+
+    return (
+        f'<div class="dd-card" data-signal="{_escape_attr(d.get("signal", "HOLD"))}">'
+        f'{_header_html(tk, d, price_str)}'
+        f'{_status_chips_html(d)}'
+        f'{_entry_block_html(d, wu)}'
+        f'{_verdict_html(wu)}'
+        f'{_levels_plate_html(d, ccy)}'
+        f'{cols}'
+        f'{render_drawers_html(d, _p, earnings_hist)}'
+        f'</div>'
+    )
