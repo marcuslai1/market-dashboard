@@ -193,27 +193,31 @@
   margin-bottom: var(--card-gap);
   position: relative;   /* containing block for the corner marks */
 }
-/* "+" registration marks — a small cross centred on each corner of the border. */
-.blueprint > .corner {
+/* "+" registration marks — a small cross centred on each corner of the border.
+   Selector is bare `.corner` (not `.blueprint > .corner`) so the marks also
+   work inside the paper-book chart card, whose frame is a Streamlit container
+   the marks cannot be direct children of. `.corner` is only ever emitted by
+   card_container and _chart_head_html. */
+.corner {
   position: absolute;
   width: 9px;
   height: 9px;
   color: var(--color-text-3);
   pointer-events: none;
 }
-.blueprint > .corner::before,
-.blueprint > .corner::after {
+.corner::before,
+.corner::after {
   content: "";
   position: absolute;
   background: currentColor;
   opacity: 0.7;
 }
-.blueprint > .corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
-.blueprint > .corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
-.blueprint > .corner.tl { top: -4.5px; left: -4.5px; }
-.blueprint > .corner.tr { top: -4.5px; right: -4.5px; }
-.blueprint > .corner.bl { bottom: -4.5px; left: -4.5px; }
-.blueprint > .corner.br { bottom: -4.5px; right: -4.5px; }
+.corner::before { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+.corner::after  { top: 50%; left: 0; height: 1px; width: 100%; transform: translateY(-50%); }
+.corner.tl { top: -4.5px; left: -4.5px; }
+.corner.tr { top: -4.5px; right: -4.5px; }
+.corner.bl { bottom: -4.5px; left: -4.5px; }
+.corner.br { bottom: -4.5px; right: -4.5px; }
 /* Card header = kicker + hairline. No bar, no background, no box. Hierarchy is
    steel eyebrow (what this is) -> hairline -> content (the substance). */
 .card-head {
@@ -1199,19 +1203,24 @@ details.tk-details > summary .name { font-family: var(--sans); color: var(--ink-
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--color-text-4); margin-bottom: 8px;
 }
-.fp-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+/* Shared with the Signal Tracker's tiles, paper-book stats and stop-rule lanes
+   (spec 2026-07-25 §3.1): a grid of cells always means "peer measurements,
+   compare across", so the construction is declared once for all of them. */
+.hair-grid, .fp-grid {
+  display: grid; gap: 1px;
   background: var(--color-divider); border: 1px solid var(--color-divider);
 }
+.fp-grid { grid-template-columns: repeat(5, 1fr); }
 /* The rail is declared transparent rather than omitted so flagged and unflagged
    cells keep identical internal height — no 2px jog along the row. */
-.fp-cell {
-  background: var(--color-bg); padding: 0 11px 10px; min-width: 0;
+.hair-grid > *, .fp-cell {
+  background: var(--color-bg); min-width: 0;
   border-top: 2px solid transparent;
 }
+.fp-cell { padding: 0 11px 10px; }
 /* Structural flag, not a rating: the prints the FOMC decision turns on. Steel,
    because a signal hue here would read as a verdict on the number. */
-.fp-cell[data-key] { border-top-color: var(--accent); }
+.hair-grid > [data-flag], .fp-cell[data-key] { border-top-color: var(--accent); }
 /* Steel, matching every other block label on the page (card kickers, dialog
    eyebrows, group headers) — grey left this grid feeling like a different
    document. The deep --eyebrow step, not the base accent: at 9.5px the label
@@ -1938,37 +1947,55 @@ details.led-details[open] > summary > div:first-child::before {
    ════════════════════════════════════════════════════════════ */
 
 /* 1 ── Calibration hero band (one cell per signal type) */
-.calib-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--rule-strong);
-  border-bottom: 1px solid var(--rule-strong);
-  margin: 14px 0 6px;
-}
-.calib-cell { padding: 16px 20px; border-right: 1px solid var(--rule); }
-.calib-cell:last-child { border-right: 0; }
+/* ── Hit-rate tiles: five peer measurements, read left to right ──
+   Order inside a tile is fixed: identity → plain English → the number → its
+   shape → its arithmetic → whether to trust it. Grid construction comes from
+   .hair-grid; only the column count is local. */
+.calib-grid { grid-template-columns: repeat(5, 1fr); margin: 14px 0 6px; }
+.calib-cell { padding: 14px 16px 16px; }
 .calib-cell .clabel {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--ink-3);
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
   display: flex; align-items: center; gap: 7px;
 }
 .calib-cell .cdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+/* Verdict-first: the tile says what the signal tells you to do before it
+   reports how often it was right. min-height keeps one- and two-line meanings
+   from pushing the five percentages onto different baselines — the whole point
+   of a 5-across grid is that the numbers align. */
+.calib-cell .sc-verb {
+  font-size: 9.5px; line-height: 1.3; color: var(--color-text-3);
+  min-height: 24px; margin-top: 6px;
+}
 .calib-cell .cval {
-  font-family: var(--serif); font-size: 2rem; font-weight: 500;
-  letter-spacing: -0.01em; line-height: 1; margin-top: 9px; color: var(--ink);
+  font-family: var(--font-display); font-size: 38px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1; margin-top: 4px;
+  color: var(--color-text); font-variant-numeric: tabular-nums;
 }
-.calib-cell .cval.muted {
-  font-size: 1.05rem; color: var(--ink-3); font-style: italic;
-}
-/* Performance meter under the (neutral --ink) calibration numeral — carries the
-   good/weak read without tinting the number in a signal colour. */
-.calib-cell .cbar {
-  height: 3px; border-radius: 2px; background: var(--surface-2);
-  margin-top: 9px; overflow: hidden; max-width: 120px;
-}
-.calib-cell .cbar > i { display: block; height: 100%; border-radius: 2px; }
+.calib-cell .cval.muted { font-size: 18px; color: var(--color-text-4); }
+/* Brass: calibration data, not a rating. Full cell width so bar lengths are
+   directly comparable across the five cells — 47% vs 100% should read as a
+   shape difference before either number is read. */
+.calib-cell .cbar { height: 4px; background: var(--color-divider); margin-top: 10px; }
+.calib-cell .cbar > i { display: block; height: 100%; background: var(--brass); }
 .calib-cell .csub {
-  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
-  margin-top: 9px; letter-spacing: 0.02em;
+  font-size: 11px; color: var(--color-text-2); margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.calib-cell .sc-flag {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-text-3); margin-top: 5px;
+}
+/* Sample adequacy by opacity, never colour: any colour-coding would fight the
+   number's own prominence, so the untrustworthy figures physically recede
+   instead. With .warn-thin and the ⚠ glyph that is three redundant cues. */
+.calib-cell.thin .cval, .calib-cell.thin .cbar { opacity: 0.42; }
+/* Stated as a footnote, deliberately not a sixth tile: HOLD makes no
+   directional claim, and an empty percentage would imply a missing measurement
+   rather than an inapplicable one. */
+.sc-hold {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-3); margin: 10px 0 0;
 }
 
 /* 2 ── By-name ledger: header + click-to-expand rows */
@@ -2072,13 +2099,31 @@ details.led-details[open] > summary {
 .cal-summary::-webkit-details-marker { display: none; }
 .cal-headline { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
 .cal-head-txt { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
-.cal-conf { color: var(--caution); }
+/* Parenthetical detail — recedes without needing a line of its own. */
+.cal-count { color: var(--color-text-4); }
+/* Measurement, not a rating: the loudest thing on the row after the pill,
+   because it is the actual content. */
+.cal-alpha { color: var(--brass); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Structural qualifier — how much to trust the number — so it takes the
+   structural colour. Outlined rather than filled keeps it quiet: it qualifies
+   the figure, it isn't the headline. */
+.cal-conf {
+  display: inline-block; border: 1px solid var(--accent); color: var(--accent);
+  background: transparent; border-radius: var(--radius-pill);
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 1px 6px;
+}
 .cal-body { padding: 8px 2px 2px; }
 .cal-scorecard { margin-top: 4px; }
-.cal-scorecard tr[data-lowconf="1"] { color: var(--ink-3); }
+.cal-scorecard td.alpha { color: var(--brass); font-weight: 600; }
+/* Opacity, not tint: the brass α cells must recede with the row, and a colour
+   swap alone would leave them at full strength. */
+.cal-scorecard tr[data-lowconf="1"] { opacity: 0.62; }
 .cal-fullcorpus { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
 .cal-taxonomy { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 4px; }
-.cal-caveat { color: var(--ink-3); font-size: 11.5px; font-style: italic; line-height: 1.5; margin: 4px 0 0; }
+/* Not italic: the paper book's single-regime disclaimer is the only italic on
+   the page, which is exactly why it is noticeable. */
+.cal-caveat { color: var(--color-text-3); font-size: 11.5px; line-height: 1.5; margin: 4px 0 0; }
 .cal-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
 
 /* ── Briefing · Earnings-scorecard band (review P1-2: surface per-ticker `eps_trajectory`) ── */
@@ -2205,82 +2250,115 @@ details.led-details[open] > summary {
   .cal-event { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; }
   .cal-text { min-width: 0; }
 
-  /* Signal-Tracker calibration band: 4-across tiles overflowed the viewport
-     (each needs ~100px of ~87 available). 2×2 with re-drawn hairlines. */
+  /* Hit-rate tiles: five across overflows a phone (each needs ~100px of ~87
+     available). The hairlines are the grid's own gaps, so nothing to re-draw. */
   .calib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .calib-cell { padding: 14px; }
-  .calib-cell:nth-child(even) { border-right: 0; }
-  .calib-cell:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+  .calib-cell { padding: 12px 14px 14px; }
 }
 
-/* ── Signal Tracker: scorecard plain-language + what-we've-changed strip ── */
-.calib-cell .sc-verb {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-3);
-  letter-spacing: 0.04em; margin: 3px 0 9px; text-transform: uppercase;
+/* ── Signal Tracker: what-we've-changed strip ──
+   (The scorecard tile rules live with the .calib-* block above.) */
+/* Layout comes from .spine (112px | 1fr). Hairlines between entries only — no
+   cards: a changelog is a list of records, and framing each one would make five
+   paragraphs look like five products. */
+.chg-log { margin-top: 4px; }
+/* The tick is --color-divider, not accent: every entry is a peer, so the ticks
+   give the column rhythm without implying hierarchy. */
+.chg-date {
+  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--color-text-3); border-left: 2px solid var(--color-divider);
+  padding-left: 10px; font-variant-numeric: tabular-nums;
 }
-.calib-cell .sc-flag {
-  font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 7px;
-}
-.calib-cell .sc-flag.thin { color: #f59e0b; }
-/* Thin sample (rate shown but below the decision-grade floor): recede the whole
-   read so a shaky rate can't masquerade as a confident one. Ghost the numeral
-   and hollow the bar (opacity/border keep it theme-agnostic); the amber ⚠ flag
-   stays full-strength as the explanation. */
-.calib-cell.thin .cval { opacity: 0.4; }
-.calib-cell.thin .cbar { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); }
-.calib-cell.thin .cbar > i { opacity: 0.32; }
-
-.chg-log { border-top: 1px solid var(--rule); margin-top: 4px; }
-.chg-item {
-  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px;
-  padding: 11px 0; border-bottom: 1px solid var(--rule); align-items: baseline;
-}
-.chg-date { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
 .chg-body { min-width: 0; }
 .chg-title {
-  display: block; font-family: var(--mono); font-size: 12px;
-  color: var(--ink); letter-spacing: 0.02em; margin-bottom: 3px;
+  display: block; font-family: var(--font-display); font-size: 15px;
+  font-weight: 600; color: var(--color-text); margin-bottom: 4px;
 }
+/* The only long-form prose on the site — a tighter measure and generous leading,
+   set for genuine paragraph reading. */
 .chg-note {
-  font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); line-height: 1.45;
+  display: block; font-size: 13px; line-height: 1.6;
+  color: var(--color-text-2); opacity: 0.7; max-width: 96ch;
 }
 @media (max-width: 720px) {
-  .chg-item { grid-template-columns: 1fr; gap: 3px; }
+  .spine > * { grid-template-columns: 1fr; gap: 6px; }
+  .chg-date { border-left: 0; padding-left: 0; }
 }
 
 /* Readiness ("trust") meter above the scorecard */
-.rd-meter {
-  border: 1px solid var(--rule); border-left: 3px solid var(--ink-3);
-  background: var(--paper-2); padding: 14px 18px; margin: 4px 0 18px;
-  border-radius: 3px;
-}
-.rd-meter.warn { border-left-color: #f59e0b; }
-.rd-stats { display: flex; flex-wrap: wrap; gap: 26px; margin-bottom: 9px; }
-.rd-stat { display: flex; flex-direction: column; gap: 2px; }
-.rd-stat b {
-  font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
-}
-.rd-stat span {
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--ink-3);
-}
+.rd-grid { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 0 26px; align-items: start; }
+/* A hairline marks "different kind of content" (prose vs figures) inside one
+   card, without splitting one reading into two cards. */
 .rd-verdict {
-  font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+  border-left: 1px solid var(--color-divider); padding-left: 24px;
+  color: var(--color-text-2); font-size: 13px; line-height: 1.6;
+  opacity: 0.78; margin: 0;
 }
+@media (max-width: 900px) {
+  .rd-grid { grid-template-columns: repeat(2, auto); gap: 18px; }
+  .rd-verdict { grid-column: 1 / -1; border-left: 0; padding-left: 0;
+                border-top: 1px solid var(--color-divider); padding-top: 14px; }
+}
+/* Set for genuine paragraph reading, and capped so the measure stays readable.
+   Only three phrases are bolded — the ones that break comprehension if missed. */
+.method {
+  font-size: 12.5px; line-height: 1.65; color: var(--color-text-2);
+  opacity: 0.62; max-width: 104ch; margin: 14px 0 4px;
+}
+.method b { color: var(--color-text); font-weight: 600; opacity: 1; }
 
 /* ── Signal Tracker · Paper-book band (tier 1c — spec 2026-07-05) ── */
-.pb-verdict { font-size: 19px; line-height: 1.4; color: var(--ink);
-  margin: 2px 0 10px; }
-.pb-stats { display: flex; flex-wrap: wrap; gap: 20px; margin: 0 0 8px; }
-.pb-stat b { display: block; font-size: 15px; color: var(--ink); }
-.pb-stat span { font-size: 11px; color: var(--ink-3); }
-.pb-banner { font-size: 12px; font-style: italic; color: var(--ink-3);
-  margin: 6px 0 0; }
-.pb-chartnote { font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-  margin: 2px 0 6px; }
-.pb-variants { font-family: var(--mono); font-size: 11.5px;
-  color: var(--ink-2); margin: 10px 0 0; }
-.pb-variants b { color: var(--ink); font-weight: 600; }
+/* A full sentence, not a stat row: the conclusion is the last clause and the
+   only coloured words. */
+.pb-verdict {
+  font-family: var(--font-display); font-size: 20px; line-height: 1.45;
+  color: var(--color-text); margin: 14px 0 12px; max-width: 88ch;
+}
+.pb-verdict .pb-val,
+.pb-verdict .pb-ret { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pb-verdict .pb-clause { font-weight: 600; }
+/* Inputs, not verdicts — all neutral. */
+.pb-stats { margin: 0 0 16px; }
+.pb-stats .stat-tick { padding: 12px 14px 14px; }
+@media (max-width: 900px) {
+  .pb-stats { grid-template-columns: repeat(2, 1fr) !important; }
+}
+/* The only italic on the page — which is exactly why it is noticeable. */
+.pb-banner { font-size: 12px; font-style: italic; color: var(--color-text-3);
+  line-height: 1.5; margin: 10px 0 0; max-width: 96ch; }
+/* Both captions sit below the plot. Terracotta marks a trust limitation, brass
+   a measurement — never a rating in either case. */
+.pb-chartnote { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
+  opacity: 0.66; margin: 8px 0 0; max-width: 96ch; }
+.pb-chartnote .lim { color: var(--stress); }
+.pb-chartnote .val { color: var(--brass); font-variant-numeric: tabular-nums; }
+/* The lane grid takes border-top: 0 so it butts directly against its own
+   eyebrow rule — the label and the grid then read as one object. */
+.pb-lane-eyebrow {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--eyebrow);
+  border-bottom: 1px solid var(--color-divider);
+  padding-bottom: 6px; margin: 18px 0 0;
+}
+.pb-lanes { border-top: 0; }
+.pb-lane { padding: 12px 14px 14px; }
+.pb-lane-label {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.pb-lane-head { color: var(--accent); }
+/* Measurements → brass; the stop-out count is an input → neutral. */
+.pb-lane-ret {
+  font-family: var(--font-display); font-size: 22px; font-weight: 600;
+  color: var(--brass); font-variant-numeric: tabular-nums; margin-top: 6px;
+}
+.pb-lane-stops {
+  display: block; font-size: 11px; color: var(--color-text-3); margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .pb-lanes { grid-template-columns: repeat(2, 1fr) !important; }
+}
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }
 
@@ -2577,3 +2655,84 @@ details.led-details[open] > summary {
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   SIGNAL TRACKER REDESIGN (spec 2026-07-25) — shared devices
+   The page teaches a grammar by repetition. Each device is declared once here
+   and consumed by several sections; the colour roles never overlap.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* A discrete figure: value over label (the site-wide order), with a 2px steel
+   tick. Deliberately 2px — the 3px rail is signal language on watchlist rows
+   and clusters, and must not be confused with "this is a number". */
+.stat-tick { border-left: 2px solid var(--accent); padding-left: 12px; }
+.stat-tick b {
+  display: block; font-family: var(--font-display); font-size: 26px;
+  font-weight: 600; line-height: 1.1; color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.stat-tick span {
+  display: block; font-family: var(--font-display); font-size: 9.5px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-3); margin-top: 4px;
+}
+
+/* Trust limitation, never a rating. Terracotta because amber is WATCH: a
+   data-quality warning is not a signal, so it takes the data palette's stress
+   colour. This keeps the rule intact even where a warning "wants" to be amber. */
+.warn-thin { color: var(--stress); }
+
+/* Date-spine ledger (consumed by "What we've changed"). The fixed date column
+   makes a continuous vertical spine: you scan chronology first, then read
+   across. Tick is --color-divider, not accent — every entry is a peer. */
+.spine { border-top: 1px solid var(--color-divider); }
+.spine > * {
+  display: grid; grid-template-columns: 112px 1fr; gap: 0 20px;
+  padding: 16px 0; border-bottom: 1px solid var(--color-divider);
+}
+
+/* Four peer documents stacked: the masthead-weight rule, used only by the
+   Signal Tracker's section heads. Every other head on the site keeps the 1px
+   hairline, so this stays opt-in. */
+.section-head.masthead { border-bottom: 2px solid var(--color-text); padding-bottom: 10px; }
+.section-head.masthead h2 { font-size: 1.875rem !important; font-weight: 600; }
+
+/* Page-level drill-downs: hairline-bordered, square, steel uppercase summary.
+   Bordered — unlike the inline Week Ahead expander — because these are
+   page-level sections rather than a detail inside a row. Streamlit renders
+   st.expander as a real <details>, so this is CSS only and every widget inside
+   keeps working. Scoped to the page marker so no other page's expanders move.
+   (The chevron already rotates on open — that animation is Streamlit's own.) */
+.stApp:has(.tracker-page) details[data-testid="stExpander"] {
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; margin: 10px 0;
+}
+.stApp:has(.tracker-page) details[data-testid="stExpander"] summary {
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--eyebrow);
+}
+
+/* ── Paper-book chart card ──
+   The chart is a line drawing like everything else on the page: a hairline
+   frame, a header row, and a rule between the header and the plot. The frame is
+   a Streamlit bordered container because that is the only wrapper a Plotly
+   element can sit inside; position:relative makes it the containing block for
+   the injected corner marks. */
+.stApp:has(.tracker-page) [data-testid="stVerticalBlockBorderWrapper"] {
+  position: relative; border: 1px solid var(--color-divider);
+  border-radius: 0; background: transparent;
+}
+.pb-chart-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 10px;
+  border-bottom: 1px solid var(--color-divider); padding-bottom: 8px;
+}
+.pb-legend { display: flex; flex-wrap: wrap; gap: 14px; }
+/* Swatches are real line samples, so the legend and the plot use identical
+   encoding — a colour square would encode nothing about weight or dash. */
+.pb-legend-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-text-3);
+}
+.pb-swatch { flex: none; }
