@@ -18,7 +18,6 @@ from lib.formatters import (
     _escape_dollars,
     _fmt_num,
     _sign,
-    _writeup_for_render,
     display_ticker,
     rr_display,
 )
@@ -109,34 +108,15 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
         '</summary>'
     )
 
-    wu = _writeup_for_render(d)
-    body_parts: list[str] = []
-    if wu["entry_block"]:
-        # F2 (2026-07-18, reader eval): prefer the pipeline's plain-language
-        # entry_block_reader (top-level field, present from 2026-07-18 on);
-        # older reports fall back to the raw rule string. The raw string
-        # rides the title attr for grep-ability/hover.
-        reader_text = d.get("entry_block_reader") or wu["entry_block"]
-        body_parts.append(
-            f'<div class="dd-entry-block" '
-            f'title="{_escape_attr(wu["entry_block"])}">ENTRY BLOCK · '
-            f'{_escape_dollars(reader_text)}</div>'
-        )
-    if wu["headline"]:
-        body_parts.append(
-            f'<div class="dd-headline">{_escape_dollars(wu["headline"])}</div>'
-        )
-    delta = wu.get("prior_period_delta_narrative")
-    if delta:
-        body_parts.append(
-            f'<div class="dd-whatdo" style="opacity:0.85;font-style:italic;">{_escape_dollars(delta)}</div>'
-        )
-    if wu["what_to_do"]:
-        body_parts.append(
-            f'<div class="dd-whatdo">{_escape_dollars(wu["what_to_do"])}</div>'
-        )
-    body_parts.append(render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist))
-    body = f'<div class="tk-drilldown">{"".join(body_parts)}</div>'
+    # The writeup used to be assembled here and the drill-down appended beneath
+    # it. It now lives inside the drill-down card, where the reading order can be
+    # enforced end-to-end (entry block before verdict before instruction) and the
+    # whole body carries one signal rail — see components/watchlist/drilldown.py.
+    body = (
+        '<div class="tk-drilldown">'
+        f'{render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist)}'
+        '</div>'
+    )
 
     changed_attr = ' data-signal-changed="true"' if signal_changed else ''
     return (
