@@ -1,6 +1,7 @@
 """Visual-regression snapshots of KEY INTERACTIVE states — the ones that only
 exist after a click, where real display bugs have hidden: the watchlist row
-drill-down and the signal-tracker by-name episode ledger.
+drill-down (twice: as revealed, and again with its Earnings drawer opened) and
+the signal-tracker by-name episode ledger.
 
 Both drill-downs are native HTML ``<details>`` blocks emitted inside a single
 ``st.markdown(unsafe_allow_html=True)`` (watchlist: ``components/watchlist``;
@@ -15,7 +16,9 @@ content height BEFORE the click, so the freshly-revealed drill-down would be
 truncated by that already-fixed viewport. We therefore call
 ``grow_viewport_to_content`` AGAIN after the expand so the full-page screenshot
 captures the newly-added height — which is also what makes each snapshot differ
-from its Task-4 default-page counterpart.
+from its Task-4 default-page counterpart. The same applies one level deeper: the
+drill-down's own ``dd-drawer`` details start closed, so anything inside them
+needs its own state to be captured at all.
 
 The Retrospective month state is the exception to the "no rerun" note above: its
 month picker is an ``st.radio``, so clicking a segment DOES trigger a Streamlit
@@ -75,6 +78,58 @@ def test_watchlist_nvda_drilldown(streamlit_server, vpage):
     grow_viewport_to_content(vpage)
 
     assert_snapshot(vpage, "watchlist-nvda-drilldown", mask=_masks(vpage))
+
+
+@pytest.mark.visual
+def test_watchlist_nvda_earnings_drawer(streamlit_server, vpage):
+    """Open NVDA's drill-down AND its Earnings drawer — the only pixel coverage
+    of the quarter-on-quarter earnings-history table.
+
+    That table and its reported-EPS sparkline (`components/watchlist/
+    earnings_history.py`, pipeline side PIPELINE_FEATURES §52) sit TWO
+    ``<details>`` deep: the row drill-down, and then a ``dd-drawer`` that stays
+    CLOSED when the row opens. ``test_watchlist_nvda_drilldown`` above stops at
+    the first level, so without this state the table renders in production and
+    appears in no baseline at all — a whole component with zero pixel coverage.
+
+    NVDA is not an arbitrary pick: under the frozen corpus it is the ticker that
+    exercises every branch of the table at once — eight reported quarters (all
+    beats, so the ▲ prefix and `.eps-beat`), a coming 2026-Q3 row (blue tint,
+    "upcoming" chip, est-marked forward revenue), one row carrying Rev YoY, and
+    four older rows whose absent margins must render as em-dashes.
+    """
+    goto_and_settle(vpage, f"{streamlit_server}/watchlist")
+
+    nvda = vpage.locator(
+        'details.tk-details:has(> summary .tk-tick-tk:text-is("NVDA"))'
+    )
+    nvda.locator("> summary").click()
+    assert nvda.evaluate("el => el.open") is True, "NVDA row did not open"
+
+    # The three drawer summaries are "Earnings" / "Risk & reward detail" /
+    # "Pipeline detail". :text-is() is EXACT and the `> summary` child combinator
+    # is load-bearing: the drawer body itself carries "Earnings setup" and
+    # "Earnings result" section heads, so a substring match or an unanchored
+    # descendant search would resolve to more than one node and trip strict mode.
+    drawer = nvda.locator('details.dd-drawer:has(> summary:text-is("Earnings"))')
+    drawer.locator("> summary").click()
+    assert drawer.evaluate("el => el.open") is True, "Earnings drawer did not open"
+
+    # Assert the §52 content specifically, not just that something opened: an
+    # empty-but-open drawer would snapshot perfectly cleanly and quietly lock a
+    # regression (the table is silent by design when the ticker has no rows, so
+    # a data-loading break degrades to a blank drawer rather than an error).
+    assert drawer.locator("table.ep-table").is_visible(), "earnings-history table missing"
+    assert drawer.locator('table.ep-table td:has-text("upcoming")').count() == 1, \
+        "coming-quarter row missing"
+
+    # Both toggles are native <details> — no Streamlit rerun (see module
+    # docstring) — so a fixed settle is correct. Then RE-GROW a second time: the
+    # two reveals together add ~1500px that the pre-click viewport would clip.
+    vpage.wait_for_timeout(400)
+    grow_viewport_to_content(vpage)
+
+    assert_snapshot(vpage, "watchlist-nvda-earnings-drawer", mask=_masks(vpage))
 
 
 @pytest.mark.visual
