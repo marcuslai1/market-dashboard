@@ -10,6 +10,7 @@ their first valid row; all measurement lives upstream
 """
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 import pandas as pd
@@ -19,7 +20,9 @@ import streamlit as st
 from lib.cards import render_section_head
 from lib.charts import (
     CHART_ACCENT,
+    CHART_ACCENT_SOFT,
     CHART_LINE,
+    CHART_MUTED,
     CHART_PALETTE,
     PLOTLY_CONFIG,
     STATUS_NEG,
@@ -152,23 +155,34 @@ def rebase_curves(df: pd.DataFrame | None) -> pd.DataFrame:
     return out
 
 
+def _human_date(value) -> str:
+    """'2026-04-19' → '19 Apr 2026'; anything unparseable passes through."""
+    if not value:
+        return ""
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return str(value)
+    return f"{parsed.day} {parsed.strftime('%b')} {parsed.year}"
+
+
 def verdict_bits(block: dict) -> tuple[str, str]:
     """(verdict sentence, tone) for the band's lead line.
 
-    Tone ∈ {"pos", "neg", ""} colours the "— …the benchmark" clause. A block
-    whose returns are still ``None`` (seed day / no matured session) reads
-    "seeded", mirroring the upstream Telegram glance line.
+    A full sentence rather than a stat row, and verdict-first: the conclusion is
+    the last clause. Tone ∈ {"pos", "neg", ""} colours it. No "Paper book:"
+    prefix — the section head above already says so. A block whose returns are
+    still ``None`` (seed day / no matured session) reads "seeded", mirroring the
+    upstream Telegram glance line.
     """
     nav = block.get("nav_return_pct")
     spy = block.get("spy_return_pct")
-    since = f" since {block['inception']}" if block.get("inception") else ""
+    since = f" since {_human_date(block['inception'])}" if block.get("inception") else ""
     if nav is None or spy is None:
         return (f"Paper book seeded{since} — first fills pending.", "")
     nav_usd = _money(NOTIONAL_START * (1 + nav / 100.0))
     spy_usd = _money(NOTIONAL_START * (1 + spy / 100.0))
-    body = (f"Paper book: {_money(NOTIONAL_START)} → {nav_usd} "
-            f"({nav:+.1f}%){since} vs SPY (the S&P 500) → {spy_usd} "
-            f"({spy:+.1f}%)")
+    body = (f"{_money(NOTIONAL_START)} → {nav_usd} ({nav:+.1f}%){since}, "
+            f"against SPY at {spy_usd} ({spy:+.1f}%)")
     if nav > spy:
         return (f"{body} — leading the benchmark.", "pos")
     if nav < spy:
@@ -193,16 +207,40 @@ _SERIES_COLORS = {"Paper book": CHART_ACCENT, "SPY": CHART_LINE,
                   "SOXX": CHART_PALETTE[0]}
 
 
+# The verdict clause by branch. "Trailing" is a trust limitation on the book's
+# own performance → terracotta, never the CAUTION hue; "leading" takes the same
+# market-direction system the two returns use; "tracking" makes no reading.
+_VERDICT_CLAUSE_COLOR = {"pos": "var(--up)", "neg": "var(--stress)"}
+
+# _escape_dollars has already turned "$" into "&#36;" by the time these run.
+_MONEY_RE = re.compile(r"&#36;[\d,]+")
+_RET_RE = re.compile(r"\(([-+]\d+\.\d)%\)")
+
+
 def _verdict_html(block: dict) -> str:
-    """Band lead line — plain-English verdict first, house style."""
+    """Band lead line — a full sentence, the conclusion last and the only
+    coloured words.
+
+    The two returns carry market direction (the delta system, deliberately
+    distinct from the signal palette); the money reads as a value; the clause
+    carries the reading.
+    """
     text, tone = verdict_bits(block)
-    color = {"pos": STATUS_POS, "neg": STATUS_NEG}.get(tone)
     head, sep, tail = text.partition(" — ")
+    head = _escape_dollars(head)
+    head = _MONEY_RE.sub(lambda m: f'<span class="pb-val">{m.group(0)}</span>', head)
+    head = _RET_RE.sub(
+        lambda m: '<span class="pb-ret" style="color:'
+                  + ("var(--up)" if m.group(1).startswith("+") else "var(--down)")
+                  + f'">({m.group(1)}%)</span>',
+        head,
+    )
     tail_html = ""
     if sep:
+        color = _VERDICT_CLAUSE_COLOR.get(tone)
         style = f' style="color:{color};"' if color else ""
-        tail_html = f'<span{style}> — {_escape_dollars(tail)}</span>'
-    return f'<p class="pb-verdict">{_escape_dollars(head)}{tail_html}</p>'
+        tail_html = f'<span class="pb-clause"{style}> — {_escape_dollars(tail)}</span>'
+    return f'<p class="pb-verdict">{head}{tail_html}</p>'
 
 
 def _stats_html(block: dict) -> str:
@@ -218,12 +256,17 @@ def _stats_html(block: dict) -> str:
             chips.append((str(n), label))
     if not chips:
         return ""
+    # All neutral: these are inputs, not verdicts. Colouring them would imply
+    # 15 stop-outs is "bad" when it is simply how many there were.
     body = "".join(
-        f'<div class="pb-stat"><b>{_escape_dollars(v)}</b>'
+        f'<div class="stat-tick"><b>{_escape_dollars(v)}</b>'
         f"<span>{label}</span></div>"
         for v, label in chips
     )
-    return f'<div class="pb-stats">{body}</div>'
+    # Column count follows the chips: 5 on today's data, up to 7 when the
+    # AVOID / delist exit reasons are present.
+    return (f'<div class="hair-grid pb-stats" '
+            f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
 def _banner_html(block: dict) -> str:
@@ -240,6 +283,21 @@ _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
                 "v1_nostop10": "no-stop", "v1_wide10": "wide"}
 
 
+def _lane_label(policy_id: str) -> str:
+    """Reader label for a lane, falling back through every map we own.
+
+    The exported ``variants`` array is not limited to the four stop-rule lanes —
+    the ext-exit replays appear there too, and those already have labels in
+    ``_ADVISORY_CURVES`` (used by the chart legend). Consulting both keeps a raw
+    policy_id off the page; in the lane grid an unlabelled id sits as a cell
+    title beside four clean ones, which is far louder than it was mid-sentence.
+    Unknown ids still fall through to the escaped id rather than being dropped.
+    """
+    return (_LANE_LABELS.get(policy_id)
+            or _ADVISORY_CURVES.get(policy_id)
+            or _escape_dollars(str(policy_id)))
+
+
 def _variants_html(block: dict | None) -> str:
     """Advisory stop-rule lanes, one compact line under the stats.
 
@@ -253,32 +311,45 @@ def _variants_html(block: dict | None) -> str:
     already leads the band).
     """
     block = block or {}
-    parts = []
+    lanes = []
     for v in block.get("variants") or []:
         if not isinstance(v, dict) or not v.get("policy_id"):
             continue
         nav = v.get("nav_return_pct")
         if not isinstance(nav, (int, float)):
             continue
-        label = (_LANE_LABELS.get(v["policy_id"])
-                 or _escape_dollars(str(v["policy_id"])))
-        stops = v.get("stops")
-        stop_txt = (f" · {int(stops)} stop-outs"
-                    if isinstance(stops, (int, float)) else "")
-        parts.append(f"<b>{label}</b> {nav:+.1f}%{stop_txt}")
-    if not parts:
+        label = _lane_label(v["policy_id"])
+        lanes.append((label, nav, v.get("stops"), False))
+    if not lanes:
         return ""
     head_nav = block.get("nav_return_pct")
     if isinstance(head_nav, (int, float)):
-        label = (_LANE_LABELS.get(block.get("policy_id"))
-                 or _escape_dollars(str(block.get("policy_id") or "book")))
+        label = _lane_label(block.get("policy_id") or "book")
         stops = (block.get("trade_counts") or {}).get("stop")
-        stop_txt = (f" · {int(stops)} stop-outs"
+        lanes.insert(0, (label, head_nav, stops, True))
+
+    cells = ""
+    for label, nav, stops, is_head in lanes:
+        stop_txt = (f'<span class="pb-lane-stops">{int(stops)} stop-outs</span>'
                     if isinstance(stops, (int, float)) else "")
-        parts.insert(0, f"<b>{label}</b> {head_nav:+.1f}%{stop_txt} (headline)")
-    return ('<p class="pb-variants">Stop-rule lanes: '
-            + " | ".join(parts)
-            + " — same book, only the stop rule differs.</p>")
+        # Steel rail + the word: without it a reader cannot tell which of these
+        # numbers is the real book, and the best-looking lane reads as the
+        # headline result. Never a ranking — the exported banner below carries
+        # the caveat.
+        flag = ' data-flag="1"' if is_head else ""
+        suffix = ' <span class="pb-lane-head">· headline</span>' if is_head else ""
+        cells += (
+            f'<div class="pb-lane"{flag}>'
+            f'<div class="pb-lane-label">{label}{suffix}</div>'
+            f'<div class="pb-lane-ret">{nav:+.1f}%</div>'
+            f"{stop_txt}</div>"
+        )
+    return (
+        '<p class="pb-lane-eyebrow">Stop-rule lanes — same book, only the stop '
+        "rule differs</p>"
+        f'<div class="hair-grid pb-lanes" '
+        f'style="grid-template-columns:repeat({len(lanes)},1fr);">{cells}</div>'
+    )
 
 
 # Exit-reason keys → singular plain-language labels for the history's
@@ -802,8 +873,12 @@ _ADVISORY_CURVES = {
     "v1_tc_ext_100": "ext-exit 10/5",
     "v1_tc_ext_100_b30": "ext-exit 30/15",
 }
-_ADVISORY_COLORS = {"ext-exit 10/5": CHART_PALETTE[2],    # sage
-                    "ext-exit 30/15": CHART_PALETTE[3]}   # dusty mauve
+# One neutral, one brass-tinted — variants of the subject and the benchmark, not
+# two more categories. Two arbitrary palette hues (the old sage / dusty mauve)
+# read as new series with meanings of their own. The tint is dimmed rather than
+# CHART_ACCENT itself: a replay must never be mistaken for the book.
+_ADVISORY_COLORS = {"ext-exit 10/5": CHART_MUTED,
+                    "ext-exit 30/15": CHART_ACCENT_SOFT}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
@@ -834,26 +909,81 @@ def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
     return out.sort_values("date").reset_index(drop=True)
 
 
+# Series widths — hierarchy by weight, not just hue. A reader who knows nothing
+# can still tell which line is the point.
+_W_SUBJECT, _W_BENCH, _W_REPLAY = 2.4, 1.6, 1.4
+
+
+def _legend_swatch(color: str, width: float, dash: bool) -> str:
+    """An 18px rule at the series' real width and dash pattern.
+
+    Actual line samples rather than colour squares, so the legend and the plot
+    use identical encoding — the dashes say "hypothetical" before the caption is
+    read. non-scaling-stroke keeps a hairline a hairline as the SVG stretches.
+    """
+    dash_attr = ' stroke-dasharray="4 3"' if dash else ""
+    return (
+        '<svg class="pb-swatch" viewBox="0 0 18 6" width="18" height="6" '
+        'aria-hidden="true"><line x1="0" y1="3" x2="18" y2="3" '
+        f'stroke="{color}" stroke-width="{width}"{dash_attr} '
+        'vector-effect="non-scaling-stroke"/></svg>'
+    )
+
+
+def _chart_head_html(rebased: pd.DataFrame,
+                     advisory: pd.DataFrame | None) -> str:
+    """Header row for the chart card: steel axis eyebrow left, legend right.
+
+    Also carries the four blueprint registration marks, which position against
+    the bordered container the chart sits in.
+    """
+    entries = []
+    for name in [c for c in rebased.columns if c != "date" and c in _CHART_SERIES]:
+        width = _W_SUBJECT if name == "Paper book" else _W_BENCH
+        entries.append((name, _SERIES_COLORS.get(name, CHART_LINE), width, False))
+    if advisory is not None and not advisory.empty:
+        for name in [c for c in advisory.columns if c != "date"]:
+            entries.append((name, _ADVISORY_COLORS.get(name, CHART_LINE),
+                            _W_REPLAY, True))
+    legend = "".join(
+        f'<span class="pb-legend-item">{_legend_swatch(color, width, dash)}'
+        f"{_escape_dollars(name)}</span>"
+        for name, color, width, dash in entries
+    )
+    # Escaped: a raw "$" in injected markdown is read as a LaTeX delimiter.
+    axis = _escape_dollars(f"Value of {_money(NOTIONAL_START)} invested at start")
+    return (
+        '<i class="corner tl"></i><i class="corner tr"></i>'
+        '<i class="corner bl"></i><i class="corner br"></i>'
+        '<div class="pb-chart-head">'
+        f'<span class="eyebrow">{axis}</span>'
+        f'<span class="pb-legend">{legend}</span>'
+        "</div>"
+    )
+
+
 def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
+    """The NAV plot as a line drawing: no axis box, no filled plot area, and no
+    Plotly legend — the header row above carries it, with real line samples."""
     fig = go.Figure()
     for name in [c for c in rebased.columns
                  if c != "date" and c in _CHART_SERIES]:
         fig.add_scatter(
             x=rebased["date"], y=rebased[name], mode="lines", name=name,
             line=dict(color=_SERIES_COLORS.get(name, CHART_LINE),
-                      width=2.2 if name == "Paper book" else 1.4),
+                      width=_W_SUBJECT if name == "Paper book" else _W_BENCH),
         )
     if advisory is not None and not advisory.empty:
         for name in [c for c in advisory.columns if c != "date"]:
             fig.add_scatter(
                 x=advisory["date"], y=advisory[name], mode="lines", name=name,
                 line=dict(color=_ADVISORY_COLORS.get(name, CHART_LINE),
-                          width=1.2, dash="dash"),
+                          width=_W_REPLAY, dash="dash"),
             )
-    fig.update_layout(height=260, margin=dict(l=0, r=0, t=10, b=0),
-                      legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                      yaxis_title=f"value of {_money(NOTIONAL_START)} "
-                                  "invested at start")
+    fig.update_layout(height=260, margin=dict(l=0, r=0, t=6, b=0),
+                      showlegend=False)
+    fig.update_xaxes(showline=False, zeroline=False)
+    fig.update_yaxes(showline=False, zeroline=False, title=None)
     return style_fig(fig)
 
 
@@ -864,9 +994,11 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
     names = [c for c in advisory.columns if c != "date"]
     if not names:
         return ""
+    # Terracotta on the limitation only — it marks a trust limit, never a rating.
     return ('<p class="pb-chartnote">Dashed: exit-on-extension replay lanes '
             f'({", ".join(names)} — BUY%/add-on% of the book) · '
-            "hypothesis-grade, one regime · not the headline book.</p>")
+            '<span class="lim">hypothesis-grade, one regime</span> · '
+            "not the headline book.</p>")
 
 
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
@@ -877,9 +1009,11 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
     if valid.empty:
         return ""
     ret = (valid.iloc[-1] / NOTIONAL_START - 1.0) * 100.0
-    return (f'<p class="pb-chartnote">SOXX {ret:+.1f}% over this window is '
-            f"left off the chart so the book-vs-SPY gap stays readable — "
-            f"full series in the data table.</p>")
+    # Brass on the figure: a measurement. The exclusion is disclosed rather than
+    # silent — a +32% series would flatten the gap the chart exists to show.
+    return (f'<p class="pb-chartnote">SOXX <span class="val">{ret:+.1f}%</span> '
+            f"over this window is left off the chart so the book-vs-SPY gap "
+            f"stays readable — full series in the data table.</p>")
 
 
 def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
@@ -914,13 +1048,20 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         "Paper book",
         "A simulated portfolio that follows the signals by rule · "
         "no real money · exists to measure them",
+        masthead=True,
     )
     if block:
         st.markdown(_verdict_html(block) + _stats_html(block),
                     unsafe_allow_html=True)
     if not rebased.empty:
-        st.plotly_chart(_nav_fig(rebased, advisory), use_container_width=True,
-                        config=PLOTLY_CONFIG)
+        # st.container(border=True) is the only wrapper a Plotly element can sit
+        # inside; the tracker-scoped CSS turns it into the blueprint frame, and
+        # the injected corner marks position against it.
+        with st.container(border=True):
+            st.markdown(_chart_head_html(rebased, advisory),
+                        unsafe_allow_html=True)
+            st.plotly_chart(_nav_fig(rebased, advisory),
+                            use_container_width=True, config=PLOTLY_CONFIG)
         note = _soxx_note_html(rebased) + _advisory_note_html(advisory)
         if note:
             st.markdown(note, unsafe_allow_html=True)
