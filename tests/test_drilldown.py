@@ -386,3 +386,19 @@ def test_data_quality_warnings_do_not_borrow_the_watch_hue():
     )
     assert STATUS_WARN_SOFT not in html
     assert "var(--stress)" in html
+
+
+def test_both_halves_of_the_left_column_are_labelled():
+    # Without eyebrows the tape readings and the multiples run together into one
+    # undifferentiated list, and the right column already labels its parts.
+    html = render_drilldown_detail_html(
+        "MU", dict(_MU, vs_sma50_pct=3.9, valuation={"forward_pe": 15.3})
+    )
+    assert 'class="dd-eyebrow">Technicals<' in html
+    assert 'class="dd-eyebrow">Valuation<' in html
+    assert html.index("Technicals") < html.index("Valuation")
+
+
+def test_an_absent_half_takes_its_eyebrow_with_it():
+    html = render_drilldown_detail_html("MSFT", {"signal": "HOLD"})
+    assert "dd-eyebrow\">Valuation<" not in html

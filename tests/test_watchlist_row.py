@@ -129,3 +129,24 @@ def test_adjusted_rr_qualifier_is_visible_text_not_only_a_title():
 def test_unadjusted_rr_has_no_qualifier_line():
     d = {"signal": "WATCH", "risk_reward": {"ratio": 2.6, "ratio_label": "2.6:1"}}
     assert "tight-stop adj." not in render_ticker_details_html("NVDA", d)
+
+
+# ── A non-ratio R:R label must not break the grid ──
+# The pipeline emits "N/A -- at or below invalidation" when a name sits under its
+# own stop. In a 96px ratio column that sentence wrapped to three lines and made
+# its row visibly taller than every neighbour — which defeats the whole point of a
+# scanning surface, where uniform row height is what lets the eye run a column.
+def test_non_ratio_rr_label_splits_into_value_and_reason():
+    d = {"signal": "HOLD",
+         "risk_reward": {"ratio_label": "N/A -- at or below invalidation"}}
+    html = render_ticker_details_html("META", d)
+    assert '<div class="tk-rr-val">n/a</div>' in html
+    # The reason survives as visible text, not a hover title.
+    assert "at or below invalidation" in html
+
+
+def test_ratio_labels_are_left_alone():
+    d = {"signal": "WATCH", "risk_reward": {"ratio": 2.1, "ratio_label": "2.1:1"}}
+    html = render_ticker_details_html("BE", d)
+    assert '<div class="tk-rr-val">2.1:1</div>' in html
+    assert "n/a" not in html
