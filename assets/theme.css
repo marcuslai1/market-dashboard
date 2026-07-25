@@ -2382,51 +2382,433 @@ details.led-details[open] > summary {
   }
 }
 
-/* ── Retrospective page (spec 2026-07-20-reader-retrospective-design) ── */
-.retro-headline {
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-  margin: 18px 0 8px;
-}
-.retro-headline b { color: var(--ink); }
-.retro-paper {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--ink-2);
-  margin: 0 0 16px;
-}
-.retro-group { margin: 0 0 20px; }
-.retro-group-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-3);
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-.retro-item {
+/* ── Retrospective page (spec 2026-07-25-review-retrospective-redesign) ──
+   Page order is caveat → time control → verdict → evidence → method: the
+   honesty banner sits above every number so no figure is read unqualified.
+
+   Mostly page-scoped. The head is the SHARED .section-head.masthead variant
+   (2px full-strength rule + 30px/600) — this page carried its own .retro-head
+   copy of that treatment until the shared variant arrived with the Signal
+   Tracker redesign; one device should not be spelled two ways. The banner does
+   NOT reuse .briefing-banner (filled, rounded, --caution-railed: the three
+   things §4 of the spec rules out).
+
+   The one hard rule this page exists to prove: signal colour and outcome colour
+   appear on the SAME row and mean different things. The pill carries the rating
+   (signal palette); the rail and glyph carry what the market did (--up/--down).
+   A CAUTION call that worked is an amber pill on a green rail — that is the
+   honest encoding, and merging the two palettes would make the row unreadable.
+
+   Ink levels: the spec's opacity percentages are expressed through the measured
+   ink ramp rather than color-mix (unused elsewhere in this file) — 78% → --ink-2
+   (9.75:1), 62%/60%/48% → --ink-3 (5.03:1). --ink-4 measures 2.51:1 and is not
+   used for text, so the quietest row text (dates, levels) lands on --ink-3 and
+   gets its recessive weight from size and letterspacing instead. */
+
+/* §3 Page head: render_section_head(..., masthead=True). The 2px full-strength
+   rule says "top-level document surface, not a section inside one", and the
+   right-aligned sub carries the page's premise so the title can stay one word.
+   No rules here — the shared variant already is this treatment. */
+
+/* §4 Honesty banner. Terracotta (--stress), never a signal colour: this is a
+   trust limitation about the verdicts, not a rating on any stock — so it can
+   read as a warning at a glance without ever being mistaken for CAUTION.
+   Hairline box + one coloured edge, no fill: the marker grammar every other row
+   on the site uses. The glyph is its own flex cell aligned flex-start so a
+   wrapping sentence stays in the text column instead of tucking under it. */
+.retro-banner {
   display: flex;
+  align-items: flex-start;
   gap: 10px;
-  align-items: baseline;
-  padding: 5px 0;
+  border: 1px solid var(--color-divider);
+  border-left: 3px solid var(--stress);
+  padding: 11px 14px;
+  margin: 0 0 var(--space-4);
 }
-.retro-icon { flex: 0 0 16px; text-align: center; }
-.retro-body { font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
-.retro-body b { color: var(--ink); }
-.retro-levels { color: var(--ink-3); font-size: 0.85em; }
-.retro-outcome { margin-left: 6px; }
-.retro-date {
-  margin-left: 8px;
+.retro-banner .retro-warn {
+  flex: 0 0 auto;
+  color: var(--stress);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.retro-banner p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-2);
+}
+
+/* §5 Month picker. st.radio styled as a joined segmented control, scoped by the
+   st-key class Streamlit generates from key="retro_month" — the same mechanism
+   the masthead top-nav uses, which is the one radio-as-tabs pattern this app has
+   already proven across Streamlit versions (local 1.50 / CI 1.58 / cloud latest).
+   A segmented control rather than a dropdown because the archive is short and
+   comparison is the point: you click between June and July and watch the
+   scoreboard change. A <select> would hide the time axis behind a click. */
+.st-key-retro_month .stRadio {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.st-key-retro_month .stRadio > label {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+.st-key-retro_month .stRadio > label p,
+.st-key-retro_month .stRadio > label div {
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  color: var(--color-text-3) !important;
+}
+.st-key-retro_month [role="radiogroup"] {
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  /* Joined: three segments read as ONE control with three states rather than
+     three buttons. row-gap survives the archive growing past one row — the
+     segments stay joined horizontally but wrapped rows don't collide. */
+  gap: 0 !important;
+  row-gap: 4px !important;
+  padding: 0 !important;
+  border: none !important;
+}
+.st-key-retro_month [role="radiogroup"] > label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  cursor: pointer;
+  /* Same label grammar as the nav tabs. */
+  font-family: var(--mono) !important;
+  font-size: 11px !important;
+  font-weight: 600;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase;
+  color: var(--color-text-3) !important;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
+  padding: 5px 12px !important;
+  /* BaseWeb ships margin-right on every radio label; zero it or the segments
+     unjoin. The -1px collapses adjacent borders so the seam stays 1px. */
+  margin: 0 0 0 -1px !important;
+  transition: color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.st-key-retro_month [role="radiogroup"] > label:first-of-type { margin-left: 0 !important; }
+/* Hide BaseWeb's radio circle (its wrapper div) but keep the input focusable —
+   a plain display:none on the input makes the control unreachable by keyboard. */
+.st-key-retro_month [role="radiogroup"] > label > div:first-child { display: none !important; }
+.st-key-retro_month [role="radiogroup"] > label > input[type="radio"] {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  opacity: 0 !important; margin: 0 !important;
+}
+.st-key-retro_month [role="radiogroup"] > label:hover { color: var(--color-text-2) !important; }
+/* Active segment: steel border + 14% accent wash + full-strength text. Steel
+   because selection is navigation/structure, never a rating. THREE redundant
+   cues because a border change alone reads weakly between adjacent segments —
+   and the wash is the one fill on this page, earned by that. The z-index lifts
+   the active segment's border over its neighbours' collapsed edges. */
+.st-key-retro_month [role="radiogroup"] > label:has(input:checked) {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text) !important;
+  border-color: var(--accent);
+  /* --accent-dark at 14%. A fixed rgba rather than a derived colour for the same
+     reason SIGNAL_TINTS are fixed rgba in catalog.json: this file has no
+     color-mix, and the app ships on the dark base (.streamlit/config.toml). */
+  background: rgba(148, 188, 227, 0.14);
+}
+.st-key-retro_month [role="radiogroup"] > label:has(input:focus-visible) {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+/* The in-progress note rides beside the control, not below it: it qualifies the
+   act of selecting the newest month, and as a caption underneath it would read
+   as a statement about the whole page. */
+.retro-inprogress {
   font-family: var(--mono);
   font-size: 10px;
-  color: var(--ink-3);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  padding-bottom: 6px;
 }
-.retro-empty { color: var(--ink-3); }
+
+/* §6 Month scoreboard. Three panels in ONE blueprint frame because these are
+   three readings of the same month — the verdict, its composition, and the
+   portfolio consequence. Three separate cards would imply three subjects.
+   Corner marks come from the shared .blueprint > .corner rules. */
+.retro-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 190px 1fr 250px;
+  border: 1px solid var(--color-divider);
+  background: transparent;
+  margin: var(--space-3) 0 var(--space-5);
+}
+.rb-panel { padding: 22px 28px; }
+/* Hairlines between panels mark a boundary without fragmenting the frame. */
+.rb-comp { border-left: 1px solid var(--color-divider); }
+.rb-paper { border-left: 1px solid var(--color-divider); }
+.rb-eyebrow {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--eyebrow);          /* steel: structure, never a rating */
+  margin: 0 0 10px;
+}
+/* The hit rate is the largest element on the page: a percentage IS the answer to
+   the question the page asks, where "9 resolved · 6 went our way" made the
+   reader do the division. Brass, not green — a hit rate is an instrument
+   reading of calibration, and colouring it green would editorialise (is 67%
+   good?) and collide with the outcome greens a few hundred pixels below. */
+.rb-hit {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--brass);
+}
+/* Nothing to measure yet. Brass at 48px is reserved for readings that exist, and
+   a dash in the figure slot reads as a stray rule rather than a missing value —
+   so the empty state states itself in words, in the muted ramp, at a size that
+   still holds the panel's top line. Applies to both figures (hit rate, paper
+   return) so an unmeasured month looks the same wherever it shows up. */
+.rb-hit[data-empty="1"],
+.rb-paper-val[data-empty="1"] {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--color-text-3);
+}
+/* The arithmetic is ALWAYS shown, so the percentage is never a bare assertion —
+   and it names the denominator (resolved, not all calls), the one thing a hit
+   rate can quietly lie about. */
+.rb-arith {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-3);
+  margin: 8px 0 0;
+  max-width: 22ch;
+}
+/* The bar carries what the hit rate structurally cannot: the unresolved slice.
+   The hit rate excludes open calls by design, so without this the reader can't
+   see that 67% rests on a partial month. Green/red here are OUTCOMES (the
+   up/down delta system, not the signal palette); the third segment must stay
+   neutral because a pending call is the ABSENCE of a verdict and any colour
+   would imply one. */
+.rb-bar {
+  display: flex;
+  height: 14px;
+  border: 1px solid var(--color-divider);
+  overflow: hidden;
+}
+.rb-seg { display: block; height: 100%; }
+.rb-seg[data-seg="worked"] { background: var(--up); }
+.rb-seg[data-seg="failed"] { background: var(--down); }
+/* --muted-fill is the data palette's neutral/secondary series and is theme-aware,
+   where a flat rgba(255,255,255,.22) would vanish on a light base. */
+.rb-seg[data-seg="open"]   { background: var(--muted-fill); }
+.rb-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+/* Counts are inputs, so they stay neutral — colouring one would imply that 5
+   open calls is good or bad. Value-over-label matches every other stat block on
+   the site, so the pattern is learnable. */
+.rb-count b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+.rb-count span {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  margin-top: 4px;
+}
+/* The paper book is the cross-check, not the subject: the hit rate says the
+   calls were directionally right, this says whether following them made money.
+   Same brass as the Tracker's paper book — the same quantity wears the same
+   colour on both pages — but 26px to the hit rate's 48px. */
+.rb-paper-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--brass);
+}
+.rb-vs {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-3);
+  margin-top: 8px;
+}
+
+/* §7 Verdict groups. 19px over a 1px rule is a deliberate step DOWN from the
+   30px/2px page head, so the hierarchy reads month → outcome bucket rather than
+   three more top-level sections. These are the only tinted headings on the
+   site: the three groups are otherwise structurally identical, so the colour is
+   what lets you jump to the bucket you want without reading — and it pre-loads
+   the rail colour about to repeat down the rows. */
+.retro-group { margin: 0 0 var(--space-4); }
+.retro-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-text);
+  padding-bottom: 6px;
+  margin: 0 0 4px;
+}
+.retro-group-head h2 {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: var(--font-display);
+  font-size: 19px !important;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.retro-group[data-bucket="worked"] .retro-group-head h2 { color: var(--up); }
+.retro-group[data-bucket="failed"] .retro-group-head h2 { color: var(--down); }
+.retro-group[data-bucket="pending"] .retro-group-head h2 { color: var(--color-text-3); }
+.retro-group-n {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-3);
+}
+
+/* Call row. Fixed outer columns are the point: with a fixed pill column every
+   ticker starts at the same x down the whole list, so the names form a
+   scannable vertical edge — impossible if the pill sized to its label (CAUTION
+   and BUY differ in width). Baseline alignment makes the row read as one line
+   of type rather than three stacked objects. */
+.retro-item {
+  display: grid;
+  grid-template-columns: 22px 96px 1fr 66px;
+  gap: 10px;
+  align-items: baseline;
+  border-left: 3px solid var(--color-text-4);
+  padding: 7px 0 7px 11px;
+}
+/* The rail states the OUTCOME. Same "coloured left edge = state" grammar as
+   watchlist rows and clusters. */
+.retro-item[data-bucket="worked"] { border-left-color: var(--up); }
+.retro-item[data-bucket="failed"] { border-left-color: var(--down); }
+/* Pending is faint neutral: no verdict yet, so nothing to state. */
+.retro-item[data-bucket="pending"] { border-left-color: var(--color-divider-strong); }
+/* The glyph repeats the rail on purpose — two encodings of one fact, so the row
+   survives a reader who can't distinguish the greens, and the marks give the
+   list a scannable left margin. */
+.retro-icon { font-size: 12px; line-height: 1.5; text-align: center; }
+.retro-item[data-bucket="worked"] .retro-icon { color: var(--up); }
+.retro-item[data-bucket="failed"] .retro-icon { color: var(--down); }
+/* ⏳ has emoji presentation, so it ignores `color` and renders in its own hue —
+   which would make a pending call the most colourful thing in the list, exactly
+   backwards from "pending is the ABSENCE of a verdict". Desaturating it is what
+   keeps the rule intact while keeping the glyph the Tracker also uses. ✓ and ✗
+   are plain text glyphs and take `color` normally. */
+.retro-item[data-bucket="pending"] .retro-icon {
+  color: var(--color-text-3);
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+/* The pill keeps the FULL signal treatment (tint, rail text, dot): the rating
+   was CAUTION even where the outcome was good. */
+.retro-pill { display: block; }
+.retro-line { font-size: 13px; line-height: 1.5; color: var(--color-text-2); }
+.retro-line b {
+  color: var(--color-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.retro-entry { color: var(--color-text-3); }
+/* The outcome is the darkest text after the ticker because it is what you came
+   for. */
+.retro-outcome { color: var(--color-text-2); }
+/* Levels were inline in parentheses and interrupted the outcome sentence
+   mid-read. Demoted to a quiet second line the sentence flows, and they are
+   still there for anyone auditing the call. */
+.retro-levels {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+  margin-top: 3px;
+}
+/* The quietest thing in the row — within a month the exact day rarely changes a
+   judgment — and right-aligned so the dates form their own column at the far
+   edge. */
+.retro-date {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  color: var(--color-text-3);
+}
+.retro-empty {
+  font-size: 13px;
+  color: var(--color-text-3);
+  padding: 6px 0;
+}
+
+/* §8 Method note + footer legend. Exactly two phrases are bolded to full
+   strength — "raw price direction" and "retired names stay on the record" —
+   because those are the two facts that change how every row above is read.
+   Bolding by what breaks comprehension if missed, never by keyword. */
+.retro-method {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--color-text-3);
+  max-width: 104ch;
+  margin: var(--space-4) 0 0;
+}
+.retro-method b { color: var(--color-text); font-weight: 600; }
+/* The page's own legend, placed where a reader confused by an amber-pill-on-
+   green-rail row would go looking for it. */
+.retro-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  border-top: 1px solid var(--color-divider);
+  margin-top: var(--space-4);
+  padding-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+
+/* Narrow viewports: the board stacks and its panel hairlines move from the left
+   edge to the top, so the divider always separates panels along the axis they
+   are actually stacked on. */
+@media (max-width: 719px) {
+  .retro-board { grid-template-columns: 1fr; }
+  .rb-panel { padding: 18px 20px; }
+  .rb-comp, .rb-paper {
+    border-left: none;
+    border-top: 1px solid var(--color-divider);
+  }
+  .retro-item { grid-template-columns: 18px 84px 1fr; }
+  /* The date drops out of the row grid and trails the sentence instead of
+     forcing a fourth column into ~320px. */
+  .retro-date { grid-column: 3; text-align: left; }
+}
 
 /* ── AI Capex Pulse datasheet (spec 2026-07-22 §6) ──────────────
    Fixed geometry: every column is a declared width, nothing sizes to content —
