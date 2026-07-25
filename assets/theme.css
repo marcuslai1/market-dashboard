@@ -113,6 +113,21 @@
   --muted-fill-light:#b7b7ba;     --muted-fill-dark:#5d5d60;  /* secondary series */
   --stress-light:#a3453b;         --stress-dark:#e08a80;      /* terracotta */
 
+  /* —— Metric-family palette · Pipeline health page ONLY ——
+     One hue per metric, five muted technical tones on a shared lightness band
+     so no cell shouts louder than another. Legal on that page and nowhere else:
+     it carries no signal pills and no price moves, so neither reserved palette
+     (signal ratings, up/down deltas) is in play and these cannot be misread.
+     Hue here says WHICH metric, never whether the reading is good — a reader
+     crossing from a green +9.4% on a Watchlist row should not have to switch
+     interpretive modes silently. Mirrored in lib/charts.METRIC_COLORS for the
+     Plotly side; tests/test_design_tokens.py fails if the two drift. */
+  --metric-cost-light:#8a6520;      --metric-cost-dark:#e0bd74;      /* gold */
+  --metric-cache-light:#1d6b64;     --metric-cache-dark:#63c6ba;     /* teal */
+  --metric-input-light:#3f5f9e;     --metric-input-dark:#8fb2ee;     /* indigo */
+  --metric-gen-light:#63478c;       --metric-gen-dark:#b7a3e6;       /* violet */
+  --metric-articles-light:#4d6b38;  --metric-articles-dark:#a6ca86;  /* moss */
+
   /* —— §3a signal PILL TEXT (per theme; rails shared, defined at §Signal tokens) —— */
   --buy-text-light:#15803d;       --buy-text-dark:#4ade80;
   --accumulate-text-light:#1f6ea8; --accumulate-text-dark:#5dade2;
@@ -139,6 +154,11 @@
   --brass:var(--brass-dark);
   --muted-fill:var(--muted-fill-dark);
   --stress:var(--stress-dark);
+  --metric-cost:var(--metric-cost-dark);
+  --metric-cache:var(--metric-cache-dark);
+  --metric-input:var(--metric-input-dark);
+  --metric-gen:var(--metric-gen-dark);
+  --metric-articles:var(--metric-articles-dark);
   --buy-text:var(--buy-text-dark);
   --accumulate-text:var(--accumulate-text-dark);
   --watch-text:var(--watch-text-dark);
@@ -3788,4 +3808,309 @@ a.term-index-item:hover {
 @media (max-width: 900px) {
   .term-layout { grid-template-columns: 1fr; gap: 22px; }
   .term-index { position: static; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PIPELINE HEALTH — the operator's page
+
+   The only page with a metric-family palette, and the only one that can have
+   one: it carries no signal pills and no price moves, so neither reserved
+   palette is in play. Each cell reads --metric-<key> off its data-metric
+   attribute, so one rule set serves all five hues and a breach can override
+   every one of them from a single selector.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.pm-range {
+  display: inline-block; margin: 2px 0 22px;
+  border: 1px solid var(--color-divider); padding: 4px 10px;
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-text-3); font-variant-numeric: tabular-nums;
+}
+
+/* ── Verdict band ──
+   The one element that must not be skimmed past, so it is the one card on the
+   page; everything below is plain, because that material is the evidence. */
+.pm-verdict {
+  display: grid; grid-template-columns: auto 1fr; gap: 26px;
+  align-items: center; padding: 20px 24px; margin-bottom: 26px;
+}
+.pm-status {
+  display: flex; align-items: center; gap: 10px;
+  padding-right: 26px; border-right: 1px solid var(--color-divider);
+}
+.pm-status-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.pm-status-word {
+  font-family: var(--font-display); font-size: 26px; font-weight: 600;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+/* Steel → gold → terracotta, the site's health axis. Healthy is steel and not
+   green because "fine" is the structural default rather than an achievement —
+   and because green belongs to market direction. */
+.pm-verdict[data-status="ok"]     { --pm-status: var(--eyebrow); }
+.pm-verdict[data-status="near"]   { --pm-status: var(--brass); }
+.pm-verdict[data-status="breach"] { --pm-status: var(--stress); }
+.pm-status-dot  { background: var(--pm-status); }
+.pm-status-word { color: var(--pm-status); }
+
+.pm-thesis p {
+  margin: 0 0 8px; font-family: var(--font-display); font-size: 19px;
+  font-weight: 400; line-height: 1.4; color: var(--color-text); max-width: 62ch;
+}
+.pm-reliability {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  font-family: var(--font-body); font-size: 12px; color: var(--color-text-3);
+}
+.pm-rel-warn { color: var(--brass); }
+
+/* ── The five-metric strip ──
+   gap:1px over a divider ground — the site's hairline grid, which always means
+   "peer measurements, compare across". */
+.pm-strip {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 1px; background: var(--color-divider);
+  border: 1px solid var(--color-divider); margin-bottom: 34px;
+}
+.pm-cell {
+  background: var(--color-bg); padding: 13px 14px 0;
+  border-top: 2px solid var(--pm-hue);
+  display: flex; flex-direction: column;
+}
+.pm-cell[data-metric="cost"]     { --pm-hue: var(--metric-cost); }
+.pm-cell[data-metric="cache"]    { --pm-hue: var(--metric-cache); }
+.pm-cell[data-metric="input"]    { --pm-hue: var(--metric-input); }
+.pm-cell[data-metric="gen"]      { --pm-hue: var(--metric-gen); }
+.pm-cell[data-metric="articles"] { --pm-hue: var(--metric-articles); }
+/* One selector flips rail, swatch, label, delta, threshold and — via the
+   inline hue the sparkline already resolves — line, fill and dot. A breached
+   cell whose hue survived would make the page's most important state its
+   subtlest. */
+.pm-cell[data-breach="1"] { --pm-hue: var(--stress); }
+
+.pm-cell-label {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.11em; text-transform: uppercase; color: var(--pm-hue);
+}
+.pm-swatch { width: 6px; height: 6px; background: var(--pm-hue); flex: none; }
+.pm-value {
+  font-family: var(--font-display); font-size: 29px; font-weight: 600;
+  line-height: 1.15; margin-top: 7px; color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+/* The number is the content; the unit is a qualifier and should not consume
+   the same visual weight. */
+.pm-unit {
+  font-size: 14px; font-weight: 500; color: var(--color-text-3);
+  margin-left: 2px;
+}
+.pm-delta {
+  display: flex; align-items: baseline; gap: 5px; margin-top: 5px;
+  font-family: var(--font-display); font-variant-numeric: tabular-nums;
+}
+.pm-arrow { font-size: 11px; font-weight: 700; color: var(--pm-hue); }
+.pm-mag   { font-size: 12px; font-weight: 600; color: var(--pm-hue); }
+/* A delta without a denominator is an assertion, so the basis is always said. */
+.pm-basis {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-text-4);
+}
+/* Flat gets the neutral ramp: "nothing happened" must not wear the accent, or
+   every cell looks like it moved. */
+.pm-delta[data-flat="1"] .pm-arrow,
+.pm-delta[data-flat="1"] .pm-mag { color: var(--color-text-4); }
+
+/* The dot is an HTML element over a clipped, positioned wrapper — the SVG uses
+   preserveAspectRatio:none, so an SVG <circle> would stretch into an oval as
+   the cell widens and paint past the cell edge into the grid divider. Fixed
+   px width==height keeps it round at any cell width; overflow:hidden stops
+   anything escaping into the neighbouring cell. */
+.pm-spark {
+  position: relative; overflow: hidden;
+  height: 40px; margin: 10px -14px 0;
+}
+.pm-spark svg { display: block; width: 100%; height: 100%; }
+.pm-dot {
+  position: absolute; right: 3px; width: 5px; height: 5px;
+  border-radius: 50%; border: 1.5px solid var(--pm-hue);
+  background: var(--color-bg); transform: translateY(-50%);
+  box-sizing: border-box;
+}
+/* Not the faintest text in the cell: the threshold is the payload of the
+   whole feature, so it has to be legible (~5.5:1). */
+.pm-threshold {
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--color-text-2); opacity: 0.78;
+  padding: 8px 0 10px; border-top: 1px solid var(--color-divider);
+  margin-top: auto;
+}
+.pm-cell[data-breach="1"] .pm-threshold { color: var(--stress); opacity: 1; }
+
+/* ── Tiles ── */
+.pm-tiles {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--color-divider);
+  border: 1px solid var(--color-divider); margin: 4px 0 22px;
+}
+.pm-tiles-3 { grid-template-columns: repeat(3, 1fr); }
+.pm-tile { background: var(--color-bg); padding: 13px 14px; }
+.pm-tile-label {
+  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-3);
+}
+.pm-tile-val {
+  font-family: var(--font-display); font-size: 24px; font-weight: 600;
+  margin-top: 5px; color: var(--color-text); font-variant-numeric: tabular-nums;
+}
+.pm-tile[data-metric="cost"]  .pm-tile-val { color: var(--metric-cost); }
+.pm-tile[data-metric="cache"] .pm-tile-val { color: var(--metric-cache); }
+/* The only greyed value in the row, deliberately: it is a counterfactual, not
+   a measurement, and must not read as a live number. */
+.pm-tile[data-counterfactual="1"] .pm-tile-val { color: var(--color-text-3); }
+.pm-tile-unit { font-size: 12px; color: var(--color-text-3); margin-left: 1px; }
+.pm-tile-sub {
+  font-family: var(--font-body); font-size: 11.5px; margin-top: 4px;
+  color: var(--color-text-3);
+}
+/* The saving belongs to the cache, not to cost — colour carries the
+   attribution across sections. */
+.pm-tile-sub[data-metric="cache"] { color: var(--metric-cache); }
+
+.pm-lede {
+  font-family: var(--font-display); font-size: 19px; font-weight: 400;
+  line-height: 1.45; color: var(--color-text); max-width: 70ch;
+  margin: 12px 0 16px;
+}
+
+/* ── Cache composition ──
+   Misses are neutral rather than a second hue, because a miss is not a
+   category — it is the absence of a hit. */
+.pm-cachebar {
+  display: flex; height: 20px; border: 1px solid var(--color-divider);
+  overflow: hidden;
+}
+.pm-cache-hit  { background: var(--metric-cache); }
+.pm-cache-miss { background: var(--color-text-4); opacity: 0.35; }
+.pm-cachelegend {
+  display: flex; justify-content: space-between; margin: 6px 0 18px;
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-3); font-variant-numeric: tabular-nums;
+}
+.pm-cachelegend [data-metric="cache"] { color: var(--metric-cache); }
+
+/* ── Diagnosis panel ──
+   Steel rail because it is structural guidance, not a warning about the
+   current state — the cache is usually fine, and this is the runbook entry for
+   when it isn't. */
+.pm-diagnosis {
+  border: 1px solid var(--color-divider);
+  border-left: 3px solid var(--eyebrow); padding: 13px 15px;
+}
+.pm-diag-head {
+  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--eyebrow);
+  margin-bottom: 7px;
+}
+.pm-diagnosis p {
+  font-family: var(--font-body); font-size: 12.5px; line-height: 1.6;
+  color: var(--color-text-2); margin: 0 0 8px;
+}
+/* Mono and brass so a block name reads as a code reference, not as prose. */
+.pm-diagnosis code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px; color: var(--brass); background: transparent; padding: 0;
+}
+.pm-diag-note { font-size: 11px !important; color: var(--color-text-4) !important; }
+
+/* ── Prompt composition ──
+   A single-hue ramp is hard to discriminate at adjacent steps, so the encoding
+   is made REDUNDANT rather than merely retuned: wide 100→22 spread, hairline
+   dividers in the page ground, the share printed inside the largest bands, and
+   a per-row bar whose length says the same thing. Matching a band to a row
+   never depends on telling two blues apart. */
+.pm-compbar {
+  display: flex; height: 40px; border: 1px solid var(--color-divider);
+  overflow: hidden; margin: 6px 0 20px;
+}
+.pm-seg {
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--metric-input) var(--step), transparent);
+  border-right: 1px solid var(--color-bg);
+}
+.pm-seg:last-child { border-right: 0; }
+.pm-seg-pct {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; font-variant-numeric: tabular-nums;
+}
+.pm-seg-pct[data-ink="rev"]  { color: var(--color-bg); }
+.pm-seg-pct[data-ink="dark"] { color: var(--color-text); }
+
+.pm-crows { border-top: 1px solid var(--color-divider); }
+.pm-crow {
+  display: grid;
+  grid-template-columns: 22px 130px 1fr 58px 92px 1.15fr;
+  gap: 14px; align-items: center; padding: 10px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.pm-rank {
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  color: var(--color-text-4); font-variant-numeric: tabular-nums;
+}
+.pm-cname {
+  font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  color: var(--color-text);
+}
+.pm-cbar { display: block; height: 8px; background: var(--color-divider); }
+.pm-cbar > span {
+  display: block; height: 100%;
+  background: color-mix(in srgb, var(--metric-input) var(--step), transparent);
+}
+.pm-cpct {
+  font-family: var(--font-display); font-size: 15px; font-weight: 600;
+  color: var(--color-text); font-variant-numeric: tabular-nums; text-align: right;
+}
+.pm-cchars {
+  font-family: var(--font-display); font-size: 11px; color: var(--color-text-4);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.pm-cnote {
+  font-family: var(--font-body); font-size: 11.5px; color: var(--color-text-3);
+}
+
+/* ── Ingest volume ──
+   The least actionable material on the page, and sized accordingly: plain
+   rows, no chart, no colour. */
+.pm-ingest { border-top: 1px solid var(--color-divider); margin-top: 4px; }
+.pm-irow {
+  display: grid; grid-template-columns: 74px 132px 1fr; gap: 16px;
+  align-items: baseline; padding: 10px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.pm-irow span {
+  font-family: var(--font-display); font-size: 19px; font-weight: 600;
+  color: var(--color-text); font-variant-numeric: tabular-nums; text-align: right;
+}
+.pm-irow b {
+  font-family: var(--font-display); font-size: 12.5px; font-weight: 600;
+  color: var(--color-text);
+}
+.pm-irow i {
+  font-family: var(--font-body); font-size: 12px; font-style: normal;
+  color: var(--color-text-3);
+}
+
+.pm-footer {
+  margin-top: 30px; padding-top: 12px;
+  border-top: 1px solid var(--color-divider);
+  font-family: var(--font-body); font-size: 11.5px; line-height: 1.6;
+  color: var(--color-text-4); max-width: 78ch;
+}
+
+@media (max-width: 1100px) {
+  .pm-strip { grid-template-columns: repeat(2, 1fr); }
+  .pm-tiles { grid-template-columns: repeat(2, 1fr); }
+  .pm-crow { grid-template-columns: 22px 1fr 58px; }
+  .pm-crow .pm-cbar, .pm-crow .pm-cchars, .pm-crow .pm-cnote { display: none; }
 }

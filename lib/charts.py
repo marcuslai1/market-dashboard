@@ -54,6 +54,21 @@ ACCENT_WILDCARD = "#a855f7"   # scenario Wildcard violet
 INK_FALLBACK = "#9F988B"      # ink-3 equivalent for SIGNAL_COLORS.get(...) fallbacks
 SURFACE_2_FALLBACK = "#1e1e2e"  # var(--surface-2, …) fallback in inline HTML
 
+# ── Metric-family palette — Pipeline health page ONLY ────────────────────────
+# One hue per metric so a strip cell reads as one identity instead of five
+# near-identical brass tiles. Legal on that page and nowhere else: it carries no
+# signal pills and no price moves, so neither reserved palette can be confused
+# with these. Hue says WHICH metric, never whether the reading is good.
+# Dark-theme values, mirroring the --metric-* tokens in theme.css;
+# tests/test_design_tokens.py fails if the two drift.
+METRIC_COLORS = {
+    "cost":     "#e0bd74",  # gold   — money
+    "cache":    "#63c6ba",  # teal   — the prefix cache
+    "input":    "#8fb2ee",  # indigo — input tokens / prompt composition
+    "gen":      "#b7a3e6",  # violet — generation time
+    "articles": "#a6ca86",  # moss   — ingest volume
+}
+
 _AXIS = dict(
     gridcolor=_RULE,
     zerolinecolor=_RULE_STRONG,
