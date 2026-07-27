@@ -8,6 +8,7 @@ post-cutover only — so the arithmetic is what gets tested. Everything here is
 pure pandas; no AppTest, no browser.
 """
 import json
+from itertools import pairwise
 
 import pandas as pd
 import pytest
@@ -87,9 +88,9 @@ def test_composition_sums_to_one_hundred_and_sorts_descending():
         "yfinance_chars": 34_000, "memory_chars": 18_000,
     }])
     blocks = prompt_composition(df)
-    assert [b["name"] for b in blocks][0] == "System prompt"
+    assert blocks[0]["name"] == "System prompt"
     assert sum(b["share"] for b in blocks) == pytest.approx(100.0)
-    assert all(a["chars"] >= b["chars"] for a, b in zip(blocks, blocks[1:]))
+    assert all(a["chars"] >= b["chars"] for a, b in pairwise(blocks))
 
 
 def test_thresholds_evaluate_both_directions():

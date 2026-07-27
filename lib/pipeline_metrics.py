@@ -94,7 +94,7 @@ def cost_stats(df: pd.DataFrame) -> dict | None:
         "avg7": avg7,
         "mean": float(c["cost"].mean()),
         "total": float(c["cost"].sum()),
-        "runs": int(len(c)),
+        "runs": len(c),
         "monthly": avg7 * _RUNS_PER_MONTH,
         "monthly_uncached": (avg7 + saving) * _RUNS_PER_MONTH,
         "saving_per_run": saving,
@@ -210,7 +210,7 @@ def reliability(df: pd.DataFrame) -> dict:
             except (ValueError, TypeError):
                 warnings = checks = 0
 
-    return {"runs": int(len(post)), "weekdays": int(len(weekdays)),
+    return {"runs": len(post), "weekdays": len(weekdays),
             "missed": int(missed), "warnings": warnings, "checks": checks}
 
 
