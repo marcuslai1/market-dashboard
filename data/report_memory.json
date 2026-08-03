@@ -1,7 +1,71 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-07-31",
+  "_last_updated": "2026-08-01",
   "rolling_summaries": [
+    {
+      "date": "2026-08-01",
+      "themes": [
+        "Oil rebound on Hormuz supply risk",
+        "Big Tech AI capex fears trigger multiple downgrades",
+        "Fed hold keeps rate debate alive"
+      ],
+      "signals_snapshot": {
+        "ACCUMULATE": [
+          "NOK",
+          "AIXA_DE"
+        ],
+        "WATCH": [
+          "NVDA",
+          "AMD",
+          "ASML",
+          "MU",
+          "CRWV",
+          "NBIS"
+        ],
+        "HOLD": [
+          "TSM",
+          "AVGO",
+          "IFX_DE",
+          "WRD"
+        ],
+        "CAUTION": [
+          "D05_SI",
+          "O39_SI",
+          "U11_SI",
+          "INTC",
+          "TSEM",
+          "000660_KS",
+          "CBRS",
+          "AXTI",
+          "SOI_PA",
+          "SNDK",
+          "SKHY",
+          "005930_KS",
+          "AMZN",
+          "GOOG",
+          "MSFT",
+          "META",
+          "LITE",
+          "BE",
+          "NVTS",
+          "PLTR",
+          "SITM"
+        ]
+      },
+      "key_prices": {
+        "SPY": 747.03,
+        "WTI": 84.67,
+        "VIX": 15.99,
+        "Gold": 4049.1
+      },
+      "interconnected_suggested": [
+        "COHR",
+        "MRVL",
+        "ANET",
+        "VRT"
+      ],
+      "one_liner": "Stocks mixed; WTI +2.8% to $84.67 on Hormuz disruptions. Big Tech downgrades: AMZN, GOOG, META, LITE→CAUTION. ASML, AMD→WATCH."
+    },
     {
       "date": "2026-07-31",
       "themes": [
@@ -364,65 +428,6 @@
         "ANET"
       ],
       "one_liner": "Equities sell off as oil spikes to $91.95 on Houthi attack. Intel Q2 beat, upgraded to HOLD; Google capex raised to $180B, easing AI caution."
-    },
-    {
-      "date": "2026-07-23",
-      "themes": [
-        "Oil crisis escalates with dual shipping threat",
-        "AI infrastructure dichotomy: spending booms but limits appear"
-      ],
-      "signals_snapshot": {
-        "WATCH": [
-          "MU",
-          "SNDK"
-        ],
-        "HOLD": [
-          "U11_SI",
-          "NVDA",
-          "ASML",
-          "TSM",
-          "SKHY",
-          "AMZN",
-          "MSFT",
-          "META",
-          "AVGO"
-        ],
-        "CAUTION": [
-          "D05_SI",
-          "O39_SI",
-          "AMD",
-          "INTC",
-          "TSEM",
-          "000660_KS",
-          "CRWV",
-          "CBRS",
-          "AXTI",
-          "SOI_PA",
-          "005930_KS",
-          "GOOG",
-          "LITE",
-          "NOK",
-          "BE",
-          "IFX_DE",
-          "AIXA_DE",
-          "NVTS",
-          "PLTR",
-          "WRD",
-          "SITM"
-        ]
-      },
-      "key_prices": {
-        "SPY": 747.41,
-        "WTI": 88.48,
-        "VIX": 16.64,
-        "Gold": 4128.2
-      },
-      "interconnected_suggested": [
-        "CDNS",
-        "MRVL",
-        "COHR"
-      ],
-      "one_liner": "WTI +3.7% to $88.48 on dual Hormuz/Red Sea threats; equities lower. AI infra $89.7B but Nvidia flags limits. META→HOLD."
     }
   ],
   "active_narratives": [
@@ -546,10 +551,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-07-22",
-          "note": "Rate-hike scare fades after inflation cool-down data (CPI 3.7% YoY). Treasury yields edge lower on geopolitical risks; no new hawkish push."
-        },
-        {
           "date": "2026-07-24",
           "note": "Treasury yields rise on oil spike; payrolls +57k cooling. Rate outlook unchanged, Fed quiet."
         },
@@ -572,9 +573,13 @@
         {
           "date": "2026-07-31",
           "note": "No material change."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "Payrolls +57k (cooling from +129k), unemployment 4.2% (down). No change in rate outlook."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -629,7 +634,7 @@
       "title": "Hyperscaler AI Capex Bubble Concerns: Datacenter $1.7T by 2030 vs. ROI Validation Risk",
       "started": "2026-03-19",
       "status": "active",
-      "summary": "Hyperscaler AI capex is running far ahead of the original $1.7T-by-2030 framing: the Big Four alone guide to roughly $735B in 2026 (Alphabet $195-205B, Amazon ~$220B after raising from ~$200B on Jul 30, Microsoft $175B restated from ~$190B on a useful-life reclass with spend unchanged, Meta $135-145B after raising the floor $10B on Jul 29) and analysts project ~$1T in 2027. Semiconductor supply chains benefit directly, but ROI-validation and financing-cost concerns have intensified as the numbers grew.",
+      "summary": "Hyperscaler AI capex is running far ahead of the original $1.7T-by-2030 framing: the Big Four alone guide to roughly $730B in 2026 (Alphabet $195-205B, Amazon ~$220B after raising from ~$200B on Jul 30, Microsoft $175B for CALENDAR 2026, restated from ~$190B on a useful-life reclass with spend unchanged, Meta $130-145B after narrowing from $125-145B on Jul 29 — a $5B floor raise, per the release verbatim) and analysts project ~$1T in 2027. Semiconductor supply chains benefit directly, but ROI-validation and financing-cost concerns have intensified as the numbers grew.",
       "affected_tickers": [
         "NVDA",
         "ASML",
@@ -638,18 +643,14 @@
         "AMZN",
         "GOOG"
       ],
-      "thesis": "AI infrastructure spending remains a strong tailwind for semis, memory, optics and power infrastructure, but multiple-compression risk emerges if capex growth decelerates or demand does not materialise. The Q2 2026 print season is now COMPLETE and it resolved in favour of continuation: all four reported by 30 July and none guided down — Alphabet RAISED to $195-205B on 22 July flagging a significant further increase in 2027, Meta raised its floor to $135-145B on 29 July, Microsoft restated to $175B on a useful-life reclass with spend unchanged, and Amazon RAISED to ~$220B on 30 July. Read the Amazon raise as a different kind: it was attributed to HIGHER MEMORY COSTS — paying more for the same capacity, not buying more — so it is a weaker demand signal than a unit-driven raise and it transmits to memory vendors rather than along the whole chain, though Jassy said Amazon still will not have enough capacity for 2026 demand. The live constraint has shifted from willingness to spend toward the cost of funding it — Meta's $12B El Paso datacenter bond priced above its record 2025 deal and Amazon's $25B July issue drew about half the order book of its March deal. Rates compound this: the Fed is priced hold-versus-hike rather than easing, which is a duration headwind for capex-intensive mega-caps. A first guide-down or 'digestion' framing from any major hyperscaler would be a cluster-wide thesis-break check, not a single-ticker event.",
+      "thesis": "AI infrastructure spending remains a strong tailwind for semis, memory, optics and power infrastructure, but multiple-compression risk emerges if capex growth decelerates or demand does not materialise. The Q2 2026 print season is now COMPLETE and it resolved in favour of continuation: all four reported by 30 July and none guided down — Alphabet RAISED to $195-205B on 22 July flagging a significant further increase in 2027, Meta narrowed to $130-145B (from $125-145B — a $5B floor raise) on 29 July, Microsoft restated calendar-2026 capex to $175B on a useful-life reclass (buildings 15-to-25 years, effective FY2027) with spend unchanged, and Amazon RAISED to ~$220B on 30 July. Read the Amazon raise as a different kind: it was attributed to HIGHER MEMORY COSTS — paying more for the same capacity, not buying more — so it is a weaker demand signal than a unit-driven raise and it transmits to memory vendors rather than along the whole chain, though Jassy said Amazon still will not have enough capacity for 2026 demand. The live constraint has shifted from willingness to spend toward the cost of funding it — Meta's $12B El Paso datacenter bond priced above its record 2025 deal and Amazon's $25B July issue drew about half the order book of its March deal. Rates compound this: the Fed is priced hold-versus-hike rather than easing, which is a duration headwind for capex-intensive mega-caps. A first guide-down or 'digestion' framing from any major hyperscaler would be a cluster-wide thesis-break check, not a single-ticker event.",
       "key_levels": {
-        "big4_2026_capex_guided": "~$735B",
+        "big4_2026_capex_guided": "~$730B (range $720-745B)",
         "amzn_fy26_capex_guide": "~$220B (raised from ~$200B on Jul 30; higher memory costs cited)",
         "goog_fy26_capex_guide": "$195-205B",
-        "meta_fy26_capex_guide": "$135-145B"
+        "meta_fy26_capex_guide": "$130-145B (narrowed from $125-145B on Jul 29; a $135-145B variant in circulation is wrong)"
       },
       "updates": [
-        {
-          "date": "2026-07-23",
-          "note": "IDC: AI infrastructure spending hits $89.7B, ARM passes x86. TSMC capex surge signals scaling. Nvidia warns of physical/financial limits. OpenAI to invest $750B in AI infra. Mixed signals."
-        },
         {
           "date": "2026-07-24",
           "note": "Google raised FY26 capex guidance to $195-205B (from $180-190B), contradicting prior Alphabet-cut fears. Intel Q2 beat adds a positive foundry signal."
@@ -664,7 +665,7 @@
         },
         {
           "date": "2026-07-29",
-          "note": "MSFT Q4 FY2026: AI run rate $37B (up from Q3?), Azure growth strong; capex ~$190B still strains free cash flow. Hyperscalers tap external financing. No signal change."
+          "note": "MSFT Q4 FY2026: AI run rate $37B, Azure growth strong; the ~$190B capex figure was superseded the same day by the $175B calendar-2026 restatement. Hyperscalers tap external financing. No signal change."
         },
         {
           "date": "2026-07-30",
@@ -672,10 +673,14 @@
         },
         {
           "date": "2026-07-31",
-          "note": "Moody's warns 'unprecedented' AI spending threatens credit quality of AMZN, META, GOOGL. META→WATCH, MSFT→CAUTION, NVDA→WATCH (downgrades). ASML +6.77% on EUV demand."
+          "note": "Moody's (report dated Jul 24) warns 'unprecedented' AI spending threatens credit quality of AMZN, META, GOOGL. META→WATCH, MSFT→CAUTION, NVDA→WATCH (downgrades). ASML +6.77% on EUV demand."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "Signal downgrades: AMZN→CAUTION, GOOG→CAUTION, META→CAUTION, LITE→CAUTION, MU→WATCH, AMD→WATCH. AI chip forecast +94.1% (Omdia), Nvidia $5T bull call, but credit worries and memory cost inflation weigh."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -776,10 +781,6 @@
       },
       "updates": [
         {
-          "date": "2026-07-23",
-          "note": "Trump admin may investigate whether China's AI models were based on American AI models, potentially imposing sanctions. New front in tech conflict."
-        },
-        {
           "date": "2026-07-24",
           "note": "China builds domestic AI data center; Moonshot AI accessed Nvidia chips despite export ban. US lifts some Hong Kong sanctions, Beijing explores tariff cuts on $30B."
         },
@@ -801,10 +802,14 @@
         },
         {
           "date": "2026-07-31",
-          "note": "China expressed serious concerns over recent U.S. restrictive economic and trade measures in high-level meeting; USMCA review reshapes China trade barriers."
+          "note": "China expressed serious concerns over recent US restrictive measures in the He Lifeng-Bessent-Greer video call (Jul 30-31) — talks, no action, deliverables worked toward Xi's expected September US visit; USMCA review reshapes China trade barriers."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "ASML→WATCH (downgrade from HOLD) as China DUV report raises competitive threat. (Session correction: the -6% ASML day was Jul 28; ASML was +5.4% on Jul 30 and -3.1% on Jul 31.) High-NA EUV valuation hinges on outrunning Shanghai ambitions. China factory slump deepens (July NBS PMI 49.2 from 50.3)."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -860,20 +865,16 @@
       "title": "ECB Rate Hold Diverges from Fed Hawkish Pause: Euro Weakness Implication",
       "started": "2026-03-23",
       "status": "active",
-      "summary": "ECB held the deposit rate at 2.25% on Jul 23, 2026 after hiking 25bp on Jun 11 — its first hike since 2023 — with markets pricing a hike at the Sep 10 projection meeting. The divergence has INVERTED: this is a tightening bias, not an easing cycle, and with the Fed priced hold-versus-hike the two are converging rather than diverging. DXY 101.48 still reflects a US rate premium.",
+      "summary": "ECB held the deposit rate at 2.25% on Jul 23, 2026 after hiking 25bp on Jun 11 — its first hike since 2023 — with markets pricing a hike at the Sep 10 projection meeting. The divergence has INVERTED: this is a tightening bias, not an easing cycle, and with the Fed priced hold-versus-hike the two are converging rather than diverging. The rate-level premium persists (Fed 3.50-3.75% vs ECB 2.25%) but DXY has broken below 100 — ~99.9 on Jul 31 with EUR/USD at 1.148, its strongest since Jun 17.",
       "affected_tickers": [
         "DXY"
       ],
-      "thesis": "The ECB is in a tightening bias, not an easing one: 25bp on Jun 11 to a 2.25% deposit rate, held unanimously on Jul 23 with some governors questioning whether more was warranted. July was a non-projection meeting so the bar to move was structurally higher; Sep 10 carries fresh forecasts and is the live decision. Energy-driven inflation is the shared driver with the Fed, so the policy gap is NARROWING — the euro-weakness-on-divergence leg is the part of this narrative most at risk of being wrong. Eurozone business activity has returned to growth, which removes the 'subdued growth forces easing' premise the original thesis rested on. Global duration headwinds across developed markets still hold as a conclusion, but now because everyone is tightening, not because the Fed is an outlier.",
+      "thesis": "The ECB is in a tightening bias, not an easing one: 25bp on Jun 11 to a 2.25% deposit rate, held unanimously on Jul 23 with some governors questioning whether more was warranted. July was a non-projection meeting so the bar to move was structurally higher; Sep 10 carries fresh forecasts and is the live decision. Energy-driven inflation is the shared driver with the Fed, so the policy gap is NARROWING — the euro-weakness-on-divergence leg is the part of this narrative most at risk of being wrong. Eurozone business activity has returned to growth, which removes the 'subdued growth forces easing' premise the original thesis rested on. Global duration headwinds across developed markets still hold as a conclusion, but now because everyone is tightening, not because the Fed is an outlier. Post-Jul-29 data pushed the same direction: Q2 flash GDP +0.4% QoQ / +1.0% YoY beat consensus (Eurostat, Jul 30) and July flash HICP rose to 2.9% with core 2.5% and energy 10.0% (Eurostat, Jul 31) — energy is exactly the channel Lagarde flagged as decisive for September.",
       "key_levels": {
-        "DXY_strength": 101.48,
+        "DXY_strength": "~99.9 (Jul 31, 2026 — broke below 100 after the suspected Jul 30 Japanese FX intervention)",
         "ECB_deposit_rate": "2.25%"
       },
       "updates": [
-        {
-          "date": "2026-07-23",
-          "note": "No material change."
-        },
         {
           "date": "2026-07-24",
           "note": "ECB holds rates unchanged but traders now price September hike due to energy spike, reversing yesterday's dovish tilt."
@@ -888,18 +889,22 @@
         },
         {
           "date": "2026-07-29",
-          "note": "ECB holds rates as expected, September hike priced; no new divergence signal."
+          "note": "No ECB meeting this day (the hold was Jul 23; an earlier note here misdated it); September hike still priced."
         },
         {
           "date": "2026-07-30",
-          "note": "Lagarde press conference after hold, reinforces data-dependence; September hike still priced."
+          "note": "Eurostat Q2 flash GDP +0.4% QoQ / +1.0% YoY, beating +0.2% consensus. (The Lagarde press conference previously noted here was Jul 23, not Jul 30.)"
         },
         {
           "date": "2026-07-31",
+          "note": "July flash HICP 2.9% YoY (core 2.5%, energy 10.0% from 8.5%) — the energy channel accelerating into Sep 10."
+        },
+        {
+          "date": "2026-08-01",
           "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "gold_data_conflict",
@@ -986,10 +991,6 @@
       },
       "updates": [
         {
-          "date": "2026-07-23",
-          "note": "WTI $88.48 (+$3.20 from $85.28). Houthi threats to Bab el-Mandeb add dual chokepoint risk alongside Hormuz blockade. Oil faces 'no way out' per CNN. Escalation intensifies."
-        },
-        {
           "date": "2026-07-24",
           "note": "WTI $91.95 (+$3.47 from $88.48), highest since crisis began. Houthi attacks on Saudi tanker expand Red Sea risk. US strikes 13th night. Intraday $100 per NYT."
         },
@@ -1012,9 +1013,13 @@
         {
           "date": "2026-07-31",
           "note": "US and Iran receive framework ceasefire proposal; WTI 82.34 (-1.40 from 83.74). Hormuz risk premium fading further."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "WTI 84.67 (+2.33 from 82.34). BMI raises oil forecast to $86. Strait of Hormuz traffic disruption persists, no ceasefire resolution."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -1027,17 +1032,13 @@
         "GOOG",
         "AMZN"
       ],
-      "thesis": "Single-vendor concentration risk is real but has moved on two axes since this was written. The late-April rewrite ended cloud exclusivity, so the forward question is no longer lock-in but whether OpenAI-linked Azure consumption DECELERATES now that it can buy elsewhere — the cleaner read on calls is Azure growth ex-OpenAI, since credit-funded OpenAI consumption is not external customer demand. Microsoft is also actively reducing the dependency, launching in-house models it says cut costs up to 89% versus OpenAI. Capex is the swing factor: $175B restated for 2026 (from ~$190B — a useful-life reclass, spend unchanged, NOT a cut), with memory prices as the cost driver — a direct link to the memory-supercycle narrative, now confirmed from outside Microsoft by Amazon naming higher memory costs as the reason for its ~$200B to ~$220B raise on Jul 30. Two anchors here are stale and should not be reused: the 45% backlog share (December quarter, never refreshed) and the $1.7T-by-2030 capex figure, against Big-4 2026 guided capex of roughly $735B. US10Y is 4.64%, not 4.42%.",
+      "thesis": "Single-vendor concentration risk is real but has moved on two axes since this was written. The late-April rewrite ended cloud exclusivity, so the forward question is no longer lock-in but whether OpenAI-linked Azure consumption DECELERATES now that it can buy elsewhere — the cleaner read on calls is Azure growth ex-OpenAI, since credit-funded OpenAI consumption is not external customer demand. Microsoft is also actively reducing the dependency, launching in-house models it says cut costs up to 89% versus OpenAI. Capex is the swing factor: $175B restated for 2026 (from ~$190B — a useful-life reclass, spend unchanged, NOT a cut), with memory prices as the cost driver — a direct link to the memory-supercycle narrative, now confirmed from outside Microsoft by Amazon naming higher memory costs as the reason for its ~$200B to ~$220B raise on Jul 30. Two anchors here are stale and should not be reused: the 45% backlog share (December quarter, never refreshed) and the $1.7T-by-2030 capex figure, against Big-4 2026 guided capex of roughly $730B. US10Y is 4.64%, not 4.42%.",
       "key_levels": {
         "MSFT_azure_openai_concentration_dec_quarter": "45% — stale, never refreshed",
         "MSFT_commercial_RPO": "$678B",
         "MSFT_2026_capex_guide": "$175B restated (was ~$190B; useful-life reclass, spend unchanged)"
       },
       "updates": [
-        {
-          "date": "2026-07-23",
-          "note": "OpenAI to invest $750 billion in AI infrastructure (Zamin.uz), potentially building its own capacity, which could reduce Azure dependency. Unverified report."
-        },
         {
           "date": "2026-07-24",
           "note": "No material change."
@@ -1061,9 +1062,13 @@
         {
           "date": "2026-07-31",
           "note": "MSFT→CAUTION (from HOLD) despite Azure growth hitting four-year high and crossing $100B; Moody's AI spending credit warning clouds outlook."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "intel_18a_node_production",
@@ -1080,10 +1085,6 @@
       "thesis": "18A milestone validates Intel's foundry roadmap and CHIPS Act investment, potentially shifting competitive landscape against TSMC. However, INTC remains CAUTION until market reprices foundry competitiveness and demand visibility.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-23",
-          "note": "Intel Q2 earnings awaited, chip stocks bounce. ASML advanced tool arrives at NY hub consistent with 18A High-NA deployment. No new 18A data."
-        },
         {
           "date": "2026-07-24",
           "note": "INTC→HOLD after Q2 earnings beat, stock jumps. No new 18A specifics."
@@ -1107,9 +1108,13 @@
         {
           "date": "2026-07-31",
           "note": "Intel reports best revenue growth in 15 years, solidifying foundry turnaround; CPU price hikes still viewed as stopgap."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-31"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "fed_chair_warsh_transition",
@@ -1125,10 +1130,6 @@
       "thesis": "Warsh, known hawk, may push for tighter policy amid sticky inflation, extending rate pause and pressuring growth stocks. Market repricing likely as new communication style emerges.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-07-22",
-          "note": "Rate-hike scare fades as inflation cool-down dominates; yields edge lower, reducing pressure on Warsh. No new comments."
-        },
         {
           "date": "2026-07-23",
           "note": "Axios: 'A quieter Fed chief means others narrate the story,' signaling Warsh stepping back. Treasury yields flat, traders reassess rate hike bets. No new policy direction."
@@ -1152,9 +1153,13 @@
         {
           "date": "2026-07-30",
           "note": "No material change."
+        },
+        {
+          "date": "2026-08-01",
+          "note": "No material change."
         }
       ],
-      "last_updated": "2026-07-30"
+      "last_updated": "2026-08-01"
     },
     {
       "id": "us_china_tech_blacklist",
@@ -1201,7 +1206,7 @@
       "id": "bigtech_ai_divergence",
       "title": "BigTech AI Strategy Divergence: GOOG TPU Upgrade vs MSFT/AMZN Caution",
       "started": "2026-06-11",
-      "status": "active",
+      "status": "archived",
       "summary": "Market differentiating BigTech AI exposure by structure rather than by any single day's rating: GOOG's in-house TPU stack, MSFT's OpenAI/Azure concentration, AMZN's capex load. Signal states across the three have churned repeatedly -- GOOG ran BUY to CAUTION to HOLD between June and late July -- so the durable content here is the structural split, not a signal triple that decays within days.",
       "affected_tickers": [
         "GOOG",
@@ -1254,7 +1259,7 @@
       "tickers_involved": [
         "NVTS"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
       "lesson": "SNDK CAUTION correctly avoided relative weakness in 7/8 cases over 10d (regimes: chop/trend_up).",
@@ -1262,47 +1267,47 @@
       "tickers_involved": [
         "SNDK"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "AXTI CAUTION correctly avoided relative weakness in 17/19 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -11.9% (n=19)",
+      "lesson": "AXTI CAUTION correctly avoided relative weakness in 17/20 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -9.6% (n=20)",
       "tickers_involved": [
         "AXTI"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "CRWV CAUTION correctly avoided relative weakness in 17/20 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -7.5% (n=20)",
-      "tickers_involved": [
-        "CRWV"
-      ],
-      "computed_on": "2026-07-31"
-    },
-    {
-      "lesson": "AIXA_DE CAUTION correctly avoided relative weakness in 18/24 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -7.4% (n=24)",
+      "lesson": "AIXA_DE CAUTION correctly avoided relative weakness in 17/23 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -7.6% (n=23)",
       "tickers_involved": [
         "AIXA_DE"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "BE CAUTION correctly avoided relative weakness in 15/26 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -4.6% (n=26)",
+      "lesson": "CRWV CAUTION correctly avoided relative weakness in 16/19 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -6.6% (n=19)",
+      "tickers_involved": [
+        "CRWV"
+      ],
+      "computed_on": "2026-08-01"
+    },
+    {
+      "lesson": "BE CAUTION correctly avoided relative weakness in 14/25 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -4.4% (n=25)",
       "tickers_involved": [
         "BE"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "LITE CAUTION correctly avoided relative weakness in 13/21 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -3.6% (n=21)",
+      "lesson": "AMD CAUTION missed alpha (stock beat SOXX) in 12/31 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +3.7% (n=31)",
       "tickers_involved": [
-        "LITE"
+        "AMD"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
       "lesson": "SITM CAUTION correctly avoided relative weakness in 17/26 cases over 10d (regimes: chop/trend_up).",
@@ -1310,26 +1315,79 @@
       "tickers_involved": [
         "SITM"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "AMD CAUTION missed alpha (stock beat SOXX) in 12/32 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +3.5% (n=32)",
+      "lesson": "LITE CAUTION correctly avoided relative weakness in 13/21 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -3.6% (n=21)",
       "tickers_involved": [
-        "AMD"
+        "LITE"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     },
     {
-      "lesson": "WRD CAUTION correctly avoided relative weakness in 8/13 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SPY: -3.4% (n=13)",
+      "lesson": "WRD CAUTION correctly avoided relative weakness in 9/14 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SPY: -3.4% (n=14)",
       "tickers_involved": [
         "WRD"
       ],
-      "computed_on": "2026-07-31"
+      "computed_on": "2026-08-01"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-08-01",
+      "topics": [
+        {
+          "topic": "Federal Reserve interest rates",
+          "summary": "Fed held rates at 3.50-3.75% as expected; no new dissent. Investors brace for hawkish Sep meeting.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "AI infrastructure spending surge",
+          "summary": "AI infrastructure spending hits $1T, straining resources; Amazon lifts capex to $220B; Nvidia sees $5T market; chip demand forecast +94.1% (Omdia). Microsoft Azure growth 43%, backlog $678B. Signal downgrades: AMZN, GOOG, META, LITE→CAUTION; AMD, ASML, MU→WATCH.",
+          "tickers": [
+            "AMZN",
+            "MSFT",
+            "GOOG",
+            "META",
+            "NVDA",
+            "MU",
+            "AMD",
+            "LITE",
+            "ASML"
+          ]
+        },
+        {
+          "topic": "Oil and Strait of Hormuz",
+          "summary": "WTI +2.8% to $84.67, BMI raises forecast to $86; Strait of Hormuz traffic disruption persists, air cargo routes under pressure. De-escalation pause holds but no ceasefire.",
+          "tickers": []
+        },
+        {
+          "topic": "ASML China competition",
+          "summary": "ASML downgraded to WATCH after China DUV report raises questions about lithography edge. Valuation hinges on High-NA EUV outperforming Shanghai ambitions.",
+          "tickers": [
+            "ASML"
+          ]
+        },
+        {
+          "topic": "China manufacturing slump",
+          "summary": "China factory slump deepens, increasing pressure for additional stimulus.",
+          "tickers": []
+        },
+        {
+          "topic": "Singapore banks pullback",
+          "summary": "Singapore bank stocks pull back from highs; NIM concerns.",
+          "tickers": [
+            "O39_SI"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-07-31",
       "topics": [
@@ -1439,51 +1497,6 @@
             "SPY",
             "QQQ"
           ]
-        }
-      ]
-    },
-    {
-      "date": "2026-07-29",
-      "topics": [
-        {
-          "topic": "Iran Oil Crisis",
-          "summary": "Oil prices dip >6% after US-Iran weekend pause; WTI settles $82.70, de‑escalation hopes cool bid but Hormuz disruption persists. New travel warnings surge.",
-          "tickers": []
-        },
-        {
-          "topic": "Microsoft AI Earnings & Hyperscaler Capex",
-          "summary": "Microsoft Q4 AI run rate reaches $37B, Azure growth strong; capex ~$190B still strains free cash flow. Hyperscalers tap external financing as AI spending outruns cash. Alphabet expands data center footprint, consolidating Nvidia position.",
-          "tickers": [
-            "MSFT",
-            "GOOG",
-            "NVDA",
-            "AMZN"
-          ]
-        },
-        {
-          "topic": "Intel Plunge & Foundry Doubts",
-          "summary": "Intel plunges 8% despite Q2 beat as foundry customer question haunts turnaround; CPU price hikes viewed as stopgap. Stock volatile, 18A on track.",
-          "tickers": [
-            "INTC"
-          ]
-        },
-        {
-          "topic": "US-China Chip War & AI Sanctions",
-          "summary": "China accuses US of 'AI hegemonism', threatens countermeasures over potential probes; US warned over AI sanctions. ASML falls on Chinese DUV competition; TSMC invests another $100B in Arizona.",
-          "tickers": [
-            "ASML",
-            "TSM"
-          ]
-        },
-        {
-          "topic": "Federal Reserve & Rates Outlook",
-          "summary": "Markets brace for hawkish Fed meeting as inflation dims outlook; bond market avoids big rate bets. ECB holds rates, September hike expected.",
-          "tickers": []
-        },
-        {
-          "topic": "China Economic Growth Mixed",
-          "summary": "China economic growth set to slow in H2 without broad stimulus, but state media rejects momentum-loss claims. No major market impact.",
-          "tickers": []
         }
       ]
     }
