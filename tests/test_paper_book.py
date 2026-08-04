@@ -996,3 +996,53 @@ def test_lane_labels_fall_back_to_the_chart_legend_names():
     ]})
     assert "ext-exit 10/5" in html
     assert "v1_tc_ext_100" not in html
+
+
+# ── system-milestone marks on the NAV chart (owner request 2026-08-04) ──
+_FULL_SPAN = pd.DataFrame({
+    "date": pd.to_datetime(["2026-04-20", "2026-06-15", "2026-08-03"]),
+    "Paper book": [100_000.0, 101_000.0, 103_000.0],
+    "SPY": [100_000.0, 102_000.0, 104_000.0],
+})
+
+
+def test_milestone_marks_filters_to_chart_window():
+    from components.paper_book import milestone_marks
+    marks = milestone_marks(_FULL_SPAN)
+    assert [d.strftime("%Y-%m-%d") for d, _l, _k in marks] == [
+        "2026-05-05", "2026-05-30", "2026-07-05"]
+    # a two-day April frame holds no milestone; empties stay empty
+    assert milestone_marks(_REBASED) == []
+    assert milestone_marks(pd.DataFrame()) == []
+    assert milestone_marks(None) == []
+
+
+def test_nav_fig_draws_one_dotted_mark_and_label_per_milestone():
+    """Marks are records on the paper, beneath every series: dotted ink-4
+    hairlines with their labels in a dedicated top strip (t margin), never
+    over the curves."""
+    fig = _nav_fig(_FULL_SPAN)
+    lines = [s for s in fig.layout.shapes or () if s.type == "line"]
+    assert len(lines) == 3
+    assert all(s.line.dash == "dot" and s.line.color == CHART_MUTED
+               for s in lines)
+    labels = [a.text for a in fig.layout.annotations or ()]
+    assert labels == ["DeepSeek swap", "Catalyst cut", "Quant patterns"]
+    assert fig.layout.margin.t == 20
+
+
+def test_nav_fig_without_milestones_in_window_is_unchanged():
+    fig = _nav_fig(_REBASED, None)
+    assert not fig.layout.shapes
+    assert not fig.layout.annotations
+    assert fig.layout.margin.t == 6
+
+
+def test_milestone_note_names_each_mark_and_is_silent_when_none():
+    from components.paper_book import _milestone_note_html, milestone_marks
+    note = _milestone_note_html(milestone_marks(_FULL_SPAN))
+    assert "pb-chartnote" in note
+    assert "5 May" in note and "DeepSeek" in note
+    assert "30 May" in note and "severed" in note
+    assert "5 Jul" in note and "replay-seeded" in note
+    assert _milestone_note_html([]) == ""
