@@ -913,6 +913,55 @@ def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
 # can still tell which line is the point.
 _W_SUBJECT, _W_BENCH, _W_REPLAY = 2.4, 1.6, 1.4
 
+# System milestones drawn on the NAV chart (owner request 2026-08-04): the
+# dates the machine itself changed materially, so a kink in the curve can be
+# read against what we did to it. Hand-curated (date, chart label, key text) —
+# add sparingly: the labels share one strip and three is near the collision
+# ceiling. Dates: 05-05 is the same cutover Pipeline Stats annotates; 05-30 is
+# the measured-alpha severance; 07-05 is when live accrual replaced the
+# replay seed AND the quant-patterns adoption wave landed.
+_MILESTONES = [
+    ("2026-05-05", "DeepSeek swap",
+     "analysis engine switched Claude Sonnet → DeepSeek"),
+    ("2026-05-30", "Catalyst cut",
+     "catalyst entry path severed from live signals on measured "
+     "negative alpha"),
+    ("2026-07-05", "Quant patterns",
+     "paper book goes live (earlier curve is replay-seeded) + "
+     "quant-patterns adoption wave"),
+]
+
+
+def milestone_marks(rebased: pd.DataFrame | None) -> list[tuple]:
+    """(date, label, key text) for each milestone inside the chart's span.
+
+    Off-window milestones drop silently — a mark floating past the curve's
+    edge would stretch the x-axis and imply data that isn't plotted.
+    """
+    if rebased is None or rebased.empty or "date" not in rebased.columns:
+        return []
+    dates = pd.to_datetime(rebased["date"], errors="coerce").dropna()
+    if dates.empty:
+        return []
+    lo, hi = dates.min(), dates.max()
+    return [(d, label, key) for iso, label, key in _MILESTONES
+            if lo <= (d := pd.to_datetime(iso)) <= hi]
+
+
+def _milestone_note_html(marks: list[tuple]) -> str:
+    """One-line key for the milestone marks, or "" when none plotted.
+
+    Same voice and class as the SOXX/advisory notes; neutral ink throughout —
+    these are records of what changed, never verdicts on whether it helped.
+    """
+    if not marks:
+        return ""
+    parts = " · ".join(
+        f"<b>{d.day} {d:%b}</b> {_escape_dollars(key)}"
+        for d, _label, key in marks
+    )
+    return f'<p class="pb-chartnote">Marks — {parts}.</p>'
+
 
 def _legend_swatch(color: str, width: float, dash: bool) -> str:
     """An 18px rule at the series' real width and dash pattern.
@@ -980,7 +1029,25 @@ def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
                 line=dict(color=_ADVISORY_COLORS.get(name, CHART_LINE),
                           width=_W_REPLAY, dash="dash"),
             )
-    fig.update_layout(height=260, margin=dict(l=0, r=0, t=6, b=0),
+    marks = milestone_marks(rebased)
+    for d, label, _key in marks:
+        # Dotted hairline in ink-4: a record on the paper, visually beneath
+        # every plotted series. Labels live in the top margin strip (t=20)
+        # so they never collide with the curves; a mark past 70% of the span
+        # anchors right so its label can't clip off the chart edge.
+        fig.add_shape(type="line", xref="x", yref="paper",
+                      x0=d, x1=d, y0=0, y1=1,
+                      line=dict(color=CHART_MUTED, width=1, dash="dot"))
+        lo, hi = rebased["date"].min(), rebased["date"].max()
+        frac = (d - lo) / (hi - lo) if hi > lo else 0.0
+        right = frac > 0.7
+        fig.add_annotation(x=d, y=1.0, yref="paper", yanchor="bottom",
+                           xanchor="right" if right else "left",
+                           xshift=-3 if right else 3,
+                           text=label, showarrow=False,
+                           font=dict(size=9, color=CHART_LINE))
+    fig.update_layout(height=260,
+                      margin=dict(l=0, r=0, t=20 if marks else 6, b=0),
                       showlegend=False)
     fig.update_xaxes(showline=False, zeroline=False)
     fig.update_yaxes(showline=False, zeroline=False, title=None)
@@ -1063,7 +1130,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                         unsafe_allow_html=True)
             st.plotly_chart(_nav_fig(rebased, advisory),
                             use_container_width=True, config=PLOTLY_CONFIG)
-        note = _soxx_note_html(rebased) + _advisory_note_html(advisory)
+        note = (_soxx_note_html(rebased) + _advisory_note_html(advisory)
+                + _milestone_note_html(milestone_marks(rebased)))
         if note:
             st.markdown(note, unsafe_allow_html=True)
         # Held back rather than rendered here: every drill-down on this band is
