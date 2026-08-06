@@ -280,7 +280,8 @@ def _banner_html(block: dict) -> str:
 # Policy_id → compact public label (the lanes the Telegram glance abbreviates
 # as "trail"/"nostop"/"wide"; the headline book itself is the flat 10% stop).
 _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
-                "v1_nostop10": "no-stop", "v1_wide10": "wide"}
+                "v1_nostop10": "no-stop", "v1_wide10": "wide",
+                "v1_ladder10": "ladder"}
 
 
 def _lane_label(policy_id: str) -> str:
