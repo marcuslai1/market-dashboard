@@ -211,13 +211,31 @@ def _scorecard_table_html(rows: list) -> str:
     # capitalizes to Α — pixel-identical to Latin "A" (UX 2026-07-07).
     # The phone data-l labels are ALSO uppercased (stack-m ::before), so they
     # spell out "alpha" instead of carrying the glyph.
-    ep_th = '<th class="num"><span class="lc">α/ep</span></th>' if has_ep else ""
+    ep_th = ('<th class="num" title="Benchmark-relative alpha, one vote per '
+             'episode — a name holding a signal all week counts once, not '
+             'daily. The single best column for judging a signal.">'
+             '<span class="lc">α/ep</span></th>' if has_ep else "")
+    # Header titles + the visible key line below are the same gloss twice:
+    # title= needs a pointer to hover, so phones only get the key line.
+    key_bits = [
+        "Win = raw return &gt; +2% at 10 sessions",
+        "Avg 10d = raw 10-session return, market's move included",
+        "α = same return minus each name's benchmark",
+    ]
+    if has_ep:
+        key_bits.append("α/ep = alpha, one vote per episode — the column to judge by")
+    col_key = f'<p class="cal-colkey">{" · ".join(key_bits)}</p>'
     return (
         '<div class="tk-scroll"><table class="ep-table cal-scorecard stack-m">'
         '<thead><tr><th>Signal</th><th class="num">Today</th>'
-        '<th class="num">n</th><th class="num">Win</th>'
-        f'<th class="num">Avg 10d</th><th class="num"><span class="lc">α</span></th>{ep_th}</tr></thead>'
-        f'<tbody>{"".join(trs)}</tbody></table></div>'
+        '<th class="num" title="Matured 10-session observations (rows · independent episodes)">n</th>'
+        '<th class="num" title="Share of calls whose raw 10-session return beat +2%">Win</th>'
+        '<th class="num" title="Mean raw 10-session return — includes the market&#39;s '
+        'own move, so a falling tape drags every cell; the money/avoidance column">Avg 10d</th>'
+        '<th class="num" title="Same 10-session return minus each name&#39;s cluster '
+        'benchmark (SOXX / QQQ / STI / SPY) — strips the market out">'
+        f'<span class="lc">α</span></th>{ep_th}</tr></thead>'
+        f'<tbody>{"".join(trs)}</tbody></table></div>{col_key}'
     )
 
 

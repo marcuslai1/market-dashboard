@@ -197,6 +197,22 @@ def test_table_shows_episode_column_only_when_fields_present():
     assert "α/ep" not in without
 
 
+def test_scorecard_column_key_glosses_the_stat_columns():
+    # Point-of-use gloss (user request 2026-08-13): header title= tooltips for
+    # pointer users, a visible .cal-colkey line for phones (title needs hover).
+    without = _scorecard_table_html(_scorecard_rows(_SP, {}))
+    assert "cal-colkey" in without
+    assert "market" in without and "benchmark" in without
+    assert 'title="Mean raw 10-session return' in without
+    assert "one vote per episode" not in without   # no ep column, no ep gloss
+    with_ep = _scorecard_table_html(_scorecard_rows(
+        {"CAUTION": {"n_matured_10d": 555, "win_rate_pct": 43.4,
+                     "avg_return_10d": 1.83, "alpha_10d": -3.22,
+                     "single_regime": True, "thin": False,
+                     "n_episodes": 12, "alpha_episode_mean_10d": -2.9}}, {}))
+    assert "one vote per episode" in with_ep
+
+
 def test_fallback_html_is_byte_identical_shape():
     # Golden guard: a field-absent corpus renders exactly the pre-adoption
     # markup (column count and headers), so visual baselines don't churn.
@@ -296,7 +312,7 @@ def test_calibration_html_field_absent_renders_pre_adoption_markup():
     out = _calibration_html(_CI, _WL)
     assert "cal-fullcorpus" not in out
     assert "half-life" not in out
-    assert out.count('<p class="') == 2   # cal-taxonomy + cal-caveat, no more
+    assert out.count('<p class="') == 3   # cal-colkey + cal-taxonomy + cal-caveat, no more
 
 
 # ── Redesign (spec 2026-07-25 §4): colour roles on the calibration row ──
