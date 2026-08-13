@@ -146,6 +146,20 @@ def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
     return ""
 
 
+def _why_line_html(e: dict) -> str:
+    """Read-across rationale — why a company the reader does NOT hold is on a
+    card about their own book. Empty for every other event class.
+
+    Mandatory in spirit: the builder drops a read-across row that cannot name
+    the holdings it moves, so this line and the ticker chips beneath it are the
+    row's entire justification for the slot it occupies.
+    """
+    why = e.get("why")
+    if not why:
+        return ""
+    return f'<div class="cal-why">{_escape_dollars(why)}</div>'
+
+
 def _group_html(group: list, muted: bool = False, cascades: dict | None = None) -> str:
     """Return day-grouped events markup as a string."""
     grouped: dict[str, list] = {}
@@ -175,6 +189,7 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
                 f'{_escape_dollars(e.get("event", ""))}'
                 f'{_bucket_pill_html(e)}'
                 f'{_timing_line_html(e)}'
+                f'{_why_line_html(e)}'
                 f'{_cascade_block_html(e.get("event", ""), cascades)}'
             )
             events_html += (
@@ -192,12 +207,37 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
     return out
 
 
+def _subhead_html(label: str) -> str:
+    """Hairline divider + uppercase mono label introducing a calendar section."""
+    return (
+        '<div style="border-top:1px solid var(--rule);margin:10px 0 8px;'
+        'font-family:var(--mono);font-size:10px;letter-spacing:0.12em;'
+        'text-transform:uppercase;color:var(--ink-3);padding-top:8px;">'
+        f'{label}</div>'
+    )
+
+
+# The eyebrow used to read "THE WEEK AHEAD" while the body routinely listed
+# events six weeks out — the card's own label contradicted its content. The
+# horizon is not a week and never was reliably one (upstream CAL-01), so the
+# eyebrow now names the job instead of a timeframe the card cannot honour.
+_EYEBROW = "WHAT'S COMING"
+_HEADLINE = "Catalysts that move signals"
+
+
 def calendar_card_html(events: list, lane: str = "ledger",
                        cascades: dict | None = None) -> str:
-    """Return the Week-Ahead card markup.
+    """Return the catalysts card markup.
 
-    Body contains the day-grouped this-week events plus a Forward Catalysts
-    sub-section below a hairline divider. Empty input → empty-state body.
+    Three sections, each below its own hairline: the day-grouped this-week
+    events, then Forward Catalysts, then Read-Across — prints by companies the
+    book does NOT hold that move names it does. Empty input → empty-state body.
+
+    The sections are ordered by ownership before time: your week, your horizon,
+    then everyone else's. A read-across print two days out therefore sits below
+    a forward catalyst forty days out, which is deliberate — "is this mine?" is
+    the first question the reader asks of a calendar row, and mixing an
+    unheld supplier into the this-week list answers it wrong.
 
     ``lane`` controls grid placement inside a ``.lane-wrapper``. The Briefing
     band passes ``"strip"`` so the (often long) catalyst list spans full width
@@ -207,29 +247,39 @@ def calendar_card_html(events: list, lane: str = "ledger",
     if not events:
         body = '<p style="color:var(--ink-3);font-size:13px;">No catalysts logged.</p>'
         return card_container(
-            eyebrow="THE WEEK AHEAD",
-            headline="Catalysts that move signals",
+            eyebrow=_EYEBROW,
+            headline=_HEADLINE,
             body_html=body,
             lane=lane,
         )
 
-    this_week = [e for e in events if (e.get("type") or "this_week") != "forward_catalyst"]
-    forward = [e for e in events if (e.get("type") or "") == "forward_catalyst"]
+    # Explicit allow-list per section. The old partition treated "anything not
+    # forward_catalyst" as this-week, which would have swept a read-across row
+    # into the reader's own week the moment the pipeline started emitting one.
+    this_week = [e for e in events
+                 if (e.get("type") or "this_week") not in ("forward_catalyst",
+                                                           "read_across")]
+    forward = [e for e in events if e.get("type") == "forward_catalyst"]
+    read_across = [e for e in events if e.get("type") == "read_across"]
 
     body = _group_html(this_week, cascades=cascades)
 
     if forward:
-        body += (
-            '<div style="border-top:1px solid var(--rule);margin:10px 0 8px;'
-            'font-family:var(--mono);font-size:10px;letter-spacing:0.12em;'
-            'text-transform:uppercase;color:var(--ink-3);padding-top:8px;">'
-            'Forward Catalysts</div>'
-        )
+        body += _subhead_html("Forward Catalysts")
         body += _group_html(forward, muted=True, cascades=cascades)
 
+    if read_across:
+        # "Not held" is the whole point of the section, so it is said in the
+        # label rather than left to be inferred from unfamiliar tickers. These
+        # rows are NOT muted: unlike forward catalysts they are mostly near-term
+        # and directly actionable, and dimming them would conflate "far away"
+        # with "not yours".
+        body += _subhead_html("Read-Across · not held")
+        body += _group_html(read_across, cascades=cascades)
+
     return card_container(
-        eyebrow="THE WEEK AHEAD",
-        headline="Catalysts that move signals",
+        eyebrow=_EYEBROW,
+        headline=_HEADLINE,
         body_html=body,
         lane=lane,
     )

@@ -61,3 +61,11 @@ def test_macro_summary_escaped():
 def test_calendar_event_escaped():
     out = calendar_card_html([{"date": "2026-07-01", "event": XSS, "impact": "HIGH"}])
     assert "<script>" not in out
+
+
+def test_calendar_read_across_why_escaped():
+    out = calendar_card_html([{
+        "date": "2026-07-01", "event": "AMAT Earnings", "impact": "MEDIUM",
+        "type": "read_across", "tickers_affected": ["ASML"], "why": XSS,
+    }])
+    assert "<script>" not in out

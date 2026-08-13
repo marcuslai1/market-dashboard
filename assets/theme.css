@@ -1550,6 +1550,15 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 .cal-timing[data-active="1"] { color: var(--color-text-3); }
 .cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
+/* Read-across rationale — why a company the reader does NOT hold occupies a row
+   on a card about their own book. Same quiet italic voice as the scenario setup
+   below: both are "why this matters" prose rather than data, so they share a
+   register and neither competes with the event name above them. */
+.cal-why {
+  margin: 4px 0 2px; font-size: 11px; font-style: italic;
+  color: var(--color-text-3); line-height: 1.5;
+}
+
 /* Scenario read — steel toggle = navigation, never a signal. Collapsed so the
    calendar stays scannable. */
 .cal-scen { margin-top: 5px; }
