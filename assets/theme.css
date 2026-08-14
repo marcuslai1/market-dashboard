@@ -1525,7 +1525,12 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
    signal-red (HIGH) / WATCH-amber (MEDIUM), which let an impact level read as a
    CAUTION rating. Now a transparent steel OUTLINE chip: it says "impact level"
    and leaves red meaning only CAUTION. Transparent (vs filled) also keeps it
-   quiet beside the event name. */
+   quiet beside the event name.
+   The ramp is brightness, not hue: HIGH = accent-blue, MEDIUM = bright ink on
+   a strong border, LOW = faint. MEDIUM used to sit at text-3 on the default
+   divider — one step above invisible — so an all-MEDIUM day (common: forward
+   earnings are MEDIUM by construction upstream) read as a washed-out grey
+   column rather than a deliberate mid level. */
 .cal-impact {
   font-family: var(--font-display); font-size: 8.5px; letter-spacing: 0.14em;
   text-transform: uppercase; font-weight: 600; padding: 2px 6px;
@@ -1534,7 +1539,9 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   color: var(--color-text-4);
 }
 .cal-impact.HIGH { color: var(--eyebrow); border-color: var(--eyebrow); }
-.cal-impact.MEDIUM { color: var(--color-text-3); }
+.cal-impact.MEDIUM {
+  color: var(--color-text-2); border-color: var(--color-divider-strong);
+}
 .cal-impact.LOW { color: var(--color-text-4); }
 /* Timing chip — the quietest chip on the row: logistical metadata, so a muted
    outline that recedes behind the steel severity chip it sits next to. Square,
