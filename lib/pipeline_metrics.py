@@ -21,8 +21,28 @@ import pandas as pd
 # aggregate.
 CUTOVER = pd.Timestamp("2026-05-05")
 
-# Cached input bills at $0.07/MTok instead of $0.27/MTok.
-_CACHE_SAVING_PER_MTOK = 0.27 - 0.07
+# Costs are stored in USD (computed_cost_usd); this page displays SGD.
+# Fixed conversion, updated by hand when the rate moves materially.
+USD_TO_SGD = 1.29
+
+# DeepSeek V4 repricing effective 2026-08-17 (off-peak card; the pipeline's
+# 12:05 SGT schedule keeps every run off-peak). Input rates per MTok, USD.
+# Savings are priced with the card in force on each row's date — one flat
+# delta across the boundary would misprice one side or the other, the same
+# class of error as the pre-cutover cumsum this page was redesigned to fix.
+REPRICE = pd.Timestamp("2026-08-17")
+RATE_HIT_OLD, RATE_MISS_OLD = 0.07, 0.27
+RATE_HIT_NEW, RATE_MISS_NEW = 0.022, 0.66
+_CACHE_SAVING_PER_MTOK_OLD = RATE_MISS_OLD - RATE_HIT_OLD
+_CACHE_SAVING_PER_MTOK_NEW = RATE_MISS_NEW - RATE_HIT_NEW
+
+
+def _saving_per_mtok(dates: pd.Series) -> pd.Series:
+    """Per-row cache-saving rate ($/MTok) under the card in force that day."""
+    new = pd.to_datetime(dates) >= REPRICE
+    return new.map({True: _CACHE_SAVING_PER_MTOK_NEW,
+                    False: _CACHE_SAVING_PER_MTOK_OLD})
+
 
 # Runs per month at the current cadence (one per weekday).
 _RUNS_PER_MONTH = 21.7
@@ -35,8 +55,11 @@ _RUNS_PER_MONTH = 21.7
 # reading. A limit tight enough to trip on a normal run trains the operator to
 # ignore it, which is worse than having none.
 THRESHOLDS = {
-    # last-28 p90 $0.0677, observed max $0.0709
-    "cost":     {"limit": 0.08,     "kind": "ceiling"},
+    # last-28 p90 $0.0677 / max $0.0709 under the pre-08-17 card (old ceiling
+    # 0.08). Re-cut 2026-08-14 ahead of the 08-17 V4 repricing (~2x per run:
+    # miss 0.27->0.66, hit 0.07->0.022, out 1.10->1.98) so the budget doesn't
+    # trip on every normal run from Monday. Limit stays USD; display converts.
+    "cost":     {"limit": 0.20,     "kind": "ceiling"},
     # p50 74%, but some runs land at 0.0% — that is the failure this catches
     "cache":    {"limit": 0.40,     "kind": "floor"},
     # last-28 p90 188k
@@ -102,13 +125,20 @@ def cost_stats(df: pd.DataFrame) -> dict | None:
 
 
 def cache_saving_per_run(df: pd.DataFrame) -> float | None:
-    """Mean $/run saved by the prefix cache over the last 7 rows."""
+    """Mean $/run saved by the prefix cache over the last 7 rows.
+
+    Each row is priced at its own date's card so a window spanning the
+    2026-08-17 repricing stays honest on both sides.
+    """
     if df is None or df.empty or "cache_hit_tokens" not in df.columns:
         return None
-    hits = pd.to_numeric(df["cache_hit_tokens"], errors="coerce").fillna(0).tail(7)
+    tail = df.tail(7)
+    hits = pd.to_numeric(tail["cache_hit_tokens"], errors="coerce").fillna(0)
     if hits.empty:
         return None
-    return float(hits.mean() * _CACHE_SAVING_PER_MTOK / 1_000_000)
+    rate = (_saving_per_mtok(tail["date"]) if "date" in tail.columns
+            else _CACHE_SAVING_PER_MTOK_OLD)
+    return float((hits * rate).mean() / 1_000_000)
 
 
 def cache_stats(df: pd.DataFrame) -> dict | None:
@@ -131,7 +161,10 @@ def cache_stats(df: pd.DataFrame) -> dict | None:
         "hit_tokens": int(latest["hit"]),
         "miss_tokens": int(latest["miss"]),
         "total_input": int(latest["total_input"]),
-        "saved_total": float(c["hit"].sum() * _CACHE_SAVING_PER_MTOK / 1_000_000),
+        "latest_date": (pd.Timestamp(latest["date"])
+                        if "date" in c.columns else None),
+        "saved_total": float((c["hit"] * _saving_per_mtok(c["date"])).sum()
+                             / 1_000_000),
         "series": c[["date", "ratio"]].reset_index(drop=True),
     }
 

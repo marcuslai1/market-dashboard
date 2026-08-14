@@ -29,7 +29,13 @@ from lib.charts import (
 )
 from lib.data_loader import load_pipeline_stats, load_token_usage
 from lib.pipeline_metrics import (
+    RATE_HIT_NEW,
+    RATE_HIT_OLD,
+    RATE_MISS_NEW,
+    RATE_MISS_OLD,
+    REPRICE,
     THRESHOLDS,
+    USD_TO_SGD,
     breached,
     cache_stats,
     cost_stats,
@@ -41,8 +47,13 @@ from lib.pipeline_metrics import (
 
 
 def _money(v, dp: int = 4) -> str:
-    """Entity dollar so Streamlit never parses a pair of them as LaTeX."""
-    return "—" if v is None or pd.isna(v) else f"&#36;{float(v):,.{dp}f}"
+    """USD value rendered in SGD (fixed USD_TO_SGD; stored figures stay USD).
+
+    Entity dollar so Streamlit never parses a pair of them as LaTeX.
+    """
+    if v is None or pd.isna(v):
+        return "—"
+    return f"S&#36;{float(v) * USD_TO_SGD:,.{dp}f}"
 
 
 def _sparkline(values, key: str, breach: bool) -> str:
@@ -208,8 +219,9 @@ _DIAGNOSIS = (
     '<code>portfolio_count_directive</code>, <code>field-contracts</code>, '
     '<code>crisis_block</code> — above the <code>data_json</code> block, so the '
     'cacheable prefix extends past them.</p>'
-    '<p class="pm-diag-note">Savings figures assume a flat &#36;0.20/MTok delta '
-    'between cached and uncached input.</p>'
+    '<p class="pm-diag-note">Savings price each run at the cached-vs-uncached '
+    'input delta of the card in force on its date — S&#36;0.26/MTok before '
+    '17 Aug 2026, S&#36;0.82/MTok from the V4 repricing.</p>'
     '</div>'
 )
 
@@ -364,7 +376,8 @@ def render_pipeline_stats_page(reports: dict) -> None:
             unsafe_allow_html=True,
         )
 
-        last28 = cost["series"].tail(28)
+        last28 = cost["series"].tail(28).copy()
+        last28["cost"] = last28["cost"] * USD_TO_SGD   # display currency
         med = float(last28["cost"].median())
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -381,7 +394,7 @@ def render_pipeline_stats_page(reports: dict) -> None:
             line=dict(color=CHART_LINE, width=2),
         ))
         fig.update_layout(
-            yaxis_title="USD / run", height=260,
+            yaxis_title="SGD / run", height=260,
             margin=dict(l=0, r=0, t=30, b=0),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
@@ -426,6 +439,12 @@ def render_pipeline_stats_page(reports: dict) -> None:
             unsafe_allow_html=True,
         )
         hit_pct = cache["latest"] * 100
+        # Rate labels follow the card in force on the latest run's date, so
+        # the legend stays truthful on both sides of the 08-17 repricing.
+        _new_card = (cache.get("latest_date") is not None
+                     and cache["latest_date"] >= REPRICE)
+        _r_hit = RATE_HIT_NEW if _new_card else RATE_HIT_OLD
+        _r_miss = RATE_MISS_NEW if _new_card else RATE_MISS_OLD
         st.markdown(
             f'<div class="pm-cachebar">'
             f'<span class="pm-cache-hit" style="width:{hit_pct:.2f}%;"></span>'
@@ -433,8 +452,9 @@ def render_pipeline_stats_page(reports: dict) -> None:
             f'</div>'
             f'<div class="pm-cachelegend">'
             f'<span data-metric="cache">{cache["hit_tokens"]:,} hit · '
-            f'&#36;0.07/MTok</span>'
-            f'<span>{cache["miss_tokens"]:,} miss · &#36;0.27/MTok</span>'
+            f'S&#36;{_r_hit * USD_TO_SGD:.3f}/MTok</span>'
+            f'<span>{cache["miss_tokens"]:,} miss · '
+            f'S&#36;{_r_miss * USD_TO_SGD:.2f}/MTok</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
