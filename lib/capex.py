@@ -1,5 +1,6 @@
 """Capex-cycle computations for the AI Capex Pulse band.
 
+Pure functions —
 no Streamlit imports (the ``lib/formatters.py`` rule) so everything is
 trivially unit-testable. The thresholds below are presentation constants
 (display colors on a human-read cross-check), NOT calibrated signals; by

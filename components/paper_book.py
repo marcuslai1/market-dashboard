@@ -5,7 +5,7 @@ replay-seeded 2026-04-19, Measurement-Gate-exempt — from two exported
 sources: the report's ``paper_portfolio`` summary block and
 ``data/paper_nav.csv`` (daily NAV + SPY/SOXX closes). The dashboard's only
 arithmetic is rebasing exported series to a $100,000 display notional at
-their first valid row; all measurement lives upstream
+their first valid row; all measurement lives upstream.
 """
 from __future__ import annotations
 

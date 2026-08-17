@@ -1,6 +1,6 @@
 """Briefing · AI Capex Pulse band.
 
-Human-read digestion scorecard for the capex cycle (spec
+Human-read digestion scorecard for the capex cycle: one plate
 — an auto-derived verdict caption over a five-row datasheet (capex, revenue,
 coverage gap, valuation, fragile tier; tone = health, one dot per row) — then
 the coverage-gap chart and cluster-fundamentals trends behind a History
