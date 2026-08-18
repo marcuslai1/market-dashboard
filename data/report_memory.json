@@ -1,7 +1,68 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-08-14",
+  "_last_updated": "2026-08-17",
   "rolling_summaries": [
+    {
+      "date": "2026-08-17",
+      "themes": [
+        "Fed pause",
+        "AI capex/semis",
+        "Hormuz oil premium"
+      ],
+      "signals_snapshot": {
+        "WATCH": [
+          "AMD",
+          "ASML",
+          "TSM",
+          "BE",
+          "IFX_DE"
+        ],
+        "HOLD": [
+          "U11_SI",
+          "GOOG",
+          "META",
+          "AVGO",
+          "AIXA_DE",
+          "NVTS",
+          "WRD"
+        ],
+        "CAUTION": [
+          "D05_SI",
+          "O39_SI",
+          "NVDA",
+          "INTC",
+          "MU",
+          "TSEM",
+          "000660_KS",
+          "CRWV",
+          "CBRS",
+          "AXTI",
+          "SOI_PA",
+          "SNDK",
+          "NBIS",
+          "SKHY",
+          "005930_KS",
+          "AMZN",
+          "MSFT",
+          "LITE",
+          "NOK",
+          "PLTR",
+          "SITM"
+        ]
+      },
+      "key_prices": {
+        "SPY": 776.34,
+        "WTI": 82.32,
+        "VIX": 14.25,
+        "Gold": 4452.0
+      },
+      "interconnected_suggested": [
+        "COHR",
+        "MRVL",
+        "ANET"
+      ],
+      "one_liner": "Quiet risk-off; WTI flat, gold +0.33%; semis signals mixed (GOOG/MU down, AVGO/IFX/NVTS improve)."
+    },
     {
       "date": "2026-08-14",
       "themes": [
@@ -184,7 +245,7 @@
         "COHR",
         "MRVL"
       ],
-      "one_liner": "S&P 500 -0.2% as July CPI released; WTI +2.7% to $84.32 (1-wk high) on Hormuz supply disruption"
+      "one_liner": "S&P 500 -0.2% ahead of July CPI release; WTI +2.7% to $84.32 (1-wk high) on Hormuz supply disruption"
     },
     {
       "date": "2026-08-11",
@@ -376,68 +437,6 @@
         "SNPS"
       ],
       "one_liner": "S&P 500 -0.33% as Warsh hold odds steady; WTI +4.1% to $78.07 on faded ceasefire hopes; memory stocks upgraded signals."
-    },
-    {
-      "date": "2026-08-06",
-      "themes": [
-        "Semiconductor signal rout",
-        "Oil stabilization after selloff",
-        "Fed hawkish rhetoric persists"
-      ],
-      "signals_snapshot": {
-        "WATCH": [
-          "ASML"
-        ],
-        "HOLD": [
-          "GOOG",
-          "META",
-          "IFX_DE",
-          "WRD"
-        ],
-        "CAUTION": [
-          "D05_SI",
-          "O39_SI",
-          "U11_SI",
-          "NVDA",
-          "AMD",
-          "MU",
-          "TSM",
-          "TSEM",
-          "000660_KS",
-          "CRWV",
-          "CBRS",
-          "AXTI",
-          "SOI_PA",
-          "NBIS",
-          "SKHY",
-          "005930_KS",
-          "AMZN",
-          "MSFT",
-          "AVGO",
-          "LITE",
-          "NOK",
-          "BE",
-          "AIXA_DE",
-          "NVTS",
-          "PLTR",
-          "SITM"
-        ],
-        "AVOID": [
-          "INTC",
-          "SNDK"
-        ]
-      },
-      "key_prices": {
-        "SPY": 769.79,
-        "WTI": 75.08,
-        "VIX": 15.81,
-        "Gold": 4322.9
-      },
-      "interconnected_suggested": [
-        "COHR",
-        "SNPS"
-      ],
-      "one_liner": "SPY -0.4%. Semi signal wave: NVDA→CAUTION, SNDK→AVOID, TSM→CAUTION, GOOG→HOLD. WTI $75.08 (+0.7%)."
     }
   ],
   "active_narratives": [
@@ -566,10 +565,6 @@
       },
       "updates": [
         {
-          "date": "2026-08-06",
-          "note": "Kashkari urges rate hike now to head off entrenched inflation. Reinforces hawkish dissent ahead of Sep meeting."
-        },
-        {
           "date": "2026-08-07",
           "note": "Hike odds steady at 38%. US10Y edges higher. No new Fed commentary."
         },
@@ -583,7 +578,7 @@
         },
         {
           "date": "2026-08-12",
-          "note": "July CPI released Aug 12; consensus expected bounce after June drop. 10Y yield nears highest since Jan 2025 on oil and pre-CPI positioning. Hike odds repricing."
+          "note": "July CPI due Aug 12 (print landed after this report shipped); consensus expected bounce after June drop. 10Y yield nears highest since Jan 2025 on oil and pre-CPI positioning. Hike odds repricing."
         },
         {
           "date": "2026-08-13",
@@ -592,9 +587,13 @@
         {
           "date": "2026-08-14",
           "note": "Payrolls -23k (from +20k), unemployment 4.1% (down). SPY +0.72% to fresh record; 10Y little changed after in-line July CPI 3.3%. Sep hike odds slide."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "No new Fed data. July CPI piece reinforces dim September hike odds; quiet risk-off Monday."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -667,16 +666,12 @@
       },
       "updates": [
         {
-          "date": "2026-08-06",
-          "note": "NVDA→CAUTION, MU→CAUTION, SNDK→AVOID, TSM→CAUTION added to downgrades; GOOG→HOLD (upgrade). Memory weakness deepens. AI infra spend $1T, credit concerns persist."
-        },
-        {
           "date": "2026-08-07",
           "note": "Memory signals reverse downgrades: MU→ACCUMULATE, 000660_KS→ACCUMULATE, SKHY→HOLD, 005930_KS→HOLD. Amazon reiterates $220B capex, capacity-constrained."
         },
         {
           "date": "2026-08-10",
-          "note": "GOOG→WATCH, MU→WATCH, SNDK→CAUTION on pipeline. Hyperscaler capex article $600B, below ~$730B guided aggregate. No new corporate guidance."
+          "note": "GOOG→WATCH, MU→WATCH, SNDK→CAUTION on pipeline. Hyperscaler capex article: ~$600B covers the AMZN/GOOG/MSFT trio only — consistent with, not below, the ~$730B Big-Four guided aggregate. No new corporate guidance."
         },
         {
           "date": "2026-08-11",
@@ -693,9 +688,13 @@
         {
           "date": "2026-08-14",
           "note": "ASML ACCUMULATE→WATCH, MU ACCUMULATE→WATCH, 000660_KS WATCH→CAUTION, SKHY HOLD→CAUTION, SNDK WATCH→CAUTION. Memory/equipment signals soften; no new hyperscaler capex guidance."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "AI capex pieces repeat ~$1.15T and sector-split theme. GOOG→HOLD, MU→CAUTION; AVGO→HOLD, IFX_DE→WATCH, NVTS→HOLD. No new hyperscaler guidance."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -796,10 +795,6 @@
       },
       "updates": [
         {
-          "date": "2026-08-06",
-          "note": "US imposes data-center parts curbs, solar tariffs; China retaliates with restrictions on 7 US entities and drone export controls. ASML order book full but China risk weighs."
-        },
-        {
           "date": "2026-08-07",
           "note": "No material change."
         },
@@ -822,9 +817,13 @@
         {
           "date": "2026-08-14",
           "note": "ASML ACCUMULATE→WATCH; ASML two-front battle and 50% return pieces; Ford shifts Lincoln production to US amid trade tensions; no new export controls."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "Trump announces up to 100% tariffs on imported drones; US says dozens of countries helped China dodge tariffs. China July exports top forecasts, PMI seen weaker H2. No new chip export controls."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -893,10 +892,6 @@
       },
       "updates": [
         {
-          "date": "2026-08-06",
-          "note": "No material change."
-        },
-        {
           "date": "2026-08-07",
           "note": "Eurozone PPI +4.6% YoY (June) matches forecast, reinforcing energy inflation ahead of Sep 10 ECB meeting."
         },
@@ -919,9 +914,13 @@
         {
           "date": "2026-08-14",
           "note": "EUR/USD near seven-week highs as USD weakens on cooling US CPI; Eurozone economic sentiment improves; no new ECB data/policy signals."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "No new ECB data; central bank inflation-dilemma article only."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "gold_data_conflict",
@@ -1009,10 +1008,6 @@
       },
       "updates": [
         {
-          "date": "2026-08-06",
-          "note": "WTI 75.08 (+0.36 from 74.72). Stabilising after -11% five-session rout. Hormuz blockade intact, ceasefire hopes still price driver."
-        },
-        {
           "date": "2026-08-07",
           "note": "WTI $78.07 (+$2.99, +4.1%) as ceasefire hopes faded. Blockade intact, two-day slide snapped."
         },
@@ -1022,7 +1017,7 @@
         },
         {
           "date": "2026-08-11",
-          "note": "WTI $82.16 (+4.3% from $78.79). Iran-Oman managed-transit corridor talks fail to ease supply fears; Brent +1%. Blockade intact, strait traffic -90%."
+          "note": "WTI $82.16 (+4.3% from $78.79). Iran-Oman managed-transit corridor talks fail to ease supply fears; Brent +1% was Friday Aug 7's move, not same-day. Blockade intact, strait traffic -90%."
         },
         {
           "date": "2026-08-12",
@@ -1035,9 +1030,13 @@
         {
           "date": "2026-08-14",
           "note": "WTI 81.37 (-1.56 from 82.93); Brent targets $90; oil up >3% on prolonged Hormuz disruption concerns; maritime freight costs rising; blockade intact."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "WTI flat Monday, holding Hormuz premium; article cites >3% gain on prolonged disruption concerns. No reopening/ceasefire."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -1058,10 +1057,6 @@
         "MSFT_2026_capex_guide": "$175B restated (was ~$190B; useful-life reclass, spend unchanged)"
       },
       "updates": [
-        {
-          "date": "2026-08-06",
-          "note": "No material change."
-        },
         {
           "date": "2026-08-07",
           "note": "No material change."
@@ -1085,9 +1080,13 @@
         {
           "date": "2026-08-14",
           "note": "No new Azure/OpenAI data; article on Microsoft positioned to rival OpenAI."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "No new Azure/OpenAI data."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "intel_18a_node_production",
@@ -1104,10 +1103,6 @@
       "thesis": "18A milestone validates Intel's foundry roadmap and CHIPS Act investment, potentially shifting competitive landscape against TSMC. However, INTC remains signal-negative (AVOID since Aug 5) until the market reprices foundry competitiveness and demand visibility — the external customer book is still Fortinet on mature Intel 4 plus $293M of quarterly foundry revenue, with no new signing since Jul 21.",
       "key_levels": {},
       "updates": [
-        {
-          "date": "2026-08-06",
-          "note": "INTC Q2 deep dive: data center/AI strength offset by supply constraints; best revenue growth in 15 years. Signal remains AVOID."
-        },
         {
           "date": "2026-08-07",
           "note": "Tesla/SpaceX to invest $16.8B for 'Terafab' chip factory in Texas, adding competition. INTC Q2 deep dive highlights data center strength; signal still AVOID."
@@ -1130,10 +1125,14 @@
         },
         {
           "date": "2026-08-14",
-          "note": "BofA sees $20B raise fueling foundry and server CPU growth; INTC -4% from $101.65, $110 caps. No new external 18A customers."
+          "note": "BofA sees $20B raise fueling foundry and server CPU growth; a forecast article frames INTC -4% from $101.65 with a $110 cap (INTC actually +3.4% to $104.56 on the day). No new external 18A customers."
+        },
+        {
+          "date": "2026-08-17",
+          "note": "Intel $15B stock-sale piece recirculates; no external 18A customer signings."
         }
       ],
-      "last_updated": "2026-08-14"
+      "last_updated": "2026-08-17"
     },
     {
       "id": "fed_chair_warsh_transition",
@@ -1273,87 +1272,157 @@
   ],
   "lessons_learned": [
     {
-      "lesson": "SNDK CAUTION correctly avoided relative weakness in 8/10 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -11.0% (n=10)",
-      "tickers_involved": [
-        "SNDK"
-      ],
-      "computed_on": "2026-08-14"
-    },
-    {
-      "lesson": "PLTR CAUTION missed alpha (stock beat QQQ) in 16/28 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs QQQ: +10.7% (n=28)",
+      "lesson": "PLTR CAUTION missed alpha (stock beat QQQ) in 17/27 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs QQQ: +12.6% (n=27)",
       "tickers_involved": [
         "PLTR"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
     },
     {
-      "lesson": "AXTI CAUTION correctly avoided relative weakness in 17/29 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +10.3% (n=29)",
+      "lesson": "AXTI CAUTION correctly avoided relative weakness in 16/29 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +12.4% (n=29)",
       "tickers_involved": [
         "AXTI"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
     },
     {
-      "lesson": "CBRS CAUTION missed alpha (stock beat SOXX) in 15/27 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +8.3% (n=27)",
-      "tickers_involved": [
-        "CBRS"
-      ],
-      "computed_on": "2026-08-14"
-    },
-    {
-      "lesson": "BE CAUTION correctly avoided relative weakness in 13/21 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -6.8% (n=21)",
-      "tickers_involved": [
-        "BE"
-      ],
-      "computed_on": "2026-08-14"
-    },
-    {
-      "lesson": "AVGO CAUTION missed alpha (stock beat SOXX) in 6/9 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +6.6% (n=9)",
+      "lesson": "AVGO CAUTION missed alpha (stock beat SOXX) in 6/6 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +11.8% (n=6)",
       "tickers_involved": [
         "AVGO"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
     },
     {
-      "lesson": "NVTS CAUTION correctly avoided relative weakness in 13/23 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -6.4% (n=23)",
+      "lesson": "BE CAUTION correctly avoided relative weakness in 13/18 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -8.9% (n=18)",
       "tickers_involved": [
-        "NVTS"
+        "BE"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
     },
     {
-      "lesson": "SOI_PA CAUTION missed alpha (stock beat SOXX) in 15/30 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: +6.2% (n=30)",
-      "tickers_involved": [
-        "SOI_PA"
-      ],
-      "computed_on": "2026-08-14"
-    },
-    {
-      "lesson": "000660_KS CAUTION correctly avoided relative weakness in 16/22 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -6.2% (n=22)",
+      "lesson": "000660_KS CAUTION correctly avoided relative weakness in 17/20 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -8.8% (n=20)",
       "tickers_involved": [
         "000660_KS"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
     },
     {
-      "lesson": "AIXA_DE CAUTION correctly avoided relative weakness in 14/19 cases over 10d (regimes: chop/trend_up).",
-      "evidence": "avg alpha vs SOXX: -6.1% (n=19)",
+      "lesson": "CBRS CAUTION missed alpha (stock beat SOXX) in 15/26 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +8.5% (n=26)",
       "tickers_involved": [
-        "AIXA_DE"
+        "CBRS"
       ],
-      "computed_on": "2026-08-14"
+      "computed_on": "2026-08-17"
+    },
+    {
+      "lesson": "SNDK CAUTION correctly avoided relative weakness in 8/11 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: -7.7% (n=11)",
+      "tickers_involved": [
+        "SNDK"
+      ],
+      "computed_on": "2026-08-17"
+    },
+    {
+      "lesson": "SOI_PA CAUTION missed alpha (stock beat SOXX) in 17/31 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +7.3% (n=31)",
+      "tickers_involved": [
+        "SOI_PA"
+      ],
+      "computed_on": "2026-08-17"
+    },
+    {
+      "lesson": "CRWV CAUTION correctly avoided relative weakness in 12/19 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs SOXX: +5.3% (n=19)",
+      "tickers_involved": [
+        "CRWV"
+      ],
+      "computed_on": "2026-08-17"
+    },
+    {
+      "lesson": "MSFT CAUTION missed alpha (stock beat QQQ) in 2/5 cases over 10d (regimes: chop/trend_up).",
+      "evidence": "avg alpha vs QQQ: +5.1% (n=5)",
+      "tickers_involved": [
+        "MSFT"
+      ],
+      "computed_on": "2026-08-17"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-08-17",
+      "topics": [
+        {
+          "topic": "Fed/inflation path",
+          "summary": "July CPI meets forecasts and further dims a September Fed hike; payrolls -23k and unemployment 4.1% are already stale. Monday's US session was quiet and slightly risk-off for equities.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "Oil/Hormuz disruption",
+          "summary": "WTI essentially flat Monday, keeping the week's Hormuz premium, while headlines cite oil up over 3% on prolonged Strait of Hormuz disruption concerns. No reopening or ceasefire.",
+          "tickers": [
+            "WTI",
+            "XOM",
+            "CVX",
+            "ASML",
+            "TSM"
+          ]
+        },
+        {
+          "topic": "US-China trade/tech",
+          "summary": "Trump announces tariffs up to 100% on imported drones; US says dozens of countries helped China dodge tariffs. China's July exports top forecasts on AI demand and pre-tariff rush, but July PMI points to a weaker second half.",
+          "tickers": [
+            "ASML",
+            "INTC",
+            "NVDA",
+            "AMD"
+          ]
+        },
+        {
+          "topic": "AI capex and semis",
+          "summary": "AI capex articles cite up to $1.15T in spending; semiconductor sector is splitting between AI infrastructure winners and laggards. Also safe AI infrastructure standards and Nvidia vs AMD analysis.",
+          "tickers": [
+            "NVDA",
+            "AMD",
+            "MU",
+            "AVGO",
+            "GOOG",
+            "TSM"
+          ]
+        },
+        {
+          "topic": "Microsoft AI cloud",
+          "summary": "SemiAnalysis sees Microsoft positioned to rival OpenAI/Anthropic with a $100B-per-GW inference revenue opportunity; no new Azure/OpenAI data.",
+          "tickers": [
+            "MSFT"
+          ]
+        },
+        {
+          "topic": "Intel foundry funding",
+          "summary": "Intel article recirculates a $15B stock sale to fund chip factories despite no signed external customers.",
+          "tickers": [
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Singapore banks",
+          "summary": "Analysts raise DBS targets to as high as S$81 after record Q2 net profit; Citi and OCBC downgrade UOB post-Q2 results. DBS vs OCBC vs UOB debate continues.",
+          "tickers": [
+            "D05_SI",
+            "O39_SI",
+            "U11_SI"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-08-14",
       "topics": [
@@ -1386,7 +1455,7 @@
         },
         {
           "topic": "Semis/AI demand and ASML",
-          "summary": "ASML faces Washington-China restrictions and Shanghai DUV challenger; AI chip demand supports Nvidia/AMD. ASML dropped 5% over month, analyst sees 50% upside.",
+          "summary": "ASML faces Washington-China restrictions and Shanghai DUV challenger; AI chip demand supports Nvidia/AMD. ASML roughly flat over the past month (+1.9%; the '-5%' headline figure is wrong), analyst sees 50% upside.",
           "tickers": [
             "ASML",
             "NVDA",
@@ -1395,7 +1464,7 @@
         },
         {
           "topic": "Intel foundry/funding",
-          "summary": "BofA sees $20B raise fueling Intel foundry and server CPU growth; INTC fell 4% from $101.65 on earlier $15B raise, $110 caps. No external 18A customers named.",
+          "summary": "BofA sees $20B raise fueling Intel foundry and server CPU growth; a forecast article frames INTC -4% from $101.65 with a $110 cap (INTC +3.4% on the day). No external 18A customers named.",
           "tickers": [
             "INTC"
           ]
@@ -1484,86 +1553,6 @@
             "DBS",
             "OCBC",
             "UOB"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-08-12",
-      "topics": [
-        {
-          "topic": "Iran oil crisis",
-          "summary": "WTI surged 2.7% to $84.32, a new one-week high, as supply disruptions outweighed Strait of Hormuz talks. Brent targets $90 while OPEC+ supply caps gains. Blockade intact, strait traffic -90%.",
-          "tickers": [
-            "WTI",
-            "O39_SI",
-            "XOM",
-            "CVX"
-          ]
-        },
-        {
-          "topic": "US-China tech escalation and semiconductor supply chain",
-          "summary": "China tightened drone exports and sanctioned US firms, escalating the tech fight before a Trump-Xi meeting. ASML order book full through 2027 but stock weighed by China export risk and a DUV challenger in Shanghai.",
-          "tickers": [
-            "ASML",
-            "INTC",
-            "TSM",
-            "NVDA",
-            "AMD"
-          ]
-        },
-        {
-          "topic": "Fed/CPI/Treasury yields",
-          "summary": "July CPI released; Treasury yields rose with the 10-year nearing its highest since January 2025, driven by oil gains and pre-CPI positioning. Market reprices Fed hike odds.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "AI infrastructure and hyperscaler capex",
-          "summary": "Hyperscalers committed nearly $600 billion to AI infrastructure but a data center integrity risk article raised concerns. No new corporate capex guidance; 000660_KS downgraded ACCUMULATE→WATCH.",
-          "tickers": [
-            "NVDA",
-            "ASML",
-            "INTC",
-            "MU",
-            "AMZN",
-            "GOOG",
-            "MSFT"
-          ]
-        },
-        {
-          "topic": "Intel foundry and funding",
-          "summary": "Intel sold $15 billion in stock to fund chip factories; analyst argues buying Intel over TSMC is not crazy, though external 18A customers remain absent.",
-          "tickers": [
-            "INTC"
-          ]
-        },
-        {
-          "topic": "ECB rate speculation",
-          "summary": "Markets debate whether the ECB will hike again in 2026 then cut in 2027. No new data or policy signals.",
-          "tickers": [
-            "DXY"
-          ]
-        },
-        {
-          "topic": "China economy",
-          "summary": "July PMI points to a weaker second half of 2026, but exports beat forecasts, boosted by AI demand and pre-tariff frontloading.",
-          "tickers": [
-            "ASML",
-            "TSM",
-            "INTC"
-          ]
-        },
-        {
-          "topic": "Singapore banks",
-          "summary": "DBS and OCBC hit record highs while UOB dipped after 2Q results; flat net interest income amid diverging fees and costs.",
-          "tickers": [
-            "D05_SI",
-            "O39_SI",
-            "U11_SI"
           ]
         }
       ]
