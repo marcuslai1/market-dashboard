@@ -280,7 +280,11 @@ def _banner_html(block: dict) -> str:
 # as "trail"/"nostop"/"wide"; the headline book itself is the flat 10% stop).
 _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
                 "v1_nostop10": "no-stop", "v1_wide10": "wide",
-                "v1_ladder10": "ladder"}
+                "v1_ladder10": "ladder",
+                # still in the surfaced variants array (it is the control
+                # for the pipeline's pre-registered stop x exit read) but no
+                # longer a charted lane since 2026-08-27
+                "v1_tc_ext_100": "ext-exit 10/5"}
 
 
 def _lane_label(policy_id: str) -> str:
@@ -670,17 +674,26 @@ def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
     return f'<p class="pb-lane-cash">{_escape_dollars(txt)}</p>'
 
 
-# Advisory ext-exit lanes' history (spec addendum 2026-07-17) — the same
-# scoped allowlist as the dashed curves. Within these lanes a caution_exit
-# IS the extension rule firing (the allowlist is ext-trigger by
-# construction), so it's labeled as the behaviour it represents.
+# Advisory lanes' history (spec addendum 2026-07-17; lanes swapped
+# 2026-08-27) — the same scoped allowlist as the dashed curves. A
+# caution_exit is the lane's own exit rule firing, so it's labeled as the
+# behaviour it represents — per lane, because the hybrid's rule fires on
+# EITHER an extension or a thesis-break CAUTION and the export carries only
+# the reason, not the bucket.
 _EXT_EXIT_LABELS = {**_EXIT_LABELS, "caution_exit": "sold on extension"}
+_LANE_EXIT_LABELS = {
+    "v1_wide_ext_100": _EXT_EXIT_LABELS,
+    "v1_wide_extthesis_100": {**_EXIT_LABELS,
+                              "caution_exit": "sold on extension / thesis"},
+}
 
 _EXT_HISTORY_CAVEAT = (
-    '<p class="pb-banner">The same signals traded with one extra sell rule — '
-    "exit when a stock stretches too far above its 50-day trend (the dashed "
-    "curves on the chart). Each lane is its own &#36;100,000 pot. "
-    "Hypothesis-grade, one regime · not the headline book.</p>"
+    '<p class="pb-banner">The same signals with a wider stop (the report&#39;s '
+    "structural support instead of the 50-day line) plus one sell rule — "
+    "exit when a stock stretches too far above its 50-day trend, or, in the "
+    "second lane, also when the thesis breaks (the dashed curves on the "
+    "chart). Each lane is its own &#36;100,000 pot. Hypothesis-grade, "
+    "one regime · not the headline book.</p>"
 )
 
 
@@ -707,7 +720,7 @@ def ext_lane_views(nav_df: pd.DataFrame | None,
             continue
         factor = trade_dollars_factor(nav_df, {"policy_id": pid})
         t_rows = trade_rows(_newest_exit_first(lane_t), factor, as_of_year,
-                            labels=_EXT_EXIT_LABELS)
+                            labels=_LANE_EXIT_LABELS.get(pid, _EXT_EXIT_LABELS))
         p_rows = position_rows(lane_p, factor, as_of_year)
         if t_rows or p_rows:
             out.append((label, pid, p_rows, t_rows))
@@ -869,16 +882,23 @@ _CHART_SERIES = ("Paper book", "SPY")
 # single-regime banner still renders beneath the chart. Lanes absent from
 # the CSV (b30 seeds on its first post-registration pipeline run) are
 # silently skipped.
+# 2026-08-27 (stop x exit cross, pipeline spec 2026-08-27-paper-stop-exit-
+# cross-design addendum e, user decision): the two charted lanes are now the
+# wide-stop contenders — same entries, same wide structural stop, differing
+# only in the exit trigger. The frozen-stop ext-exit lanes (10/5, 30/15)
+# stay in the CSV but are no longer charted: the 30/15 lead read as cash
+# deployment, not a sizing edge, and the 10/5 lane is the control the
+# contenders are measured against in the pipeline's pre-registered read.
 _ADVISORY_CURVES = {
-    "v1_tc_ext_100": "ext-exit 10/5",
-    "v1_tc_ext_100_b30": "ext-exit 30/15",
+    "v1_wide_ext_100": "wide+ext 10/5",
+    "v1_wide_extthesis_100": "wide+extthesis 10/5",
 }
 # One neutral, one brass-tinted — variants of the subject and the benchmark, not
 # two more categories. Two arbitrary palette hues (the old sage / dusty mauve)
 # read as new series with meanings of their own. The tint is dimmed rather than
 # CHART_ACCENT itself: a replay must never be mistaken for the book.
-_ADVISORY_COLORS = {"ext-exit 10/5": CHART_MUTED,
-                    "ext-exit 30/15": CHART_ACCENT_SOFT}
+_ADVISORY_COLORS = {"wide+ext 10/5": CHART_ACCENT_SOFT,
+                    "wide+extthesis 10/5": CHART_MUTED}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
@@ -1062,7 +1082,7 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
     if not names:
         return ""
     # Terracotta on the limitation only — it marks a trust limit, never a rating.
-    return ('<p class="pb-chartnote">Dashed: exit-on-extension replay lanes '
+    return ('<p class="pb-chartnote">Dashed: wide-stop exit-rule replay lanes '
             f'({", ".join(names)} — BUY%/add-on% of the book) · '
             '<span class="lim">hypothesis-grade, one regime</span> · '
             "not the headline book.</p>")
@@ -1181,7 +1201,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                             unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
     if ext_lanes:
-        with st.expander("Selling on extension — advisory trade history",
+        with st.expander("Wide-stop exit lanes — advisory trade history",
                          expanded=False):
             st.markdown(_EXT_HISTORY_CAVEAT, unsafe_allow_html=True)
             any_pos = any_trades = False
