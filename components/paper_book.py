@@ -588,6 +588,7 @@ _EXIT_LABELS = {
     "avoid_exit": "AVOID exit",
     "caution_exit": "CAUTION exit",
     "delist_exit": "delisted",
+    "margin_call": "forced sale (margin)",
 }
 
 
