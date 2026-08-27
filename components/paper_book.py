@@ -298,8 +298,8 @@ _SCORECARD_ROLE_CLASS = {"Default": "pb-role-default",
 
 
 # What each scorecard column means, in one plain sentence, plus the scale a
-# reader can judge the number against. Rendered as a hover on the column
-# header and as the collapsed glossary under the table (phones can't hover).
+# reader can judge the number against. Rendered as a click-to-open popover
+# on each column header (works on touch too, so no separate glossary).
 _METRIC_HELP = {
     "NAV": ("How much the $100,000 pot has grown.",
             "Read it against SPY on the same window: above SPY = beat the market."),
@@ -340,15 +340,6 @@ def _th(name: str) -> str:
     return (f'<th>{_escape_dollars(name)}'
             f'<details class="pb-tip"><summary aria-label="What {_escape_dollars(name)} means">?</summary>'
             f'<div class="pb-tip-body">{tip}</div></details></th>')
-
-
-def metric_glossary_html() -> str:
-    rows = "".join(
-        f'<tr><td class="pb-gl-k">{_escape_dollars(k)}</td>'
-        f'<td>{_escape_dollars(what)}<br><span class="pb-gl-scale">{_escape_dollars(scale)}</span></td></tr>'
-        for k, (what, scale) in _METRIC_HELP.items()
-    )
-    return f'<table class="pb-glossary">{rows}</table>'
 
 
 def _fmt_pct(v, plus=True, d=1):
@@ -1440,9 +1431,6 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     sc = scorecard_html(nav_df, trades_df, positions_df)
     if sc or block:
         st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
-    if sc:
-        with st.expander("What these numbers mean", expanded=False):
-            st.markdown(metric_glossary_html(), unsafe_allow_html=True)
     if chart_table is not None:
         chart_data_table(chart_table)
     if pos_v2_rows:
