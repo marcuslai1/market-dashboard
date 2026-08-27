@@ -522,14 +522,24 @@ def _method_html() -> str:
     view. Those are the three things a reader must not misunderstand; everything
     else in the sentence can be skimmed.
     """
+    # Owner call 2026-08-27: the CAUTION cell was being read as "CAUTION is a
+    # bad sell signal". It is an ENTRY gate scored here as a direction call,
+    # at a horizon where nothing has an edge; the paper book exits on two of
+    # its sub-buckets for a different reason. Say so at the point of use.
     tip = ("BUY / ACCUMULATE / WATCH count a rise as right; CAUTION / AVOID "
-           "count a drop as right (you avoided it). Raw price direction — the "
-           "benchmark-relative view (alpha vs the market) is the Signal "
-           "calibration row at the top of this page.")
+           "count a drop as right. Read the CAUTION cell with care: CAUTION "
+           "means 'don't add here', not 'sell', and over any 5 sessions about "
+           "half of all names fall anyway, so a rate near 50% is the market, "
+           "not the signal. The paper book does exit on two CAUTION "
+           "sub-buckets (extension, thesis) because over ~20 sessions those "
+           "names lag the names it keeps — see the paper band below. Raw "
+           "price direction — the benchmark-relative view (alpha vs the "
+           "market) is the Signal calibration row at the top of this page.")
     from components.paper_book import help_tip
     return (
         '<p class="method">How often each signal went the right way, 5 sessions '
-        f"later{help_tip(tip, 'What counts as right')}</p>"
+        "later — a direction test, not what the paper book trades on"
+        f"{help_tip(tip, 'What counts as right')}</p>"
     )
 
 
