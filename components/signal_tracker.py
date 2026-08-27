@@ -522,12 +522,13 @@ def _method_html() -> str:
     view. Those are the three things a reader must not misunderstand; everything
     else in the sentence can be skimmed.
     """
+    tip = ("BUY / ACCUMULATE / WATCH count a rise as right; CAUTION / AVOID "
+           "count a drop as right (you avoided it). Raw price direction — the "
+           "benchmark-relative view (alpha vs the market) is the Signal "
+           "calibration row at the top of this page.")
     return (
-        '<p class="method">How often each signal went the right way, 5 sessions '
-        "later. BUY / ACCUMULATE / WATCH count a <b>rise</b> as right; "
-        "CAUTION / AVOID count a <b>drop</b> as right (you avoided it). This is "
-        "<b>raw price direction</b> — the benchmark-relative view (alpha vs the "
-        "market) is the Signal calibration row at the top of this page.</p>"
+        f'<p class="method" title="{tip}">How often each signal went the right '
+        "way, 5 sessions later<span class=\"pb-help\" aria-hidden=\"true\">?</span></p>"
     )
 
 
@@ -770,9 +771,11 @@ def render_signal_tracker_page(
     changelog = load_changelog()
     strip = _changelog_strip_html(changelog)
     if strip:
-        render_section_head("What we've changed", _changelog_sub(changelog),
-                            masthead=True)
-        st.markdown(strip, unsafe_allow_html=True)
+        # Collapsed (owner call 2026-08-27): the dated spine is reference,
+        # not something to scroll past on every visit.
+        with st.expander(f"What we've changed · {_changelog_sub(changelog)}",
+                         expanded=False):
+            st.markdown(strip, unsafe_allow_html=True)
 
     # ── 3. Detail drawers (collapsed — the page leads with the scorecard) ──
     # The name filter sits HERE, not at the top: it scopes only the drawers

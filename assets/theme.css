@@ -2802,17 +2802,27 @@ details.led-details[open] > summary {
 .pb-scorecard tr.pb-role-default td { background: color-mix(in srgb, var(--brass) 9%, transparent); }
 .pb-scorecard tr.pb-role-default td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--brass); }
 .pb-scorecard tr.pb-role-challenger td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--accent); }
-/* Rule strip: a numbered sequence (the order a trade lives through). */
-.pb-rules { border-top: 0; margin-bottom: 14px; }
-.pb-rule { padding: 12px 14px 14px; }
-.pb-rule-n { font-family: var(--font-display); font-size: 20px; font-weight: 600;
-  color: var(--brass); line-height: 1; font-variant-numeric: tabular-nums; }
-.pb-rule-h { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--color-text-1); margin-top: 6px; }
-.pb-rule-b { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2); margin-top: 4px; }
-@media (max-width: 900px) {
-  .pb-rules { grid-template-columns: repeat(2, 1fr) !important; }
-}
+/* Hover affordance: a small "?" that marks a native title tooltip. */
+.pb-help { display: inline-block; margin-left: 5px; width: 13px; height: 13px;
+  line-height: 13px; border-radius: 50%; border: 1px solid var(--color-divider);
+  color: var(--color-text-3); font-size: 9px; text-align: center;
+  font-family: var(--font-display); vertical-align: 1px; cursor: help; }
+th .pb-help { margin-left: 4px; }
+.pb-eyebrow-hint { font-weight: 400; letter-spacing: 0.02em; text-transform: none;
+  color: var(--color-text-3); margin-left: 10px; font-family: var(--font-body, inherit); font-size: 11px; }
+/* Glossary (collapsed by default): the same sentences the headers carry. */
+.pb-glossary { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.pb-glossary td { padding: 7px 10px; vertical-align: top; border-bottom: 1px solid var(--color-divider);
+  color: var(--color-text-2); line-height: 1.45; }
+.pb-glossary td.pb-gl-k { width: 120px; font-family: var(--font-display); font-size: 10.5px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-1); white-space: nowrap; }
+.pb-glossary .pb-gl-scale { color: var(--color-text-3); }
+/* Rationale list (collapsed drawer): the choice in ink-1, the reason in ink-2. */
+.pb-rationale { list-style: none; padding: 0; margin: 0; }
+.pb-rationale li { padding: 9px 0; border-bottom: 1px solid var(--color-divider);
+  font-size: 13px; line-height: 1.5; color: var(--color-text-1); }
+.pb-rationale li:last-child { border-bottom: 0; }
+.pb-rationale .pb-why { color: var(--color-text-2); font-size: 12.5px; }
 .pb-scorecard tr.pb-role-bench td { color: var(--color-text-2); border-top: 1px solid var(--color-divider); }
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }

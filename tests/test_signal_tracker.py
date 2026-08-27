@@ -302,14 +302,14 @@ def test_trust_meter_does_not_borrow_watch_amber():
     assert "#f59e0b" not in _readiness_html(_CI_SINGLE)
 
 
-def test_method_bolds_only_the_three_load_bearing_phrases():
-    """Bolding is by what breaks comprehension if missed, not by keyword
-    importance: what counts as right for each family, and that this is not the
-    alpha view."""
+def test_method_is_one_line_with_the_meaning_on_hover():
+    """Lean band (2026-08-27): the sentence is one line; what counts as right
+    for each family and the not-the-alpha-view caveat ride on the title."""
     html = _method_html()
-    assert html.count("<b>") == 3
-    assert "<b>rise</b>" in html and "<b>drop</b>" in html
-    assert "<b>raw price direction</b>" in html
+    assert html.count("<b>") == 0
+    assert 'title="' in html and "pb-help" in html
+    assert "rise as right" in html and "drop as right" in html
+    assert "Raw price direction" in html
 
 
 def test_method_points_at_this_page_not_the_briefing():

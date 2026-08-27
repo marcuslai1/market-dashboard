@@ -297,6 +297,49 @@ _SCORECARD_ROLE_CLASS = {"Default": "pb-role-default",
                          "Challenger": "pb-role-challenger"}
 
 
+# What each scorecard column means, in one plain sentence, plus the scale a
+# reader can judge the number against. Rendered as a hover on the column
+# header and as the collapsed glossary under the table (phones can't hover).
+_METRIC_HELP = {
+    "NAV": ("How much the $100,000 pot has grown.",
+            "Read it against SPY on the same window: above SPY = beat the market."),
+    "Sharpe": ("Return per unit of wobble — how smooth the growth was.",
+               "Under 1 weak · 1–2 good · 2–3 strong · over 3 exceptional (short windows flatter it)."),
+    "Max DD": ("The worst peak-to-trough fall on the way — what you would have had to sit through.",
+               "Under −5% mild · −5 to −10% normal for a stock book · beyond −15% painful."),
+    "Win": ("Share of closed trades that made money.",
+            "50–65% is typical for a trend book; on its own it says little — read it with expectancy."),
+    "Expectancy": ("Average profit per $1 risked at the stop, over all closed trades (R-multiples).",
+                   "Below 0 losing · +0.3R decent · +0.5R strong · +0.8R excellent."),
+    "Exit-rule R": ("The same, only for trades the sell rule closed.",
+                    "Should sit well above +1R — the rule is meant to bank the winners."),
+    "Stop R": ("The same, only for trades the stop closed.",
+               "−1R means the stop did exactly its job; worse than −1R = gap-downs through it."),
+    "Stop drag": ("What all the stop-outs cost together, as % of the pot.",
+                  "Smaller is better · −2 to −3% is normal here · the old book ran −6%."),
+    "Cash idle": ("Average share of the pot sitting in cash, not in stocks.",
+                  "High = signals are scarce; the cash-sleeve lane parks it in SPY instead."),
+    "Fees": ("Commissions, taxes and FX on closed trades, as % of the pot.",
+             "Under 0.3% over four months is immaterial; slippage sits in the fill prices."),
+}
+
+
+def _th(name: str) -> str:
+    what, scale = _METRIC_HELP.get(name, ("", ""))
+    tip = _escape_dollars(f"{what} {scale}").replace('"', "&quot;")
+    return (f'<th title="{tip}">{_escape_dollars(name)}'
+            f'<span class="pb-help" aria-hidden="true">?</span></th>')
+
+
+def metric_glossary_html() -> str:
+    rows = "".join(
+        f'<tr><td class="pb-gl-k">{_escape_dollars(k)}</td>'
+        f'<td>{_escape_dollars(what)}<br><span class="pb-gl-scale">{_escape_dollars(scale)}</span></td></tr>'
+        for k, (what, scale) in _METRIC_HELP.items()
+    )
+    return f'<table class="pb-glossary">{rows}</table>'
+
+
 def _fmt_pct(v, plus=True, d=1):
     if v is None or (isinstance(v, float) and pd.isna(v)):
         return "—"
@@ -322,9 +365,9 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
         return ""
     meta = {pid: (role, desc) for pid, role, desc in _SCORECARD_LANES}
     spy = next((r.get("spy") for r in rows if r.get("spy")), None)
-    head = ("<tr><th>Lane</th><th>NAV</th><th>Sharpe</th><th>Max DD</th>"
-            "<th>Win</th><th>Expectancy</th><th>Exit-rule R</th><th>Stop R</th>"
-            "<th>Stop drag</th><th>Cash idle</th><th>Fees</th></tr>")
+    head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
+        "NAV", "Sharpe", "Max DD", "Win", "Expectancy", "Exit-rule R",
+        "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
     body = ""
     for r in rows:
         role, desc = meta[r["policy_id"]]
@@ -356,125 +399,56 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
             "<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>"
         )
     return (
-        '<p class="pb-lane-eyebrow">Strategy scorecard — how the book is judged</p>'
+        '<p class="pb-lane-eyebrow">Strategy scorecard '
+        '<span class="pb-eyebrow-hint">hover a column for what it means</span></p>'
         f'<div class="tk-scroll"><table class="pb-scorecard">{head}{body}</table></div>'
-        '<p class="pb-chartnote">Sharpe: daily returns, rf 0, annualised. '
-        "Expectancy: mean R-multiple over closed trades — (exit − avg cost) ÷ "
-        "(avg cost − stop at entry); +1R = made what the stop risked. "
-        "Exit-rule R / Stop R: the same, split by what triggered the sale. "
-        "Stop drag: net result of every stop-out as % of the &#36;100,000 pot. "
-        "Cash idle: average share of the pot not in positions. Fees: explicit "
-        "commissions/taxes/FX on closed trades (slippage sits in the fill "
-        "prices). Same window for every lane.</p>"
     )
 
 
-# ── How the default strategy works (2026-08-27 g) ─────────────────────────
-# A sequence, so the numbering carries information: this is the order a
-# trade lives through. Copy is the rule, not a rating.
-_RULE_STEPS = [
-    ("Buy", "A BUY or ACCUMULATE signal buys at that day&#39;s close. "
-            "15% of the pot; ACCUMULATE builds it 7.5% a day."),
-    ("Wide stop", "The stop sits under the nearest real support, not at the "
-                  "50-day line — that one was hit by normal noise."),
-    ("Sell on the rule", "Sold when the stock runs too far above its 50-day "
-                         "trend, or the report says the thesis broke."),
-    ("Wait in cash", "The money sits in cash until the next signal."),
+# ── Why the default strategy is built this way (2026-08-27) ───────────────
+# Collapsed by default. Each line: what is used · why · the number behind it.
+# Numbers are the 2026-08-27 read (pipeline spec 2026-08-27-paper-stop-exit-
+# cross-design + addenda); refresh them when the pre-registered read lands.
+_RATIONALE = [
+    ("Entries — the report's own BUY / ACCUMULATE signals, bought at that day's close, untouched.",
+     "Entry quality was never the problem: ACCUMULATE names beat SPY by +2.3 pts over the "
+     "next 10 sessions, and the AVOID / CAUTION calls are the best-calibrated thing in the "
+     "system (AVOID names −9.7 pts vs SPY at 30 sessions)."),
+    ("Stop at the nearest structural support, not at the 50-day line.",
+     "The 50-day stop sat a median 2.3% under entry, fired within 20 sessions on half of all "
+     "fills, lost 4 times in 5, and 3 in 4 of the names it sold were higher ten sessions later. "
+     "It cost 4–6.5% of the pot in every book that used it. The wider stop fires half as often "
+     "and the names it sells keep falling (−8 pts vs SPY afterwards)."),
+    ("Sell when a name stretches too far above its 50-day trend, or when the report breaks the thesis.",
+     "The only two exits whose sales were later vindicated: extension exits made +12% of the "
+     "pot with the names −15 pts vs SPY afterwards; thesis exits won every time. RSI and "
+     "valuation triggers lost money, and the 'any' trigger that blends them in did worse than "
+     "either good one alone."),
+    ("15% per name, built 7.5% a day on ACCUMULATE.",
+     "This rulebook's drawdown barely moves with size (−5.2% at 10/5 → −6.7% at 15/7.5) "
+     "because the thesis exit leaves early; Sharpe keeps rising to 15/7.5. 20/10 would mean "
+     "five names in a book where 17 of 33 share one factor."),
+    ("Cash waits for the next signal.",
+     "Signals are scarce, so ~42% of the pot idles on average — the book's main drag. The "
+     "'cash sleeve' lane parks idle cash in SPY (+5 pts over the window at no extra drawdown); "
+     "a T-bill version is the safe variant. Neither is the default yet."),
+    ("Fees are modelled from IBKR's live schedule.",
+     "Venue commissions, the Korean sell tax, FX conversion and half-spread slippage: about "
+     "0.6% of the pot over four months, two-thirds of it on the nine foreign names. Immaterial."),
+    ("What is not proven yet.",
+     "Two regime segments, ~20 closed trades a lane, no bear market. The comparison against "
+     "the old stop was pre-registered before the numbers were read and lands ~8 Sep 2026; "
+     "until then this is a paper book, not a verdict."),
 ]
 
 
-def strategy_rules_html() -> str:
-    cells = "".join(
-        f'<div class="pb-rule"><div class="pb-rule-n">{i}</div>'
-        f'<div class="pb-rule-h">{h}</div><div class="pb-rule-b">{b}</div></div>'
-        for i, (h, b) in enumerate(_RULE_STEPS, 1)
+def strategy_rationale_html() -> str:
+    items = "".join(
+        f'<li><b>{_escape_dollars(what)}</b><br>'
+        f'<span class="pb-why">{_escape_dollars(why)}</span></li>'
+        for what, why in _RATIONALE
     )
-    return ('<p class="pb-lane-eyebrow">How the default strategy works</p>'
-            f'<div class="hair-grid pb-rules" '
-            f'style="grid-template-columns:repeat({len(_RULE_STEPS)},1fr);">'
-            f"{cells}</div>")
-
-
-def pick_example_trade(trades_df: pd.DataFrame | None, pid: str) -> dict | None:
-    """The default lane's best-illustrating closed trade: the largest-gain
-    exit-rule sale held ≥ 10 sessions (so entry, stop and exit all show on
-    one chart). Deterministic — the same row until a better one closes."""
-    if trades_df is None or trades_df.empty or "policy_id" not in trades_df.columns:
-        return None
-    rows = trades_df[(trades_df["policy_id"] == pid)
-                     & (trades_df["exit_reason"] == "caution_exit")].copy()
-    if rows.empty or "entry_stop" not in rows.columns:
-        return None
-    rows["_in"] = pd.to_datetime(rows["entry_date"], errors="coerce")
-    rows["_out"] = pd.to_datetime(rows["exit_date"], errors="coerce")
-    rows = rows[(rows["_out"] - rows["_in"]).dt.days >= 14]
-    rows = rows[pd.to_numeric(rows["entry_stop"], errors="coerce").notna()]
-    if rows.empty:
-        return None
-    best = rows.sort_values("pnl_pct", ascending=False).iloc[0]
-    return best.to_dict()
-
-
-def example_trade_frame(prices_df: pd.DataFrame | None, trade: dict,
-                        pad_days: int = 12) -> pd.DataFrame:
-    """Price + 50-day path for the example trade's ticker, padded either
-    side of the hold so the entry and exit sit inside the plot."""
-    if prices_df is None or prices_df.empty or not trade:
-        return pd.DataFrame()
-    tk = str(trade["ticker"]).replace("_", ".")
-    df = prices_df[prices_df["ticker"] == tk].copy()
-    if df.empty:
-        return pd.DataFrame()
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    lo = pd.to_datetime(trade["entry_date"]) - pd.Timedelta(days=pad_days)
-    hi = pd.to_datetime(trade["exit_date"]) + pd.Timedelta(days=pad_days)
-    df = df[(df["date"] >= lo) & (df["date"] <= hi)].sort_values("date")
-    keep = [c for c in ("date", "last_price", "sma_50") if c in df.columns]
-    return df[keep].reset_index(drop=True)
-
-
-def _example_trade_fig(frame: pd.DataFrame, trade: dict):
-    fig = go.Figure()
-    if "sma_50" in frame.columns:
-        fig.add_scatter(x=frame["date"], y=frame["sma_50"], mode="lines",
-                        name="50-day", line=dict(color=CHART_LINE, width=1))
-    fig.add_scatter(x=frame["date"], y=frame["last_price"], mode="lines",
-                    name="Price", line=dict(color=CHART_ACCENT, width=2))
-    stop = float(trade["entry_stop"])
-    fig.add_hline(y=stop, line=dict(color=CHART_MUTED, width=1, dash="dot"))
-    fig.add_annotation(x=frame["date"].iloc[0], y=stop, xanchor="left",
-                       yanchor="bottom", text="stop · structural support",
-                       showarrow=False, font=dict(size=9, color=CHART_LINE))
-    d_in = pd.to_datetime(trade["entry_date"]); d_out = pd.to_datetime(trade["exit_date"])
-    fig.add_scatter(x=[d_in], y=[float(trade["avg_entry_price"])], mode="markers+text",
-                    name="Entry", text=["entry"], textposition="bottom center",
-                    textfont=dict(size=9, color=CHART_LINE),
-                    marker=dict(size=9, color=CHART_ACCENT, line=dict(width=1.5, color=CHART_MUTED)))
-    fig.add_scatter(x=[d_out], y=[float(trade["exit_price"])], mode="markers+text",
-                    name="Exit", text=["sold on the rule"], textposition="top center",
-                    textfont=dict(size=9, color=CHART_LINE),
-                    marker=dict(size=9, color=CHART_ACCENT_SOFT, symbol="diamond",
-                                line=dict(width=1.5, color=CHART_MUTED)))
-    fig.update_layout(height=220, margin=dict(l=0, r=0, t=6, b=0), showlegend=False)
-    fig.update_xaxes(showline=False, zeroline=False)
-    fig.update_yaxes(showline=False, zeroline=False, title=None)
-    return style_fig(fig)
-
-
-def example_trade_caption_html(trade: dict) -> str:
-    tk = display_ticker(str(trade["ticker"]).replace("_", "."))
-    d_in = _human_date(trade["entry_date"]); d_out = _human_date(trade["exit_date"])
-    cost = float(trade["avg_entry_price"]); stop = float(trade["entry_stop"])
-    exit_px = float(trade["exit_price"]); pnl = float(trade["pnl_pct"])
-    risk = cost - stop
-    r = (exit_px - cost) / risk if risk > 0 else None
-    r_txt = f" — {r:+.1f}R against the {(-risk / cost * 100):.1f}% stop" if r is not None else ""
-    return (f'<p class="pb-chartnote">One real trade from the default lane: '
-            f"<b>{_escape_dollars(tk)}</b> bought {d_in} at {cost:,.2f}, stop parked "
-            f"at {stop:,.2f}, sold on the exit rule {d_out} at {exit_px:,.2f} "
-            f"({pnl:+.1f}%){_escape_dollars(r_txt)}. Chosen as the largest-gain "
-            "exit-rule sale held two weeks or more, so entry, stop and exit all "
-            "fit one chart — not the average trade.</p>")
+    return f'<ul class="pb-rationale">{items}</ul>'
 
 
 def _stats_html(block: dict) -> str:
@@ -503,7 +477,9 @@ def _stats_html(block: dict) -> str:
             f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
-_BAND_BANNER = (
+_BAND_BANNER = ("Paper only · two regime segments · ~20 trades a lane · "
+                "hypothesis-grade · next read ~8 Sep 2026")
+_BAND_BANNER_FULL = (
     "Paper measurement only — one trending segment and one choppy one since "
     "22 Jul, ~20 closed trades per lane, hypothesis-grade. The default was "
     "chosen on trade quality (expectancy, exit-rule R, capture) with the "
@@ -513,10 +489,12 @@ _BAND_BANNER = (
 
 
 def _banner_html(block: dict) -> str:
-    """The band's caveat. Since 2026-08-27 the dashboard owns this copy: the
-    exported block's banner describes the legacy control's single-regime
-    window and no longer matches what the band shows."""
-    return f'<p class="pb-banner">{_escape_dollars(_BAND_BANNER)}</p>'
+    """The band's caveat, one line; the full version on hover. Since
+    2026-08-27 the dashboard owns this copy (the exported block's banner
+    describes the legacy control's window)."""
+    tip = _escape_dollars(_BAND_BANNER_FULL).replace('"', "&quot;")
+    return (f'<p class="pb-banner" title="{tip}">{_escape_dollars(_BAND_BANNER)}'
+            '<span class="pb-help" aria-hidden="true">?</span></p>')
 
 
 # Policy_id → compact public label (the lanes the Telegram glance abbreviates
@@ -1347,6 +1325,26 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
             "not the default book.</p>")
 
 
+def chart_notes_compact(rebased: pd.DataFrame, advisory: pd.DataFrame | None,
+                        marks: list[tuple]) -> str:
+    """One line under the chart; the detail rides on hover."""
+    bits = ['<b>Solid</b> default']
+    if advisory is not None and not advisory.empty and len(advisory.columns) > 1:
+        bits.append("<b>dashed</b> challenger")
+    if rebased is not None and "SOXX" in getattr(rebased, "columns", []):
+        valid = rebased["SOXX"].dropna()
+        if not valid.empty:
+            ret = (valid.iloc[-1] / NOTIONAL_START - 1.0) * 100.0
+            bits.append(f'SOXX <span class="val">{ret:+.1f}%</span> off-chart (in the table)')
+    tip = ""
+    if marks:
+        tip = "Dotted marks — " + " · ".join(
+            f"{d.day} {d:%b}: {key}" for d, _label, key in marks)
+        bits.append(f'<span title="{_escape_dollars(tip).replace(chr(34), "&quot;")}">'
+                    'dotted marks = system changes<span class="pb-help" aria-hidden="true">?</span></span>')
+    return f'<p class="pb-chartnote">{" · ".join(bits)}</p>'
+
+
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
     """One-line pointer to the off-chart SOXX series, or "" when absent."""
     if rebased is None or rebased.empty or "SOXX" not in rebased.columns:
@@ -1403,18 +1401,12 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     )
     if block:
         st.markdown(_verdict_html(block), unsafe_allow_html=True)
-    # How the strategy works: the rule strip always; the real example only
-    # when the price history + a qualifying closed trade are both present.
-    head_pid = block.get("policy_id") if block else None
-    if head_pid == _HEADLINE_POLICY or (nav_df is not None and not nav_df.empty):
-        st.markdown(strategy_rules_html(), unsafe_allow_html=True)
-        ex = pick_example_trade(trades_df, _HEADLINE_POLICY)
-        ex_frame = example_trade_frame(prices_df, ex) if ex else pd.DataFrame()
-        if ex and not ex_frame.empty:
-            with st.container(border=True):
-                st.plotly_chart(_example_trade_fig(ex_frame, ex),
-                                use_container_width=True, config=PLOTLY_CONFIG)
-            st.markdown(example_trade_caption_html(ex), unsafe_allow_html=True)
+    # The reasoning behind the default, collapsed: what is used, why, and
+    # the number behind each choice. The band itself stays numbers-first.
+    if block or (nav_df is not None and not nav_df.empty):
+        with st.expander("Why the default strategy is built this way",
+                         expanded=False):
+            st.markdown(strategy_rationale_html(), unsafe_allow_html=True)
     chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit
@@ -1425,10 +1417,9 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                         unsafe_allow_html=True)
             st.plotly_chart(_nav_fig(rebased, advisory),
                             use_container_width=True, config=PLOTLY_CONFIG)
-        note = (_soxx_note_html(rebased) + _advisory_note_html(advisory)
-                + _milestone_note_html(milestone_marks(rebased)))
-        if note:
-            st.markdown(note, unsafe_allow_html=True)
+        st.markdown(chart_notes_compact(rebased, advisory,
+                                        milestone_marks(rebased)),
+                    unsafe_allow_html=True)
         # Held back rather than rendered here: every drill-down on this band is
         # collected below the stop-rule lanes so the reader finishes the
         # section's argument and then meets one block of "go deeper" doors.
@@ -1440,6 +1431,9 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     sc = scorecard_html(nav_df, trades_df, positions_df)
     if sc or block:
         st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
+    if sc:
+        with st.expander("What these numbers mean", expanded=False):
+            st.markdown(metric_glossary_html(), unsafe_allow_html=True)
     if chart_table is not None:
         chart_data_table(chart_table)
     if pos_v2_rows:
