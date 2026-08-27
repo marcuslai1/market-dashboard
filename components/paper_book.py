@@ -592,6 +592,7 @@ _EXIT_LABELS = {
     "caution_exit": "CAUTION exit",
     "delist_exit": "delisted",
     "margin_call": "forced sale (margin)",
+    "rotation_exit": "rotated out for a new signal",
 }
 
 
