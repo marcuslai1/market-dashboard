@@ -211,7 +211,7 @@ def test_variants_html_headline_alone_renders_nothing():
     assert _variants_html(block) == ""
 
 
-# ── UX review 2026-07-07: the chart's job is book-vs-SPY; SOXX off-chart ──
+# ── SOXX on the chart since 2026-08-27 (was off-chart from the 07-07 UX review) ──
 def _rebased(with_soxx=True):
     data = {"date": pd.to_datetime(["2026-04-19", "2026-04-20"]),
             "Paper book": [100_000.0, 103_500.0],
@@ -221,13 +221,16 @@ def _rebased(with_soxx=True):
     return pd.DataFrame(data)
 
 
-def test_nav_fig_plots_book_and_spy_only():
+def test_nav_fig_plots_book_spy_and_soxx():
+    """Failure: SOXX drops back off the chart, or a book without a SOXX column
+    fails to render."""
     from components.paper_book import _nav_fig
     names = [tr.name for tr in _nav_fig(_rebased()).data]
-    assert names == ["Paper book", "SPY"]
+    assert names == ["Paper book", "SPY", "SOXX"]
+    assert [tr.name for tr in _nav_fig(_rebased(with_soxx=False)).data] == ["Paper book", "SPY"]
 
 
-def test_soxx_note_names_offchart_return():
+def test_soxx_note_names_return():
     from components.paper_book import _soxx_note_html
     note = _soxx_note_html(_rebased())
     assert "SOXX" in note and "+60.0%" in note
@@ -276,7 +279,7 @@ def test_nav_fig_advisory_lanes_dashed_and_subordinate():
     from components.paper_book import _nav_fig, advisory_curves
     fig = _nav_fig(_rebased(), advisory_curves(_adv_nav_df()))
     by_name = {tr.name: tr for tr in fig.data}
-    assert set(by_name) == {"Paper book", "SPY", "Challenger · wide+ext 12/6"}
+    assert set(by_name) == {"Paper book", "SPY", "SOXX", "Challenger · wide+ext 12/6"}
     # challenger dashed and thinner than the default
     assert by_name["Challenger · wide+ext 12/6"].line.dash == "dash"
     assert by_name["Challenger · wide+ext 12/6"].line.width < by_name["Paper book"].line.width

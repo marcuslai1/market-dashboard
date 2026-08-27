@@ -380,6 +380,41 @@ def _raw_direction_note(acc_df: pd.DataFrame, sig: str, mode: str) -> str:
     return "Raw price direction, all history: " + " · ".join(bits) + "."
 
 
+def _alpha_tip_text(sig: str, alpha, raw: str) -> str:
+    """Per-tile popover: what 'pp α' is, what a good value looks like for THIS
+    signal (entries want it high; gates want it negative), then the demoted
+    raw-direction view (owner ask 2026-08-27)."""
+    is_gate = sig in _GATE_SIGNALS
+    if alpha is None:
+        head = "Not scored yet."
+    elif is_gate:
+        head = (f"{float(alpha):+.1f} pp α = names carrying {sig} went on to "
+                f"return {abs(float(alpha)):.1f} percentage points "
+                f"{'more' if float(alpha) >= 0 else 'less'} than their benchmark over "
+                "the next 10 sessions.")
+    else:
+        head = (f"{float(alpha):+.1f} pp α = names carrying {sig} returned "
+                f"{abs(float(alpha)):.1f} percentage points "
+                f"{'more' if float(alpha) >= 0 else 'less'} than their benchmark over "
+                "the next 10 sessions.")
+    if is_gate:
+        scale = ("For a gate, read it the other way round: NEGATIVE IS GOOD — "
+                 "it kept you out of names that then lagged. 0 = no better than "
+                 "picking at random · −2 pp useful · −5 pp strong · a positive "
+                 "number means the gate fenced off names that went on to beat the "
+                 "market.")
+    else:
+        scale = ("Scale: 0 = tracked the market · +2 pp decent · +5 pp strong · "
+                 "+10 pp exceptional. Beyond ±10 pp on a handful of calls is "
+                 "noise, not skill.")
+    parts = [head, scale,
+             "Benchmark = SOXX for semiconductor names, SPY otherwise, so a "
+             "rising market on its own does not move this number."]
+    if raw:
+        parts.append(raw)
+    return "  ".join(parts)
+
+
 def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> str:
     """Option C (owner call 2026-08-27): the tiles show the pipeline's own
     benchmark-relative alpha per signal — the number the Measurement Gate
@@ -421,9 +456,7 @@ def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> st
             gate = ('<div class="sc-gate">gate, not a forecast · negative α = '
                     "kept you out of a laggard</div>")
         raw = _raw_direction_note(acc_df, sig, mode)
-        tip = ""
-        if raw:
-            tip = help_tip(raw, f"Raw direction for {sig}")
+        tip = help_tip(_alpha_tip_text(sig, alpha, raw), f"What the {sig} tile means")
         cells += (
             f'<div class="calib-cell{" thin" if cell_thin else ""}">'
             f'<div class="clabel" style="color:{color};">'

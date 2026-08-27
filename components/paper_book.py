@@ -1120,12 +1120,12 @@ def _trades_today_html(trades: list) -> str:
     return f'<ul class="pb-trades">{items}</ul>'
 
 
-# The chart answers exactly one question — is the book beating SPY? — so only
-# those two series plot solid. SOXX's window return (±60%) set the y-range and
-# flattened the book-vs-SPY gap into two overlapping lines (UX 2026-07-07);
-# it stays in the rebased frame for the data-table view, with an off-chart
-# note (_soxx_note_html) naming its return.
-_CHART_SERIES = ("Paper book", "SPY")
+# Book, SPY and SOXX plot solid. SOXX was held off the chart from 2026-07-07
+# (its ±60% window return flattened the book-vs-SPY gap) and restored on
+# 2026-08-27 (owner call): the surfaced lanes now sit within a few points of
+# SOXX, and after the external review SOXX is the benchmark the book must
+# be read against — hiding it would flatter the SPY comparison.
+_CHART_SERIES = ("Paper book", "SPY", "SOXX")
 
 # Advisory ext-exit lanes charted as DASHED curves (user decision 2026-07-17,
 # entry-sizing research adoption addendum). This is a deliberate, narrow
@@ -1364,7 +1364,7 @@ def chart_notes_compact(rebased: pd.DataFrame, advisory: pd.DataFrame | None,
         valid = rebased["SOXX"].dropna()
         if not valid.empty:
             ret = (valid.iloc[-1] / NOTIONAL_START - 1.0) * 100.0
-            bits.append(f'SOXX <span class="val">{ret:+.1f}%</span> off-chart (in the table)')
+            bits.append(f'SOXX <span class="val">{ret:+.1f}%</span> — the factor most names load on')
     tip = ""
     if marks:
         tip = "Dotted marks — " + " · ".join(
@@ -1374,7 +1374,8 @@ def chart_notes_compact(rebased: pd.DataFrame, advisory: pd.DataFrame | None,
 
 
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
-    """One-line pointer to the off-chart SOXX series, or "" when absent."""
+    """One-line SOXX return note, or "" when absent (SOXX has plotted on the
+    chart since 2026-08-27; kept for callers that want the number alone)."""
     if rebased is None or rebased.empty or "SOXX" not in rebased.columns:
         return ""
     valid = rebased["SOXX"].dropna()
@@ -1384,8 +1385,7 @@ def _soxx_note_html(rebased: pd.DataFrame) -> str:
     # Brass on the figure: a measurement. The exclusion is disclosed rather than
     # silent — a +32% series would flatten the gap the chart exists to show.
     return (f'<p class="pb-chartnote">SOXX <span class="val">{ret:+.1f}%</span> '
-            f"over this window is left off the chart so the book-vs-SPY gap "
-            f"stays readable — full series in the data table.</p>")
+            f"over this window — the semiconductor index most names load on.</p>")
 
 
 def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,

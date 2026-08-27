@@ -405,8 +405,18 @@ def test_alpha_tiles_show_pipeline_alpha_with_plain_sign_and_gate_line():
     assert "+2.9" in html and "pp α" in html
     assert "kept you out of a laggard" in html
     assert '<div class="cval">75%' not in html   # the local 5d rate is not the tile
-    assert "Raw direction for CAUTION" in html     # ...it lives in the ? popover
+    assert "What the CAUTION tile means" in html   # ...it lives in the ? popover
     assert "fell 75% of 4 at 5 sessions" in html
+    assert "NEGATIVE IS GOOD" in html               # gate reading of the scale
+    assert "2.9 percentage points more" in html
+
+
+def test_entry_tile_tip_gives_the_scale_and_not_the_gate_reading():
+    ci = _ci(ACCUMULATE={"alpha_10d": 10.45, "n_alpha_10d": 15, "single_regime": False,
+                         "regimes_present": ["chop", "trend_up"]})
+    html = _scorecard_html(_acc_df("ACCUMULATE", [1.0] * 10), ci)
+    tile = html.split("What the ACCUMULATE tile means")[1].split("What the WATCH tile means")[0]
+    assert "+10 pp exceptional" in tile and "NEGATIVE IS GOOD" not in tile
 
 
 def test_alpha_tiles_flag_thin_and_single_regime():
