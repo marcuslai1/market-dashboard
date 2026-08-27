@@ -30,6 +30,7 @@ from lib.charts import (
     style_fig,
 )
 from lib.formatters import _escape_dollars, display_ticker
+from lib.paper_metrics import scorecard as _scorecard_rows
 
 # Exported column → display series name. NAV is the hero series; SPY/SOXX are
 # the benchmarks the upstream summary already compares against.
@@ -49,27 +50,42 @@ def _money(v: float) -> str:
 
 # The headline book. Stop-rule variants (v1_trail10 / v1_nostop10) share the
 # CSV since 2026-07-06 but are advisory lanes — never the default curve.
-_DEFAULT_POLICY = "v1_flat10"
+# The DEFAULT strategy the band headlines (owner decision 2026-08-27, pipeline
+# spec 2026-08-27-paper-stop-exit-cross-design addenda e/f): the wide
+# structural stop with the extension-or-thesis exit at 15%/7.5% sizing.
+# The pipeline's report block still names v1_flat10 (the frozen-stop control
+# the regime-turn playbook's falsification read is defined against, and the
+# Telegram glance's headline) — this band deliberately does NOT follow the
+# block's policy_id any more: the control is charted as the muted "legacy
+# control" line instead. Falls back to the block's policy, then the legacy
+# default, when the CSV predates the default lane.
+_HEADLINE_POLICY = "v1_wide_extthesis_100_b15"
+_CHALLENGER_POLICY = "v1_wide_ext_100_b12"
+_LEGACY_POLICY = "v1_flat10"
+_DEFAULT_POLICY = _LEGACY_POLICY          # legacy name kept for callers/tests
 
 
 def _policy_for(df: pd.DataFrame, block: dict) -> str | None:
     """The policy_id the band should render from *df*, or None.
 
-    Block-named policy first; without a block, the headline book
-    (``v1_flat10``) when the frame carries it, else the sole distinct
-    ``policy_id``. Multi-policy with neither → None: side-by-side policy
-    variants must never blend into one view.
+    An explicitly block-named policy always wins (per-lane callers pass
+    ``{"policy_id": pid}``); without one, the default strategy when the frame
+    carries it, else the legacy control, else the sole distinct
+    ``policy_id``. Multi-policy with none of those → None: side-by-side
+    policy variants must never blend into one view. ``headline_block``
+    resolves the band's own headline through this same rule.
     """
     pid = (block or {}).get("policy_id")
-    if pid is None:
-        ids = df["policy_id"].dropna().unique()
-        if _DEFAULT_POLICY in ids:
-            pid = _DEFAULT_POLICY
-        elif len(ids) == 1:
-            pid = ids[0]
-        else:
-            return None
-    return pid
+    if pid is not None:
+        return pid
+    ids = set(df["policy_id"].dropna().unique())
+    if _HEADLINE_POLICY in ids:
+        return _HEADLINE_POLICY
+    if _LEGACY_POLICY in ids:
+        return _LEGACY_POLICY
+    if len(ids) == 1:
+        return next(iter(ids))
+    return None
 
 
 def select_policy(nav_df: pd.DataFrame | None, block: dict) -> pd.DataFrame:
@@ -216,6 +232,30 @@ _MONEY_RE = re.compile(r"&#36;[\d,]+")
 _RET_RE = re.compile(r"\(([-+]\d+\.\d)%\)")
 
 
+def headline_block(nav_df: pd.DataFrame | None, block: dict) -> dict:
+    """The block the verdict line reads from: the DEFAULT lane's own numbers
+    computed from the CSV (nav_return_pct / spy_return_pct / inception),
+    not the pipeline block's (which describes the legacy control). Falls
+    back to the exported block when the CSV can't resolve the lane."""
+    pid = None
+    if nav_df is not None and not nav_df.empty and "policy_id" in nav_df.columns:
+        pid = _policy_for(nav_df, {})       # ignore the block's (legacy) policy_id
+    if pid is None:
+        return dict(block or {})
+    rows = _scorecard_rows(nav_df, None, None, [pid])
+    if not rows:
+        return dict(block or {})
+    r = rows[0]
+    spy = (r.get("spy") or {}).get("ret_pct")
+    return {
+        "policy_id": pid,
+        "nav_return_pct": r.get("ret_pct"),
+        "spy_return_pct": spy,
+        "inception": r.get("since") or (block or {}).get("inception"),
+        "as_of": r.get("as_of") or (block or {}).get("as_of"),
+    }
+
+
 def _verdict_html(block: dict) -> str:
     """Band lead line — a full sentence, the conclusion last and the only
     coloured words.
@@ -240,6 +280,95 @@ def _verdict_html(block: dict) -> str:
         style = f' style="color:{color};"' if color else ""
         tail_html = f'<span class="pb-clause"{style}> — {_escape_dollars(tail)}</span>'
     return f'<p class="pb-verdict">{head}{tail_html}</p>'
+
+
+# Strategy scorecard lanes (2026-08-27): role labels are the reader's
+# contract — which line is the default, which is the challenger, and which
+# is the old book kept only as the control. Order = display order.
+_SCORECARD_LANES = [
+    ("v1_wide_extthesis_100_b15", "Default", "wide stop · exit on extension or thesis · 15/7.5"),
+    ("v1_wide_ext_100_b12", "Challenger", "wide stop · exit on extension · 12/6"),
+    ("v1_wide_extthesis_100_b15_spy", "Default + cash sleeve", "idle cash held in SPY"),
+    ("v1_wide_extthesis_100_b15_fees", "Default with IBKR fees", "commissions, taxes, FX, slippage"),
+    ("v1_wide_extthesis_100", "wide+extthesis 10/5", "same rules, smaller sizing"),
+    ("v1_wide_ext_100", "wide+ext 10/5", "challenger rules, smaller sizing"),
+    ("v1_flat10", "Legacy control", "frozen 50-day stop · no exit rule · 10/5"),
+]
+_SCORECARD_ROLE_CLASS = {"Default": "pb-role-default",
+                         "Challenger": "pb-role-challenger",
+                         "Legacy control": "pb-role-legacy"}
+
+
+def _fmt_pct(v, plus=True, d=1):
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return "—"
+    return f"{v:+.{d}f}%" if plus else f"{v:.{d}f}%"
+
+
+def _fmt_r(v, n=None):
+    if v is None:
+        return "—"
+    s = f"{v:+.2f}R"
+    return f"{s} <small>n={n}</small>" if n else s
+
+
+def _fmt_num(v, d=2):
+    return "—" if v is None else f"{v:.{d}f}"
+
+
+def scorecard_html(nav_df, trades_df, positions_df) -> str:
+    """The metrics the book is judged on, one row per lane + SPY."""
+    rows = _scorecard_rows(nav_df, trades_df, positions_df,
+                           [pid for pid, _r, _d in _SCORECARD_LANES])
+    if not rows:
+        return ""
+    meta = {pid: (role, desc) for pid, role, desc in _SCORECARD_LANES}
+    spy = next((r.get("spy") for r in rows if r.get("spy")), None)
+    head = ("<tr><th>Lane</th><th>NAV</th><th>Sharpe</th><th>Max DD</th>"
+            "<th>Win</th><th>Expectancy</th><th>Exit-rule R</th><th>Stop R</th>"
+            "<th>Stop drag</th><th>Cash idle</th><th>Fees</th></tr>")
+    body = ""
+    for r in rows:
+        role, desc = meta[r["policy_id"]]
+        by = r.get("by_reason") or {}
+        ex, stp = by.get("exit_rule") or {}, by.get("stop") or {}
+        cls = _SCORECARD_ROLE_CLASS.get(role, "")
+        body += (
+            f'<tr class="{cls}"><td class="pb-sc-lane"><b>{_escape_dollars(role)}</b>'
+            f'<small>{_escape_dollars(desc)}</small></td>'
+            f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
+            f'<td>{_fmt_num(r.get("sharpe"))}</td>'
+            f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
+            f'<td>{_fmt_pct(r.get("win_rate_pct"), plus=False, d=0)}</td>'
+            f'<td>{_fmt_r(r.get("expectancy_r"), r.get("n_r"))}</td>'
+            f'<td>{_fmt_r(ex.get("mean_r"), ex.get("n"))}</td>'
+            f'<td>{_fmt_r(stp.get("mean_r"), stp.get("n"))}</td>'
+            f'<td>{_fmt_pct(r.get("stop_drag_pct"), d=2)}</td>'
+            f'<td>{_fmt_pct(r.get("avg_cash_pct"), plus=False, d=0)}</td>'
+            f'<td>{_fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—"}</td>'
+            "</tr>"
+        )
+    if spy:
+        body += (
+            '<tr class="pb-role-bench"><td class="pb-sc-lane"><b>SPY</b>'
+            "<small>benchmark · same window</small></td>"
+            f'<td>{_fmt_pct(spy.get("ret_pct"))}</td>'
+            f'<td>{_fmt_num(spy.get("sharpe"))}</td>'
+            f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
+            "<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>"
+        )
+    return (
+        '<p class="pb-lane-eyebrow">Strategy scorecard — how the book is judged</p>'
+        f'<div class="tk-scroll"><table class="pb-scorecard">{head}{body}</table></div>'
+        '<p class="pb-chartnote">Sharpe: daily returns, rf 0, annualised. '
+        "Expectancy: mean R-multiple over closed trades — (exit − avg cost) ÷ "
+        "(avg cost − stop at entry); +1R = made what the stop risked. "
+        "Exit-rule R / Stop R: the same, split by what triggered the sale. "
+        "Stop drag: net result of every stop-out as % of the &#36;100,000 pot. "
+        "Cash idle: average share of the pot not in positions. Fees: explicit "
+        "commissions/taxes/FX on closed trades (slippage sits in the fill "
+        "prices). Same window for every lane.</p>"
+    )
 
 
 def _stats_html(block: dict) -> str:
@@ -268,12 +397,20 @@ def _stats_html(block: dict) -> str:
             f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
+_BAND_BANNER = (
+    "Paper measurement only — one trending segment and one choppy one since "
+    "22 Jul, ~20 closed trades per lane, hypothesis-grade. The default was "
+    "chosen on trade quality (expectancy, exit-rule R, capture) with the "
+    "portfolio numbers read alongside; the pre-registered read of the "
+    "stop × exit lanes lands around 8 Sep 2026. Not a performance verdict."
+)
+
+
 def _banner_html(block: dict) -> str:
-    """The exported caveat, verbatim — honesty inherited, never invented."""
-    banner = (block.get("banner") or "").strip()
-    if not banner:
-        return ""
-    return f'<p class="pb-banner">{_escape_dollars(banner)}</p>'
+    """The band's caveat. Since 2026-08-27 the dashboard owns this copy: the
+    exported block's banner describes the legacy control's single-regime
+    window and no longer matches what the band shows."""
+    return f'<p class="pb-banner">{_escape_dollars(_BAND_BANNER)}</p>'
 
 
 # Policy_id → compact public label (the lanes the Telegram glance abbreviates
@@ -284,7 +421,10 @@ _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
                 # still in the surfaced variants array (it is the control
                 # for the pipeline's pre-registered stop x exit read) but no
                 # longer a charted lane since 2026-08-27
-                "v1_tc_ext_100": "ext-exit 10/5"}
+                "v1_tc_ext_100": "ext-exit 10/5",
+                "v1_wide_ext_100": "wide+ext 10/5",
+                "v1_wide_extthesis_100": "wide+extthesis 10/5",
+                "v1_wide_extthesis_100_b15": "default · wide+extthesis 15/7.5"}
 
 
 def _lane_label(policy_id: str) -> str:
@@ -683,17 +823,21 @@ def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
 _EXT_EXIT_LABELS = {**_EXIT_LABELS, "caution_exit": "sold on extension"}
 _LANE_EXIT_LABELS = {
     "v1_wide_ext_100": _EXT_EXIT_LABELS,
+    "v1_wide_ext_100_b12": _EXT_EXIT_LABELS,
     "v1_wide_extthesis_100": {**_EXIT_LABELS,
                               "caution_exit": "sold on extension / thesis"},
+    "v1_wide_extthesis_100_b15": {**_EXIT_LABELS,
+                                  "caution_exit": "sold on extension / thesis"},
 }
 
 _EXT_HISTORY_CAVEAT = (
-    '<p class="pb-banner">The same signals with a wider stop (the report&#39;s '
-    "structural support instead of the 50-day line) plus one sell rule — "
-    "exit when a stock stretches too far above its 50-day trend, or, in the "
-    "second lane, also when the thesis breaks (the dashed curves on the "
-    "chart). Each lane is its own &#36;100,000 pot. Hypothesis-grade, "
-    "one regime · not the headline book.</p>"
+    '<p class="pb-banner">The other two lines on the chart, trade by trade. '
+    "<b>Challenger</b>: the same wide stop as the default, exits on "
+    "extension only, 12%/6% sizing. <b>Legacy control</b>: the original "
+    "book — frozen 50-day stop, no exit rule — kept because the regime-turn "
+    "playbook&#39;s falsification read is defined against it, not because it "
+    "is a candidate. Each lane is its own &#36;100,000 pot. "
+    "Hypothesis-grade · not the default book.</p>"
 )
 
 
@@ -889,16 +1033,26 @@ _CHART_SERIES = ("Paper book", "SPY")
 # stay in the CSV but are no longer charted: the 30/15 lead read as cash
 # deployment, not a sizing edge, and the 10/5 lane is the control the
 # contenders are measured against in the pipeline's pre-registered read.
+# 2026-08-27 (f, owner decision): the headline curve is now the DEFAULT
+# strategy (v1_wide_extthesis_100_b15, see _HEADLINE_POLICY); the dashed
+# lanes are the CHALLENGER (wide+ext 12/6) and the LEGACY CONTROL (the
+# original frozen-stop book, demoted from headline — measured to be the
+# weakest lane, kept visible only as the playbook's control).
 _ADVISORY_CURVES = {
-    "v1_wide_ext_100": "wide+ext 10/5",
-    "v1_wide_extthesis_100": "wide+extthesis 10/5",
+    _CHALLENGER_POLICY: "Challenger · wide+ext 12/6",
+    _LEGACY_POLICY: "Legacy control · flat 10/5",
 }
+_ADVISORY_DASH = {"Challenger · wide+ext 12/6": "dash",
+                  "Legacy control · flat 10/5": "dot"}
+# Reader-facing name for the solid line (the series key stays "Paper book"
+# for every downstream table/test contract).
+_HEADLINE_LEGEND = "Default · wide+extthesis 15/7.5"
 # One neutral, one brass-tinted — variants of the subject and the benchmark, not
 # two more categories. Two arbitrary palette hues (the old sage / dusty mauve)
 # read as new series with meanings of their own. The tint is dimmed rather than
 # CHART_ACCENT itself: a replay must never be mistaken for the book.
-_ADVISORY_COLORS = {"wide+ext 10/5": CHART_ACCENT_SOFT,
-                    "wide+extthesis 10/5": CHART_MUTED}
+_ADVISORY_COLORS = {"Challenger · wide+ext 12/6": CHART_ACCENT_SOFT,
+                    "Legacy control · flat 10/5": CHART_MUTED}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
@@ -990,7 +1144,9 @@ def _legend_swatch(color: str, width: float, dash: bool) -> str:
     use identical encoding — the dashes say "hypothetical" before the caption is
     read. non-scaling-stroke keeps a hairline a hairline as the SVG stretches.
     """
-    dash_attr = ' stroke-dasharray="4 3"' if dash else ""
+    dash_attr = ("" if not dash else
+                 ' stroke-dasharray="1.5 2.5"' if dash == "dot" else
+                 ' stroke-dasharray="4 3"')
     return (
         '<svg class="pb-swatch" viewBox="0 0 18 6" width="18" height="6" '
         'aria-hidden="true"><line x1="0" y1="3" x2="18" y2="3" '
@@ -1009,11 +1165,12 @@ def _chart_head_html(rebased: pd.DataFrame,
     entries = []
     for name in [c for c in rebased.columns if c != "date" and c in _CHART_SERIES]:
         width = _W_SUBJECT if name == "Paper book" else _W_BENCH
-        entries.append((name, _SERIES_COLORS.get(name, CHART_LINE), width, False))
+        shown = _HEADLINE_LEGEND if name == "Paper book" else name
+        entries.append((shown, _SERIES_COLORS.get(name, CHART_LINE), width, False))
     if advisory is not None and not advisory.empty:
         for name in [c for c in advisory.columns if c != "date"]:
             entries.append((name, _ADVISORY_COLORS.get(name, CHART_LINE),
-                            _W_REPLAY, True))
+                            _W_REPLAY, _ADVISORY_DASH.get(name, "dash")))
     legend = "".join(
         f'<span class="pb-legend-item">{_legend_swatch(color, width, dash)}'
         f"{_escape_dollars(name)}</span>"
@@ -1047,7 +1204,8 @@ def _nav_fig(rebased: pd.DataFrame, advisory: pd.DataFrame | None = None):
             fig.add_scatter(
                 x=advisory["date"], y=advisory[name], mode="lines", name=name,
                 line=dict(color=_ADVISORY_COLORS.get(name, CHART_LINE),
-                          width=_W_REPLAY, dash="dash"),
+                          width=_W_REPLAY,
+                          dash=_ADVISORY_DASH.get(name, "dash")),
             )
     marks = milestone_marks(rebased)
     for d, label, _key in marks:
@@ -1082,10 +1240,11 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
     if not names:
         return ""
     # Terracotta on the limitation only — it marks a trust limit, never a rating.
-    return ('<p class="pb-chartnote">Dashed: wide-stop exit-rule replay lanes '
-            f'({", ".join(names)} — BUY%/add-on% of the book) · '
-            '<span class="lim">hypothesis-grade, one regime</span> · '
-            "not the headline book.</p>")
+    return ('<p class="pb-chartnote">Solid: the default strategy. Dashed: the '
+            'challenger. Dotted: the legacy control '
+            f'({", ".join(names)} — BUY%/add-on% of the pot) · '
+            '<span class="lim">hypothesis-grade, two regime segments</span> · '
+            "not the default book.</p>")
 
 
 def _soxx_note_html(rebased: pd.DataFrame) -> str:
@@ -1116,7 +1275,11 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     view and adds per-lane pot/cash lines; either absent → the earlier
     rendering, unchanged.
     """
-    block = (latest_report or {}).get("paper_portfolio") or {}
+    raw_block = (latest_report or {}).get("paper_portfolio") or {}
+    # The band headlines the DEFAULT lane from the CSV; the exported block
+    # (the legacy control's numbers) is only a fallback / as_of source.
+    block = headline_block(nav_df, raw_block) if raw_block or (
+        nav_df is not None and not nav_df.empty) else {}
     rebased = rebase_curves(select_policy(nav_df, block))
     advisory = advisory_curves(nav_df)
     factor = trade_dollars_factor(nav_df, block)
@@ -1138,8 +1301,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         masthead=True,
     )
     if block:
-        st.markdown(_verdict_html(block) + _stats_html(block),
-                    unsafe_allow_html=True)
+        st.markdown(_verdict_html(block), unsafe_allow_html=True)
     chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit
@@ -1162,9 +1324,9 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         chart_table = rebased
         if not advisory.empty:
             chart_table = rebased.merge(advisory, on="date", how="left")
-    if block:
-        st.markdown(_variants_html(block) + _banner_html(block),
-                    unsafe_allow_html=True)
+    sc = scorecard_html(nav_df, trades_df, positions_df)
+    if sc or block:
+        st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
     if chart_table is not None:
         chart_data_table(chart_table)
     if pos_v2_rows:
@@ -1174,7 +1336,9 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     else:
         positions_html = _positions_table_html(block.get("positions"), factor,
                                                as_of_year)
-    trades_html = _trades_today_html(block.get("trades_today"))
+    # trades_today belongs to the exported (legacy-control) block, not the
+    # default lane — never shown under the default's drawer.
+    trades_html = ""
     if positions_html or trades_html or history_html:
         with st.expander(_drawer_title(bool(history_html)), expanded=False):
             if trades_html:
@@ -1201,7 +1365,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                             unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
     if ext_lanes:
-        with st.expander("Wide-stop exit lanes — advisory trade history",
+        with st.expander("Challenger and legacy control — trade history",
                          expanded=False):
             st.markdown(_EXT_HISTORY_CAVEAT, unsafe_allow_html=True)
             any_pos = any_trades = False

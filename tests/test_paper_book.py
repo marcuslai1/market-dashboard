@@ -236,9 +236,9 @@ def test_soxx_note_names_offchart_return():
 
 # ── advisory ext-exit lanes (2026-07-17 sizing-research addendum) ──
 def _adv_nav_df():
-    frames = [_nav_df("v1_flat10")]
-    for pid, units in (("v1_wide_ext_100", [1_000_000, 1_010_000]),
-                       ("v1_wide_extthesis_100", [1_000_000, 1_040_000])):
+    frames = [_nav_df("v1_wide_extthesis_100_b15")]
+    for pid, units in (("v1_wide_ext_100_b12", [1_000_000, 1_010_000]),
+                       ("v1_flat10", [1_000_000, 1_040_000])):
         f = _nav_df(pid)
         f["nav_units"] = units
         frames.append(f)
@@ -248,25 +248,26 @@ def _adv_nav_df():
 def test_advisory_curves_rebased_per_lane():
     from components.paper_book import advisory_curves
     out = advisory_curves(_adv_nav_df())
-    assert list(out.columns) == ["date", "wide+ext 10/5", "wide+extthesis 10/5"]
-    assert out["wide+ext 10/5"].iloc[0] == 100_000.0
-    assert round(out["wide+ext 10/5"].iloc[1], 1) == 101_000.0
-    assert round(out["wide+extthesis 10/5"].iloc[1], 1) == 104_000.0
+    assert list(out.columns) == ["date", "Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
+    assert out["Challenger · wide+ext 12/6"].iloc[0] == 100_000.0
+    assert round(out["Challenger · wide+ext 12/6"].iloc[1], 1) == 101_000.0
+    assert round(out["Legacy control · flat 10/5"].iloc[1], 1) == 104_000.0
 
 
 def test_advisory_curves_skip_missing_lanes():
     from components.paper_book import advisory_curves
-    # only one contender in the CSV (a lane seeds on its first pipeline run)
-    df = pd.concat([_nav_df("v1_flat10"), _nav_df("v1_wide_ext_100")],
-                   ignore_index=True)
+    # only the challenger in the CSV (a lane seeds on its first pipeline run)
+    df = pd.concat([_nav_df("v1_wide_extthesis_100_b15"),
+                    _nav_df("v1_wide_ext_100_b12")], ignore_index=True)
     out = advisory_curves(df)
-    assert list(out.columns) == ["date", "wide+ext 10/5"]
-    # the retired frozen-stop ext-exit lanes are no longer charted
-    df = pd.concat([_nav_df("v1_flat10"), _nav_df("v1_tc_ext_100"),
-                    _nav_df("v1_tc_ext_100_b30")], ignore_index=True)
+    assert list(out.columns) == ["date", "Challenger · wide+ext 12/6"]
+    # the retired lanes (frozen-stop ext-exit, 10/5 contenders) are not charted
+    df = pd.concat([_nav_df("v1_wide_extthesis_100_b15"), _nav_df("v1_tc_ext_100"),
+                    _nav_df("v1_tc_ext_100_b30"), _nav_df("v1_wide_ext_100"),
+                    _nav_df("v1_wide_extthesis_100")], ignore_index=True)
     assert advisory_curves(df).empty
     # no advisory lanes at all → empty, band renders as before
-    assert advisory_curves(_nav_df("v1_flat10")).empty
+    assert advisory_curves(_nav_df("v1_trail10")).empty
     assert advisory_curves(None).empty
 
 
@@ -274,18 +275,20 @@ def test_nav_fig_advisory_lanes_dashed_and_subordinate():
     from components.paper_book import _nav_fig, advisory_curves
     fig = _nav_fig(_rebased(), advisory_curves(_adv_nav_df()))
     by_name = {tr.name: tr for tr in fig.data}
-    assert set(by_name) == {"Paper book", "SPY",
-                            "wide+ext 10/5", "wide+extthesis 10/5"}
-    for lane in ("wide+ext 10/5", "wide+extthesis 10/5"):
-        assert by_name[lane].line.dash == "dash"
+    assert set(by_name) == {"Paper book", "SPY", "Challenger · wide+ext 12/6", "Legacy control · flat 10/5"}
+    # challenger dashed, legacy control dotted — both thinner than the default
+    assert by_name["Challenger · wide+ext 12/6"].line.dash == "dash"
+    assert by_name["Legacy control · flat 10/5"].line.dash == "dot"
+    for lane in ("Challenger · wide+ext 12/6", "Legacy control · flat 10/5"):
         assert by_name[lane].line.width < by_name["Paper book"].line.width
 
 
 def test_advisory_note_names_lanes_and_caveat():
     from components.paper_book import _advisory_note_html, advisory_curves
     note = _advisory_note_html(advisory_curves(_adv_nav_df()))
-    assert "wide+ext 10/5" in note and "wide+extthesis 10/5" in note
-    assert "one regime" in note
+    assert "Challenger · wide+ext 12/6" in note and "Legacy control · flat 10/5" in note
+    assert "default" in note.lower() and "challenger" in note.lower()
+    assert "two regime segments" in note
     assert _advisory_note_html(pd.DataFrame()) == ""
 
 
@@ -412,8 +415,8 @@ def test_render_paper_book_block_only_renders_summary():
     joined = " ".join(m.value for m in at.markdown)
     assert "Paper book" in joined
     assert "trailing the benchmark" in joined
-    assert "Paper measurement only." in joined
-    assert "trail" in joined and "18 stop-outs" in joined   # advisory lanes line
+    assert "Paper measurement only" in joined       # the band's own caveat
+    # the stop-rule lane grid is gone (2026-08-27): the scorecard needs the CSVs
 
 
 # ── trade history (spec 2026-07-17-paper-trade-history) ──
@@ -657,9 +660,9 @@ from components.paper_book import _lane_heading_html, ext_exit_history
 
 def _ext_nav_df():
     frames = []
-    for pid, units in (("v1_flat10", [1_000_000, 1_004_500]),
-                       ("v1_wide_ext_100", [1_000_000, 1_010_000]),
-                       ("v1_wide_extthesis_100", [500_000, 520_000])):
+    for pid, units in (("v1_wide_extthesis_100_b15", [1_000_000, 1_004_500]),
+                       ("v1_wide_ext_100_b12", [1_000_000, 1_010_000]),
+                       ("v1_flat10", [500_000, 520_000])):
         f = _nav_df(pid)
         f["nav_units"] = units
         frames.append(f)
@@ -667,8 +670,8 @@ def _ext_nav_df():
 
 
 def _ext_trades_df():
-    frames = [_trades_df("v1_flat10"), _trades_df("v1_wide_ext_100"),
-              _trades_df("v1_wide_extthesis_100")]
+    frames = [_trades_df("v1_wide_extthesis_100_b15"),
+              _trades_df("v1_wide_ext_100_b12"), _trades_df("v1_flat10")]
     df = pd.concat(frames, ignore_index=True)
     df.loc[df.policy_id != "v1_flat10", "exit_reason"] = "caution_exit"
     return df
@@ -676,41 +679,40 @@ def _ext_trades_df():
 
 def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
     out = ext_exit_history(_ext_nav_df(), _ext_trades_df(), as_of_year=2026)
-    assert [label for label, _ in out] == ["wide+ext 10/5",
-                                           "wide+extthesis 10/5"]
+    assert [label for label, _ in out] == ["Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
     by = dict(out)
     for _label, rows in out:
         assert len(rows) == 3
         assert rows[0]["ticker"] == "000660.KS"       # newest exit first
-    # per-lane exit label: the hybrid's rule fires on extension OR thesis
-    assert all(r["why"] == "sold on extension" for r in by["wide+ext 10/5"])
-    assert all(r["why"] == "sold on extension / thesis"
-               for r in by["wide+extthesis 10/5"])
+    # per-lane exit label: the challenger sells on extension; the legacy
+    # control has no exit rule, its rows are stop-outs
+    assert all(r["why"] == "sold on extension" for r in by["Challenger · wide+ext 12/6"])
+    assert "sold on extension" not in {r["why"] for r in by["Legacy control · flat 10/5"]}
     # per-lane rebase: one lane seeds at 1_000_000 units, the other at
     # 500_000 — the same 24_100 pnl_units is twice the dollars in the
     # smaller pot
-    nvda_105 = next(r for r in by["wide+ext 10/5"] if r["ticker"] == "NVDA")
-    nvda_b30 = next(r for r in by["wide+extthesis 10/5"] if r["ticker"] == "NVDA")
+    nvda_105 = next(r for r in by["Challenger · wide+ext 12/6"] if r["ticker"] == "NVDA")
+    nvda_b30 = next(r for r in by["Legacy control · flat 10/5"] if r["ticker"] == "NVDA")
     assert nvda_105["dollars"] == 2_410.0
     assert nvda_b30["dollars"] == 4_820.0
 
 
 def test_ext_exit_history_absent_lanes_and_empty_input():
-    # only the headline book trades → no advisory history at all
-    assert ext_exit_history(_ext_nav_df(), _trades_df("v1_flat10")) == []
+    # only the default book trades → no advisory history at all
+    assert ext_exit_history(_ext_nav_df(), _trades_df("v1_wide_extthesis_100_b15")) == []
     assert ext_exit_history(_ext_nav_df(), pd.DataFrame()) == []
     assert ext_exit_history(_ext_nav_df(), None) == []
     # one lane present, the other missing → only the present one
-    df = pd.concat([_trades_df("v1_flat10"), _trades_df("v1_wide_ext_100")],
-                   ignore_index=True)
+    df = pd.concat([_trades_df("v1_wide_extthesis_100_b15"),
+                    _trades_df("v1_wide_ext_100_b12")], ignore_index=True)
     out = ext_exit_history(_ext_nav_df(), df)
-    assert [label for label, _ in out] == ["wide+ext 10/5"]
+    assert [label for label, _ in out] == ["Challenger · wide+ext 12/6"]
 
 
 def test_ext_exit_stop_label_keeps_headline_wording():
     # a stopped-out trade in an ext lane reads like the headline book's stops
     out = ext_exit_history(_ext_nav_df(), pd.concat(
-        [_trades_df("v1_wide_ext_100")], ignore_index=True))
+        [_trades_df("v1_wide_ext_100_b12")], ignore_index=True))
     (_label, rows), = out
     whys = {r["why"] for r in rows}
     assert "stop-out (auto-sold)" in whys              # stop rows unchanged
@@ -734,7 +736,7 @@ def test_render_paper_book_ext_drawer_renders_with_lane_trades():
 
         from components.paper_book import render_paper_book
         nav = pd.DataFrame({
-            "policy_id": ["v1_flat10", "v1_wide_ext_100"],
+            "policy_id": ["v1_wide_extthesis_100_b15", "v1_wide_ext_100_b12"],
             "date": ["2026-04-19", "2026-04-19"],
             "nav_units": [1_000_000, 1_000_000],
             "cash_units": [1_000_000, 1_000_000],
@@ -743,7 +745,7 @@ def test_render_paper_book_ext_drawer_renders_with_lane_trades():
             "soxx_close": [200.0, 200.0],
         })
         trades = pd.DataFrame({
-            "policy_id": ["v1_wide_ext_100"],
+            "policy_id": ["v1_wide_ext_100_b12"],
             "ticker": ["NVDA"],
             "entry_date": ["2026-04-22"],
             "avg_entry_price": [174.40],
@@ -761,8 +763,8 @@ def test_render_paper_book_ext_drawer_renders_with_lane_trades():
     assert not at.exception
     joined = " ".join(m.value for m in at.markdown)
     assert "sold on extension" in joined
-    assert "wide+ext 10/5" in joined
-    assert "not the headline book" in joined            # caveat present
+    assert "Challenger · wide+ext 12/6" in joined
+    assert "not the default book" in joined             # caveat present
 
 
 # ── realistic positions view (addendum 2: shares, cost basis, lane cash) ──
@@ -864,10 +866,10 @@ def test_lane_cash_html_from_nav_tail():
 def test_ext_lane_views_carry_positions_and_trades():
     nav = _ext_nav_df()
     views = ext_lane_views(nav, _ext_trades_df(),
-                           _positions_df("v1_wide_ext_100"), as_of_year=2026)
-    assert [v[0] for v in views] == ["wide+ext 10/5", "wide+extthesis 10/5"]
+                           _positions_df("v1_wide_ext_100_b12"), as_of_year=2026)
+    assert [v[0] for v in views] == ["Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
     _label, pid, p_rows, t_rows = views[0]
-    assert pid == "v1_wide_ext_100"
+    assert pid == "v1_wide_ext_100_b12"
     assert len(p_rows) == 2 and len(t_rows) == 3
     _, _, p_rows_b, t_rows_b = views[1]
     assert p_rows_b == [] and len(t_rows_b) == 3   # no hybrid positions given
@@ -970,7 +972,7 @@ def test_chart_head_carries_the_axis_eyebrow_and_a_legend_entry_per_series():
     html = _chart_head_html(_REBASED, None)
     assert "pb-chart-head" in html
     assert html.count("<svg") == 2
-    assert "Paper book" in html and "SPY" in html
+    assert "Default" in html and "SPY" in html   # solid line named as the default
     assert "value of" in html.lower()          # the axis description
     assert html.count('class="corner') == 4    # blueprint registration marks
     assert "$" not in html                     # escaped for the markdown parser
