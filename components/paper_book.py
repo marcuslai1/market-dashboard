@@ -412,15 +412,15 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
 # Numbers are the 2026-08-27 read (pipeline spec 2026-08-27-paper-stop-exit-
 # cross-design + addenda); refresh them when the pre-registered read lands.
 _RATIONALE = [
-    ("Entries — the report's own BUY / ACCUMULATE signals, bought at that day's close, untouched.",
+    ("Entries — the report's own BUY / ACCUMULATE signals, bought at that day's close; a fill that already sits under its own stop is refused.",
      "Entry quality was never the problem: ACCUMULATE names beat SPY by +2.3 pts over the "
      "next 10 sessions, and the AVOID / CAUTION calls are the best-calibrated thing in the "
      "system (AVOID names −9.7 pts vs SPY at 30 sessions)."),
     ("Stop at the nearest structural support, not at the 50-day line.",
      "The 50-day stop sat a median 2.3% under entry, fired within 20 sessions on half of all "
-     "fills, lost 4 times in 5, and 3 in 4 of the names it sold were higher ten sessions later. "
-     "It cost 4–6.5% of the pot in every book that used it. The wider stop fires half as often "
-     "and the names it sells keep falling (−8 pts vs SPY afterwards)."),
+     "fills, never once closed a winner (0 of 16), and 3 in 4 of the names it sold were higher "
+     "ten sessions later. It cost about 6% of the pot in the book that used it. The wider stop "
+     "fires a quarter as often and the names it sells keep falling (−8 pts vs SPY afterwards)."),
     ("Sell when a name stretches too far above its 50-day trend, or when the report breaks the thesis.",
      "The only two exits whose sales were later vindicated: extension exits made +12% of the "
      "pot with the names −15 pts vs SPY afterwards; thesis exits won every time. RSI and "
