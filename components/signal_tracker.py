@@ -19,6 +19,7 @@ from lib.data_loader import (
     load_paper_nav,
     load_paper_positions,
     load_paper_trades,
+    load_sqlite_prices,
 )
 from lib.formatters import (
     _escape_attr,
@@ -759,7 +760,7 @@ def render_signal_tracker_page(
     # pipeline's paper_portfolio block / paper_nav.csv export first lands.
     _pnav = load_paper_nav()
     render_paper_book(latest_report, _pnav, load_paper_trades(),
-                      load_paper_positions())
+                      load_paper_positions(), load_sqlite_prices())
     # ── 1d. Caution-trim experiment — 25 output-only variant books (MarketReport
     # spec 2026-07-09). Collapsed + banner-capped: single-regime hypothesis-grade,
     # not a verdict. Silent until the trim books land in paper_nav.csv.

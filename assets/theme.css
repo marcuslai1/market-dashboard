@@ -2802,7 +2802,17 @@ details.led-details[open] > summary {
 .pb-scorecard tr.pb-role-default td { background: color-mix(in srgb, var(--brass) 9%, transparent); }
 .pb-scorecard tr.pb-role-default td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--brass); }
 .pb-scorecard tr.pb-role-challenger td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--accent); }
-.pb-scorecard tr.pb-role-legacy td { color: var(--color-text-3); }
+/* Rule strip: a numbered sequence (the order a trade lives through). */
+.pb-rules { border-top: 0; margin-bottom: 14px; }
+.pb-rule { padding: 12px 14px 14px; }
+.pb-rule-n { font-family: var(--font-display); font-size: 20px; font-weight: 600;
+  color: var(--brass); line-height: 1; font-variant-numeric: tabular-nums; }
+.pb-rule-h { font-family: var(--font-display); font-size: 10.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-text-1); margin-top: 6px; }
+.pb-rule-b { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2); margin-top: 4px; }
+@media (max-width: 900px) {
+  .pb-rules { grid-template-columns: repeat(2, 1fr) !important; }
+}
 .pb-scorecard tr.pb-role-bench td { color: var(--color-text-2); border-top: 1px solid var(--color-divider); }
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }

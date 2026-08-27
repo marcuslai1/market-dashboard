@@ -238,7 +238,7 @@ def test_soxx_note_names_offchart_return():
 def _adv_nav_df():
     frames = [_nav_df("v1_wide_extthesis_100_b15")]
     for pid, units in (("v1_wide_ext_100_b12", [1_000_000, 1_010_000]),
-                       ("v1_flat10", [1_000_000, 1_040_000])):
+                       ("v1_flat10", [1_000_000, 1_040_000])):   # flat10 no longer charted
         f = _nav_df(pid)
         f["nav_units"] = units
         frames.append(f)
@@ -248,10 +248,9 @@ def _adv_nav_df():
 def test_advisory_curves_rebased_per_lane():
     from components.paper_book import advisory_curves
     out = advisory_curves(_adv_nav_df())
-    assert list(out.columns) == ["date", "Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
+    assert list(out.columns) == ["date", "Challenger · wide+ext 12/6"]
     assert out["Challenger · wide+ext 12/6"].iloc[0] == 100_000.0
     assert round(out["Challenger · wide+ext 12/6"].iloc[1], 1) == 101_000.0
-    assert round(out["Legacy control · flat 10/5"].iloc[1], 1) == 104_000.0
 
 
 def test_advisory_curves_skip_missing_lanes():
@@ -261,10 +260,12 @@ def test_advisory_curves_skip_missing_lanes():
                     _nav_df("v1_wide_ext_100_b12")], ignore_index=True)
     out = advisory_curves(df)
     assert list(out.columns) == ["date", "Challenger · wide+ext 12/6"]
-    # the retired lanes (frozen-stop ext-exit, 10/5 contenders) are not charted
+    # the retired lanes (frozen-stop ext-exit, 10/5 contenders, the old
+    # v1_flat10 control) are not charted
     df = pd.concat([_nav_df("v1_wide_extthesis_100_b15"), _nav_df("v1_tc_ext_100"),
                     _nav_df("v1_tc_ext_100_b30"), _nav_df("v1_wide_ext_100"),
-                    _nav_df("v1_wide_extthesis_100")], ignore_index=True)
+                    _nav_df("v1_wide_extthesis_100"), _nav_df("v1_flat10")],
+                   ignore_index=True)
     assert advisory_curves(df).empty
     # no advisory lanes at all → empty, band renders as before
     assert advisory_curves(_nav_df("v1_trail10")).empty
@@ -275,18 +276,16 @@ def test_nav_fig_advisory_lanes_dashed_and_subordinate():
     from components.paper_book import _nav_fig, advisory_curves
     fig = _nav_fig(_rebased(), advisory_curves(_adv_nav_df()))
     by_name = {tr.name: tr for tr in fig.data}
-    assert set(by_name) == {"Paper book", "SPY", "Challenger · wide+ext 12/6", "Legacy control · flat 10/5"}
-    # challenger dashed, legacy control dotted — both thinner than the default
+    assert set(by_name) == {"Paper book", "SPY", "Challenger · wide+ext 12/6"}
+    # challenger dashed and thinner than the default
     assert by_name["Challenger · wide+ext 12/6"].line.dash == "dash"
-    assert by_name["Legacy control · flat 10/5"].line.dash == "dot"
-    for lane in ("Challenger · wide+ext 12/6", "Legacy control · flat 10/5"):
-        assert by_name[lane].line.width < by_name["Paper book"].line.width
+    assert by_name["Challenger · wide+ext 12/6"].line.width < by_name["Paper book"].line.width
 
 
 def test_advisory_note_names_lanes_and_caveat():
     from components.paper_book import _advisory_note_html, advisory_curves
     note = _advisory_note_html(advisory_curves(_adv_nav_df()))
-    assert "Challenger · wide+ext 12/6" in note and "Legacy control · flat 10/5" in note
+    assert "Challenger · wide+ext 12/6" in note and "Legacy control · flat 10/5" not in note
     assert "default" in note.lower() and "challenger" in note.lower()
     assert "two regime segments" in note
     assert _advisory_note_html(pd.DataFrame()) == ""
@@ -679,22 +678,17 @@ def _ext_trades_df():
 
 def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
     out = ext_exit_history(_ext_nav_df(), _ext_trades_df(), as_of_year=2026)
-    assert [label for label, _ in out] == ["Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
+    assert [label for label, _ in out] == ["Challenger · wide+ext 12/6"]
     by = dict(out)
-    for _label, rows in out:
-        assert len(rows) == 3
-        assert rows[0]["ticker"] == "000660.KS"       # newest exit first
-    # per-lane exit label: the challenger sells on extension; the legacy
-    # control has no exit rule, its rows are stop-outs
-    assert all(r["why"] == "sold on extension" for r in by["Challenger · wide+ext 12/6"])
-    assert "sold on extension" not in {r["why"] for r in by["Legacy control · flat 10/5"]}
-    # per-lane rebase: one lane seeds at 1_000_000 units, the other at
-    # 500_000 — the same 24_100 pnl_units is twice the dollars in the
-    # smaller pot
-    nvda_105 = next(r for r in by["Challenger · wide+ext 12/6"] if r["ticker"] == "NVDA")
-    nvda_b30 = next(r for r in by["Legacy control · flat 10/5"] if r["ticker"] == "NVDA")
-    assert nvda_105["dollars"] == 2_410.0
-    assert nvda_b30["dollars"] == 4_820.0
+    rows = by["Challenger · wide+ext 12/6"]
+    assert len(rows) == 3
+    assert rows[0]["ticker"] == "000660.KS"       # newest exit first
+    # the challenger sells on extension; the old control is not a lane
+    assert all(r["why"] == "sold on extension" for r in rows)
+    # per-lane rebase: the challenger seeds at 1_000_000 units, so 24_100
+    # pnl_units is $2,410 of the $100,000 pot
+    nvda = next(r for r in rows if r["ticker"] == "NVDA")
+    assert nvda["dollars"] == 2_410.0
 
 
 def test_ext_exit_history_absent_lanes_and_empty_input():
@@ -867,12 +861,10 @@ def test_ext_lane_views_carry_positions_and_trades():
     nav = _ext_nav_df()
     views = ext_lane_views(nav, _ext_trades_df(),
                            _positions_df("v1_wide_ext_100_b12"), as_of_year=2026)
-    assert [v[0] for v in views] == ["Challenger · wide+ext 12/6", "Legacy control · flat 10/5"]
+    assert [v[0] for v in views] == ["Challenger · wide+ext 12/6"]
     _label, pid, p_rows, t_rows = views[0]
     assert pid == "v1_wide_ext_100_b12"
     assert len(p_rows) == 2 and len(t_rows) == 3
-    _, _, p_rows_b, t_rows_b = views[1]
-    assert p_rows_b == [] and len(t_rows_b) == 3   # no hybrid positions given
 
 
 def test_render_paper_book_positions_csv_supersedes_block_table():
@@ -993,7 +985,7 @@ def test_advisory_lanes_are_neutral_and_brass_not_two_more_categories():
     brass tint reads as 'variants of the subject and the benchmark'. The tint is
     NOT the subject's own brass — a replay must not look like the book."""
     from components.paper_book import _ADVISORY_COLORS
-    assert set(_ADVISORY_COLORS.values()) == {CHART_MUTED, CHART_ACCENT_SOFT}
+    assert set(_ADVISORY_COLORS.values()) == {CHART_ACCENT_SOFT}   # challenger only
     assert CHART_ACCENT not in _ADVISORY_COLORS.values()
 
 
