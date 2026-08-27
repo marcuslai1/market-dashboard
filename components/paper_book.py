@@ -324,11 +324,22 @@ _METRIC_HELP = {
 }
 
 
+def help_tip(text: str, label: str = "What this means") -> str:
+    """A click-to-open "?" popover. Built on <details>, which Streamlit's
+    sanitiser keeps (the watchlist drawers use it), so it opens on click and
+    on keyboard, and needs no JavaScript. A title attribute alone only shows
+    after a long hover and never on click/touch (owner report 2026-08-27)."""
+    body = _escape_dollars(text)
+    return (f'<details class="pb-tip"><summary aria-label="{label}">?</summary>'
+            f'<div class="pb-tip-body">{body}</div></details>')
+
+
 def _th(name: str) -> str:
     what, scale = _METRIC_HELP.get(name, ("", ""))
-    tip = _escape_dollars(f"{what} {scale}").replace('"', "&quot;")
-    return (f'<th title="{tip}">{_escape_dollars(name)}'
-            f'<span class="pb-help" aria-hidden="true">?</span></th>')
+    tip = f"<b>{_escape_dollars(what)}</b><br>{_escape_dollars(scale)}"
+    return (f'<th>{_escape_dollars(name)}'
+            f'<details class="pb-tip"><summary aria-label="What {_escape_dollars(name)} means">?</summary>'
+            f'<div class="pb-tip-body">{tip}</div></details></th>')
 
 
 def metric_glossary_html() -> str:
@@ -400,7 +411,7 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
         )
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
-        '<span class="pb-eyebrow-hint">hover a column for what it means</span></p>'
+        '<span class="pb-eyebrow-hint">click ? on a column for what it means</span></p>'
         f'<div class="tk-scroll"><table class="pb-scorecard">{head}{body}</table></div>'
     )
 
@@ -492,9 +503,8 @@ def _banner_html(block: dict) -> str:
     """The band's caveat, one line; the full version on hover. Since
     2026-08-27 the dashboard owns this copy (the exported block's banner
     describes the legacy control's window)."""
-    tip = _escape_dollars(_BAND_BANNER_FULL).replace('"', "&quot;")
-    return (f'<p class="pb-banner" title="{tip}">{_escape_dollars(_BAND_BANNER)}'
-            '<span class="pb-help" aria-hidden="true">?</span></p>')
+    return (f'<p class="pb-banner">{_escape_dollars(_BAND_BANNER)}'
+            f'{help_tip(_BAND_BANNER_FULL, "Full caveat")}</p>')
 
 
 # Policy_id → compact public label (the lanes the Telegram glance abbreviates
@@ -1340,8 +1350,7 @@ def chart_notes_compact(rebased: pd.DataFrame, advisory: pd.DataFrame | None,
     if marks:
         tip = "Dotted marks — " + " · ".join(
             f"{d.day} {d:%b}: {key}" for d, _label, key in marks)
-        bits.append(f'<span title="{_escape_dollars(tip).replace(chr(34), "&quot;")}">'
-                    'dotted marks = system changes<span class="pb-help" aria-hidden="true">?</span></span>')
+        bits.append('dotted marks = system changes' + help_tip(tip, "What the marks are"))
     return f'<p class="pb-chartnote">{" · ".join(bits)}</p>'
 
 

@@ -307,7 +307,7 @@ def test_method_is_one_line_with_the_meaning_on_hover():
     for each family and the not-the-alpha-view caveat ride on the title."""
     html = _method_html()
     assert html.count("<b>") == 0
-    assert 'title="' in html and "pb-help" in html
+    assert "pb-tip" in html and "<details" in html      # click-to-open, not a title hover
     assert "rise as right" in html and "drop as right" in html
     assert "Raw price direction" in html
 

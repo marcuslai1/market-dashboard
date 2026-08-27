@@ -526,9 +526,10 @@ def _method_html() -> str:
            "count a drop as right (you avoided it). Raw price direction — the "
            "benchmark-relative view (alpha vs the market) is the Signal "
            "calibration row at the top of this page.")
+    from components.paper_book import help_tip
     return (
-        f'<p class="method" title="{tip}">How often each signal went the right '
-        "way, 5 sessions later<span class=\"pb-help\" aria-hidden=\"true\">?</span></p>"
+        '<p class="method">How often each signal went the right way, 5 sessions '
+        f"later{help_tip(tip, 'What counts as right')}</p>"
     )
 
 

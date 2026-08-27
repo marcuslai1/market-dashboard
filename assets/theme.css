@@ -2802,12 +2802,22 @@ details.led-details[open] > summary {
 .pb-scorecard tr.pb-role-default td { background: color-mix(in srgb, var(--brass) 9%, transparent); }
 .pb-scorecard tr.pb-role-default td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--brass); }
 .pb-scorecard tr.pb-role-challenger td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--accent); }
-/* Hover affordance: a small "?" that marks a native title tooltip. */
-.pb-help { display: inline-block; margin-left: 5px; width: 13px; height: 13px;
+/* Click-to-open "?" popover on <details>: the marker is the summary, the
+   body floats beside it. Works on click, touch and keyboard; no JS. */
+.pb-tip { display: inline-block; position: relative; margin-left: 5px; vertical-align: 1px; }
+.pb-tip > summary { list-style: none; cursor: pointer; display: inline-block; width: 14px; height: 14px;
   line-height: 13px; border-radius: 50%; border: 1px solid var(--color-divider);
   color: var(--color-text-3); font-size: 9px; text-align: center;
-  font-family: var(--font-display); vertical-align: 1px; cursor: help; }
-th .pb-help { margin-left: 4px; }
+  font-family: var(--font-display); font-weight: 600; user-select: none; }
+.pb-tip > summary::-webkit-details-marker { display: none; }
+.pb-tip[open] > summary { color: var(--brass); border-color: var(--brass); }
+.pb-tip-body { position: absolute; z-index: 40; left: 0; top: 20px; width: 260px;
+  padding: 10px 12px; background: var(--color-surface, #1f1f1d); border: 1px solid var(--color-divider);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35); font-family: var(--font-body, inherit);
+  font-size: 12.5px; font-weight: 400; line-height: 1.5; text-transform: none; letter-spacing: 0;
+  text-align: left; white-space: normal; color: var(--color-text-2); }
+.pb-tip-body b { color: var(--color-text-1); font-weight: 600; }
+th .pb-tip-body { right: 0; left: auto; }
 .pb-eyebrow-hint { font-weight: 400; letter-spacing: 0.02em; text-transform: none;
   color: var(--color-text-3); margin-left: 10px; font-family: var(--font-body, inherit); font-size: 11px; }
 /* Glossary (collapsed by default): the same sentences the headers carry. */
