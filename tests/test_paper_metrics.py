@@ -86,3 +86,31 @@ def test_scorecard_skips_lanes_without_nav_rows():
     rows = pm.scorecard(nav, _trades("a"), None, ["a", "ghost"])
     assert [r["policy_id"] for r in rows] == ["a"]
     assert rows[0]["n_trades"] == 3 and rows[0]["n_positions"] is None
+
+
+def test_soxx_beta_reads_half_the_index_move_and_invested_beta_scales_by_exposure():
+    """Failure: a lane that captures exactly half of every SOXX move while
+    50% invested reads a portfolio beta other than 0.5, or an invested-only
+    beta other than 1.0."""
+    import numpy as np
+    rng = np.random.default_rng(1)
+    soxx = [100.0]
+    for _ in range(40):
+        soxx.append(soxx[-1] * (1 + rng.normal(0, 0.02)))
+    navs = [1_000_000]
+    for a, b in zip(soxx, soxx[1:]):
+        navs.append(round(navs[-1] * (1 + 0.5 * (b / a - 1))))
+    nav_df = _nav("x", navs, cash=[n // 2 for n in navs])
+    nav_df["soxx_close"] = soxx
+    out = pm.lane_nav_stats(nav_df, "x")
+    assert out["beta_soxx"] == pytest.approx(0.5, abs=0.02)
+    assert out["beta_soxx_invested"] == pytest.approx(1.0, abs=0.05)
+    assert out["soxx"]["ret_pct"] == pytest.approx((soxx[-1] / soxx[0] - 1) * 100)
+
+
+def test_worst_open_position_drawdown_is_the_deepest_held_name():
+    nav_df = _nav("x", [1_000_000] * 5)
+    pos = pd.DataFrame({"policy_id": ["x", "x", "y"], "ticker": ["A", "B", "C"],
+                        "max_dd_pct": [3.2, 26.6, 40.0]})
+    out = pm.lane_scorecard(nav_df, None, pos, "x")
+    assert out["n_positions"] == 2 and out["worst_open_dd_pct"] == pytest.approx(-26.6)

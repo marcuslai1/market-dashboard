@@ -71,10 +71,43 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
     if "sleeve_units" in rows.columns:
         cash = cash + pd.to_numeric(rows["sleeve_units"], errors="coerce").fillna(0)
     navs = pd.to_numeric(rows["nav_units"], errors="coerce")
+    if "soxx_close" in rows.columns:
+        soxx = pd.to_numeric(rows["soxx_close"], errors="coerce")
+        out["soxx"] = _series_stats(soxx.tolist())
+        # Factor read (audit 2026-08-27): beta of the lane's daily NAV return
+        # to SOXX (whole portfolio, cash included) and per invested dollar
+        # (return / exposure entering the day, days >20% invested only), plus
+        # the annualised intercept. One window's exit timing + cash can make
+        # both low — a descriptive number, not a significance claim.
+        out.update(_soxx_beta(navs, soxx, cash))
     frac = (cash / navs).replace([math.inf, -math.inf], math.nan).dropna()
     out["avg_cash_pct"] = float(frac.mean() * 100.0) if not frac.empty else None
     out["as_of"] = str(rows["date"].iloc[-1])
     out["since"] = str(rows["date"].iloc[0])
+    return out
+
+
+def _soxx_beta(navs: pd.Series, soxx: pd.Series, cash: pd.Series) -> dict:
+    nav_r = navs.pct_change()
+    sx_r = soxx.pct_change()
+    exposure = (1 - cash / navs).shift(1)          # entering the day
+    ok = nav_r.notna() & sx_r.notna() & (sx_r.abs() < 1)
+    if ok.sum() < 10:
+        return {}
+    x, y = sx_r[ok], nav_r[ok]
+    vx = ((x - x.mean()) ** 2).sum()
+    if vx <= 0:
+        return {}
+    beta = ((x - x.mean()) * (y - y.mean())).sum() / vx
+    alpha = (y.mean() - beta * x.mean()) * 252 * 100.0
+    out = {"beta_soxx": float(beta), "alpha_soxx_ann_pct": float(alpha)}
+    inv = ok & (exposure > 0.2)
+    if inv.sum() >= 10:
+        xi, yi = sx_r[inv], nav_r[inv] / exposure[inv]
+        vxi = ((xi - xi.mean()) ** 2).sum()
+        if vxi > 0:
+            out["beta_soxx_invested"] = float(
+                ((xi - xi.mean()) * (yi - yi.mean())).sum() / vxi)
     return out
 
 
@@ -159,9 +192,17 @@ def lane_scorecard(nav_df, trades_df, positions_df, policy_id: str) -> dict:
     out.update(lane_nav_stats(nav_df, policy_id))
     out.update(lane_trade_stats(trades_df, policy_id))
     n_pos = None
+    worst = None
     if positions_df is not None and not positions_df.empty and "policy_id" in positions_df.columns:
-        n_pos = int((positions_df["policy_id"] == policy_id).sum())
+        mine = positions_df[positions_df["policy_id"] == policy_id]
+        n_pos = int(len(mine))
+        if "max_dd_pct" in mine.columns and n_pos:
+            # Worst peak-to-trough fall of any OPEN position while held —
+            # the pain a portfolio-level drawdown hides (audit 2026-08-27).
+            dd = pd.to_numeric(mine["max_dd_pct"], errors="coerce").dropna()
+            worst = float(-abs(dd.max())) if not dd.empty else None
     out["n_positions"] = n_pos
+    out["worst_open_dd_pct"] = worst
     return out
 
 

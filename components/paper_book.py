@@ -321,6 +321,10 @@ _METRIC_HELP = {
                   "High = signals are scarce; the cash-sleeve lane parks it in SPY instead."),
     "Fees": ("Commissions, taxes and FX on closed trades, as % of the pot.",
              "Under 0.3% over four months is immaterial; slippage sits in the fill prices."),
+    "β SOXX": ("How much the book moves with the semiconductor index — whole pot / per invested dollar.",
+               "1.0 = it is the index. Low over one window can be exit timing and cash, not skill: descriptive, not proof."),
+    "Worst pos": ("The deepest fall any currently held name has taken from its peak while held.",
+                  "The pain the portfolio drawdown hides — a wide stop means sitting through −15 to −25% on single names."),
 }
 
 
@@ -359,6 +363,13 @@ def _fmt_num(v, d=2):
     return "—" if v is None else f"{v:.{d}f}"
 
 
+def _fmt_beta(port, invested):
+    if port is None:
+        return "—"
+    s = f"{port:.2f}"
+    return f"{s} <small>/ {invested:.2f}</small>" if invested is not None else s
+
+
 def scorecard_html(nav_df, trades_df, positions_df) -> str:
     """The metrics the book is judged on, one row per lane + SPY."""
     rows = _scorecard_rows(nav_df, trades_df, positions_df,
@@ -367,9 +378,10 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
         return ""
     meta = {pid: (role, desc) for pid, role, desc in _SCORECARD_LANES}
     spy = next((r.get("spy") for r in rows if r.get("spy")), None)
+    soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None)
     head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
-        "NAV", "Sharpe", "Max DD", "Win", "Expectancy", "Exit-rule R",
-        "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
+        "NAV", "Sharpe", "Max DD", "Worst pos", "β SOXX", "Win", "Expectancy",
+        "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
     body = ""
     for r in rows:
         role, desc = meta[r["policy_id"]]
@@ -382,6 +394,8 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
             f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(r.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
+            f'<td>{_fmt_pct(r.get("worst_open_dd_pct"))}</td>'
+            f'<td>{_fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested"))}</td>'
             f'<td>{_fmt_pct(r.get("win_rate_pct"), plus=False, d=0)}</td>'
             f'<td>{_fmt_r(r.get("expectancy_r"), r.get("n_r"))}</td>'
             f'<td>{_fmt_r(ex.get("mean_r"), ex.get("n"))}</td>'
@@ -398,7 +412,16 @@ def scorecard_html(nav_df, trades_df, positions_df) -> str:
             f'<td>{_fmt_pct(spy.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(spy.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
-            "<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>"
+            + "<td>—</td>" * 9 + "</tr>"
+        )
+    if soxx:
+        body += (
+            '<tr class="pb-role-bench"><td class="pb-sc-lane"><b>SOXX</b>'
+            "<small>semis index · the factor most names load on</small></td>"
+            f'<td>{_fmt_pct(soxx.get("ret_pct"))}</td>'
+            f'<td>{_fmt_num(soxx.get("sharpe"))}</td>'
+            f'<td>{_fmt_pct(soxx.get("max_dd_pct"))}</td>'
+            "<td>—</td><td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
         )
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
