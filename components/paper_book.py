@@ -479,14 +479,17 @@ def _stats_html(block: dict) -> str:
             f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
-_BAND_BANNER = ("Paper only · two regime segments · ~20 trades a lane · "
-                "hypothesis-grade · next read ~8 Sep 2026")
+_BAND_BANNER = ("Paper only · 90 sessions · carried by a handful of AI-hardware "
+                "names · ~15 trades a lane · not a track record · next read ~8 Sep 2026")
 _BAND_BANNER_FULL = (
-    "Paper measurement only — one trending segment and one choppy one since "
-    "22 Jul, ~20 closed trades per lane, hypothesis-grade. The default was "
-    "chosen on trade quality (expectancy, exit-rule R, capture) with the "
-    "portfolio numbers read alongside; the pre-registered read of the "
-    "stop × exit lanes lands around 8 Sep 2026. Not a performance verdict."
+    "Paper measurement only. Ninety sessions, one trending segment and one "
+    "choppy one since 22 Jul; about 15 closed trades a lane. Half of the "
+    "return comes from three names and most of the beat over SPY from the "
+    "August AI-hardware run — 17 of the 33 names share that factor, so the "
+    "book holds ~3–4 real bets, not 9. The cash constraint hid only one "
+    "trade (a loser), so the per-trade numbers are not sizing luck; whether "
+    "they hold on new names in a different tape is what the pre-registered "
+    "read around 8 Sep 2026 tests. Not a performance verdict."
 )
 
 
