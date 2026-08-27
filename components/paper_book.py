@@ -1425,19 +1425,15 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         st.markdown(chart_notes_compact(rebased, advisory,
                                         milestone_marks(rebased)),
                     unsafe_allow_html=True)
-        # Held back rather than rendered here: every drill-down on this band is
-        # collected below the stop-rule lanes so the reader finishes the
-        # section's argument and then meets one block of "go deeper" doors.
-        # Rendered inline it was orphaned between the chart caption and the
-        # lanes, which made three instances of one control look scattered.
+        # Held back rather than rendered here: the raw frame is the band's
+        # lowest-priority door and renders after every other drawer (see the
+        # end of this function).
         chart_table = rebased
         if not advisory.empty:
             chart_table = rebased.merge(advisory, on="date", how="left")
     sc = scorecard_html(nav_df, trades_df, positions_df)
     if sc or block:
         st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
-    if chart_table is not None:
-        chart_data_table(chart_table)
     if pos_v2_rows:
         # positions CSV present → the shares/cost-basis view supersedes the
         # block table (addendum 2); the block stays the fallback contract.
@@ -1498,3 +1494,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                 st.markdown(_POSITIONS_V2_LEGEND, unsafe_allow_html=True)
             if any_trades:
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
+    # Last door on the band (owner call 2026-08-27b): the raw chart frame is
+    # a screen-reader / data-parity fallback almost nobody opens, so it sits
+    # below every drawer a reader might actually want.
+    if chart_table is not None:
+        chart_data_table(chart_table)
