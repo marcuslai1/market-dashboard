@@ -346,16 +346,112 @@ _SCORECARD_SPECS = [
 ]
 
 
-def _scorecard_html(acc_df: pd.DataFrame) -> str:
-    """Plain-language signal scorecard: one cell per signal, showing how often
-    the call went the right way 5 sessions out, with an honest small-sample
-    flag.
+_GATE_SIGNALS = ("CAUTION", "AVOID")
 
-    BUY/ACCUMULATE/WATCH score a rise as right; CAUTION/AVOID score a drop as
-    right (you avoided it). `thin` mirrors the pipeline's decision-grade floor —
-    a rate resting on fewer than DECISION_GRADE_MIN calls is not to be trusted,
-    however tidy it looks.
+
+def _raw_direction_note(acc_df: pd.DataFrame, sig: str, mode: str) -> str:
+    """The demoted view (owner call 2026-08-27, option C): raw price direction
+    at 5 AND 20 sessions, each beside the base rate over every scored call, so
+    a reader can see that a 5-session hit rate near 50% is the market, not the
+    signal. '' when there is nothing to show."""
+    if acc_df is None or acc_df.empty or "signal" not in acc_df.columns:
+        return ""
+    bits = []
+    for h in (5, 20):
+        col = f"return_{h}d"
+        if col not in acc_df.columns:
+            continue
+        allv = acc_df[col].dropna()
+        mine = acc_df.loc[acc_df["signal"] == sig, col].dropna()
+        if allv.empty or mine.empty:
+            continue
+        if mode == "avoid":
+            rate = (mine <= 0).mean() * 100
+            base = (allv <= 0).mean() * 100
+            word = "fell"
+        else:
+            rate = (mine > 0).mean() * 100
+            base = (allv > 0).mean() * 100
+            word = "rose"
+        bits.append(f"{word} {rate:.0f}% of {len(mine)} at {h} sessions "
+                    f"(any scored call: {base:.0f}%)")
+    if not bits:
+        return ""
+    return "Raw price direction, all history: " + " · ".join(bits) + "."
+
+
+def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> str:
+    """Option C (owner call 2026-08-27): the tiles show the pipeline's own
+    benchmark-relative alpha per signal — the number the Measurement Gate
+    reads — instead of a locally computed 5-session direction. Sign is the
+    pipeline's: positive = the names beat their benchmark. For the two GATES
+    that is stated on the tile, because a gate reads backwards otherwise.
+    Raw direction survives only in the ? popover, at 5 and 20 sessions with
+    base rates."""
+    from components.paper_book import help_tip
+    cells = ""
+    for sig, mode, verb in _SCORECARD_SPECS:
+        cell = perf.get(sig) or {}
+        color = SIGNAL_COLORS.get(sig, INK_FALLBACK)
+        alpha = cell.get("alpha_10d")
+        n = int(cell.get("n_alpha_10d") or 0)
+        ep = (decayed.get(sig) or {}).get("n_episodes")
+        regimes = [str(r) for r in (cell.get("regimes_present") or [])]
+        single = bool(cell.get("single_regime"))
+        cell_thin = False
+        if alpha is not None and n > 0:
+            val_html = f'<div class="cval">{float(alpha):+.1f} <small>pp α</small></div>'
+            sub = f"n={n}" + (f" · {int(ep)} ep" if ep else "") + " · 10 sessions vs benchmark"
+            if n < DECISION_GRADE_MIN:
+                cell_thin = True
+                flag = f'<div class="sc-flag warn-thin">⚠ thin — only {n} calls</div>'
+            elif single:
+                cell_thin = True
+                flag = ('<div class="sc-flag warn-thin">⚠ one regime only'
+                        f'{" · " + regimes[0] if regimes else ""}</div>')
+            else:
+                flag = (f'<div class="sc-flag">{_escape_dollars(", ".join(regimes)) or "n=" + str(n)}'
+                        " · holding up</div>")
+        else:
+            val_html = '<div class="cval muted">—</div>'
+            sub = "not scored yet"
+            flag = '<div class="sc-flag">not enough yet</div>'
+        gate = ""
+        if sig in _GATE_SIGNALS:
+            gate = ('<div class="sc-gate">gate, not a forecast · negative α = '
+                    "kept you out of a laggard</div>")
+        raw = _raw_direction_note(acc_df, sig, mode)
+        tip = ""
+        if raw:
+            tip = help_tip(raw, f"Raw direction for {sig}")
+        cells += (
+            f'<div class="calib-cell{" thin" if cell_thin else ""}">'
+            f'<div class="clabel" style="color:{color};">'
+            f'<span class="cdot" style="background:{color};"></span>{sig}{tip}</div>'
+            f'<div class="sc-verb">{verb}</div>'
+            f'{val_html}'
+            f'<div class="csub">{sub}</div>'
+            f'{gate}'
+            f'{flag}'
+            f'</div>'
+        )
+    return f'<div class="hair-grid calib-grid">{cells}</div>'
+
+
+def _scorecard_html(acc_df: pd.DataFrame, calibration_insights=None) -> str:
+    """Signal scorecard, one cell per signal.
+
+    With ``calibration_insights`` (every report since 2026-07-02) the cells
+    carry the pipeline's benchmark-relative alpha — see _alpha_scorecard_html.
+    Without it (older reports, tests) the legacy view remains: how often the
+    call went the right way 5 sessions out. BUY/ACCUMULATE/WATCH score a rise
+    as right; CAUTION/AVOID score a drop as right. `thin` mirrors the
+    pipeline's decision-grade floor.
     """
+    perf = (calibration_insights or {}).get("signal_performance") or {}
+    if perf:
+        decayed = (calibration_insights or {}).get("signal_performance_decayed_full") or {}
+        return _alpha_scorecard_html(perf, decayed, acc_df)
     cells = ""
     for sig, mode, verb in _SCORECARD_SPECS:
         data = acc_df[acc_df["signal"] == sig] if not acc_df.empty else pd.DataFrame()
@@ -514,14 +610,38 @@ def _readiness_html(calibration_insights) -> str:
     return card_container(eyebrow="Trust meter", body_html=body)
 
 
-def _method_html() -> str:
-    """How to read the hit-rate tiles, in one paragraph.
+def _method_html(calibration_insights=None) -> str:
+    """How to read the tiles, in one line plus a ? popover.
 
-    Exactly three phrases are bolded — what counts as right for each signal
-    family, and that these are raw price moves rather than the benchmark-relative
-    view. Those are the three things a reader must not misunderstand; everything
-    else in the sentence can be skimmed.
+    With calibration_insights (option C, 2026-08-27): the tiles are the
+    pipeline's benchmark-relative alpha over its rolling window — the number
+    the Measurement Gate uses — and the line says so, names the window, and
+    states that CAUTION / AVOID are gates whose exit value lives in the paper
+    book. Without it: the legacy 5-session direction caption.
     """
+    from components.paper_book import help_tip
+    ci = calibration_insights or {}
+    if ci.get("signal_performance"):
+        win = ci.get("data_window") or {}
+        span = ""
+        if win.get("from") and win.get("to"):
+            span = f" · {_escape_dollars(str(win['from']))} → {_escape_dollars(str(win['to']))}"
+        tip = ("Each tile is the average return of the names carrying that "
+               "signal, 10 sessions later, MINUS their benchmark (SOXX for "
+               "semis, SPY otherwise) — so a rising market does not flatter "
+               "it. Computed by the pipeline over its rolling calibration "
+               "window, the same figure the Measurement Gate reads. Sign is "
+               "plain: positive = those names beat their benchmark. The ? on "
+               "each tile keeps the older raw-direction view at 5 and 20 "
+               "sessions beside the base rate for any scored call.")
+        return (
+            '<p class="method">Benchmark-relative alpha per signal, 10 sessions out, '
+            f"over the pipeline's calibration window{span}"
+            f"{help_tip(tip, 'What the tiles measure')}</p>"
+            '<p class="sc-hold">CAUTION and AVOID are gates, not forecasts — '
+            "their value as exits is measured in the paper book below, not "
+            "in these tiles.</p>"
+        )
     # Owner call 2026-08-27: the CAUTION cell was being read as "CAUTION is a
     # bad sell signal". It is an ENTRY gate scored here as a direction call,
     # at a horizon where nothing has an edge; the paper book exits on two of
@@ -756,11 +876,12 @@ def render_signal_tracker_page(
         st.markdown(readiness, unsafe_allow_html=True)
 
     acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
-    st.markdown(_method_html(), unsafe_allow_html=True)
-    if acc_df.empty:
+    _ci = latest_report.get("calibration_insights")
+    st.markdown(_method_html(_ci), unsafe_allow_html=True)
+    if acc_df.empty and not ((_ci or {}).get("signal_performance")):
         st.caption("No signals tracked yet — the scorecard fills in as calls accumulate.")
     else:
-        st.markdown(_scorecard_html(acc_df), unsafe_allow_html=True)
+        st.markdown(_scorecard_html(acc_df, _ci), unsafe_allow_html=True)
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         note = _hold_footnote_html(hold_count)
         if note:

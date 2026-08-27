@@ -2411,6 +2411,11 @@ details.led-details[open] > summary > div:first-child::before {
    number's own prominence, so the untrustworthy figures physically recede
    instead. With .warn-thin and the ⚠ glyph that is three redundant cues. */
 .calib-cell.thin .cval, .calib-cell.thin .cbar { opacity: 0.42; }
+.calib-cell .sc-gate {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em;
+  color: var(--color-text-3); margin-top: 6px; line-height: 1.35;
+}
+.calib-cell .clabel .pb-tip { margin-left: 6px; }
 /* Stated as a footnote, deliberately not a sixth tile: HOLD makes no
    directional claim, and an empty percentage would imply a missing measurement
    rather than an inapplicable one. */

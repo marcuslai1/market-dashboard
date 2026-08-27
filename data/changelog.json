@@ -1,6 +1,11 @@
 [
   {
     "date": "2026-08-27",
+    "title": "The signal tiles now show benchmark-relative alpha, not a 5-session coin flip",
+    "note": "The tiles used to score every signal on whether price moved the 'right' way five sessions later. Over any five sessions about half of all names fall, so a rate near 50% was the market, not the signal - and CAUTION, which means 'don't add here' rather than 'sell', was being read as a bad sell call. Each tile is now the pipeline's own figure: the names' return ten sessions out minus their benchmark (SOXX for semis, SPY otherwise), over the rolling calibration window - the same number the Measurement Gate reads. CAUTION and AVOID tiles say they are gates. The old raw-direction view survives in each tile's ? at 5 and 20 sessions, beside the base rate."
+  },
+  {
+    "date": "2026-08-27",
     "title": "The paper book now headlines the strategy that measured best, and is judged on trade quality",
     "note": "The paper book used to headline the original rulebook - a stop frozen at the 50-day line and no sell rule - because it was first, not because it was good. Measured trade by trade it was the weakest lane on the page: one stop-out in five was a winner, and three in four of the names it sold were higher ten sessions later. The solid line is now the default strategy - a wider stop at the report's own structural support, a sell rule that exits when a name stretches too far above its trend or when the thesis breaks, sized at 15% with 7.5% add-ons. The dashed line is the challenger (same stop, extension exit only, 12/6); the dotted line is the old book, kept visible only because the regime-turn playbook's falsification test is defined against it. SPY is unchanged. Below the chart, the stop-rule lane grid - six returns and stop-out counts - is replaced by a scorecard of what the book is actually judged on: return, Sharpe, drawdown, win rate, expectancy in R-multiples, the exit rule's R against the stop's R, how much the stops cost, how much cash sat idle, and fees where a lane models them, with SPY on the same window. Every number is the pipeline's own read of its exported trades; the banner says plainly that two regime segments and twenty trades a lane make this hypothesis-grade."
   },

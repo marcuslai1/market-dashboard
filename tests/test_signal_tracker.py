@@ -386,3 +386,50 @@ def test_changelog_entries_stay_plain_prose():
     )
     assert "<b>" not in html
     assert "var(--brass)" not in html and "var(--stress)" not in html
+
+
+# ── Option C (2026-08-27): tiles carry the pipeline's benchmark-relative alpha ──
+
+def _ci(**perf):
+    return {"signal_performance": perf,
+            "signal_performance_decayed_full": {k: {"n_episodes": 7} for k in perf},
+            "data_window": {"from": "2026-06-28", "to": "2026-08-27"}}
+
+
+def test_alpha_tiles_show_pipeline_alpha_with_plain_sign_and_gate_line():
+    """Failure: the tile recomputes a local hit rate instead of showing the
+    pipeline's alpha, flips the sign for a gate, or omits the gate line."""
+    ci = _ci(CAUTION={"alpha_10d": 2.89, "n_alpha_10d": 575, "single_regime": False,
+                      "regimes_present": ["chop", "trend_up"]})
+    html = _scorecard_html(_acc_df("CAUTION", [-3.0, -1.0, -2.0, 4.0]), ci)
+    assert "+2.9" in html and "pp α" in html
+    assert "kept you out of a laggard" in html
+    assert '<div class="cval">75%' not in html   # the local 5d rate is not the tile
+    assert "Raw direction for CAUTION" in html     # ...it lives in the ? popover
+    assert "fell 75% of 4 at 5 sessions" in html
+
+
+def test_alpha_tiles_flag_thin_and_single_regime():
+    ci = _ci(BUY={"alpha_10d": 8.33, "n_alpha_10d": 3, "single_regime": True,
+                  "regimes_present": ["trend_up"]},
+             ACCUMULATE={"alpha_10d": 10.45, "n_alpha_10d": 15, "single_regime": True,
+                         "regimes_present": ["trend_up"]})
+    html = _scorecard_html(_acc_df("BUY", [1.0] * 10), ci)
+    assert "only 3 calls" in html
+    assert "one regime only" in html
+    assert html.count('class="calib-cell thin"') == 2
+    assert "kept you out" not in html.split("CAUTION")[0]   # no gate line on entries
+
+
+def test_alpha_tiles_fall_back_to_raw_direction_without_calibration():
+    html = _scorecard_html(_acc_df("CAUTION", [-3.0, -1.0, -2.0, 4.0]), None)
+    assert "75%" in html and "pp α" not in html
+
+
+def test_method_caption_names_alpha_window_and_gate_sentence():
+    html = _method_html(_ci(CAUTION={"alpha_10d": 1.0, "n_alpha_10d": 20}))
+    assert "Benchmark-relative alpha" in html
+    assert "2026-06-28 → 2026-08-27" in html
+    assert "gates, not forecasts" in html
+    legacy = _method_html(None)
+    assert "5 sessions" in legacy and "gates, not forecasts" not in legacy
