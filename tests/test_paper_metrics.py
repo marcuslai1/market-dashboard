@@ -114,3 +114,33 @@ def test_worst_open_position_drawdown_is_the_deepest_held_name():
                         "max_dd_pct": [3.2, 26.6, 40.0]})
     out = pm.lane_scorecard(nav_df, None, pos, "x")
     assert out["n_positions"] == 2 and out["worst_open_dd_pct"] == pytest.approx(-26.6)
+
+
+# ── selection haircut (deflated Sharpe) ──
+
+def _walk(pid, n, drift, seed):
+    import random
+    rnd = random.Random(seed)
+    nav, v = [], 1_000_000.0
+    for _ in range(n):
+        v *= 1 + drift + rnd.gauss(0, 0.01)
+        nav.append(round(v))
+    return _nav(pid, nav)
+
+
+def test_selection_haircut_reports_luck_benchmark_and_probability():
+    df = pd.concat([_walk(f"t{i}", 90, 0.0, i) for i in range(20)]
+                   + [_walk("edge", 90, 0.004, 99)], ignore_index=True)
+    h = pm.selection_haircut(df, "edge")
+    assert h["n_trials"] == 21 and h["n_sessions"] == 89
+    assert 0.0 <= h["dsr"] <= 1.0
+    assert h["lucky_best_sharpe_ann"] > 0            # best-of-21 by luck is positive
+    assert h["sharpe_ann"] > h["lucky_best_sharpe_ann"]   # a real edge clears it
+    assert h["dsr"] > 0.5
+
+
+def test_selection_haircut_silent_when_short_or_alone():
+    assert pm.selection_haircut(_walk("a", 10, 0.0, 1), "a") == {}
+    assert pm.selection_haircut(_walk("a", 90, 0.0, 1), "a") == {}     # one trial
+    assert pm.selection_haircut(None, "a") == {}
+

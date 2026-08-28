@@ -214,3 +214,85 @@ def scorecard(nav_df, trades_df, positions_df, policy_ids: list[str]) -> list[di
         if "ret_pct" in row:
             rows.append(row)
     return rows
+
+
+# ── selection haircut (deflated Sharpe, Bailey & López de Prado 2014) ──────
+# The scorecard's Sharpe is the best of many variants tried on ONE window;
+# some of that is luck. Given N trials whose Sharpes vary by V, the expected
+# best-of-N Sharpe of strategies with NO edge is SR0; the deflated Sharpe is
+# the probability the observed SR exceeds SR0 after the sample's skew /
+# kurtosis and length T. Display-only honesty — never a gate input.
+_EULER = 0.5772156649015329
+
+
+def _norm_ppf(p: float) -> float:
+    from statistics import NormalDist
+    return NormalDist().inv_cdf(min(max(p, 1e-12), 1 - 1e-12))
+
+
+def _norm_cdf(x: float) -> float:
+    from statistics import NormalDist
+    return NormalDist().cdf(x)
+
+
+def _daily_returns(nav_df: pd.DataFrame, policy_id: str) -> list[float]:
+    rows = nav_df[nav_df["policy_id"] == policy_id].sort_values("date")
+    vals = [float(v) for v in pd.to_numeric(rows["nav_units"], errors="coerce").tolist()
+            if v is not None and not pd.isna(v)]
+    return [b / a - 1 for a, b in zip(vals, vals[1:]) if a]
+
+
+def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
+                      trial_ids: list[str] | None = None,
+                      min_sessions: int = 30) -> dict:
+    """Deflated-Sharpe read for one lane against every lane tried.
+
+    Returns {} unless the lane has >= min_sessions returns and at least two
+    trials exist. ``sharpe_ann`` / ``lucky_best_sharpe_ann`` are annualised
+    (same ANN as the scorecard); ``dsr`` is the probability the lane's Sharpe
+    beats the best-of-N-by-luck benchmark; ``n_trials`` counts every lane
+    with >= min_sessions returns (the benchmarks are not lanes).
+    """
+    if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
+        return {}
+    r = _daily_returns(nav_df, policy_id)
+    T = len(r)
+    if T < min_sessions:
+        return {}
+    mu = sum(r) / T
+    sd = math.sqrt(sum((x - mu) ** 2 for x in r) / (T - 1))
+    if sd <= 0:
+        return {}
+    sr = mu / sd
+    m3 = sum((x - mu) ** 3 for x in r) / T / sd ** 3
+    m4 = sum((x - mu) ** 4 for x in r) / T / sd ** 4
+    ids = trial_ids if trial_ids is not None else sorted(
+        set(nav_df["policy_id"].dropna().unique()))
+    srs = []
+    for pid in ids:
+        rr = _daily_returns(nav_df, pid)
+        if len(rr) < min_sessions:
+            continue
+        m = sum(rr) / len(rr)
+        s_ = math.sqrt(sum((x - m) ** 2 for x in rr) / (len(rr) - 1))
+        if s_ > 0:
+            srs.append(m / s_)
+    n = len(srs)
+    if n < 2:
+        return {}
+    mean_sr = sum(srs) / n
+    var_sr = sum((x - mean_sr) ** 2 for x in srs) / (n - 1)
+    sr0 = math.sqrt(var_sr) * ((1 - _EULER) * _norm_ppf(1 - 1 / n)
+                               + _EULER * _norm_ppf(1 - 1 / (n * math.e)))
+    denom = 1 - m3 * sr + (m4 - 1) / 4 * sr ** 2
+    if denom <= 0:
+        return {}
+    dsr = _norm_cdf((sr - sr0) * math.sqrt(T - 1) / math.sqrt(denom))
+    return {
+        "n_trials": n,
+        "n_sessions": T,
+        "sharpe_ann": sr * ANN,
+        "lucky_best_sharpe_ann": sr0 * ANN,
+        "dsr": dsr,
+    }
+

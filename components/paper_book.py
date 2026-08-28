@@ -31,6 +31,7 @@ from lib.charts import (
 )
 from lib.formatters import _escape_dollars, display_ticker
 from lib.paper_metrics import scorecard as _scorecard_rows
+from lib.paper_metrics import selection_haircut
 
 # Exported column → display series name. NAV is the hero series; SPY/SOXX are
 # the benchmarks the upstream summary already compares against.
@@ -311,6 +312,51 @@ _SCORECARD_LANES = [
     ("v1_wide_extthesis_100_b15_lc", "v1 · large caps only", "never opens a small/mid name — the exclude answer to the tier question"),
     ("v1_flat10", "Control", "the original frozen SMA50-stop book · hold through CAUTION"),
 ]
+# The day each lane was REGISTERED (its rules chosen). Every lane is replay-
+# seeded from the common inception, so its curve BEFORE this date is history
+# the rules were picked knowing; only what accrues after it is a forward test.
+# (owner ask 2026-08-28: "are we relying too much on hindsight?")
+_LANE_SEEDED = {
+    "v1_flat10": "2026-07-05", "v1_trail10": "2026-07-06", "v1_nostop10": "2026-07-06",
+    "v1_wide10": "2026-07-07", "v1_tc_ext_100": "2026-07-09", "v1_ladder10": "2026-08-06",
+    "v1_wide_extthesis_100": "2026-07-16", "v1_wide_ext_100": "2026-07-16",
+    "v1_wide_extthesis_100_b15": "2026-08-27", "v1_wide_ext_100_b12": "2026-08-27",
+    "v1_wide_extthesis_100_b15_spy": "2026-08-27", "v1_wide_extthesis_100_b15_fees": "2026-08-27",
+    "v1_wide_extthesis_100_b15_rot": "2026-08-27", "v1_wide_extthesis_100_b15_lc": "2026-08-27",
+    "v1_wide_extthesis_100_b15_rot_top20": "2026-08-28", "v1_wide_extthesis_100_b15_rot_ow": "2026-08-28",
+    "v2_starter_b15_tb_fees": "2026-08-28", "v2_starter_b15_tb_fees_full": "2026-08-28",
+    "v2_starter_b15_tb_fees_mc67": "2026-08-28", "v2_starter_b15_tb_fees_mcstop": "2026-08-28",
+    "v2_starter_b15_regime_fees": "2026-08-28", "v2_starter_b15_spy_fees": "2026-08-28",
+    "v2_starter_b15": "2026-08-28", "v2_starter_b15_all": "2026-08-28",
+}
+
+
+def _seeded_tag(policy_id: str) -> str:
+    iso = _LANE_SEEDED.get(policy_id)
+    if not iso:
+        return ""
+    d = pd.to_datetime(iso)
+    return (f'<span class="pb-seeded" title="rules chosen on {d:%d %b %Y}; the curve '
+            f'before that date is replay history the rules were picked knowing">'
+            f'in-sample to {d.day} {d:%b}</span>')
+
+
+def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
+    """One plain-language line: how much of the headline Sharpe is selection.
+    Empty when the lane is too short or there is nothing to compare against."""
+    h = selection_haircut(nav_df, policy_id)
+    if not h:
+        return ""
+    return ('<p class="pb-chartnote">Selection haircut — '
+            f'<b>{h["n_trials"]}</b> variants were tried on <b>{h["n_sessions"]}</b> sessions; '
+            f'a strategy with <i>no</i> edge would be expected to show Sharpe ≈ '
+            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> just by being the best of them. '
+            f'Probability the default\'s {h["sharpe_ann"]:.2f} beats that luck: '
+            f'<span class="val">{h["dsr"] * 100:.0f}%</span> · '
+            '<span class="lim">deflated Sharpe (Bailey &amp; López de Prado) · '
+            'in-sample until the seed date on each row</span>.</p>')
+
+
 # Settled iterations — measured, kept for the record, rendered collapsed.
 _SCORECARD_ARCHIVE = [
     ("v2_starter_b15_tb_fees_mc67", "v2 · small/mid 10/5", "third point on the tier line (monotone with full and half)"),
@@ -426,7 +472,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
         cls = _SCORECARD_ROLE_CLASS.get(role, "")
         body += (
             f'<tr class="{cls}"><td class="pb-sc-lane"><b>{_escape_dollars(role)}</b>'
-            f'<small>{_escape_dollars(desc)}</small></td>'
+            f'<small>{_escape_dollars(desc)}</small>{_seeded_tag(r["policy_id"])}</td>'
             f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(r.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
@@ -1258,6 +1304,11 @@ _MILESTONES = [
     ("2026-07-05", "Quant patterns",
      "paper book goes live (earlier curve is replay-seeded) + "
      "quant-patterns adoption wave"),
+    # dated on the last replay-seeded bar (the v2 rules were chosen 08-28
+    # after that close) so the line sits at the seam, not off-window
+    ("2026-08-27", "v2 seeded",
+     "default rules chosen after this close — everything left of here is "
+     "replay history the rules were picked knowing; the forward test starts here"),
 ]
 
 
@@ -1503,7 +1554,11 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
             chart_table = rebased.merge(advisory, on="date", how="left")
     sc = scorecard_html(nav_df, trades_df, positions_df)
     if sc or block:
-        st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
+        _has_nav = (nav_df is not None and not nav_df.empty
+                    and "policy_id" in nav_df.columns)
+        hc = (haircut_html(nav_df, _policy_for(nav_df, None) or _HEADLINE_POLICY)
+              if _has_nav else "")
+        st.markdown(sc + hc + _banner_html(block), unsafe_allow_html=True)
     # Settled iterations, collapsed: the record without the noise.
     archive = scorecard_html(nav_df, trades_df, positions_df,
                              lanes=_SCORECARD_ARCHIVE, benchmarks=False)

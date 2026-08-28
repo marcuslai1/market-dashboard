@@ -1061,3 +1061,15 @@ def test_milestone_note_names_each_mark_and_is_silent_when_none():
     assert "30 May" in note and "severed" in note
     assert "5 Jul" in note and "replay-seeded" in note
     assert _milestone_note_html([]) == ""
+
+
+def test_haircut_line_and_seeded_tag():
+    from components.paper_book import haircut_html, _seeded_tag, _LANE_SEEDED, _SCORECARD_LANES, _SCORECARD_ARCHIVE
+    assert haircut_html(pd.DataFrame(), "v2_starter_b15_tb_fees") == ""
+    tag = _seeded_tag("v2_starter_b15_tb_fees")
+    assert "in-sample to 28 Aug" in tag and "pb-seeded" in tag
+    assert _seeded_tag("nope") == ""
+    # every scorecard lane carries a seed date (the in-sample line is the contract)
+    for pid, _r, _d in _SCORECARD_LANES + _SCORECARD_ARCHIVE:
+        assert pid in _LANE_SEEDED, pid
+
