@@ -347,14 +347,16 @@ def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
     h = selection_haircut(nav_df, policy_id)
     if not h:
         return ""
-    return ('<p class="pb-chartnote">Selection haircut — '
-            f'<b>{h["n_trials"]}</b> variants were tried on <b>{h["n_sessions"]}</b> sessions; '
-            f'a strategy with <i>no</i> edge would be expected to show Sharpe ≈ '
-            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> just by being the best of them. '
-            f'Probability the default\'s {h["sharpe_ann"]:.2f} beats that luck: '
-            f'<span class="val">{h["dsr"] * 100:.0f}%</span> · '
-            '<span class="lim">deflated Sharpe (Bailey &amp; López de Prado) · '
-            'in-sample until the seed date on each row</span>.</p>')
+    luck = 100 - round(h["dsr"] * 100)
+    return ('<p class="pb-chartnote"><b>How much of this is luck?</b> We tried '
+            f'<b>{h["n_trials"]}</b> versions of the rules on the same <b>{h["n_sessions"]}</b> trading days '
+            'and kept the best-looking one. A strategy with <i>no real skill</i> would still show a Sharpe of about '
+            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> just by being the luckiest of the '
+            f'{h["n_trials"]}. Ours shows <span class="val">{h["sharpe_ann"]:.2f}</span>. Best estimate: '
+            f'a <span class="val">{h["dsr"] * 100:.0f}%</span> chance it is genuinely better than luck, '
+            f'{luck}% that it is not. '
+            '<span class="lim">Everything before a row&#39;s "in-sample" date was replayed after the rules were '
+            'chosen — only trades after that date are a real test.</span></p>')
 
 
 # Settled iterations — measured, kept for the record, rendered collapsed.
