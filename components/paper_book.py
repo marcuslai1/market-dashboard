@@ -59,7 +59,16 @@ def _money(v: float) -> str:
 # block's policy_id any more: the control is charted as the muted "legacy
 # control" line instead. Falls back to the block's policy, then the legacy
 # default, when the CSV predates the default lane.
-_HEADLINE_POLICY = "v1_wide_extthesis_100_b15"
+# 2026-08-28 (owner decisions, pipeline spec 2026-08-28-paper-v2-starter-
+# default): the headline is the v2 STARTER default — the report's own
+# ACCUMULATE semantics (one starter per episode, only a BUY tops up), small/
+# mid caps at half size, idle cash in T-bills, IBKR Pro costs. The previous
+# v1 default (persistence adds, no sleeve, no fees) is charted as a dashed
+# comparator so the reader can see what the semantics change cost; the v1
+# ext-only challenger stays dashed too. Every registered iteration is listed
+# in the scorecard (owner request: "show all possible iterations").
+_HEADLINE_POLICY = "v2_starter_b15_tb_fees"
+_PREV_DEFAULT_POLICY = "v1_wide_extthesis_100_b15"
 _CHALLENGER_POLICY = "v1_wide_ext_100_b12"
 _LEGACY_POLICY = "v1_flat10"
 _DEFAULT_POLICY = _LEGACY_POLICY          # legacy name kept for callers/tests
@@ -81,6 +90,8 @@ def _policy_for(df: pd.DataFrame, block: dict) -> str | None:
     ids = set(df["policy_id"].dropna().unique())
     if _HEADLINE_POLICY in ids:
         return _HEADLINE_POLICY
+    if _PREV_DEFAULT_POLICY in ids:       # CSV predates the v2 default (08-28)
+        return _PREV_DEFAULT_POLICY
     if _LEGACY_POLICY in ids:
         return _LEGACY_POLICY
     if len(ids) == 1:
@@ -286,15 +297,31 @@ def _verdict_html(block: dict) -> str:
 # contract — which line is the default, which is the challenger, and which
 # is the old book kept only as the control. Order = display order.
 _SCORECARD_LANES = [
-    ("v1_wide_extthesis_100_b15", "Default", "wide stop · exit on extension or thesis · 15/7.5"),
-    ("v1_wide_ext_100_b12", "Challenger", "wide stop · exit on extension · 12/6"),
-    ("v1_wide_extthesis_100_b15_spy", "Default + cash sleeve", "idle cash held in SPY"),
-    ("v1_wide_extthesis_100_b15_fees", "Default with IBKR fees", "commissions, taxes, FX, slippage"),
-    ("v1_wide_extthesis_100", "wide+extthesis 10/5", "same rules, smaller sizing"),
-    ("v1_wide_ext_100", "wide+ext 10/5", "challenger rules, smaller sizing"),
+    # v2 starter family (2026-08-28): the report's own ACCUMULATE semantics
+    ("v2_starter_b15_tb_fees", "Default", "v2 starter · wide stop · exit on extension or thesis · 15/7.5 · small/mid ×½ · T-bill · IBKR fees"),
+    ("v2_starter_b15_tb_fees_mc67", "Twin · small/mid 10/5", "default with small/mid at ⅔ size"),
+    ("v2_starter_b15_tb_fees_full", "Twin · small/mid full", "default with small/mid at full size (tier control)"),
+    ("v2_starter_b15_tb_fees_mcstop", "Twin · small/mid headline stop", "default with the tighter headline stop on small/mid names"),
+    ("v2_starter_b15_regime_fees", "Twin · regime sleeve", "idle cash in SOXX while the market regime is trend-up, T-bills otherwise"),
+    ("v2_starter_b15_spy_fees", "Twin · SPY sleeve", "idle cash held in SPY instead of T-bills"),
+    ("v2_starter_b15", "Twin · bare", "starter semantics only — no sleeve, no fees"),
+    ("v2_starter_b15_all", "Theoretical · 0% borrow", "every signal funded at full size, cash may go negative at zero cost"),
+    # v1 family (persistence adds: a tranche per day ACCUMULATE persists)
+    ("v1_wide_extthesis_100_b15", "Previous default (v1)", "wide stop · exit on extension or thesis · 15/7.5 · adds on persistence"),
+    ("v1_wide_ext_100_b12", "Challenger (v1)", "wide stop · exit on extension · 12/6"),
+    ("v1_wide_extthesis_100_b15_rot", "v1 twin · rotate weakest", "when full, the weakest holding funds a new name"),
+    ("v1_wide_extthesis_100_b15_rot_top20", "v1 twin · sell +20% gainers", "when full, the largest ≥20% gainer funds a new name"),
+    ("v1_wide_extthesis_100_b15_rot_ow", "v1 twin · trim to target", "when full, only the excess above 15% funds a new name"),
+    ("v1_wide_extthesis_100_b15_lc", "v1 twin · large caps only", "never opens a small/mid name"),
+    ("v1_wide_extthesis_100_b15_spy", "v1 + SPY sleeve", "idle cash held in SPY"),
+    ("v1_wide_extthesis_100_b15_fees", "v1 + IBKR fees", "commissions, taxes, FX, slippage"),
+    ("v1_wide_extthesis_100", "v1 · 10/5", "same rules, smaller sizing"),
+    ("v1_wide_ext_100", "v1 ext-only · 10/5", "challenger rules, smaller sizing"),
+    ("v1_flat10", "Control", "the original frozen SMA50-stop book · hold through CAUTION"),
 ]
 _SCORECARD_ROLE_CLASS = {"Default": "pb-role-default",
-                         "Challenger": "pb-role-challenger"}
+                         "Previous default (v1)": "pb-role-challenger",
+                         "Challenger (v1)": "pb-role-challenger"}
 
 
 # What each scorecard column means, in one plain sentence, plus the scale a
@@ -535,7 +562,15 @@ _LANE_LABELS = {"v1_flat10": "flat", "v1_trail10": "trail",
                 "v1_tc_ext_100": "ext-exit 10/5",
                 "v1_wide_ext_100": "wide+ext 10/5",
                 "v1_wide_extthesis_100": "wide+extthesis 10/5",
-                "v1_wide_extthesis_100_b15": "default · wide+extthesis 15/7.5"}
+                "v1_wide_extthesis_100_b15": "v1 default · wide+extthesis 15/7.5",
+                "v2_starter_b15_tb_fees": "default · v2 starter",
+                "v2_starter_b15_tb_fees_mc67": "v2 · small/mid 10/5",
+                "v2_starter_b15_tb_fees_full": "v2 · small/mid full",
+                "v2_starter_b15_tb_fees_mcstop": "v2 · small/mid headline stop",
+                "v2_starter_b15_regime_fees": "v2 · regime sleeve",
+                "v2_starter_b15_spy_fees": "v2 · SPY sleeve",
+                "v2_starter_b15": "v2 · bare",
+                "v2_starter_b15_all": "v2 · 0% borrow"}
 
 
 def _lane_label(policy_id: str) -> str:
@@ -1150,17 +1185,20 @@ _CHART_SERIES = ("Paper book", "SPY", "SOXX")
 # every metric; the pipeline still accrues it as the regime-turn playbook's
 # control, which needs no chart.
 _ADVISORY_CURVES = {
+    _PREV_DEFAULT_POLICY: "Previous default · v1 wide+extthesis 15/7.5",
     _CHALLENGER_POLICY: "Challenger · wide+ext 12/6",
 }
-_ADVISORY_DASH = {"Challenger · wide+ext 12/6": "dash"}
+_ADVISORY_DASH = {"Previous default · v1 wide+extthesis 15/7.5": "dash",
+                  "Challenger · wide+ext 12/6": "dash"}
 # Reader-facing name for the solid line (the series key stays "Paper book"
 # for every downstream table/test contract).
-_HEADLINE_LEGEND = "Default · wide+extthesis 15/7.5"
+_HEADLINE_LEGEND = "Default · v2 starter 15/7.5 · T-bill · fees"
 # One neutral, one brass-tinted — variants of the subject and the benchmark, not
 # two more categories. Two arbitrary palette hues (the old sage / dusty mauve)
 # read as new series with meanings of their own. The tint is dimmed rather than
 # CHART_ACCENT itself: a replay must never be mistaken for the book.
-_ADVISORY_COLORS = {"Challenger · wide+ext 12/6": CHART_ACCENT_SOFT}
+_ADVISORY_COLORS = {"Previous default · v1 wide+extthesis 15/7.5": CHART_ACCENT_SOFT,
+                    "Challenger · wide+ext 12/6": CHART_ACCENT_SOFT}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
@@ -1349,7 +1387,7 @@ def _advisory_note_html(advisory: pd.DataFrame) -> str:
         return ""
     # Terracotta on the limitation only — it marks a trust limit, never a rating.
     return ('<p class="pb-chartnote">Solid: the default strategy. Dashed: the '
-            f'challenger ({", ".join(names)} — BUY%/add-on% of the pot) · '
+            f'previous default and the challenger ({", ".join(names)} — BUY%/add-on% of the pot) · '
             '<span class="lim">hypothesis-grade, two regime segments</span> · '
             "not the default book.</p>")
 
@@ -1359,7 +1397,7 @@ def chart_notes_compact(rebased: pd.DataFrame, advisory: pd.DataFrame | None,
     """One line under the chart; the detail rides on hover."""
     bits = ['<b>Solid</b> default']
     if advisory is not None and not advisory.empty and len(advisory.columns) > 1:
-        bits.append("<b>dashed</b> challenger")
+        bits.append("<b>dashed</b> previous default / challenger")
     if rebased is not None and "SOXX" in getattr(rebased, "columns", []):
         valid = rebased["SOXX"].dropna()
         if not valid.empty:

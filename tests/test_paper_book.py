@@ -239,7 +239,7 @@ def test_soxx_note_names_return():
 
 # ── advisory ext-exit lanes (2026-07-17 sizing-research addendum) ──
 def _adv_nav_df():
-    frames = [_nav_df("v1_wide_extthesis_100_b15")]
+    frames = [_nav_df("v2_starter_b15_tb_fees")]
     for pid, units in (("v1_wide_ext_100_b12", [1_000_000, 1_010_000]),
                        ("v1_flat10", [1_000_000, 1_040_000])):   # flat10 no longer charted
         f = _nav_df(pid)
@@ -259,13 +259,17 @@ def test_advisory_curves_rebased_per_lane():
 def test_advisory_curves_skip_missing_lanes():
     from components.paper_book import advisory_curves
     # only the challenger in the CSV (a lane seeds on its first pipeline run)
-    df = pd.concat([_nav_df("v1_wide_extthesis_100_b15"),
+    df = pd.concat([_nav_df("v2_starter_b15_tb_fees"),
                     _nav_df("v1_wide_ext_100_b12")], ignore_index=True)
     out = advisory_curves(df)
     assert list(out.columns) == ["date", "Challenger · wide+ext 12/6"]
+    # the previous v1 default is a dashed comparator since 2026-08-28
+    df = pd.concat([_nav_df("v2_starter_b15_tb_fees"),
+                    _nav_df("v1_wide_extthesis_100_b15")], ignore_index=True)
+    assert list(advisory_curves(df).columns) == ["date", "Previous default · v1 wide+extthesis 15/7.5"]
     # the retired lanes (frozen-stop ext-exit, 10/5 contenders, the old
     # v1_flat10 control) are not charted
-    df = pd.concat([_nav_df("v1_wide_extthesis_100_b15"), _nav_df("v1_tc_ext_100"),
+    df = pd.concat([_nav_df("v2_starter_b15_tb_fees"), _nav_df("v1_tc_ext_100"),
                     _nav_df("v1_tc_ext_100_b30"), _nav_df("v1_wide_ext_100"),
                     _nav_df("v1_wide_extthesis_100"), _nav_df("v1_flat10")],
                    ignore_index=True)
@@ -681,7 +685,9 @@ def _ext_trades_df():
 
 def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
     out = ext_exit_history(_ext_nav_df(), _ext_trades_df(), as_of_year=2026)
-    assert [label for label, _ in out] == ["Challenger · wide+ext 12/6"]
+    # since 2026-08-28 the v1 b15 book is a dashed comparator, so its exits
+    # are advisory history too (listed first, chart order)
+    assert [label for label, _ in out] == ["Previous default · v1 wide+extthesis 15/7.5", "Challenger · wide+ext 12/6"]
     by = dict(out)
     rows = by["Challenger · wide+ext 12/6"]
     assert len(rows) == 3
@@ -696,14 +702,17 @@ def test_ext_exit_history_scopes_to_charted_lanes_with_own_factor():
 
 def test_ext_exit_history_absent_lanes_and_empty_input():
     # only the default book trades → no advisory history at all
-    assert ext_exit_history(_ext_nav_df(), _trades_df("v1_wide_extthesis_100_b15")) == []
+    assert ext_exit_history(_ext_nav_df(), _trades_df("v2_starter_b15_tb_fees")) == []
     assert ext_exit_history(_ext_nav_df(), pd.DataFrame()) == []
     assert ext_exit_history(_ext_nav_df(), None) == []
     # one lane present, the other missing → only the present one
-    df = pd.concat([_trades_df("v1_wide_extthesis_100_b15"),
-                    _trades_df("v1_wide_ext_100_b12")], ignore_index=True)
+    df = _trades_df("v1_wide_ext_100_b12")
     out = ext_exit_history(_ext_nav_df(), df)
     assert [label for label, _ in out] == ["Challenger · wide+ext 12/6"]
+    df = pd.concat([_trades_df("v1_wide_extthesis_100_b15"),
+                    _trades_df("v1_wide_ext_100_b12")], ignore_index=True)
+    assert [label for label, _ in ext_exit_history(_ext_nav_df(), df)] == [
+        "Previous default · v1 wide+extthesis 15/7.5", "Challenger · wide+ext 12/6"]
 
 
 def test_ext_exit_stop_label_keeps_headline_wording():
@@ -864,8 +873,8 @@ def test_ext_lane_views_carry_positions_and_trades():
     nav = _ext_nav_df()
     views = ext_lane_views(nav, _ext_trades_df(),
                            _positions_df("v1_wide_ext_100_b12"), as_of_year=2026)
-    assert [v[0] for v in views] == ["Challenger · wide+ext 12/6"]
-    _label, pid, p_rows, t_rows = views[0]
+    assert [v[0] for v in views] == ["Previous default · v1 wide+extthesis 15/7.5", "Challenger · wide+ext 12/6"]
+    _label, pid, p_rows, t_rows = views[1]
     assert pid == "v1_wide_ext_100_b12"
     assert len(p_rows) == 2 and len(t_rows) == 3
 
@@ -988,7 +997,7 @@ def test_advisory_lanes_are_neutral_and_brass_not_two_more_categories():
     brass tint reads as 'variants of the subject and the benchmark'. The tint is
     NOT the subject's own brass — a replay must not look like the book."""
     from components.paper_book import _ADVISORY_COLORS
-    assert set(_ADVISORY_COLORS.values()) == {CHART_ACCENT_SOFT}   # challenger only
+    assert set(_ADVISORY_COLORS.values()) == {CHART_ACCENT_SOFT}   # comparators share one tint
     assert CHART_ACCENT not in _ADVISORY_COLORS.values()
 
 
