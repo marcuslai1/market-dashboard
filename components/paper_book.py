@@ -30,8 +30,8 @@ from lib.charts import (
     style_fig,
 )
 from lib.formatters import _escape_dollars, display_ticker
+from lib.paper_metrics import lane_nav_stats, rolling_sharpes, selection_haircut, stress_read
 from lib.paper_metrics import scorecard as _scorecard_rows
-from lib.paper_metrics import selection_haircut
 
 # Exported column → display series name. NAV is the hero series; SPY/SOXX are
 # the benchmarks the upstream summary already compares against.
@@ -358,6 +358,58 @@ def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
             f'{_residual_haircut_sentence(nav_df, policy_id)}'
             '<span class="lim">Everything before a row&#39;s "in-sample" date was replayed after the rules were '
             'chosen — only trades after that date are a real test.</span></p>')
+
+
+# ── rolling residual Sharpe + stress line (2026-08-29, pipeline §66 addendum) ─
+# One residual Sharpe over the whole window says "the signals owned +X". The
+# rolling line says whether that contribution is steady, fading or lumpy —
+# the early-warning form of the luck question. Raw rolling Sharpe rides
+# beside it, dashed, so the reader sees when the tide and the signals part.
+ROLLING_WINDOW = 30
+
+
+def rolling_fig(roll: pd.DataFrame):
+    fig = go.Figure()
+    fig.add_scatter(x=roll["date"], y=roll["raw_sharpe"], mode="lines", name="raw",
+                    line=dict(color=CHART_ACCENT_SOFT, width=_W_REPLAY, dash="dash"))
+    fig.add_scatter(x=roll["date"], y=roll["resid_sharpe"], mode="lines", name="residual",
+                    line=dict(color=CHART_ACCENT, width=_W_SUBJECT))
+    fig.add_shape(type="line", xref="paper", yref="y", x0=0, x1=1, y0=0, y1=0,
+                  line=dict(color=CHART_MUTED, width=1, dash="dot"))
+    fig.update_layout(height=170, margin=dict(l=0, r=0, t=6, b=0), showlegend=False)
+    fig.update_xaxes(showline=False, zeroline=False)
+    fig.update_yaxes(showline=False, zeroline=False, title=None)
+    return style_fig(fig)
+
+
+def rolling_note_html(roll: pd.DataFrame, stress: dict, window: int = ROLLING_WINDOW) -> str:
+    """Key line under the rolling chart: what the two lines are, the latest
+    residual reading, and the SOXX-shock stress line."""
+    if roll is None or roll.empty:
+        return ""
+    last = float(roll["resid_sharpe"].iloc[-1])
+    lo, hi = float(roll["resid_sharpe"].min()), float(roll["resid_sharpe"].max())
+    txt = (f'<p class="pb-chartnote"><b>Solid</b> Sharpe of what the signals own, rolling {window} sessions '
+           f'(market and semis moves stripped) · <b>dashed</b> raw Sharpe, same window · '
+           f'residual now <span class="val">{last:.2f}</span> (range {lo:.2f} to {hi:.2f}). '
+           'A solid line drifting to zero while the dashed one holds means the tide is doing the work.')
+    if stress:
+        txt += (f' <b>Stress:</b> a SOXX {stress["shock_pct"]:.0f}% day would move the book about '
+                f'<span class="val">{stress["book_move_pct"]:+.1f}%</span> '
+                f'(β {stress["beta_soxx"]:.2f} to SOXX, whole pot, cash included).')
+    return txt + "</p>"
+
+
+def _render_rolling_band(nav_df, policy_id: str) -> None:
+    roll = rolling_sharpes(nav_df, policy_id, ROLLING_WINDOW)
+    if roll.empty:
+        return
+    st.markdown('<p class="pb-lane-eyebrow">Is the edge holding? '
+                '<span class="pb-eyebrow-hint">rolling residual Sharpe, default lane</span></p>',
+                unsafe_allow_html=True)
+    st.plotly_chart(rolling_fig(roll), use_container_width=True, config=PLOTLY_CONFIG)
+    st.markdown(rolling_note_html(roll, stress_read(lane_nav_stats(nav_df, policy_id))),
+                unsafe_allow_html=True)
 
 
 def _residual_haircut_sentence(nav_df, policy_id: str) -> str:
@@ -1581,6 +1633,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         hc = (haircut_html(nav_df, _policy_for(nav_df, None) or _HEADLINE_POLICY)
               if _has_nav else "")
         st.markdown(sc + hc + _banner_html(block), unsafe_allow_html=True)
+        if _has_nav:
+            _render_rolling_band(nav_df, _policy_for(nav_df, None) or _HEADLINE_POLICY)
     # Settled iterations, collapsed: the record without the noise.
     archive = scorecard_html(nav_df, trades_df, positions_df,
                              lanes=_SCORECARD_ARCHIVE, benchmarks=False)

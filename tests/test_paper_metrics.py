@@ -201,3 +201,28 @@ def test_selection_haircut_residual_mode_uses_the_stripped_series():
     df2 = pd.concat([_factor_book(f"t{i}", alpha=0.0, seed=i) for i in range(12)]
                     + [_factor_book("tide", b_soxx=1.2, alpha=0.0, seed=5)], ignore_index=True)
     assert pm.selection_haircut(df2, "tide", residual=True)["dsr"] < 0.5
+
+
+def test_rolling_sharpes_track_a_fading_residual_edge():
+    # alpha in the first half only → residual rolling Sharpe falls toward 0
+    n = 120
+    a = _factor_book("f", n=n, alpha=0.003, seed=4)
+    b = _factor_book("f", n=n, alpha=0.0, seed=4)
+    df = pd.concat([a.iloc[: n // 2], b.iloc[n // 2:]], ignore_index=True)
+    df["date"] = [f"2026-{5 + i // 28:02d}-{i % 28 + 1:02d}" for i in range(n)]
+    roll = pm.rolling_sharpes(df, "f", window=30)
+    assert list(roll.columns) == ["date", "resid_sharpe", "raw_sharpe"]
+    assert len(roll) == n - 1 - 30 + 1
+    assert roll["resid_sharpe"].iloc[0] > roll["resid_sharpe"].iloc[-1]
+
+
+def test_rolling_sharpes_empty_when_short_or_flat():
+    assert pm.rolling_sharpes(_factor_book("s", n=25), "s", window=30).empty
+    assert pm.rolling_sharpes(_nav("x", [1_000_000 + i for i in range(60)]), "x").empty
+    assert pm.rolling_sharpes(None, "x").empty
+
+
+def test_stress_read_scales_the_shock_by_whole_pot_beta():
+    assert pm.stress_read({}) == {}
+    s = pm.stress_read({"beta_soxx": 0.4})
+    assert s["book_move_pct"] == pytest.approx(-4.0)

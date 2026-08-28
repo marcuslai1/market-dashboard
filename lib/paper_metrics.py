@@ -380,3 +380,55 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
         "dsr": dsr,
     }
 
+
+
+# ── rolling residual Sharpe + stress line (2026-08-29, pipeline §66 addendum) ─
+# The residual Sharpe above is ONE number over the whole window. A rolling
+# view shows whether the signals' own contribution is steady, fading or
+# lumpy — the early-warning form of the luck question. Residual uses the
+# whole-window two-factor betas (stable); the Sharpe is rolled over
+# ``window`` sessions. Raw rolling Sharpe rides beside it as the comparator.
+def rolling_sharpes(nav_df: pd.DataFrame | None, policy_id: str,
+                    window: int = 30) -> pd.DataFrame:
+    """Columns: date, resid_sharpe, raw_sharpe (annualised). Empty frame when
+    the lane is shorter than ``window`` + 1 sessions or the fit is singular."""
+    cols = ["date", "resid_sharpe", "raw_sharpe"]
+    if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
+        return pd.DataFrame(columns=cols)
+    rows = nav_df[nav_df["policy_id"] == policy_id].sort_values("date")
+    if rows.empty or not {"spy_close", "soxx_close"} <= set(rows.columns):
+        return pd.DataFrame(columns=cols)
+    df = pd.DataFrame({
+        "date": rows["date"].values,
+        "n": pd.to_numeric(rows["nav_units"], errors="coerce").pct_change().values,
+        "s": pd.to_numeric(rows["spy_close"], errors="coerce").pct_change().values,
+        "x": pd.to_numeric(rows["soxx_close"], errors="coerce").pct_change().values,
+    }).dropna()
+    if len(df) < window + 1:
+        return pd.DataFrame(columns=cols)
+    fit = _ols2(df["n"].tolist(), df["s"].tolist(), df["x"].tolist())
+    if not fit:
+        return pd.DataFrame(columns=cols)
+    df["e"] = df["n"] - fit["beta1"] * df["s"] - fit["beta2"] * df["x"]
+
+    def _sh(col):
+        mu = df[col].rolling(window).mean()
+        sd = df[col].rolling(window).std(ddof=1)
+        return (mu / sd * ANN).where(sd > 0)
+    out = pd.DataFrame({"date": pd.to_datetime(df["date"]),
+                        "resid_sharpe": _sh("e"), "raw_sharpe": _sh("n")}).dropna()
+    return out.reset_index(drop=True)
+
+
+STRESS_SHOCK_PCT = -10.0
+
+
+def stress_read(nav_stats: dict) -> dict:
+    """What a SOXX −10% day would do to the book, from the whole-pot single-
+    factor beta the scorecard already carries (same number paper_risk.py
+    prints). {} when the beta is unavailable."""
+    b = nav_stats.get("beta_soxx")
+    if b is None:
+        return {}
+    return {"shock_pct": STRESS_SHOCK_PCT, "beta_soxx": b,
+            "book_move_pct": b * STRESS_SHOCK_PCT}

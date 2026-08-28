@@ -1090,3 +1090,16 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "And after removing the market?" in hc
     assert "How much of this is luck?" in hc
+
+
+def test_rolling_band_fig_and_note():
+    from components.paper_book import rolling_fig, rolling_note_html
+    from lib.paper_metrics import rolling_sharpes, stress_read
+    from tests.test_paper_metrics import _factor_book
+    df = _factor_book("v2_starter_b15_tb_fees", alpha=0.001, seed=1)
+    roll = rolling_sharpes(df, "v2_starter_b15_tb_fees")
+    fig = rolling_fig(roll)
+    assert [t.name for t in fig.data] == ["raw", "residual"]
+    note = rolling_note_html(roll, stress_read({"beta_soxx": 0.5}))
+    assert "residual now" in note and "Stress:" in note and "-5.0%" in note
+    assert rolling_note_html(roll.iloc[0:0], {}) == ""
