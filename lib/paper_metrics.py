@@ -80,6 +80,9 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
         # the annualised intercept. One window's exit timing + cash can make
         # both low — a descriptive number, not a significance claim.
         out.update(_soxx_beta(navs, soxx, cash))
+        if "spy_close" in rows.columns:
+            out.update(factor_residual(
+                navs, pd.to_numeric(rows["spy_close"], errors="coerce"), soxx))
     frac = (cash / navs).replace([math.inf, -math.inf], math.nan).dropna()
     out["avg_cash_pct"] = float(frac.mean() * 100.0) if not frac.empty else None
     out["as_of"] = str(rows["date"].iloc[-1])
@@ -109,6 +112,81 @@ def _soxx_beta(navs: pd.Series, soxx: pd.Series, cash: pd.Series) -> dict:
             out["beta_soxx_invested"] = float(
                 ((xi - xi.mean()) * (yi - yi.mean())).sum() / vxi)
     return out
+
+
+# ── two-factor residual (2026-08-29, pipeline §66) ────────────────────────
+# Most names load on SOXX and the seeded window is a semis rally, so the raw
+# NAV cannot separate "picks well" from "was long the factor". Regress the
+# lane's daily return on SPY + SOXX, strip the factor moves (the intercept
+# stays IN the residual so cumulative residual = the book's own P&L), and
+# score the residual the way the raw series is scored. Pure-python OLS,
+# pinned to scripts/paper_factor_attribution.py. Descriptive, display-only.
+def _ols2(y: list[float], x1: list[float], x2: list[float]) -> dict:
+    n = len(y)
+    if n < 20:
+        return {}
+    m = [[float(n), sum(x1), sum(x2)],
+         [sum(x1), sum(a * a for a in x1), sum(a * b for a, b in zip(x1, x2))],
+         [sum(x2), sum(a * b for a, b in zip(x1, x2)), sum(b * b for b in x2)]]
+    v = [sum(y), sum(a * c for a, c in zip(x1, y)), sum(b * c for b, c in zip(x2, y))]
+    # 3x3 solve by Cramer's rule.
+    def det(a):
+        return (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])
+                - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0])
+                + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]))
+    d = det(m)
+    if abs(d) < 1e-18:
+        return {}
+    coef = []
+    for c in range(3):
+        mc = [row[:] for row in m]
+        for r in range(3):
+            mc[r][c] = v[r]
+        coef.append(det(mc) / d)
+    fitted = [coef[0] + coef[1] * a + coef[2] * b for a, b in zip(x1, x2)]
+    sse = sum((yy - f) ** 2 for yy, f in zip(y, fitted))
+    ybar = sum(y) / n
+    sst = sum((yy - ybar) ** 2 for yy in y)
+    return {"alpha": coef[0], "beta1": coef[1], "beta2": coef[2],
+            "r2": (1 - sse / sst) if sst > 0 else None}
+
+
+def factor_residual(navs: pd.Series, spy: pd.Series, soxx: pd.Series) -> dict:
+    """{beta_spy, beta_soxx_2f, r2_2f, alpha_2f_ann_pct, resid_ret_pct,
+    resid_sharpe, resid_max_dd_pct, resid_vol_pct} or {} when too short."""
+    df = pd.DataFrame({"n": navs.pct_change(), "s": spy.pct_change(),
+                       "x": soxx.pct_change()}).dropna()
+    df = df[(df["s"].abs() < 1) & (df["x"].abs() < 1)]
+    fit = _ols2(df["n"].tolist(), df["s"].tolist(), df["x"].tolist())
+    if not fit:
+        return {}
+    resid = (df["n"] - fit["beta1"] * df["s"] - fit["beta2"] * df["x"]).tolist()
+    cum, path = 1.0, [1.0]
+    for r in resid:
+        cum *= 1 + r
+        path.append(cum)
+    st = _series_stats(path)
+    return {
+        "beta_spy": fit["beta1"], "beta_soxx_2f": fit["beta2"], "r2_2f": fit["r2"],
+        "alpha_2f_ann_pct": fit["alpha"] * 252 * 100.0,
+        "resid_ret_pct": st.get("ret_pct"), "resid_sharpe": st.get("sharpe"),
+        "resid_max_dd_pct": st.get("max_dd_pct"), "resid_vol_pct": st.get("vol_pct"),
+    }
+
+
+def _residual_returns(nav_df: pd.DataFrame, policy_id: str) -> list[float]:
+    rows = nav_df[nav_df["policy_id"] == policy_id].sort_values("date")
+    if rows.empty or "spy_close" not in rows.columns or "soxx_close" not in rows.columns:
+        return []
+    df = pd.DataFrame({
+        "n": pd.to_numeric(rows["nav_units"], errors="coerce").pct_change(),
+        "s": pd.to_numeric(rows["spy_close"], errors="coerce").pct_change(),
+        "x": pd.to_numeric(rows["soxx_close"], errors="coerce").pct_change(),
+    }).dropna()
+    fit = _ols2(df["n"].tolist(), df["s"].tolist(), df["x"].tolist())
+    if not fit:
+        return []
+    return (df["n"] - fit["beta1"] * df["s"] - fit["beta2"] * df["x"]).tolist()
 
 
 def _r_multiple(row) -> float | None:
@@ -244,7 +322,7 @@ def _daily_returns(nav_df: pd.DataFrame, policy_id: str) -> list[float]:
 
 def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
                       trial_ids: list[str] | None = None,
-                      min_sessions: int = 30) -> dict:
+                      min_sessions: int = 30, residual: bool = False) -> dict:
     """Deflated-Sharpe read for one lane against every lane tried.
 
     Returns {} unless the lane has >= min_sessions returns and at least two
@@ -252,10 +330,14 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
     (same ANN as the scorecard); ``dsr`` is the probability the lane's Sharpe
     beats the best-of-N-by-luck benchmark; ``n_trials`` counts every lane
     with >= min_sessions returns (the benchmarks are not lanes).
+    ``residual=True`` runs the same read on every lane's two-factor RESIDUAL
+    series (SPY + SOXX stripped) — the luck question asked after the factor
+    tide is removed.
     """
     if nav_df is None or nav_df.empty or "policy_id" not in nav_df.columns:
         return {}
-    r = _daily_returns(nav_df, policy_id)
+    _rets = _residual_returns if residual else _daily_returns
+    r = _rets(nav_df, policy_id)
     T = len(r)
     if T < min_sessions:
         return {}
@@ -270,7 +352,7 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
         set(nav_df["policy_id"].dropna().unique()))
     srs = []
     for pid in ids:
-        rr = _daily_returns(nav_df, pid)
+        rr = _rets(nav_df, pid)
         if len(rr) < min_sessions:
             continue
         m = sum(rr) / len(rr)

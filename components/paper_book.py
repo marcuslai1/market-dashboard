@@ -355,8 +355,22 @@ def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
             f'{h["n_trials"]}. Ours shows <span class="val">{h["sharpe_ann"]:.2f}</span>. Best estimate: '
             f'a <span class="val">{h["dsr"] * 100:.0f}%</span> chance it is genuinely better than luck, '
             f'{luck}% that it is not. '
+            f'{_residual_haircut_sentence(nav_df, policy_id)}'
             '<span class="lim">Everything before a row&#39;s "in-sample" date was replayed after the rules were '
             'chosen — only trades after that date are a real test.</span></p>')
+
+
+def _residual_haircut_sentence(nav_df, policy_id: str) -> str:
+    """The same luck question asked AFTER the market and semis moves are
+    stripped out (two-factor residual, pipeline §66). Empty when unreadable."""
+    h = selection_haircut(nav_df, policy_id, residual=True)
+    if not h:
+        return ""
+    return ('<b>And after removing the market?</b> Strip out what SPY and SOXX did each day and the '
+            f'Sharpe of what is left is <span class="val">{h["sharpe_ann"]:.2f}</span> against a luck-only '
+            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> — a '
+            f'<span class="val">{h["dsr"] * 100:.0f}%</span> chance the signals themselves beat luck. '
+            'That is the number to watch. ')
 
 
 # Settled iterations — measured, kept for the record, rendered collapsed.
@@ -403,6 +417,10 @@ _METRIC_HELP = {
              "Under 0.3% over four months is immaterial; slippage sits in the fill prices."),
     "β SOXX": ("How much the book moves with the semiconductor index — whole pot / per invested dollar.",
                "1.0 = it is the index. Low over one window can be exit timing and cash, not skill: descriptive, not proof."),
+    "Resid Sharpe": ("Sharpe of what is LEFT after the market (SPY) and the semis index (SOXX) moves are stripped out — the part the signals own.",
+                     "Near 0 = the book is its index exposure with extra steps. Read it beside the raw Sharpe: a big gap means the tide did the work."),
+    "Resid DD": ("Worst peak-to-trough fall of the residual curve — the drawdown the book's OWN decisions caused, not the market's.",
+                 "Can be deeper than the raw Max DD when the market bailed the book out; shallower when the market caused the dip."),
     "Worst pos": ("The deepest fall any currently held name has taken from its peak while held.",
                   "The pain the portfolio drawdown hides — a wide stop means sitting through −15 to −25% on single names."),
 }
@@ -464,7 +482,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
     head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
-        "NAV", "Sharpe", "Max DD", "Worst pos", "β SOXX", "Win", "Expectancy",
+        "NAV", "Sharpe", "Max DD", "Resid Sharpe", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
         "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
     body = ""
     for r in rows:
@@ -478,6 +496,8 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(r.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
+            f'<td>{_fmt_num(r.get("resid_sharpe"))}</td>'
+            f'<td>{_fmt_pct(r.get("resid_max_dd_pct"))}</td>'
             f'<td>{_fmt_pct(r.get("worst_open_dd_pct"))}</td>'
             f'<td>{_fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested"))}</td>'
             f'<td>{_fmt_pct(r.get("win_rate_pct"), plus=False, d=0)}</td>'
@@ -496,7 +516,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_pct(spy.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(spy.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 9 + "</tr>"
+            + "<td>—</td>" * 11 + "</tr>"
         )
     if soxx:
         body += (
@@ -505,7 +525,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_pct(soxx.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(soxx.get("sharpe"))}</td>'
             f'<td>{_fmt_pct(soxx.get("max_dd_pct"))}</td>'
-            "<td>—</td><td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
+            + "<td>—</td>" * 3 + "<td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
         )
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '

@@ -144,3 +144,60 @@ def test_selection_haircut_silent_when_short_or_alone():
     assert pm.selection_haircut(_walk("a", 90, 0.0, 1), "a") == {}     # one trial
     assert pm.selection_haircut(None, "a") == {}
 
+
+
+# ── two-factor residual (pipeline §66, 2026-08-29) ────────────────────────
+def _factor_book(pid, n=90, b_spy=0.5, b_soxx=0.3, alpha=0.0005, seed=7):
+    """NAV that is a known SPY/SOXX load plus alpha; SPY and SOXX walk."""
+    import random
+    rng = random.Random(seed)
+    spy, soxx, nav = [500.0], [200.0], [1_000_000.0]
+    for _ in range(n - 1):
+        rs = rng.gauss(0.0004, 0.01)
+        rx = 0.8 * rs + rng.gauss(0.0, 0.012)
+        spy.append(spy[-1] * (1 + rs))
+        soxx.append(soxx[-1] * (1 + rx))
+        nav.append(nav[-1] * (1 + alpha + b_spy * rs + b_soxx * rx))
+    return pd.DataFrame({"policy_id": [pid] * n,
+                         "date": [f"2026-{5 + i // 28:02d}-{i % 28 + 1:02d}" for i in range(n)],
+                         "nav_units": nav, "cash_units": [0] * n, "n_positions": [1] * n,
+                         "spy_close": spy, "soxx_close": soxx, "sleeve_units": [None] * n})
+
+
+def test_factor_residual_recovers_the_load_and_strips_it():
+    out = pm.lane_nav_stats(_factor_book("f"), "f")
+    assert out["beta_spy"] == pytest.approx(0.5, abs=0.02)
+    assert out["beta_soxx_2f"] == pytest.approx(0.3, abs=0.02)
+    assert out["r2_2f"] > 0.99
+    # residual keeps the alpha: ~0.05%/day over 89 days ≈ +4.5%
+    assert out["resid_ret_pct"] == pytest.approx(4.5, abs=0.5)
+    assert out["resid_sharpe"] > out["sharpe"]          # the noise was the factor
+    assert out["resid_max_dd_pct"] == pytest.approx(0.0, abs=0.01)
+
+
+def test_factor_residual_is_zero_for_a_pure_index_tracker():
+    out = pm.lane_nav_stats(_factor_book("t", b_spy=0.0, b_soxx=1.0, alpha=0.0), "t")
+    assert out["beta_soxx_2f"] == pytest.approx(1.0, abs=1e-6)
+    assert out["resid_ret_pct"] == pytest.approx(0.0, abs=1e-6)
+    assert out["resid_vol_pct"] < 1e-6            # residual is float noise only
+
+
+def test_factor_residual_silent_on_flat_benchmarks_or_short_series():
+    out = pm.lane_nav_stats(_nav("x", [1_000_000 + i for i in range(30)]), "x")
+    assert "resid_sharpe" not in out          # flat SPY/SOXX → singular design
+    out = pm.lane_nav_stats(_factor_book("s", n=10), "s")
+    assert "resid_sharpe" not in out
+
+
+def test_selection_haircut_residual_mode_uses_the_stripped_series():
+    df = pd.concat([_factor_book(f"t{i}", alpha=0.0, seed=i) for i in range(12)]
+                   + [_factor_book("edge", alpha=0.002, seed=99)], ignore_index=True)
+    raw = pm.selection_haircut(df, "edge")
+    res = pm.selection_haircut(df, "edge", residual=True)
+    assert raw["n_trials"] == res["n_trials"] == 13
+    assert res["sharpe_ann"] != raw["sharpe_ann"]
+    assert res["dsr"] > 0.5                    # a real residual edge survives the haircut
+    # a factor-only book has no residual edge
+    df2 = pd.concat([_factor_book(f"t{i}", alpha=0.0, seed=i) for i in range(12)]
+                    + [_factor_book("tide", b_soxx=1.2, alpha=0.0, seed=5)], ignore_index=True)
+    assert pm.selection_haircut(df2, "tide", residual=True)["dsr"] < 0.5

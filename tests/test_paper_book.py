@@ -1073,3 +1073,20 @@ def test_haircut_line_and_seeded_tag():
     for pid, _r, _d in _SCORECARD_LANES + _SCORECARD_ARCHIVE:
         assert pid in _LANE_SEEDED, pid
 
+
+
+def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_sentence():
+    from components.paper_book import scorecard_html, haircut_html
+    from tests.test_paper_metrics import _factor_book
+    lanes = [("v2_starter_b15_tb_fees", "Default", "d"), ("v1_flat10", "Control", "c")]
+    df = pd.concat([_factor_book("v2_starter_b15_tb_fees", alpha=0.001, seed=1),
+                    _factor_book("v1_flat10", alpha=0.0, seed=2)], ignore_index=True)
+    html = scorecard_html(df, None, None, lanes=lanes)
+    assert "Resid Sharpe" in html and "Resid DD" in html
+    # benchmark rows keep the column count (SOXX beta cell still lands under β SOXX)
+    rows = html.split("<tr")[1:]
+    assert len(rows) == 1 + 2 + 2
+    assert all(r.count("<td") == 15 for r in rows[1:])
+    hc = haircut_html(df, "v2_starter_b15_tb_fees")
+    assert "And after removing the market?" in hc
+    assert "How much of this is luck?" in hc
