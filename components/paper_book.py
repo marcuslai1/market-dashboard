@@ -297,27 +297,32 @@ def _verdict_html(block: dict) -> str:
 # contract — which line is the default, which is the challenger, and which
 # is the old book kept only as the control. Order = display order.
 _SCORECARD_LANES = [
-    # v2 starter family (2026-08-28): the report's own ACCUMULATE semantics
+    # Each row answers a question that is still OPEN (owner cut 2026-08-28:
+    # "surely some aren't relevant any more"). Settled lanes live in
+    # _SCORECARD_ARCHIVE and render inside a collapsed drawer — they keep
+    # accruing upstream for their pre-registered reads; only the display moves.
     ("v2_starter_b15_tb_fees", "Default", "v2 starter · wide stop · exit on extension or thesis · 15/7.5 · small/mid ×½ · T-bill · IBKR fees"),
-    ("v2_starter_b15_tb_fees_mc67", "Twin · small/mid 10/5", "default with small/mid at ⅔ size"),
-    ("v2_starter_b15_tb_fees_full", "Twin · small/mid full", "default with small/mid at full size (tier control)"),
-    ("v2_starter_b15_tb_fees_mcstop", "Twin · small/mid headline stop", "default with the tighter headline stop on small/mid names"),
-    ("v2_starter_b15_regime_fees", "Twin · regime sleeve", "idle cash in SOXX while the market regime is trend-up, T-bills otherwise"),
-    ("v2_starter_b15_spy_fees", "Twin · SPY sleeve", "idle cash held in SPY instead of T-bills"),
-    ("v2_starter_b15", "Twin · bare", "starter semantics only — no sleeve, no fees"),
+    ("v2_starter_b15_tb_fees_mcstop", "Twin · small/mid headline stop", "mechanism test: the tighter headline stop on small/mid names"),
+    ("v2_starter_b15_regime_fees", "Twin · regime sleeve", "mechanism test: idle cash in SOXX while the regime is trend-up, T-bills otherwise"),
+    ("v2_starter_b15_tb_fees_full", "Twin · small/mid full size", "tier control: is half-size doing anything?"),
     ("v2_starter_b15_all", "Theoretical · 0% borrow", "every signal funded at full size, cash may go negative at zero cost"),
-    # v1 family (persistence adds: a tranche per day ACCUMULATE persists)
-    ("v1_wide_extthesis_100_b15", "Previous default (v1)", "wide stop · exit on extension or thesis · 15/7.5 · adds on persistence"),
-    ("v1_wide_ext_100_b12", "Challenger (v1)", "wide stop · exit on extension · 12/6"),
-    ("v1_wide_extthesis_100_b15_rot", "v1 twin · rotate weakest", "when full, the weakest holding funds a new name"),
-    ("v1_wide_extthesis_100_b15_rot_top20", "v1 twin · sell +20% gainers", "when full, the largest ≥20% gainer funds a new name"),
-    ("v1_wide_extthesis_100_b15_rot_ow", "v1 twin · trim to target", "when full, only the excess above 15% funds a new name"),
-    ("v1_wide_extthesis_100_b15_lc", "v1 twin · large caps only", "never opens a small/mid name"),
-    ("v1_wide_extthesis_100_b15_spy", "v1 + SPY sleeve", "idle cash held in SPY"),
-    ("v1_wide_extthesis_100_b15_fees", "v1 + IBKR fees", "commissions, taxes, FX, slippage"),
-    ("v1_wide_extthesis_100", "v1 · 10/5", "same rules, smaller sizing"),
-    ("v1_wide_ext_100", "v1 ext-only · 10/5", "challenger rules, smaller sizing"),
+    ("v1_wide_extthesis_100_b15", "Previous default (v1)", "same rules with adds on persistence — what the starter semantics cost"),
+    ("v1_wide_ext_100_b12", "Challenger (v1)", "extension exit only · 12/6 — do the model's thesis downgrades add anything?"),
+    ("v1_wide_extthesis_100_b15_lc", "v1 · large caps only", "never opens a small/mid name — the exclude answer to the tier question"),
     ("v1_flat10", "Control", "the original frozen SMA50-stop book · hold through CAUTION"),
+]
+# Settled iterations — measured, kept for the record, rendered collapsed.
+_SCORECARD_ARCHIVE = [
+    ("v2_starter_b15_tb_fees_mc67", "v2 · small/mid 10/5", "third point on the tier line (monotone with full and half)"),
+    ("v2_starter_b15_spy_fees", "v2 · SPY sleeve", "idle cash in SPY — +5 pp is benchmark beta relabelled"),
+    ("v2_starter_b15", "v2 · bare", "no sleeve, no fees — the sleeve/fees effect is ~0.5 pp"),
+    ("v1_wide_extthesis_100_b15_rot", "v1 · rotate weakest", "moot under starter semantics — the cash cap never binds"),
+    ("v1_wide_extthesis_100_b15_rot_top20", "v1 · sell +20% gainers", "banked R up, NAV down — profit-taking rule, not supported"),
+    ("v1_wide_extthesis_100_b15_rot_ow", "v1 · trim to target", "between the two above; one funded trade, a loser"),
+    ("v1_wide_extthesis_100_b15_spy", "v1 + SPY sleeve", "idle cash in SPY"),
+    ("v1_wide_extthesis_100_b15_fees", "v1 + IBKR fees", "commissions, taxes, FX, slippage ≈ 0.15%"),
+    ("v1_wide_extthesis_100", "v1 · 10/5", "same rules, smaller sizing — idles ~60% of the pot"),
+    ("v1_wide_ext_100", "v1 ext-only · 10/5", "challenger rules, smaller sizing"),
 ]
 _SCORECARD_ROLE_CLASS = {"Default": "pb-role-default",
                          "Previous default (v1)": "pb-role-challenger",
@@ -397,15 +402,19 @@ def _fmt_beta(port, invested):
     return f"{s} <small>/ {invested:.2f}</small>" if invested is not None else s
 
 
-def scorecard_html(nav_df, trades_df, positions_df) -> str:
-    """The metrics the book is judged on, one row per lane + SPY."""
+def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
+                   benchmarks: bool = True) -> str:
+    """The metrics the book is judged on, one row per lane + SPY/SOXX.
+    ``lanes`` defaults to the open-question set; the archive drawer passes
+    _SCORECARD_ARCHIVE with ``benchmarks=False``."""
+    lanes = _SCORECARD_LANES if lanes is None else lanes
     rows = _scorecard_rows(nav_df, trades_df, positions_df,
-                           [pid for pid, _r, _d in _SCORECARD_LANES])
+                           [pid for pid, _r, _d in lanes])
     if not rows:
         return ""
-    meta = {pid: (role, desc) for pid, role, desc in _SCORECARD_LANES}
-    spy = next((r.get("spy") for r in rows if r.get("spy")), None)
-    soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None)
+    meta = {pid: (role, desc) for pid, role, desc in lanes}
+    spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
+    soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
     head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
         "NAV", "Sharpe", "Max DD", "Worst pos", "β SOXX", "Win", "Expectancy",
         "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
@@ -1495,6 +1504,14 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     sc = scorecard_html(nav_df, trades_df, positions_df)
     if sc or block:
         st.markdown(sc + _banner_html(block), unsafe_allow_html=True)
+    # Settled iterations, collapsed: the record without the noise.
+    archive = scorecard_html(nav_df, trades_df, positions_df,
+                             lanes=_SCORECARD_ARCHIVE, benchmarks=False)
+    if archive:
+        with st.expander(f"All registered iterations — {len(_SCORECARD_ARCHIVE)} "
+                         "settled lanes (measured, kept for the record)",
+                         expanded=False):
+            st.markdown(archive, unsafe_allow_html=True)
     if pos_v2_rows:
         # positions CSV present → the shares/cost-basis view supersedes the
         # block table (addendum 2); the block stays the fallback contract.
