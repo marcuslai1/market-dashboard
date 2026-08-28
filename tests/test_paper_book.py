@@ -1076,7 +1076,7 @@ def test_haircut_line_and_seeded_tag():
 
 
 def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_sentence():
-    from components.paper_book import scorecard_html, haircut_html
+    from components.paper_book import haircut_html, scorecard_html
     from tests.test_paper_metrics import _factor_book
     lanes = [("v2_starter_b15_tb_fees", "Default", "d"), ("v1_flat10", "Control", "c")]
     df = pd.concat([_factor_book("v2_starter_b15_tb_fees", alpha=0.001, seed=1),

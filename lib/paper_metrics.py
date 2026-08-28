@@ -125,10 +125,12 @@ def _ols2(y: list[float], x1: list[float], x2: list[float]) -> dict:
     n = len(y)
     if n < 20:
         return {}
-    m = [[float(n), sum(x1), sum(x2)],
-         [sum(x1), sum(a * a for a in x1), sum(a * b for a, b in zip(x1, x2))],
-         [sum(x2), sum(a * b for a, b in zip(x1, x2)), sum(b * b for b in x2)]]
-    v = [sum(y), sum(a * c for a, c in zip(x1, y)), sum(b * c for b, c in zip(x2, y))]
+    idx = range(n)
+    s11 = sum(x1[i] * x1[i] for i in idx)
+    s12 = sum(x1[i] * x2[i] for i in idx)
+    s22 = sum(x2[i] * x2[i] for i in idx)
+    m = [[float(n), sum(x1), sum(x2)], [sum(x1), s11, s12], [sum(x2), s12, s22]]
+    v = [sum(y), sum(x1[i] * y[i] for i in idx), sum(x2[i] * y[i] for i in idx)]
     # 3x3 solve by Cramer's rule.
     def det(a):
         return (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])
@@ -143,8 +145,8 @@ def _ols2(y: list[float], x1: list[float], x2: list[float]) -> dict:
         for r in range(3):
             mc[r][c] = v[r]
         coef.append(det(mc) / d)
-    fitted = [coef[0] + coef[1] * a + coef[2] * b for a, b in zip(x1, x2)]
-    sse = sum((yy - f) ** 2 for yy, f in zip(y, fitted))
+    fitted = [coef[0] + coef[1] * x1[i] + coef[2] * x2[i] for i in idx]
+    sse = sum((y[i] - fitted[i]) ** 2 for i in idx)
     ybar = sum(y) / n
     sst = sum((yy - ybar) ** 2 for yy in y)
     return {"alpha": coef[0], "beta1": coef[1], "beta2": coef[2],
