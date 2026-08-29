@@ -341,25 +341,6 @@ def _seeded_tag(policy_id: str) -> str:
             f'in-sample to {d.day} {d:%b}</span>')
 
 
-def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
-    """One plain-language line: how much of the headline Sharpe is selection.
-    Empty when the lane is too short or there is nothing to compare against."""
-    h = selection_haircut(nav_df, policy_id)
-    if not h:
-        return ""
-    luck = 100 - round(h["dsr"] * 100)
-    return ('<p class="pb-chartnote"><b>How much of this is luck?</b> We tried '
-            f'<b>{h["n_trials"]}</b> versions of the rules on the same <b>{h["n_sessions"]}</b> trading days '
-            'and kept the best-looking one. A strategy with <i>no real skill</i> would still show a Sharpe of about '
-            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> just by being the luckiest of the '
-            f'{h["n_trials"]}. Ours shows <span class="val">{h["sharpe_ann"]:.2f}</span>. Best estimate: '
-            f'a <span class="val">{h["dsr"] * 100:.0f}%</span> chance it is genuinely better than luck, '
-            f'{luck}% that it is not. '
-            f'{_residual_haircut_sentence(nav_df, policy_id)}'
-            '<span class="lim">Everything before a row&#39;s "in-sample" date was replayed after the rules were '
-            'chosen — only trades after that date are a real test.</span></p>')
-
-
 # ── rolling residual Sharpe + stress line (2026-08-29, pipeline §66 addendum) ─
 # One residual Sharpe over the whole window says "the signals owned +X". The
 # rolling line says whether that contribution is steady, fading or lumpy —
@@ -412,17 +393,39 @@ def _render_rolling_band(nav_df, policy_id: str) -> None:
                 unsafe_allow_html=True)
 
 
-def _residual_haircut_sentence(nav_df, policy_id: str) -> str:
-    """The same luck question asked AFTER the market and semis moves are
-    stripped out (two-factor residual, pipeline §66). Empty when unreadable."""
-    h = selection_haircut(nav_df, policy_id, residual=True)
+def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
+    """One plain-language block: how much of the headline is selection luck.
+    Leads with the RESIDUAL read (market and semis moves stripped — the
+    honest number, pipeline §66) and keeps the raw read as the comparison.
+    Empty when the lane is too short or there is nothing to compare against."""
+    h = selection_haircut(nav_df, policy_id)
     if not h:
         return ""
-    return ('<b>And after removing the market?</b> Strip out what SPY and SOXX did each day and the '
-            f'Sharpe of what is left is <span class="val">{h["sharpe_ann"]:.2f}</span> against a luck-only '
-            f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> — a '
-            f'<span class="val">{h["dsr"] * 100:.0f}%</span> chance the signals themselves beat luck. '
-            'That is the number to watch. ')
+    r = selection_haircut(nav_df, policy_id, residual=True)
+    head = ('<p class="pb-chartnote"><b>How much of this is luck?</b> We tried '
+            f'<b>{h["n_trials"]}</b> versions of the rules on the same <b>{h["n_sessions"]}</b> trading days '
+            'and kept the best-looking one, so some of the result is selection. ')
+    if r:
+        luck = 100 - round(r["dsr"] * 100)
+        body = ('The number to watch is the one with the market removed: strip out what SPY and SOXX did '
+                'each day and the Sharpe of what the signals themselves own is '
+                f'<span class="val">{r["sharpe_ann"]:.2f}</span>. A strategy with <i>no real skill</i> would '
+                f'still reach about <span class="val">{r["lucky_best_sharpe_ann"]:.2f}</span> by being the '
+                f'luckiest of the {r["n_trials"]}. Best estimate: a <span class="val">{r["dsr"] * 100:.0f}%</span> '
+                f'chance the signals beat luck, {luck}% that they do not. '
+                f'<span class="lim">Before stripping the market the raw Sharpe reads {h["sharpe_ann"]:.2f} '
+                f'against a luck-only {h["lucky_best_sharpe_ann"]:.2f} ({h["dsr"] * 100:.0f}%) — flattered, '
+                'because every version rode the same rally.</span> ')
+    else:
+        luck = 100 - round(h["dsr"] * 100)
+        body = ('A strategy with <i>no real skill</i> would still show a Sharpe of about '
+                f'<span class="val">{h["lucky_best_sharpe_ann"]:.2f}</span> just by being the luckiest of the '
+                f'{h["n_trials"]}. Ours shows <span class="val">{h["sharpe_ann"]:.2f}</span>. Best estimate: '
+                f'a <span class="val">{h["dsr"] * 100:.0f}%</span> chance it is genuinely better than luck, '
+                f'{luck}% that it is not. ')
+    return (head + body
+            + '<span class="lim">Everything before a row&#39;s "in-sample" date was replayed after the rules '
+              'were chosen — only trades after that date are a real test.</span></p>')
 
 
 # Settled iterations — measured, kept for the record, rendered collapsed.

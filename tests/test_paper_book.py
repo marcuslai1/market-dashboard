@@ -1088,7 +1088,7 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert len(rows) == 1 + 2 + 2
     assert all(r.count("<td") == 15 for r in rows[1:])
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
-    assert "And after removing the market?" in hc
+    assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc
 
 
