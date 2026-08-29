@@ -1083,10 +1083,11 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
                     _factor_book("v1_flat10", alpha=0.0, seed=2)], ignore_index=True)
     html = scorecard_html(df, None, None, lanes=lanes)
     assert "Resid Sharpe" in html and "Resid DD" in html
+    assert "Sortino" in html and "Calmar" in html and "Resid Calmar" in html
     # benchmark rows keep the column count (SOXX beta cell still lands under β SOXX)
     rows = html.split("<tr")[1:]
     assert len(rows) == 1 + 2 + 2
-    assert all(r.count("<td") == 15 for r in rows[1:])
+    assert all(r.count("<td") == 19 for r in rows[1:])
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc

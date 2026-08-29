@@ -472,6 +472,14 @@ _METRIC_HELP = {
              "Under 0.3% over four months is immaterial; slippage sits in the fill prices."),
     "β SOXX": ("How much the book moves with the semiconductor index — whole pot / per invested dollar.",
                "1.0 = it is the index. Low over one window can be exit timing and cash, not skill: descriptive, not proof."),
+    "Sortino": ("Like Sharpe, but only DOWN days count as risk — big up days are not penalised.",
+                "Under 1 weak · 1–3 good · 3–5 strong · over 5 exceptional. Usually sits above Sharpe; a big gap means the wobble was mostly upside."),
+    "Calmar": ("Yearly return divided by the worst fall — how much you earned per unit of pain you sat through.",
+               "Under 1 poor · 1–3 good · over 3 strong for a stock book. Short windows inflate it badly (4 months annualised) — compare lanes, do not trust the level."),
+    "Resid Sortino": ("Sortino of what the signals own after the market and semis moves are stripped out.",
+                      "Same scale as Sortino. Read it beside the raw one: a big drop means the market absorbed the down days for you."),
+    "Resid Calmar": ("Calmar of the residual curve — the signals' own return per unit of the drawdown their own decisions caused.",
+                     "Same scale as Calmar, same short-window warning. Above the raw Calmar = the market caused the dips, not the signals."),
     "Resid Sharpe": ("Sharpe of what is LEFT after the market (SPY) and the semis index (SOXX) moves are stripped out — the part the signals own.",
                      "Near 0 = the book is its index exposure with extra steps. Read it beside the raw Sharpe: a big gap means the tide did the work."),
     "Resid DD": ("Worst peak-to-trough fall of the residual curve — the drawdown the book's OWN decisions caused, not the market's.",
@@ -537,7 +545,8 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
     head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
-        "NAV", "Sharpe", "Max DD", "Resid Sharpe", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
+        "NAV", "Sharpe", "Sortino", "Calmar", "Max DD",
+        "Resid Sharpe", "Resid Sortino", "Resid Calmar", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
         "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
     body = ""
     for r in rows:
@@ -550,8 +559,12 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<small>{_escape_dollars(desc)}</small>{_seeded_tag(r["policy_id"])}</td>'
             f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(r.get("sharpe"))}</td>'
+            f'<td>{_fmt_num(r.get("sortino"))}</td>'
+            f'<td>{_fmt_num(r.get("calmar"), 1)}</td>'
             f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
             f'<td>{_fmt_num(r.get("resid_sharpe"))}</td>'
+            f'<td>{_fmt_num(r.get("resid_sortino"))}</td>'
+            f'<td>{_fmt_num(r.get("resid_calmar"), 1)}</td>'
             f'<td>{_fmt_pct(r.get("resid_max_dd_pct"))}</td>'
             f'<td>{_fmt_pct(r.get("worst_open_dd_pct"))}</td>'
             f'<td>{_fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested"))}</td>'
@@ -570,8 +583,10 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             "<small>benchmark · same window</small></td>"
             f'<td>{_fmt_pct(spy.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(spy.get("sharpe"))}</td>'
+            f'<td>{_fmt_num(spy.get("sortino"))}</td>'
+            f'<td>{_fmt_num(spy.get("calmar"), 1)}</td>'
             f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 11 + "</tr>"
+            + "<td>—</td>" * 13 + "</tr>"
         )
     if soxx:
         body += (
@@ -579,8 +594,10 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             "<small>semis index · the factor most names load on</small></td>"
             f'<td>{_fmt_pct(soxx.get("ret_pct"))}</td>'
             f'<td>{_fmt_num(soxx.get("sharpe"))}</td>'
+            f'<td>{_fmt_num(soxx.get("sortino"))}</td>'
+            f'<td>{_fmt_num(soxx.get("calmar"), 1)}</td>'
             f'<td>{_fmt_pct(soxx.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 3 + "<td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
+            + "<td>—</td>" * 5 + "<td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
         )
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '

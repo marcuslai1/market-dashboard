@@ -226,3 +226,13 @@ def test_stress_read_scales_the_shock_by_whole_pot_beta():
     assert pm.stress_read({}) == {}
     s = pm.stress_read({"beta_soxx": 0.4})
     assert s["book_move_pct"] == pytest.approx(-4.0)
+
+
+def test_calmar_is_annualised_return_over_max_drawdown():
+    navs = [100.0, 110.0, 99.0, 121.0]        # +21% total, worst fall −10%
+    st = pm._series_stats(navs)
+    ann = 1.21 ** (252 / 3) - 1
+    assert st["calmar"] == pytest.approx(ann / 0.10)
+    assert pm._series_stats([100.0, 101.0, 102.0, 103.0])["calmar"] is None   # no drawdown
+    out = pm.lane_nav_stats(_factor_book("f"), "f")
+    assert "resid_sortino" in out and "resid_calmar" in out

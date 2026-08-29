@@ -43,11 +43,17 @@ def _series_stats(vals: list[float]) -> dict:
     for v in vals:
         peak = max(peak, v)
         mdd = min(mdd, v / peak - 1)
+    total = vals[-1] / vals[0]
+    # Calmar (2026-08-29): annualised return over the worst peak-to-trough
+    # fall — return per unit of the pain actually sat through.
+    ann_ret = total ** (252.0 / n) - 1.0 if n and total > 0 else None
+    calmar = (ann_ret / abs(mdd)) if (ann_ret is not None and mdd < 0) else None
     return {
-        "ret_pct": (vals[-1] / vals[0] - 1) * 100.0,
+        "ret_pct": (total - 1) * 100.0,
         "vol_pct": sd * ANN * 100.0,
         "sharpe": (mu / sd * ANN) if sd else None,
         "sortino": (mu / dsd * ANN) if dsd else None,
+        "calmar": calmar,
         "max_dd_pct": mdd * 100.0,
         "n_sessions": len(vals),
     }
@@ -172,6 +178,7 @@ def factor_residual(navs: pd.Series, spy: pd.Series, soxx: pd.Series) -> dict:
         "beta_spy": fit["beta1"], "beta_soxx_2f": fit["beta2"], "r2_2f": fit["r2"],
         "alpha_2f_ann_pct": fit["alpha"] * 252 * 100.0,
         "resid_ret_pct": st.get("ret_pct"), "resid_sharpe": st.get("sharpe"),
+        "resid_sortino": st.get("sortino"), "resid_calmar": st.get("calmar"),
         "resid_max_dd_pct": st.get("max_dd_pct"), "resid_vol_pct": st.get("vol_pct"),
     }
 
