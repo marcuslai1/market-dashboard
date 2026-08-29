@@ -1,5 +1,11 @@
 # Visual regression tests
 
+> **On-demand since 2026-08-29.** The Visual workflow no longer runs on push —
+> it runs on `workflow_dispatch` and a weekly Monday sweep. UI changes are
+> verified by eye; the AppTest / DOM suites in `CI` are the gate for crashes.
+> Regenerate baselines only when you want a new answer key (before/after a
+> deliberate redesign), not per change.
+
 Full-page screenshots of every dashboard page (and four key interactive states),
 pixel-diffed against committed baselines. Everything runs inside the pinned
 Playwright image `mcr.microsoft.com/playwright/python:v1.60.0-jammy` so rendering

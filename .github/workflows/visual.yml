@@ -1,18 +1,18 @@
 name: Visual
 
 on:
-  pull_request:
-  push:
-    branches: [main]
-    # The suite renders the repo's LIVE data/ snapshot, so the pipeline's daily
-    # data-only "Update YYYY-MM-DD" pushes diff by construction (new report ->
-    # new masthead issue no. / briefing content / longer paper curve) and were
-    # keeping this workflow permanently red — which buries real UI regressions.
-    # Skip data-only pushes; code pushes still run, and each intentional UI
-    # change regenerates baselines against then-current data (see
-    # tests/visual/README.md). PRs are unaffected.
-    paths-ignore:
-      - "data/**"
+  # ON-DEMAND since 2026-08-29 (owner decision): the pixel-diff is no longer a
+  # push gate. Every UI change is eyeballed locally, and the crash class of
+  # regression (page throws, section vanishes) is caught by the fast AppTest /
+  # DOM suites in `CI`. In two months as a gate this job never caught a
+  # regression a human had not already seen, cost ~16 min of Docker regen per
+  # visible change, and went chronically red once (07-09). Run it by hand
+  # before a big refactor, or let the weekly sweep flag drift; regenerate
+  # baselines (VISUAL_UPDATE=1 in the pinned image) only when you actually
+  # want a new answer key.
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"   # Mondays 03:00 UTC — weekly drift sweep
 
 jobs:
   visual:
