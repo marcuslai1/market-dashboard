@@ -544,7 +544,15 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     meta = {pid: (role, desc) for pid, role, desc in lanes}
     spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
-    head = ("<tr><th>Lane</th>" + "".join(_th(n) for n in (
+    # Group-title row (owner ask 2026-08-29): four readable blocks instead
+    # of a 19-column wall. Widths must track the column list below.
+    groups = (("", 1), ("Return &amp; smoothness", 5), ("Market removed", 4),
+              ("Where risk hides", 2), ("Trade quality", 7))
+    group_row = ('<tr class="pb-sc-group">'
+                 + "".join(f'<th colspan="{n}" class="pb-sc-group-blank"></th>' if not t
+                           else f'<th colspan="{n}">{t}</th>' for t, n in groups)
+                 + "</tr>")
+    head = (group_row + "<tr><th>Lane</th>" + "".join(_th(n) for n in (
         "NAV", "Sharpe", "Sortino", "Calmar", "Max DD",
         "Resid Sharpe", "Resid Sortino", "Resid Calmar", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
         "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")

@@ -1086,8 +1086,13 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert "Sortino" in html and "Calmar" in html and "Resid Calmar" in html
     # benchmark rows keep the column count (SOXX beta cell still lands under β SOXX)
     rows = html.split("<tr")[1:]
-    assert len(rows) == 1 + 2 + 2
-    assert all(r.count("<td") == 19 for r in rows[1:])
+    assert len(rows) == 1 + 1 + 2 + 2               # group row + header + lanes + benchmarks
+    assert 'class="pb-sc-group"' in rows[0]
+    import re
+    spans = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[0])]
+    assert spans == [1, 5, 4, 2, 7] and sum(spans) == 19
+    assert "Return &amp; smoothness" in rows[0] and "Trade quality" in rows[0]
+    assert all(r.count("<td") == 19 for r in rows[2:])
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc
