@@ -1091,7 +1091,8 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     import re
     spans = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[0])]
     assert spans == [1, 5, 4, 2, 7] and sum(spans) == 19
-    assert "Return &amp; smoothness" in rows[0] and "Trade quality" in rows[0]
+    assert "market included" in rows[0] and "market stripped out" in rows[0]
+    assert "Hidden exposure" in rows[0] and "Trade quality" in rows[0]
     assert all(r.count("<td") == 19 for r in rows[2:])
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc

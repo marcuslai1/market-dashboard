@@ -546,8 +546,11 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
     # Group-title row (owner ask 2026-08-29): four readable blocks instead
     # of a 19-column wall. Widths must track the column list below.
-    groups = (("", 1), ("Return &amp; smoothness", 5), ("Market removed", 4),
-              ("Where risk hides", 2), ("Trade quality", 7))
+    groups = (("", 1),
+              ("Raw results · market included", 5),
+              ("Signals&#39; own results · market stripped out", 4),
+              ("Hidden exposure · single names &amp; the index", 2),
+              ("Trade quality", 7))
     group_row = ('<tr class="pb-sc-group">'
                  + "".join(f'<th colspan="{n}" class="pb-sc-group-blank"></th>' if not t
                            else f'<th colspan="{n}">{t}</th>' for t, n in groups)
