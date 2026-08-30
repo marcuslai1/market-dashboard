@@ -30,6 +30,7 @@ ignore = [
     "RUF002",  # ambiguous unicode in docstrings — same
     "RUF003",  # ambiguous unicode in comments — arrow glyphs (▲ ＋ −) mirror the UI
     "C408",    # unnecessary dict() call — plotly layout uses dict(l=0, r=0, ...)
+    "RUF007",  # zip(x, x[1:]) successive-pairs idiom is deliberate (explicit strict=False)
 ]
 
 [tool.ruff.lint.per-file-ignores]

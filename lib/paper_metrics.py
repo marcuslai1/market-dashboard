@@ -34,7 +34,7 @@ def _series_stats(vals: list[float]) -> dict:
     vals = [float(v) for v in vals if v is not None and not pd.isna(v)]
     if len(vals) < 3 or vals[0] == 0:
         return {}
-    rets = [b / a - 1 for a, b in zip(vals, vals[1:]) if a]
+    rets = [b / a - 1 for a, b in zip(vals, vals[1:], strict=False) if a]
     n = len(rets)
     mu = sum(rets) / n
     sd = math.sqrt(sum((r - mu) ** 2 for r in rets) / (n - 1)) if n > 1 else 0.0
@@ -240,7 +240,7 @@ def lane_trade_stats(trades_df: pd.DataFrame | None, policy_id: str) -> dict:
     out["expectancy_r"] = (sum(rs_ok) / len(rs_ok)) if rs_ok else None
     out["n_r"] = len(rs_ok)
     by = {}
-    for r, rm in zip(recs, rs):
+    for r, rm in zip(recs, rs, strict=False):
         reason = r.get("exit_reason")
         key = "stop" if reason == "stop" else ("exit_rule" if reason == "caution_exit" else "other")
         b = by.setdefault(key, {"n": 0, "wins": 0, "pnl_units": 0, "r": []})
@@ -282,7 +282,7 @@ def lane_scorecard(nav_df, trades_df, positions_df, policy_id: str) -> dict:
     worst = None
     if positions_df is not None and not positions_df.empty and "policy_id" in positions_df.columns:
         mine = positions_df[positions_df["policy_id"] == policy_id]
-        n_pos = int(len(mine))
+        n_pos = len(mine)
         if "max_dd_pct" in mine.columns and n_pos:
             # Worst peak-to-trough fall of any OPEN position while held —
             # the pain a portfolio-level drawdown hides (audit 2026-08-27).
@@ -326,7 +326,7 @@ def _daily_returns(nav_df: pd.DataFrame, policy_id: str) -> list[float]:
     rows = nav_df[nav_df["policy_id"] == policy_id].sort_values("date")
     vals = [float(v) for v in pd.to_numeric(rows["nav_units"], errors="coerce").tolist()
             if v is not None and not pd.isna(v)]
-    return [b / a - 1 for a, b in zip(vals, vals[1:]) if a]
+    return [b / a - 1 for a, b in zip(vals, vals[1:], strict=False) if a]
 
 
 def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
@@ -348,7 +348,7 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
     _rets = _residual_returns if residual else _daily_returns
     r = _rets(nav_df, policy_id)
     T = len(r)
-    if T < min_sessions:
+    if min_sessions > T:
         return {}
     mu = sum(r) / T
     sd = math.sqrt(sum((x - mu) ** 2 for x in r) / (T - 1))

@@ -98,7 +98,7 @@ def test_soxx_beta_reads_half_the_index_move_and_invested_beta_scales_by_exposur
     for _ in range(40):
         soxx.append(soxx[-1] * (1 + rng.normal(0, 0.02)))
     navs = [1_000_000]
-    for a, b in zip(soxx, soxx[1:]):
+    for a, b in zip(soxx, soxx[1:], strict=False):
         navs.append(round(navs[-1] * (1 + 0.5 * (b / a - 1))))
     nav_df = _nav("x", navs, cash=[n // 2 for n in navs])
     nav_df["soxx_close"] = soxx

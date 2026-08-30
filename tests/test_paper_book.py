@@ -1064,7 +1064,13 @@ def test_milestone_note_names_each_mark_and_is_silent_when_none():
 
 
 def test_haircut_line_and_seeded_tag():
-    from components.paper_book import haircut_html, _seeded_tag, _LANE_SEEDED, _SCORECARD_LANES, _SCORECARD_ARCHIVE
+    from components.paper_book import (
+        _LANE_SEEDED,
+        _SCORECARD_ARCHIVE,
+        _SCORECARD_LANES,
+        _seeded_tag,
+        haircut_html,
+    )
     assert haircut_html(pd.DataFrame(), "v2_starter_b15_tb_fees") == ""
     tag = _seeded_tag("v2_starter_b15_tb_fees")
     assert "in-sample to 28 Aug" in tag and "pb-seeded" in tag
