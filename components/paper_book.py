@@ -363,17 +363,41 @@ def rolling_fig(roll: pd.DataFrame):
     return style_fig(fig)
 
 
+def _rolling_verdict(resid: float, raw: float) -> tuple[str, str]:
+    """(clause, tone) for the rolling band's verdict — read off the LATEST
+    residual vs raw rolling Sharpe. Sharpe ~1 is the "good" bar (the same
+    under-1-weak / 1-3-good scale the metrics glossary uses); 0.5 is "fading".
+    Presentation only — colours a clause, gates nothing."""
+    if resid >= 1.0 and raw < 0.5:
+        return "picks are working against the tide", "pos"
+    if resid >= 1.0:
+        return "the signals are earning their keep", "pos"
+    if raw >= 1.0:
+        return "the tide is doing the work — little signal edge this window", "neg"
+    if resid <= 0.0:
+        return "the signals are subtracting this window", "neg"
+    return "quiet window — neither tide nor picks doing much", ""
+
+
 def rolling_note_html(roll: pd.DataFrame, stress: dict, window: int = ROLLING_WINDOW) -> str:
     """Key line under the rolling chart: what the two lines are, the latest
     residual reading, and the SOXX-shock stress line."""
     if roll is None or roll.empty:
         return ""
     last = float(roll["resid_sharpe"].iloc[-1])
+    raw_last = float(roll["raw_sharpe"].iloc[-1])
     lo, hi = float(roll["resid_sharpe"].min()), float(roll["resid_sharpe"].max())
+    clause, tone = _rolling_verdict(last, raw_last)
+    color = _VERDICT_CLAUSE_COLOR.get(tone)
+    cstyle = f' style="color:{color};"' if color else ""
     txt = (f'<p class="pb-chartnote"><b>Solid</b> Sharpe of what the signals own, rolling {window} sessions '
            f'(market and semis moves stripped) · <b>dashed</b> raw Sharpe, same window · '
            f'residual now <span class="val">{last:.2f}</span> (range {lo:.2f} to {hi:.2f}). '
-           'A solid line drifting to zero while the dashed one holds means the tide is doing the work.')
+           f'<b>Verdict:</b> <span{cstyle}>{clause}</span> '
+           f'(residual {last:.2f} / raw {raw_last:.2f}; under 1 weak · 1–3 good). '
+           '<b>Read it:</b> both lines high = real edge · solid near zero while dashed holds = '
+           'tide doing the work · solid high while dashed sags = picks fighting a falling market · '
+           'both low = no edge this window. Thirty-session Sharpe is noisy — read the drift, not the day.')
     if stress:
         txt += (f' <b>Stress:</b> a SOXX {stress["shock_pct"]:.0f}% day would move the book about '
                 f'<span class="val">{stress["book_move_pct"]:+.1f}%</span> '

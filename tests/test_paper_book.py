@@ -1116,3 +1116,13 @@ def test_rolling_band_fig_and_note():
     note = rolling_note_html(roll, stress_read({"beta_soxx": 0.5}))
     assert "residual now" in note and "Stress:" in note and "-5.0%" in note
     assert rolling_note_html(roll.iloc[0:0], {}) == ""
+    assert "Verdict:" in note and "Read it:" in note
+
+
+def test_rolling_verdict_branches():
+    from components.paper_book import _rolling_verdict
+    assert _rolling_verdict(1.5, 0.2) == ("picks are working against the tide", "pos")
+    assert _rolling_verdict(2.0, 2.5)[1] == "pos"
+    assert _rolling_verdict(0.3, 1.8)[1] == "neg"          # tide doing the work
+    assert _rolling_verdict(-0.4, 0.2)[1] == "neg"         # signals subtracting
+    assert _rolling_verdict(0.4, 0.4) == ("quiet window — neither tide nor picks doing much", "")
