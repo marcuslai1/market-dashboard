@@ -1022,11 +1022,19 @@ def _profit_html(dollars: float | None, pct: float | None) -> str:
     return f"<span{style}>{_escape_dollars(txt)}</span>"
 
 
-def _drawer_title(has_history: bool) -> str:
-    """The drawer earns its new name only once history data exists, so the
-    pre-export corpus renders byte-identical to today."""
-    return ("Positions & trade history" if has_history
-            else "Positions & today's trades")
+def _drawer_title(has_history: bool, n_open: int | None = None,
+                  n_closed: int | None = None) -> str:
+    """The default book's drawer: named as the DEFAULT book (there is one
+    drawer per comparison book below it) with its live counts, so a reader
+    knows what is inside before opening it."""
+    base = ("Default book — positions & trade history" if has_history
+            else "Default book — positions & today's trades")
+    bits = []
+    if n_open:
+        bits.append(f"{n_open} open position{'s' if n_open != 1 else ''}")
+    if n_closed:
+        bits.append(f"{n_closed} closed trade{'s' if n_closed != 1 else ''}")
+    return base + (f" · {' · '.join(bits)}" if bits else "")
 
 
 def _history_verdict_html(rows: list[dict]) -> str:
@@ -1280,17 +1288,6 @@ _LANE_EXIT_LABELS = {
     "v2_starter_b15_tb_fees_time": {**_EXIT_LABELS,
                                     "caution_exit": "sold on extension / thesis"},
 }
-
-_EXT_HISTORY_CAVEAT = (
-    '<p class="pb-banner">The dashed line on the chart, trade by trade. '
-    "<b>Challenger</b>: the same wide stop as the default, exits on "
-    "extension only, 12%/6% sizing — its own &#36;100,000 pot. "
-    "<b>Twins</b>: the default book plus one extra exit lever each — a 15% "
-    "trailing stop off the peak, or a time stop that releases a name still "
-    "below +5% after 40 sessions. "
-    "Hypothesis-grade · not the default book.</p>"
-)
-
 
 def _lane_of(df: pd.DataFrame | None, pid: str) -> pd.DataFrame:
     """Rows of *df* for one policy_id; empty frame when unusable."""
@@ -1792,12 +1789,6 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     )
     if block:
         st.markdown(_verdict_html(block), unsafe_allow_html=True)
-    # The reasoning behind the default, collapsed: what is used, why, and
-    # the number behind each choice. The band itself stays numbers-first.
-    if block or (nav_df is not None and not nav_df.empty):
-        with st.expander("Why the default strategy is built this way",
-                         expanded=False):
-            st.markdown(strategy_rationale_html(), unsafe_allow_html=True)
     chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit
@@ -1826,14 +1817,14 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         st.markdown(sc + hc + _banner_html(block), unsafe_allow_html=True)
         if _has_nav:
             _render_rolling_band(nav_df, _policy_for(nav_df, None) or _HEADLINE_POLICY)
-    # Settled iterations, collapsed: the record without the noise.
-    archive = scorecard_html(nav_df, trades_df, positions_df,
-                             lanes=_SCORECARD_ARCHIVE, benchmarks=False)
-    if archive:
-        with st.expander(f"All registered iterations — {len(_SCORECARD_ARCHIVE)} "
-                         "settled lanes (measured, kept for the record)",
-                         expanded=False):
-            st.markdown(archive, unsafe_allow_html=True)
+    # Drawers, in order of what a reader most likely wants (owner ask
+    # 2026-09-01: "name them clearly, positions per strategy easy to scroll,
+    # unimportant ones at the bottom"):
+    #   1. Default book — its open positions and closed trades
+    #   2. one drawer PER comparison book (twins first, then the v1 books)
+    #   3. why the default is built this way (explanation)
+    #   4. retired experiments (the archive scorecard)
+    #   5. the raw chart frame (data-parity fallback)
     if pos_v2_rows:
         # positions CSV present → the shares/cost-basis view supersedes the
         # block table (addendum 2); the block stays the fallback contract.
@@ -1845,7 +1836,11 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     # default lane — never shown under the default's drawer.
     trades_html = ""
     if positions_html or trades_html or history_html:
-        with st.expander(_drawer_title(bool(history_html)), expanded=False):
+        n_open = len(pos_v2_rows) if pos_v2_rows else None
+        with st.expander(_drawer_title(bool(history_html), n_open,
+                                       len(history_rows) if history_html else None),
+                         expanded=False):
+            st.markdown(_lane_intro_html(_HEADLINE_POLICY), unsafe_allow_html=True)
             if trades_html:
                 st.markdown(trades_html, unsafe_allow_html=True)
             if positions_html:
@@ -1869,33 +1864,85 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                 st.markdown(f'<div class="tk-scroll">{history_html}</div>',
                             unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
-    if ext_lanes:
-        with st.expander("Challenger — trade history", expanded=False):
-            st.markdown(_EXT_HISTORY_CAVEAT, unsafe_allow_html=True)
-            any_pos = any_trades = False
-            for label, pid, p_rows, t_rows in ext_lanes:
-                st.markdown(_lane_heading_html(label, t_rows),
+    # 2. One drawer per comparison book, so each strategy's positions and
+    #    trades are read on their own; twins (open questions on the current
+    #    default) before the older v1 books.
+    for label, pid, p_rows, t_rows in _ordered_lane_views(ext_lanes):
+        role = _lane_role(pid) or label
+        with st.expander(_lane_drawer_title(role, len(p_rows), len(t_rows)),
+                         expanded=False):
+            st.markdown(_lane_intro_html(pid), unsafe_allow_html=True)
+            st.markdown(_lane_heading_html(role, t_rows), unsafe_allow_html=True)
+            if p_rows:
+                st.markdown(lane_cash_html(nav_df, pid, len(p_rows)),
                             unsafe_allow_html=True)
-                if p_rows:
-                    any_pos = True
-                    st.markdown(lane_cash_html(nav_df, pid, len(p_rows)),
-                                unsafe_allow_html=True)
-                    st.markdown('<div class="tk-scroll">'
-                                f"{_positions_v2_table_html(p_rows)}</div>",
-                                unsafe_allow_html=True)
-                if t_rows:
-                    any_trades = True
-                    st.markdown(_history_verdict_html(t_rows),
-                                unsafe_allow_html=True)
-                    st.markdown('<div class="tk-scroll">'
-                                f"{_trade_history_html(t_rows)}</div>",
-                                unsafe_allow_html=True)
-            if any_pos:
+                st.markdown('<div class="tk-scroll">'
+                            f"{_positions_v2_table_html(p_rows)}</div>",
+                            unsafe_allow_html=True)
                 st.markdown(_POSITIONS_V2_LEGEND, unsafe_allow_html=True)
-            if any_trades:
+            if t_rows:
+                st.markdown(_history_verdict_html(t_rows),
+                            unsafe_allow_html=True)
+                st.markdown('<div class="tk-scroll">'
+                            f"{_trade_history_html(t_rows)}</div>",
+                            unsafe_allow_html=True)
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
-    # Last door on the band (owner call 2026-08-27b): the raw chart frame is
-    # a screen-reader / data-parity fallback almost nobody opens, so it sits
-    # below every drawer a reader might actually want.
+    # 3. The reasoning behind the default: what is used, why, and the
+    #    number behind each choice.
+    if block or (nav_df is not None and not nav_df.empty):
+        with st.expander("Why the default book is built this way — "
+                         "each rule and the number behind it",
+                         expanded=False):
+            st.markdown(strategy_rationale_html(), unsafe_allow_html=True)
+    # 4. Retired experiments: measured, settled, kept for the record.
+    archive = scorecard_html(nav_df, trades_df, positions_df,
+                             lanes=_SCORECARD_ARCHIVE, benchmarks=False)
+    if archive:
+        with st.expander(f"Retired experiments — {len(_SCORECARD_ARCHIVE)} "
+                         "variants already measured and settled (kept for the record)",
+                         expanded=False):
+            st.markdown(archive, unsafe_allow_html=True)
+    # 5. Last door on the band (owner call 2026-08-27b): the raw chart frame
+    #    is a screen-reader / data-parity fallback almost nobody opens, so it
+    #    sits below every drawer a reader might actually want.
     if chart_table is not None:
         chart_data_table(chart_table)
+
+
+# Drawer helpers (2026-09-01) ──────────────────────────────────────────────
+_LANE_DRAWER_ORDER = (_TRAIL_TWIN_POLICY, _TIME_TWIN_POLICY,
+                      _PREV_DEFAULT_POLICY, _CHALLENGER_POLICY)
+
+
+def _lane_role(pid: str) -> str | None:
+    """The scorecard's role label for a book ("Twin · trailing stop")."""
+    for p, role, _desc in _SCORECARD_LANES + _SCORECARD_ARCHIVE:
+        if p == pid:
+            return role
+    return None
+
+
+def _lane_intro_html(pid: str) -> str:
+    """One plain sentence on what the book does — the scorecard's own
+    description, so a drawer never needs the table to be understood."""
+    for p, _role, desc in _SCORECARD_LANES + _SCORECARD_ARCHIVE:
+        if p == pid:
+            return f'<p class="pb-banner">{_escape_dollars(desc)}</p>'
+    return ""
+
+
+def _lane_drawer_title(role: str, n_open: int, n_closed: int) -> str:
+    bits = []
+    if n_open:
+        bits.append(f"{n_open} open position{'s' if n_open != 1 else ''}")
+    if n_closed:
+        bits.append(f"{n_closed} closed trade{'s' if n_closed != 1 else ''}")
+    tail = f" · {' · '.join(bits)}" if bits else ""
+    return f"{role} — positions & trade history{tail}"
+
+
+def _ordered_lane_views(views: list[tuple]) -> list[tuple]:
+    """Comparison-book drawers in importance order: the twins (open
+    questions on the current default) first, then the v1 books."""
+    rank = {pid: i for i, pid in enumerate(_LANE_DRAWER_ORDER)}
+    return sorted(views, key=lambda v: rank.get(v[1], len(rank)))

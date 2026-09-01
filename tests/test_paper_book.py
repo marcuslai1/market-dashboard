@@ -558,8 +558,32 @@ def test_history_verdict_omits_pot_total_without_dollars():
 
 
 def test_drawer_title_switches_only_with_history():
-    assert _drawer_title(True) == "Positions & trade history"
-    assert _drawer_title(False) == "Positions & today's trades"
+    assert _drawer_title(True) == "Default book — positions & trade history"
+    assert _drawer_title(False) == "Default book — positions & today's trades"
+    assert _drawer_title(True, 10, 15) == (
+        "Default book — positions & trade history · 10 open positions · 15 closed trades")
+    assert _drawer_title(True, 1, 0) == "Default book — positions & trade history · 1 open position"
+
+
+def test_lane_drawers_are_named_by_role_and_ordered_twins_first():
+    from components.paper_book import (
+        _lane_drawer_title,
+        _lane_intro_html,
+        _lane_role,
+        _ordered_lane_views,
+    )
+    assert _lane_role("v2_starter_b15_tb_fees_trail") == "Twin · trailing stop"
+    assert _lane_role("v1_wide_ext_100_b12") == "Challenger (v1)"
+    assert _lane_drawer_title("Twin · trailing stop", 7, 20) == (
+        "Twin · trailing stop — positions & trade history · 7 open positions · 20 closed trades")
+    assert "Same as Default, plus a trailing stop" in _lane_intro_html("v2_starter_b15_tb_fees_trail")
+    views = [("Challenger · wide+ext 12/6", "v1_wide_ext_100_b12", [], []),
+             ("Previous default · v1 wide+extthesis 15/7.5", "v1_wide_extthesis_100_b15", [], []),
+             ("Twin · default + 40-session time stop", "v2_starter_b15_tb_fees_time", [], []),
+             ("Twin · default + 15% trailing stop", "v2_starter_b15_tb_fees_trail", [], [])]
+    assert [v[1] for v in _ordered_lane_views(views)] == [
+        "v2_starter_b15_tb_fees_trail", "v2_starter_b15_tb_fees_time",
+        "v1_wide_extthesis_100_b15", "v1_wide_ext_100_b12"]
 
 
 # ── open positions: optional P&L-so-far columns ──
