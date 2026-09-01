@@ -578,10 +578,11 @@ def help_tip(text: str, label: str = "What this means") -> str:
             f'<div class="pb-tip-body">{body}</div></details>')
 
 
-def _th(name: str) -> str:
+def _th(name: str, tier: int | None = None) -> str:
     what, scale = _METRIC_HELP.get(name, ("", ""))
     tip = f"<b>{_escape_dollars(what)}</b><br>{_escape_dollars(scale)}"
-    return (f'<th>{_escape_dollars(name)}'
+    cls = f' class="pb-t{tier}"' if tier else ""
+    return (f'<th{cls}>{_escape_dollars(name)}'
             f'<details class="pb-tip"><summary aria-label="What {_escape_dollars(name)} means">?</summary>'
             f'<div class="pb-tip-body">{tip}</div></details></th>')
 
@@ -634,78 +635,100 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     meta = {pid: (role, desc) for pid, role, desc in lanes}
     spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
-    # Group-title row (owner ask 2026-08-29): four readable blocks instead
-    # of a 19-column wall. Widths must track the column list below.
-    groups = (("", 1),
-              ("Raw results · market included", 5),
-              ("Signals&#39; own results · market stripped out", 4),
-              ("Hidden exposure · single names &amp; the index", 2),
-              ("Trade quality", 8))
-    group_row = ('<tr class="pb-sc-group">'
-                 + "".join(f'<th colspan="{n}" class="pb-sc-group-blank"></th>' if not t
-                           else f'<th colspan="{n}">{t}</th>' for t, n in groups)
-                 + "</tr>")
-    head = (group_row + "<tr>" + _th("Lane") + "".join(_th(n) for n in (
-        "NAV", "Sharpe", "Sortino", "Calmar", "Max DD",
-        "Resid Sharpe", "Resid Sortino", "Resid Calmar", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
-        "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Cash earned", "Fees")) + "</tr>")
+    # Columns, tiered for the 1200px page measure (owner ask 2026-09-01:
+    # "I have to highlight and move right to see it"). Tier 1 = the seven
+    # numbers a reader needs on any screen; tier 2 completes the 14-column
+    # COMPACT view that fits the page width; tier 3 = the six secondary
+    # metrics revealed by the "Show all 20 columns" toggle (CSS-only, via
+    # :has() on the <details> — no rerun). Group titles are emitted twice
+    # (compact / full colspans) and CSS shows the one that matches.
+    cols = _SC_COLS
+    head_cells = _th("Lane") + "".join(_th(n, tier) for n, tier, _g in cols)
+    group_rows = _group_row("full", cols, min_tier=3) + _group_row("compact", cols, min_tier=2)
+    head = group_rows + "<tr>" + head_cells + "</tr>"
+
+    def _row(lane_html: str, cells: list, cls: str = "") -> str:
+        tds = "".join(f'<td class="pb-t{t}">{v}</td>'
+                      for v, (_n, t, _g) in zip(cells, cols, strict=True))
+        return f'<tr class="{cls}"><td class="pb-sc-lane">{lane_html}</td>{tds}</tr>'
+
     body = ""
     for r in rows:
         role, desc = meta[r["policy_id"]]
         by = r.get("by_reason") or {}
         ex, stp = by.get("exit_rule") or {}, by.get("stop") or {}
         cls = _SCORECARD_ROLE_CLASS.get(role, "")
-        body += (
-            f'<tr class="{cls}"><td class="pb-sc-lane"><b>{_escape_dollars(role)}</b>'
-            f'<small>{_escape_dollars(desc)}</small>{_seeded_tag(r["policy_id"])}</td>'
-            f'<td>{_fmt_pct(r.get("ret_pct"))}</td>'
-            f'<td>{_fmt_num(r.get("sharpe"))}</td>'
-            f'<td>{_fmt_num(r.get("sortino"))}</td>'
-            f'<td>{_fmt_num(r.get("calmar"), 1)}</td>'
-            f'<td>{_fmt_pct(r.get("max_dd_pct"))}</td>'
-            f'<td>{_fmt_num(r.get("resid_sharpe"))}</td>'
-            f'<td>{_fmt_num(r.get("resid_sortino"))}</td>'
-            f'<td>{_fmt_num(r.get("resid_calmar"), 1)}</td>'
-            f'<td>{_fmt_pct(r.get("resid_max_dd_pct"))}</td>'
-            f'<td>{_fmt_pct(r.get("worst_open_dd_pct"))}</td>'
-            f'<td>{_fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested"))}</td>'
-            f'<td>{_fmt_pct(r.get("win_rate_pct"), plus=False, d=0)}</td>'
-            f'<td>{_fmt_r(r.get("expectancy_r"), r.get("n_r"))}</td>'
-            f'<td>{_fmt_r(ex.get("mean_r"), ex.get("n"))}</td>'
-            f'<td>{_fmt_r(stp.get("mean_r"), stp.get("n"))}</td>'
-            f'<td>{_fmt_pct(r.get("stop_drag_pct"), d=2)}</td>'
-            f'<td>{_fmt_pct(r.get("avg_cash_pct"), plus=False, d=0)}</td>'
-            f'<td>{_fmt_cash_earned(r)}</td>'
-            f'<td>{_fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—"}</td>'
-            "</tr>"
-        )
+        lane = (f'<b>{_escape_dollars(role)}</b><small>{_escape_dollars(desc)}</small>'
+                f'{_seeded_tag(r["policy_id"])}')
+        body += _row(lane, [
+            _fmt_pct(r.get("ret_pct")),
+            _fmt_num(r.get("sharpe")),
+            _fmt_num(r.get("sortino")),
+            _fmt_num(r.get("calmar"), 1),
+            _fmt_pct(r.get("max_dd_pct")),
+            _fmt_num(r.get("resid_sharpe")),
+            _fmt_num(r.get("resid_sortino")),
+            _fmt_num(r.get("resid_calmar"), 1),
+            _fmt_pct(r.get("resid_max_dd_pct")),
+            _fmt_pct(r.get("worst_open_dd_pct")),
+            _fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested")),
+            _fmt_pct(r.get("win_rate_pct"), plus=False, d=0),
+            _fmt_r(r.get("expectancy_r"), r.get("n_r")),
+            _fmt_r(ex.get("mean_r"), ex.get("n")),
+            _fmt_r(stp.get("mean_r"), stp.get("n")),
+            _fmt_pct(r.get("stop_drag_pct"), d=2),
+            _fmt_pct(r.get("avg_cash_pct"), plus=False, d=0),
+            _fmt_cash_earned(r),
+            _fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—",
+        ], cls)
     if spy:
-        body += (
-            '<tr class="pb-role-bench"><td class="pb-sc-lane"><b>SPY</b>'
-            "<small>benchmark · same window</small></td>"
-            f'<td>{_fmt_pct(spy.get("ret_pct"))}</td>'
-            f'<td>{_fmt_num(spy.get("sharpe"))}</td>'
-            f'<td>{_fmt_num(spy.get("sortino"))}</td>'
-            f'<td>{_fmt_num(spy.get("calmar"), 1)}</td>'
-            f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 14 + "</tr>"
-        )
+        body += _row("<b>SPY</b><small>benchmark · same window</small>", [
+            _fmt_pct(spy.get("ret_pct")), _fmt_num(spy.get("sharpe")),
+            _fmt_num(spy.get("sortino")), _fmt_num(spy.get("calmar"), 1),
+            _fmt_pct(spy.get("max_dd_pct"))] + ["—"] * 14, "pb-role-bench")
     if soxx:
-        body += (
-            '<tr class="pb-role-bench"><td class="pb-sc-lane"><b>SOXX</b>'
-            "<small>semis index · the factor most names load on</small></td>"
-            f'<td>{_fmt_pct(soxx.get("ret_pct"))}</td>'
-            f'<td>{_fmt_num(soxx.get("sharpe"))}</td>'
-            f'<td>{_fmt_num(soxx.get("sortino"))}</td>'
-            f'<td>{_fmt_num(soxx.get("calmar"), 1)}</td>'
-            f'<td>{_fmt_pct(soxx.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 5 + "<td>1.00</td>" + "<td>—</td>" * 8 + "</tr>"
-        )
+        body += _row("<b>SOXX</b><small>semis index · the factor most names load on</small>", [
+            _fmt_pct(soxx.get("ret_pct")), _fmt_num(soxx.get("sharpe")),
+            _fmt_num(soxx.get("sortino")), _fmt_num(soxx.get("calmar"), 1),
+            _fmt_pct(soxx.get("max_dd_pct"))] + ["—"] * 5 + ["1.00"] + ["—"] * 8, "pb-role-bench")
+    n_more = sum(1 for _n, t, _g in cols if t == 3)
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
         '<span class="pb-eyebrow-hint">click ? on a column for what it means</span></p>'
+        '<div class="pb-sc-wrap">'
+        f'<details class="pb-sc-more"><summary data-more="Show all {len(cols) + 1} columns" '
+        f'data-less="Show fewer columns ({n_more} hidden)"></summary></details>'
         f'<div class="tk-scroll"><table class="pb-scorecard">{head}{body}</table></div>'
+        "</div>"
     )
+
+
+# Scorecard column spec: (header, tier, group). Tier 1 shows on every screen,
+# tier 2 completes the compact 14-column view, tier 3 is behind the toggle.
+_SC_COLS = [
+    ("NAV", 1, "raw"), ("Sharpe", 1, "raw"), ("Sortino", 2, "raw"), ("Calmar", 3, "raw"),
+    ("Max DD", 1, "raw"),
+    ("Resid Sharpe", 2, "resid"), ("Resid Sortino", 3, "resid"), ("Resid Calmar", 3, "resid"),
+    ("Resid DD", 2, "resid"),
+    ("Worst pos", 3, "exp"), ("β SOXX", 2, "exp"),
+    ("Win", 1, "tq"), ("Expectancy", 1, "tq"), ("Exit-rule R", 2, "tq"), ("Stop R", 2, "tq"),
+    ("Stop drag", 3, "tq"), ("Cash idle", 2, "tq"), ("Cash earned", 1, "tq"), ("Fees", 3, "tq"),
+]
+_SC_GROUP_TITLES = (("raw", "Raw results · market included"),
+                    ("resid", "Signals&#39; own results · market stripped out"),
+                    ("exp", "Hidden exposure · single names &amp; the index"),
+                    ("tq", "Trade quality"))
+
+
+def _group_row(mode: str, cols: list, min_tier: int) -> str:
+    """Group-title row whose colspans match the columns visible at ``mode``
+    (tiers <= min_tier). Widths track the column list, never hand-counted."""
+    cells = '<th colspan="1" class="pb-sc-group-blank"></th>'
+    for key, title in _SC_GROUP_TITLES:
+        n = sum(1 for _n, t, g in cols if g == key and t <= min_tier)
+        if n:
+            cells += f'<th colspan="{n}">{title}</th>'
+    return f'<tr class="pb-sc-group pb-sc-group-{mode}">{cells}</tr>'
 
 
 # ── Why the default strategy is built this way (2026-08-27) ───────────────

@@ -4199,3 +4199,50 @@ a.term-index-item:hover {
 .pb-sc-lane .pb-seeded { display:block; font-family: var(--mono, "JetBrains Mono", monospace);
   font-size: 0.66rem; letter-spacing: 0.04em; color: var(--ink-4); margin-top: 2px; }
 \n
+
+/* ── Scorecard fit (2026-09-01, owner: "it extends and I have to move right") ──
+   The page measure is 1200px, so twenty columns never fit. Compact view =
+   tiers 1+2 (14 columns) sized to the measure; tier 3 sits behind a
+   CSS-only toggle (<details> + :has()); the lane column is sticky so a
+   scrolled table never loses its row labels; below 1000px only tier 1
+   stays (7 columns) and the group-title rows go (their colspans no longer
+   match). Group titles are rendered twice — compact and full — and the
+   matching one is shown. */
+.pb-sc-wrap { position: relative; }
+.pb-sc-wrap .pb-sc-more { margin: 0 0 6px; }
+.pb-sc-wrap .pb-sc-more summary { list-style: none; cursor: pointer; display: inline-block;
+  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-text-3);
+  border: 1px solid var(--color-divider); border-radius: 3px; padding: 3px 8px; }
+.pb-sc-wrap .pb-sc-more summary::-webkit-details-marker { display: none; }
+.pb-sc-wrap .pb-sc-more summary::before { content: attr(data-more); }
+.pb-sc-wrap .pb-sc-more[open] summary::before { content: attr(data-less); }
+.pb-sc-wrap .pb-sc-more summary:hover { color: var(--color-text-1); border-color: var(--color-text-3); }
+/* tiers */
+.pb-scorecard .pb-t3 { display: none; }
+.pb-scorecard tr.pb-sc-group-full { display: none; }
+.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard .pb-t3 { display: table-cell; }
+.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard tr.pb-sc-group-full { display: table-row; }
+.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard tr.pb-sc-group-compact { display: none; }
+/* fit the compact view to the measure */
+.pb-scorecard { font-size: 12px; }
+.pb-scorecard td { padding: 7px 7px; }
+.pb-scorecard th { padding: 7px 7px 5px; }
+.pb-scorecard td.pb-sc-lane { min-width: 200px; max-width: 260px; }
+/* sticky lane column: an opaque ground so scrolled cells never show through */
+.pb-scorecard th:first-child,
+.pb-scorecard td.pb-sc-lane { position: sticky; left: 0; z-index: 1;
+  background: var(--color-surface); }
+.pb-scorecard tr.pb-role-default td.pb-sc-lane {
+  background: color-mix(in srgb, var(--brass) 9%, var(--color-surface)); }
+.pb-scorecard tr.pb-sc-group th.pb-sc-group-blank { position: sticky; left: 0; z-index: 1;
+  background: var(--color-surface); }
+.pb-sc-wrap .tk-scroll { scrollbar-width: thin; scrollbar-color: var(--color-text-4) transparent; }
+.pb-sc-wrap .tk-scroll::-webkit-scrollbar { height: 8px; }
+.pb-sc-wrap .tk-scroll::-webkit-scrollbar-thumb { background: var(--color-text-4); border-radius: 4px; }
+@media (max-width: 999px) {
+  .pb-scorecard .pb-t2 { display: none; }
+  .pb-scorecard tr.pb-sc-group { display: none !important; }
+  .pb-scorecard td.pb-sc-lane { min-width: 160px; max-width: 200px; }
+}
+

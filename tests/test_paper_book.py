@@ -1092,16 +1092,24 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert "Sortino" in html and "Calmar" in html and "Resid Calmar" in html
     # benchmark rows keep the column count (SOXX beta cell still lands under β SOXX)
     rows = html.split("<tr")[1:]
-    assert len(rows) == 1 + 1 + 2 + 2               # group row + header + lanes + benchmarks
-    assert 'class="pb-sc-group"' in rows[0]
+    # 2 group rows (full + compact, CSS shows one) + header + lanes + benchmarks
+    assert len(rows) == 2 + 1 + 2 + 2
+    assert 'pb-sc-group-full' in rows[0] and 'pb-sc-group-compact' in rows[1]
     import re
     spans = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[0])]
     # + "Cash earned" (2026-09-01) in the trade-quality block
     assert spans == [1, 5, 4, 2, 8] and sum(spans) == 20
+    # compact view = tiers 1+2: 14 columns incl. the lane
+    spans_c = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[1])]
+    assert spans_c == [1, 4, 2, 1, 6] and sum(spans_c) == 14
     assert "market included" in rows[0] and "market stripped out" in rows[0]
     assert "Hidden exposure" in rows[0] and "Trade quality" in rows[0]
-    assert "Cash earned" in rows[1]
-    assert all(r.count("<td") == 20 for r in rows[2:])
+    assert "Cash earned" in rows[2]
+    assert all(r.count("<td") == 20 for r in rows[3:])
+    # every data cell carries its tier; 6 tier-3 cells per row sit behind the toggle
+    assert all(r.count('class="pb-t3"') == 6 and r.count('class="pb-t1"') == 6
+               for r in rows[3:])
+    assert 'class="pb-sc-more"' in html and "Show all 20 columns" in html
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc
