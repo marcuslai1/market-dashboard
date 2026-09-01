@@ -793,8 +793,10 @@ def test_render_paper_book_ext_drawer_renders_with_lane_trades():
     assert not at.exception
     joined = " ".join(m.value for m in at.markdown)
     assert "sold on extension" in joined
-    assert "Challenger · wide+ext 12/6" in joined
-    assert "not the default book" in joined             # caveat present
+    assert "Challenger (v1)" in joined                    # drawer heading = scorecard role
+    # per-book intro (2026-09-01) replaced the generic caveat: the lane's own
+    # plain description opens its drawer
+    assert "do the report's thesis downgrades add anything?" in joined
 
 
 # ── realistic positions view (addendum 2: shares, cost basis, lane cash) ──
