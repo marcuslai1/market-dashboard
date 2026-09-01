@@ -2807,10 +2807,14 @@ details.led-details[open] > summary {
 .pb-scorecard td { padding: 8px 10px; text-align: right; white-space: nowrap;
   border-bottom: 1px solid var(--color-divider); color: var(--color-text-1); }
 .pb-scorecard td small { color: var(--color-text-3); font-size: 10.5px; }
-.pb-scorecard td.pb-sc-lane { text-align: left; white-space: normal; min-width: 180px; }
+/* Lane cell (2026-09-01): descriptions are now two plain sentences for an
+   outsider, so the column gets room to wrap them at a readable measure
+   instead of squeezing to the 180px floor. */
+.pb-scorecard td.pb-sc-lane { text-align: left; white-space: normal;
+  min-width: 240px; max-width: 360px; }
 .pb-scorecard td.pb-sc-lane b { display: block; font-family: var(--font-display);
   font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; }
-.pb-scorecard td.pb-sc-lane small { display: block; margin-top: 2px; }
+.pb-scorecard td.pb-sc-lane small { display: block; margin-top: 3px; line-height: 1.4; }
 .pb-scorecard tr.pb-role-default td { background: color-mix(in srgb, var(--brass) 9%, transparent); }
 .pb-scorecard tr.pb-role-default td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--brass); }
 .pb-scorecard tr.pb-role-challenger td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--accent); }
