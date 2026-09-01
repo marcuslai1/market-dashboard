@@ -1022,19 +1022,47 @@ def _profit_html(dollars: float | None, pct: float | None) -> str:
     return f"<span{style}>{_escape_dollars(txt)}</span>"
 
 
+def _door_label(role: str, tail: str, n_open: int | None = None,
+                n_closed: int | None = None) -> str:
+    """Expander label for a book: the ROLE in bold (CSS paints it in the
+    book's rail colour — brass / dimmed brass / accent), then a sentence-case
+    tail and the live counts. Markdown bold is the one inline mark
+    st.expander labels keep, so it doubles as the colour hook."""
+    bits = []
+    if n_open:
+        bits.append(f"{n_open} open")
+    if n_closed:
+        bits.append(f"{n_closed} closed")
+    return f"**{role}** · {tail}" + (f" · {' · '.join(bits)}" if bits else "")
+
+
 def _drawer_title(has_history: bool, n_open: int | None = None,
                   n_closed: int | None = None) -> str:
     """The default book's drawer: named as the DEFAULT book (there is one
     drawer per comparison book below it) with its live counts, so a reader
     knows what is inside before opening it."""
-    base = ("Default book — positions & trade history" if has_history
-            else "Default book — positions & today's trades")
-    bits = []
-    if n_open:
-        bits.append(f"{n_open} open position{'s' if n_open != 1 else ''}")
-    if n_closed:
-        bits.append(f"{n_closed} closed trade{'s' if n_closed != 1 else ''}")
-    return base + (f" · {' · '.join(bits)}" if bits else "")
+    tail = "positions & trade history" if has_history else "positions & today's trades"
+    return _door_label("Default book", tail, n_open, n_closed)
+
+
+# Door kinds → the marker class the CSS keys the rail colour on (assets/
+# theme.css "Paper-book doors"). A hidden marker element precedes each
+# expander and the stylesheet targets the NEXT wrapper via :has() + the
+# adjacent-sibling combinator — the top-nav trick — because st.expander
+# accepts no class of its own.
+def _door_kind(pid: str) -> str:
+    """default / twin / v1 — resolved at call time (the policy constants are
+    defined further down the module)."""
+    if pid == _HEADLINE_POLICY:
+        return "default"
+    if pid in (_TRAIL_TWIN_POLICY, _TIME_TWIN_POLICY):
+        return "twin"
+    return "v1"
+
+
+def _door_marker(kind: str) -> None:
+    st.markdown(f'<span class="pb-door pb-door-{kind}"></span>',
+                unsafe_allow_html=True)
 
 
 def _history_verdict_html(rows: list[dict]) -> str:
@@ -1837,6 +1865,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     trades_html = ""
     if positions_html or trades_html or history_html:
         n_open = len(pos_v2_rows) if pos_v2_rows else None
+        _door_marker("default")
         with st.expander(_drawer_title(bool(history_html), n_open,
                                        len(history_rows) if history_html else None),
                          expanded=False):
@@ -1869,6 +1898,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     #    default) before the older v1 books.
     for label, pid, p_rows, t_rows in _ordered_lane_views(ext_lanes):
         role = _lane_role(pid) or label
+        _door_marker(_door_kind(pid))
         with st.expander(_lane_drawer_title(role, len(p_rows), len(t_rows)),
                          expanded=False):
             st.markdown(_lane_intro_html(pid), unsafe_allow_html=True)
@@ -1889,18 +1919,23 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
                 st.markdown(_HISTORY_LEGEND, unsafe_allow_html=True)
     # 3. The reasoning behind the default: what is used, why, and the
     #    number behind each choice.
-    if block or (nav_df is not None and not nav_df.empty):
-        with st.expander("Why the default book is built this way — "
-                         "each rule and the number behind it",
-                         expanded=False):
-            st.markdown(strategy_rationale_html(), unsafe_allow_html=True)
-    # 4. Retired experiments: measured, settled, kept for the record.
+    has_nav = block or (nav_df is not None and not nav_df.empty)
     archive = scorecard_html(nav_df, trades_df, positions_df,
                              lanes=_SCORECARD_ARCHIVE, benchmarks=False)
+    if has_nav or archive:
+        # The appendix: a kicker names the group, and its doors stay steel —
+        # the absence of a rail colour is what says "reference, not data".
+        st.markdown('<p class="pb-door-kicker">Reference</p>', unsafe_allow_html=True)
+    if has_nav:
+        _door_marker("ref")
+        with st.expander("**How the default book is built** · each rule and "
+                         "the number behind it", expanded=False):
+            st.markdown(strategy_rationale_html(), unsafe_allow_html=True)
+    # 4. Retired experiments: measured, settled, kept for the record.
     if archive:
-        with st.expander(f"Retired experiments — {len(_SCORECARD_ARCHIVE)} "
-                         "variants already measured and settled (kept for the record)",
-                         expanded=False):
+        _door_marker("ref")
+        with st.expander(f"**Retired experiments** · {len(_SCORECARD_ARCHIVE)} "
+                         "variants already measured and settled", expanded=False):
             st.markdown(archive, unsafe_allow_html=True)
     # 5. Last door on the band (owner call 2026-08-27b): the raw chart frame
     #    is a screen-reader / data-parity fallback almost nobody opens, so it
@@ -1932,13 +1967,7 @@ def _lane_intro_html(pid: str) -> str:
 
 
 def _lane_drawer_title(role: str, n_open: int, n_closed: int) -> str:
-    bits = []
-    if n_open:
-        bits.append(f"{n_open} open position{'s' if n_open != 1 else ''}")
-    if n_closed:
-        bits.append(f"{n_closed} closed trade{'s' if n_closed != 1 else ''}")
-    tail = f" · {' · '.join(bits)}" if bits else ""
-    return f"{role} — positions & trade history{tail}"
+    return _door_label(role, "positions & trade history", n_open, n_closed)
 
 
 def _ordered_lane_views(views: list[tuple]) -> list[tuple]:

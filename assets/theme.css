@@ -4246,3 +4246,67 @@ a.term-index-item:hover {
   .pb-scorecard td.pb-sc-lane { min-width: 160px; max-width: 200px; }
 }
 
+
+
+/* ── Paper-book doors: colour by role (2026-09-01, owner: "the expandables
+   are monotonous… there should be a way to make them identifiable") ──
+   A row of identical steel doors says nothing until opened. The scorecard
+   and the chart already colour by ROLE — brass for the default, dimmed
+   brass for its twins, the accent for the older v1 books, steel for
+   reference material — so the doors now speak the same language: a 3px
+   rail on the left edge and the role word in the rail colour; the rest of
+   the label is sentence case, not the site-wide uppercase, because these
+   labels carry nouns and counts a reader actually scans. Never a filled
+   panel (a door is chrome, not an object).
+   Mechanics: st.expander takes no class, so a hidden <span class="pb-door
+   pb-door-<kind>"> precedes each one and the stylesheet targets the NEXT
+   wrapper with :has() + the adjacent-sibling combinator (the top-nav trick).
+   Both wrapper testids are matched (stLayoutWrapper on Streamlit ≥1.50,
+   stElementContainer earlier). */
+[data-testid="stElementContainer"]:has([data-testid="stMarkdownContainer"] .pb-door) {
+  display: none !important;
+}
+.pb-door-kicker { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--color-text-4); margin: 18px 0 2px !important; }
+
+/* label typography for every marked door */
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p,
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p {
+  text-transform: none !important; letter-spacing: 0.02em !important;
+  font-size: 12px !important; font-weight: 500 !important;
+  color: var(--color-text-2) !important;
+}
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
+  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 10.5px;
+  margin-right: 2px;
+}
+/* the rail + the role colour */
+[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
+[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
+  border-left: 3px solid var(--brass) !important; }
+[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
+[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
+  color: var(--brass); }
+[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
+[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
+  border-left: 3px solid color-mix(in srgb, var(--brass) 55%, var(--color-text-4)) !important; }
+[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
+[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
+  color: color-mix(in srgb, var(--brass) 70%, var(--color-text-3)); }
+[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
+[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
+  border-left: 3px solid var(--accent) !important; }
+[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
+[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
+  color: var(--accent); }
+/* reference doors: no rail, steel role word — the absence IS the signal */
+[data-testid="stElementContainer"]:has(.pb-door-ref) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
+[data-testid="stElementContainer"]:has(.pb-door-ref) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
+  color: var(--eyebrow); }
+/* open door: the summary takes the surface tint so the room you are in is
+   visible while a long table scrolls; the rail already runs its full height */
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] details[open] > summary,
+[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] details[open] > summary {
+  background: var(--color-surface-2) !important;
+}
