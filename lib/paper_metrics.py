@@ -91,8 +91,45 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
                 navs, pd.to_numeric(rows["spy_close"], errors="coerce"), soxx))
     frac = (cash / navs).replace([math.inf, -math.inf], math.nan).dropna()
     out["avg_cash_pct"] = float(frac.mean() * 100.0) if not frac.empty else None
+    out.update(_sleeve_income_stats(rows, navs))
     out["as_of"] = str(rows["date"].iloc[-1])
     out["since"] = str(rows["date"].iloc[0])
+    return out
+
+
+def _sleeve_income_stats(rows: pd.DataFrame, navs: pd.Series) -> dict:
+    """What the parked cash earned (2026-09-01, owner ask "how much is the
+    idle cash generating?"). The pipeline exports ``sleeve_income_units`` —
+    cumulative mark-to-market income of the cash sleeve, derived exactly
+    from the sweep / release ledger (T-bill interest; for a SPY/SOXX sleeve
+    its market P&L). Returns:
+      cash_income_units  — cumulative income at the last row (units)
+      cash_income_pct    — as % of the starting pot
+      cash_yield_ann_pct — annualised rate on the average PARKED balance
+                           (income / mean sleeve balance × 365 / days held)
+    Empty dict for books without a sleeve or before the export carries it."""
+    if "sleeve_income_units" not in rows.columns or "sleeve_units" not in rows.columns:
+        return {}
+    inc = pd.to_numeric(rows["sleeve_income_units"], errors="coerce")
+    sleeve = pd.to_numeric(rows["sleeve_units"], errors="coerce")
+    if inc.dropna().empty:
+        return {}
+    last = float(inc.dropna().iloc[-1])
+    start = float(navs.dropna().iloc[0]) if not navs.dropna().empty else None
+    out = {"cash_income_units": last,
+           "cash_income_pct": (last / start * 100.0) if start else None}
+    held = sleeve.dropna()
+    held = held[held > 0]
+    try:
+        d0 = pd.to_datetime(rows["date"].iloc[0])
+        d1 = pd.to_datetime(rows["date"].iloc[-1])
+        days = max((d1 - d0).days, 1)
+    except Exception:            # unparseable dates: no yield figure
+        days = None
+    if days and not held.empty and held.mean() > 0:
+        out["cash_yield_ann_pct"] = last / float(held.mean()) * 365.0 / days * 100.0
+    else:
+        out["cash_yield_ann_pct"] = None
     return out
 
 

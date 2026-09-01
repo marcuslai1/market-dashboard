@@ -541,6 +541,12 @@ _METRIC_HELP = {
                   "Smaller is better · −2 to −3% is normal here · the old book ran −6%."),
     "Cash idle": ("Average share of the pot sitting in cash, not in stocks.",
                   "High = signals are scarce; the cash-sleeve lane parks it in SPY instead."),
+    "Cash earned": ("What the idle cash has EARNED so far — T-bill interest for the T-bill books, "
+                    "market gain or loss for the SPY / SOXX sleeve books — as % of the starting pot, "
+                    "with the yearly rate it works out to on the parked balance.",
+                    "T-bills run ~4%/yr, so ~0.7–1% of the pot over four months is what half-idle cash "
+                    "should earn; a much bigger figure means the sleeve was an index bet, not interest. "
+                    "— = the book holds plain cash (earns nothing)."),
     "Fees": ("Commissions, taxes and FX on closed trades, as % of the pot.",
              "Under 0.3% over four months is immaterial; slippage sits in the fill prices."),
     "β SOXX": ("How much the book moves with the semiconductor index — whole pot / per invested dollar.",
@@ -578,6 +584,17 @@ def _th(name: str) -> str:
     return (f'<th>{_escape_dollars(name)}'
             f'<details class="pb-tip"><summary aria-label="What {_escape_dollars(name)} means">?</summary>'
             f'<div class="pb-tip-body">{tip}</div></details></th>')
+
+
+def _fmt_cash_earned(r: dict) -> str:
+    """'+0.75% · 4.2%/yr' — cumulative sleeve income as % of the starting pot
+    plus the annualised rate on the parked balance; — for vehicle-less books."""
+    pct = r.get("cash_income_pct")
+    if pct is None or (isinstance(pct, float) and pd.isna(pct)):
+        return "—"
+    rate = r.get("cash_yield_ann_pct")
+    rate_txt = f" · {rate:.1f}%/yr" if rate is not None and not pd.isna(rate) else ""
+    return f"{pct:+.2f}%{rate_txt}"
 
 
 def _fmt_pct(v, plus=True, d=1):
@@ -623,7 +640,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
               ("Raw results · market included", 5),
               ("Signals&#39; own results · market stripped out", 4),
               ("Hidden exposure · single names &amp; the index", 2),
-              ("Trade quality", 7))
+              ("Trade quality", 8))
     group_row = ('<tr class="pb-sc-group">'
                  + "".join(f'<th colspan="{n}" class="pb-sc-group-blank"></th>' if not t
                            else f'<th colspan="{n}">{t}</th>' for t, n in groups)
@@ -631,7 +648,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     head = (group_row + "<tr>" + _th("Lane") + "".join(_th(n) for n in (
         "NAV", "Sharpe", "Sortino", "Calmar", "Max DD",
         "Resid Sharpe", "Resid Sortino", "Resid Calmar", "Resid DD", "Worst pos", "β SOXX", "Win", "Expectancy",
-        "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Fees")) + "</tr>")
+        "Exit-rule R", "Stop R", "Stop drag", "Cash idle", "Cash earned", "Fees")) + "</tr>")
     body = ""
     for r in rows:
         role, desc = meta[r["policy_id"]]
@@ -658,6 +675,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_r(stp.get("mean_r"), stp.get("n"))}</td>'
             f'<td>{_fmt_pct(r.get("stop_drag_pct"), d=2)}</td>'
             f'<td>{_fmt_pct(r.get("avg_cash_pct"), plus=False, d=0)}</td>'
+            f'<td>{_fmt_cash_earned(r)}</td>'
             f'<td>{_fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—"}</td>'
             "</tr>"
         )
@@ -670,7 +688,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_num(spy.get("sortino"))}</td>'
             f'<td>{_fmt_num(spy.get("calmar"), 1)}</td>'
             f'<td>{_fmt_pct(spy.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 13 + "</tr>"
+            + "<td>—</td>" * 14 + "</tr>"
         )
     if soxx:
         body += (
@@ -681,7 +699,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             f'<td>{_fmt_num(soxx.get("sortino"))}</td>'
             f'<td>{_fmt_num(soxx.get("calmar"), 1)}</td>'
             f'<td>{_fmt_pct(soxx.get("max_dd_pct"))}</td>'
-            + "<td>—</td>" * 5 + "<td>1.00</td>" + "<td>—</td>" * 7 + "</tr>"
+            + "<td>—</td>" * 5 + "<td>1.00</td>" + "<td>—</td>" * 8 + "</tr>"
         )
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
@@ -1192,10 +1210,31 @@ def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
     cash = _num_or_none(last.get("cash_units"))
     if not nav or cash is None:
         return ""
+    # Cash = the idle balance wherever it sits. Sleeve books sweep every
+    # dollar into T-bills / an ETF before the nav row is written, so
+    # `cash_units` alone read 0 for the default book (2026-09-01 fix).
+    sleeve = _num_or_none(last.get("sleeve_units")) if "sleeve_units" in rows.columns else None
+    idle = cash + (sleeve or 0.0)
     word = "position" if n_open == 1 else "positions"
-    txt = (f"Pot now {_money(nav * factor)} · cash {_money(cash * factor)} "
-           f"({cash / nav * 100:.0f}%) · {n_open} open {word}")
-    return f'<p class="pb-lane-cash">{_escape_dollars(txt)}</p>'
+    txt = (f"Pot now {_money(nav * factor)} · cash {_money(idle * factor)} "
+           f"({idle / nav * 100:.0f}%) · {n_open} open {word}")
+    # What that idle cash has EARNED (owner ask 2026-09-01): the exported
+    # cumulative sleeve income, in dollars and as a rate on the parked balance.
+    inc = None
+    if "sleeve_income_units" in rows.columns:
+        inc = _num_or_none(last.get("sleeve_income_units"))
+    earned = ""
+    if inc is not None and sleeve is not None:
+        stats = lane_nav_stats(nav_df, pid)
+        rate = stats.get("cash_yield_ann_pct")
+        # vehicle by book id: the export carries the sleeve's income, not
+        # its vehicle; the registry names the SPY / regime books explicitly.
+        where = ("the SPY sleeve" if "spy" in pid else
+                 "the regime sleeve" if "regime" in pid else "T-bills")
+        rate_txt = f", about {rate:.1f}%/yr on the parked balance" if rate is not None else ""
+        earned = (f" · idle cash has earned {_money(inc * factor)} in {where} so far "
+                  f"({inc / nav * 100:.2f}% of the pot{rate_txt})")
+    return f'<p class="pb-lane-cash">{_escape_dollars(txt + earned)}</p>'
 
 
 # Advisory lanes' history (spec addendum 2026-07-17; lanes swapped

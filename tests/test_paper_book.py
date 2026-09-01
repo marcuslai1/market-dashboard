@@ -1096,10 +1096,12 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert 'class="pb-sc-group"' in rows[0]
     import re
     spans = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[0])]
-    assert spans == [1, 5, 4, 2, 7] and sum(spans) == 19
+    # + "Cash earned" (2026-09-01) in the trade-quality block
+    assert spans == [1, 5, 4, 2, 8] and sum(spans) == 20
     assert "market included" in rows[0] and "market stripped out" in rows[0]
     assert "Hidden exposure" in rows[0] and "Trade quality" in rows[0]
-    assert all(r.count("<td") == 19 for r in rows[2:])
+    assert "Cash earned" in rows[1]
+    assert all(r.count("<td") == 20 for r in rows[2:])
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc
