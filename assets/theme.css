@@ -2848,7 +2848,10 @@ th .pb-tip-body { right: 0; left: auto; }
 /* Cell tone (2026-09-01): price-delta green / terracotta on live-book cells only. */
 .pb-tone-good { color: var(--up); }
 .pb-tone-bad { color: var(--stress); }
-.pb-scorecard td.pb-tone-good, .pb-scorecard td.pb-tone-bad { font-weight: 600; }
+/* td-level selectors: `.pb-scorecard td { color }` above outranks a bare class,
+   so the tone must be restated at the same specificity (live check 2026-09-01). */
+.pb-scorecard td.pb-tone-good { color: var(--up); font-weight: 600; }
+.pb-scorecard td.pb-tone-bad { color: var(--stress); font-weight: 600; }
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }
 

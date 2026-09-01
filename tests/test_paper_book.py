@@ -1,4 +1,6 @@
 """Paper-book band reducers + renderers (spec 2026-07-05-paper-book-band)."""
+from pathlib import Path
+
 import pandas as pd
 
 from components.paper_book import (
@@ -1261,3 +1263,11 @@ def test_scorecard_tones_live_book_cells_and_leaves_the_rest_neutral():
         assert "pb-tone-" not in neutral
     # the legend sits in the eyebrow
     assert "live books only" in html and 'class="pb-tone-good">green' in html
+
+
+def test_scorecard_tone_css_outranks_the_td_colour_rule():
+    """`.pb-scorecard td { color }` beats a bare `.pb-tone-*` class; the tone
+    must be declared on `td.pb-tone-*` too (deployed cells rendered ink, 2026-09-01)."""
+    css = (Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
+    assert ".pb-scorecard td.pb-tone-good { color: var(--up)" in css
+    assert ".pb-scorecard td.pb-tone-bad { color: var(--stress)" in css
