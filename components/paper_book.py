@@ -835,6 +835,9 @@ _EXIT_LABELS = {
     "delist_exit": "delisted",
     "margin_call": "forced sale (margin)",
     "rotation_exit": "rotated out for a new signal",
+    # 2026-09-01 held-too-long twins (pipeline §67)
+    "trail_stop": "trailing stop (auto-sold off its peak)",
+    "time_stop": "time stop (no progress after 40 sessions)",
 }
 
 
@@ -1160,12 +1163,20 @@ _LANE_EXIT_LABELS = {
                               "caution_exit": "sold on extension / thesis"},
     "v1_wide_extthesis_100_b15": {**_EXIT_LABELS,
                                   "caution_exit": "sold on extension / thesis"},
+    # the v2 twins keep the default's ext/thesis exit rule + one lever each
+    "v2_starter_b15_tb_fees_trail": {**_EXIT_LABELS,
+                                     "caution_exit": "sold on extension / thesis"},
+    "v2_starter_b15_tb_fees_time": {**_EXIT_LABELS,
+                                    "caution_exit": "sold on extension / thesis"},
 }
 
 _EXT_HISTORY_CAVEAT = (
     '<p class="pb-banner">The dashed line on the chart, trade by trade. '
     "<b>Challenger</b>: the same wide stop as the default, exits on "
     "extension only, 12%/6% sizing — its own &#36;100,000 pot. "
+    "<b>Twins</b>: the default book plus one extra exit lever each — a 15% "
+    "trailing stop off the peak, or a time stop that releases a name still "
+    "below +5% after 40 sessions. "
     "Hypothesis-grade · not the default book.</p>"
 )
 
@@ -1368,12 +1379,24 @@ _CHART_SERIES = ("Paper book", "SPY", "SOXX")
 # book (v1_flat10) is NOT charted any more — measured the weakest lane on
 # every metric; the pipeline still accrues it as the regime-turn playbook's
 # control, which needs no chart.
+# 2026-09-01 (owner ask "are the two new ones revealed?"): the two held-too-
+# long twins of the default — same book, one extra exit lever each (a 15%
+# trail-from-peak stop; a 40-session time stop on names below +5%). Dotted /
+# dash-dot so they read as variants of the default, not a third and fourth
+# strategy; same dimmed tint as the other comparators. Pre-registered read,
+# hypothesis-grade (pipeline spec 2026-09-01-paper-trail-and-time-stop-twins).
+_TRAIL_TWIN_POLICY = "v2_starter_b15_tb_fees_trail"
+_TIME_TWIN_POLICY = "v2_starter_b15_tb_fees_time"
 _ADVISORY_CURVES = {
     _PREV_DEFAULT_POLICY: "Previous default · v1 wide+extthesis 15/7.5",
     _CHALLENGER_POLICY: "Challenger · wide+ext 12/6",
+    _TRAIL_TWIN_POLICY: "Twin · default + 15% trailing stop",
+    _TIME_TWIN_POLICY: "Twin · default + 40-session time stop",
 }
 _ADVISORY_DASH = {"Previous default · v1 wide+extthesis 15/7.5": "dash",
-                  "Challenger · wide+ext 12/6": "dash"}
+                  "Challenger · wide+ext 12/6": "dash",
+                  "Twin · default + 15% trailing stop": "dot",
+                  "Twin · default + 40-session time stop": "dashdot"}
 # Reader-facing name for the solid line (the series key stays "Paper book"
 # for every downstream table/test contract).
 _HEADLINE_LEGEND = "Default · v2 starter 15/7.5 · T-bill · fees"
@@ -1382,7 +1405,9 @@ _HEADLINE_LEGEND = "Default · v2 starter 15/7.5 · T-bill · fees"
 # read as new series with meanings of their own. The tint is dimmed rather than
 # CHART_ACCENT itself: a replay must never be mistaken for the book.
 _ADVISORY_COLORS = {"Previous default · v1 wide+extthesis 15/7.5": CHART_ACCENT_SOFT,
-                    "Challenger · wide+ext 12/6": CHART_ACCENT_SOFT}
+                    "Challenger · wide+ext 12/6": CHART_ACCENT_SOFT,
+                    "Twin · default + 15% trailing stop": CHART_ACCENT_SOFT,
+                    "Twin · default + 40-session time stop": CHART_ACCENT_SOFT}
 
 
 def advisory_curves(nav_df: pd.DataFrame | None) -> pd.DataFrame:
