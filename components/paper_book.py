@@ -568,6 +568,117 @@ _METRIC_HELP = {
 }
 
 
+# ── Cell tone (2026-09-01, owner ask: "add colours to numbers that are
+# interesting/good … only for the active ones") ──────────────────────────
+# Green / red on the scorecard cells of the LIVE books only — the Default
+# and its Twins. The v1 books, the theoretical book, the control and the
+# benchmarks stay neutral: the v1 default's edge came from re-buying the
+# same signal on consecutive days into a rally, so its numbers are not a
+# reading of the rules we run. Thresholds are the same scales the "?"
+# popover prints (_METRIC_HELP), so the colour and the gloss never disagree.
+# "Good" on the return-quality columns (Sharpe, Sortino, Calmar and their
+# residual twins) additionally needs the lane to CLEAR THE LUCK BAR — the
+# deflated-Sharpe read (selection_haircut: raw for the raw block, residual
+# for the residual block) at >= 95% — because a Sharpe the haircut line under
+# the table calls "59% real / 41% luck" must not read green. "Bad" needs no
+# such proof: a negative number is bad whatever the sample. Columns with no
+# rule (Win, β SOXX, Cash idle, Cash earned, Fees) are descriptive and stay
+# neutral. Display-only; never a gate input.
+_TONE_LUCK_P = 0.95
+_TONE_MIN_N = 5          # R-multiple columns: fewer closed trades stay neutral
+_TONE_KEY = {"Sharpe": "sharpe", "Sortino": "sortino", "Calmar": "calmar",
+             "Resid Sharpe": "resid_sharpe", "Resid Sortino": "resid_sortino",
+             "Resid Calmar": "resid_calmar"}
+
+
+def _is_toned_role(role: str) -> bool:
+    """Only the Default book and its one-rule Twins carry colour. Exact match
+    on "Default" so the archive's "Default · …" settled lanes stay neutral."""
+    return role == "Default" or role.startswith("Twin ·")
+
+
+def _num(v):
+    return None if v is None or (isinstance(v, float) and pd.isna(v)) else float(v)
+
+
+def _luck_cleared(ctx: dict, kind: str) -> tuple[bool, str]:
+    """Has the lane's Sharpe (raw / resid) beaten the best-of-N luck bar?"""
+    h = ctx.get(kind) or {}
+    if not h:
+        return False, "strong on the scale; no luck read yet (needs 30 sessions and a second lane)"
+    p, n, bar = h["dsr"], h["n_trials"], h["lucky_best_sharpe_ann"]
+    if p >= _TONE_LUCK_P:
+        return True, f"clears the best-of-{n} luck bar ({bar:.2f}) — {p * 100:.0f}% likely real edge"
+    return False, (f"strong on the scale, but only {p * 100:.0f}% likely to beat the best-of-{n} "
+                   f"luck bar ({bar:.2f}) — not proven yet")
+
+
+def _cell_tone(col: str, r: dict, ctx: dict) -> tuple[str, str]:
+    """Tone in {"good", "bad", ""} plus the one-line reason (the cell's title).
+    ``ctx`` carries ``spy_ret`` and the ``raw`` / ``resid`` haircut reads."""
+    by = r.get("by_reason") or {}
+    if col == "NAV":
+        v, spy = _num(r.get("ret_pct")), _num(ctx.get("spy_ret"))
+        if v is None:
+            return "", ""
+        if v < 0:
+            return "bad", "lost money"
+        if spy is not None and v > spy:
+            return "good", f"beat SPY ({spy:+.1f}%) on the same window"
+        return "", ""
+    if col in _TONE_KEY:
+        v = _num(r.get(_TONE_KEY[col]))
+        if v is None:
+            return "", ""
+        if v < 0:
+            return "bad", "negative — lost money per unit of risk"
+        if v >= 1:
+            ok, why = _luck_cleared(ctx, "resid" if col.startswith("Resid") else "raw")
+            return ("good" if ok else ""), why
+        return "", ""
+    if col in ("Max DD", "Resid DD"):
+        v = _num(r.get("resid_max_dd_pct" if col == "Resid DD" else "max_dd_pct"))
+        if v is None:
+            return "", ""
+        if v <= -15:
+            return "bad", "beyond −15% — painful"
+        if v > -5:
+            return "good", "under −5% — mild"
+        return "", ""
+    if col == "Worst pos":
+        v = _num(r.get("worst_open_dd_pct"))
+        if v is not None and v <= -25:
+            return "bad", "a held name has fallen more than 25% from its peak"
+        return "", ""
+    if col in ("Expectancy", "Exit-rule R", "Stop R"):
+        if col == "Expectancy":
+            v, n = _num(r.get("expectancy_r")), r.get("n_r") or 0
+        else:
+            d = by.get("exit_rule" if col == "Exit-rule R" else "stop") or {}
+            v, n = _num(d.get("mean_r")), d.get("n") or 0
+        if v is None or n < _TONE_MIN_N:
+            return "", ""
+        if col == "Stop R":
+            if v < -1.5:
+                return "bad", "worse than −1.5R — gap-downs through the stop"
+            if v >= -1.0:
+                return "good", "stops fired at or better than planned (−1R)"
+            return "", ""
+        if v < 0:
+            return "bad", f"losing on average over {n} trades"
+        if col == "Expectancy" and v >= 0.5:
+            return "good", f"+0.5R or better (strong) over {n} trades"
+        if col == "Exit-rule R" and v >= 1.0:
+            return "good", f"above +1R over {n} trades — the rule banks winners"
+        return "", ""
+    if col == "Stop drag":
+        v = _num(r.get("stop_drag_pct"))
+        if v is not None and v <= -5:
+            return "bad", "stop-outs cost more than 5% of the pot"
+        return "", ""
+    return "", ""
+
+
 def help_tip(text: str, label: str = "What this means") -> str:
     """A click-to-open "?" popover. Built on <details>, which Streamlit's
     sanitiser keeps (the watchlist drawers use it), so it opens on click and
@@ -647,9 +758,13 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     group_rows = _group_row("full", cols, min_tier=3) + _group_row("compact", cols, min_tier=2)
     head = group_rows + "<tr>" + head_cells + "</tr>"
 
-    def _row(lane_html: str, cells: list, cls: str = "") -> str:
-        tds = "".join(f'<td class="pb-t{t}">{v}</td>'
-                      for v, (_n, t, _g) in zip(cells, cols, strict=True))
+    def _row(lane_html: str, cells: list, cls: str = "", tones: list | None = None) -> str:
+        tones = tones or [("", "")] * len(cells)
+        tds = ""
+        for v, (_n, t, _g), (tone, why) in zip(cells, cols, tones, strict=True):
+            tcls = f" pb-tone-{tone}" if tone else ""
+            title = f' title="{_escape_dollars(why)}"' if why else ""
+            tds += f'<td class="pb-t{t}{tcls}"{title}>{v}</td>'
         return f'<tr class="{cls}"><td class="pb-sc-lane">{lane_html}</td>{tds}</tr>'
 
     body = ""
@@ -660,6 +775,12 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
         cls = _SCORECARD_ROLE_CLASS.get(role, "")
         lane = (f'<b>{_escape_dollars(role)}</b><small>{_escape_dollars(desc)}</small>'
                 f'{_seeded_tag(r["policy_id"])}')
+        tones = None
+        if _is_toned_role(role):
+            ctx = {"spy_ret": spy.get("ret_pct") if spy else None,
+                   "raw": selection_haircut(nav_df, r["policy_id"]),
+                   "resid": selection_haircut(nav_df, r["policy_id"], residual=True)}
+            tones = [_cell_tone(n, r, ctx) for n, _t, _g in cols]
         body += _row(lane, [
             _fmt_pct(r.get("ret_pct")),
             _fmt_num(r.get("sharpe")),
@@ -680,7 +801,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             _fmt_pct(r.get("avg_cash_pct"), plus=False, d=0),
             _fmt_cash_earned(r),
             _fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—",
-        ], cls)
+        ], cls, tones)
     if spy:
         body += _row("<b>SPY</b><small>benchmark · same window</small>", [
             _fmt_pct(spy.get("ret_pct")), _fmt_num(spy.get("sharpe")),
@@ -694,7 +815,9 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     n_more = sum(1 for _n, t, _g in cols if t == 3)
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
-        '<span class="pb-eyebrow-hint">click ? on a column for what it means</span></p>'
+        '<span class="pb-eyebrow-hint">click ? on a column for what it means · '
+        '<span class="pb-tone-good">green</span> / <span class="pb-tone-bad">red</span> = good / bad '
+        'on that scale, live books only</span></p>'
         '<div class="pb-sc-wrap">'
         f'<details class="pb-sc-more"><summary data-more="Show all {len(cols) + 1} columns" '
         f'data-less="Show fewer columns ({n_more} hidden)"></summary></details>'

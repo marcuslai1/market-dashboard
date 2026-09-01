@@ -1141,7 +1141,8 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert "Cash earned" in rows[2]
     assert all(r.count("<td") == 20 for r in rows[3:])
     # every data cell carries its tier; 6 tier-3 cells per row sit behind the toggle
-    assert all(r.count('class="pb-t3"') == 6 and r.count('class="pb-t1"') == 6
+    # (prefix match: live-book cells may also carry a pb-tone-* class, 2026-09-01)
+    assert all(r.count('class="pb-t3') == 6 and r.count('class="pb-t1') == 6
                for r in rows[3:])
     assert 'class="pb-sc-more"' in html and "Show all 20 columns" in html
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
@@ -1170,3 +1171,93 @@ def test_rolling_verdict_branches():
     assert _rolling_verdict(0.3, 1.8)[1] == "neg"          # tide doing the work
     assert _rolling_verdict(-0.4, 0.2)[1] == "neg"         # signals subtracting
     assert _rolling_verdict(0.4, 0.4) == ("quiet window — neither tide nor picks doing much", "")
+
+
+# ── scorecard cell tone (2026-09-01) ──────────────────────────────────────
+def test_cell_tone_rules_follow_the_help_scales():
+    from components.paper_book import _cell_tone
+    ctx = {"spy_ret": 8.5, "raw": {}, "resid": {}}
+    # NAV: beat SPY = good, negative = bad, positive-but-below-SPY = neutral
+    assert _cell_tone("NAV", {"ret_pct": 14.9}, ctx)[0] == "good"
+    assert _cell_tone("NAV", {"ret_pct": -1.0}, ctx)[0] == "bad"
+    assert _cell_tone("NAV", {"ret_pct": 3.0}, ctx)[0] == ""
+    # Sharpe: strong on the scale but no luck read → neutral, reason names the luck bar
+    tone, why = _cell_tone("Sharpe", {"sharpe": 2.6}, ctx)
+    assert tone == "" and "luck" in why
+    # inside the luck bar → neutral with the % in the reason; cleared → good
+    inside = {"spy_ret": 8.5, "raw": {"dsr": 0.59, "n_trials": 26, "lucky_best_sharpe_ann": 2.22}}
+    tone, why = _cell_tone("Sharpe", {"sharpe": 2.6}, inside)
+    assert tone == "" and "59%" in why and "not proven" in why
+    cleared = {"spy_ret": 8.5, "raw": {"dsr": 0.97, "n_trials": 26, "lucky_best_sharpe_ann": 2.22}}
+    tone, why = _cell_tone("Sharpe", {"sharpe": 2.6}, cleared)
+    assert tone == "good" and "97%" in why
+    # residual block reads the RESIDUAL haircut, not the raw one
+    both = {"raw": {"dsr": 0.97, "n_trials": 26, "lucky_best_sharpe_ann": 2.2},
+            "resid": {"dsr": 0.30, "n_trials": 26, "lucky_best_sharpe_ann": 2.8}}
+    assert _cell_tone("Resid Sharpe", {"resid_sharpe": 1.9}, both)[0] == ""
+    assert _cell_tone("Sortino", {"sortino": 4.2}, both)[0] == "good"
+    assert _cell_tone("Resid Sortino", {"resid_sortino": 3.0}, both)[0] == ""
+    # negative needs no proof
+    assert _cell_tone("Sharpe", {"sharpe": -0.2}, ctx)[0] == "bad"
+    assert _cell_tone("Resid Calmar", {"resid_calmar": -1.1}, ctx)[0] == "bad"
+    # drawdowns: mild / normal / painful
+    assert _cell_tone("Max DD", {"max_dd_pct": -3.8}, ctx)[0] == "good"
+    assert _cell_tone("Max DD", {"max_dd_pct": -8.0}, ctx)[0] == ""
+    assert _cell_tone("Max DD", {"max_dd_pct": -16.0}, ctx)[0] == "bad"
+    assert _cell_tone("Resid DD", {"resid_max_dd_pct": -3.0}, ctx)[0] == "good"
+    assert _cell_tone("Worst pos", {"worst_open_dd_pct": -26.6}, ctx)[0] == "bad"
+    assert _cell_tone("Worst pos", {"worst_open_dd_pct": -14.3}, ctx)[0] == ""
+    # R-multiples: sample floor, then the scale
+    assert _cell_tone("Expectancy", {"expectancy_r": 0.9, "n_r": 3}, ctx)[0] == ""
+    assert _cell_tone("Expectancy", {"expectancy_r": 0.9, "n_r": 15}, ctx)[0] == "good"
+    assert _cell_tone("Expectancy", {"expectancy_r": -0.3, "n_r": 15}, ctx)[0] == "bad"
+    by = {"by_reason": {"exit_rule": {"mean_r": 1.6, "n": 11}, "stop": {"mean_r": -1.14, "n": 4}}}
+    assert _cell_tone("Exit-rule R", by, ctx)[0] == "good"
+    assert _cell_tone("Stop R", by, ctx)[0] == ""          # n=4 < floor
+    by5 = {"by_reason": {"stop": {"mean_r": -1.7, "n": 6}}}
+    assert _cell_tone("Stop R", by5, ctx)[0] == "bad"
+    by6 = {"by_reason": {"stop": {"mean_r": -0.95, "n": 6}}}
+    assert _cell_tone("Stop R", by6, ctx)[0] == "good"
+    assert _cell_tone("Stop drag", {"stop_drag_pct": -6.1}, ctx)[0] == "bad"
+    assert _cell_tone("Stop drag", {"stop_drag_pct": -1.8}, ctx)[0] == ""
+    # descriptive columns never tone
+    for col, r in (("Win", {"win_rate_pct": 72.0}), ("β SOXX", {"beta_soxx": 0.1}),
+                   ("Cash idle", {"avg_cash_pct": 50.0}), ("Fees", {"fees_pct": 0.1}),
+                   ("Cash earned", {"cash_income_pct": 0.8})):
+        assert _cell_tone(col, r, ctx) == ("", ""), col
+    # missing values never tone
+    assert _cell_tone("Sharpe", {}, ctx) == ("", "")
+    assert _cell_tone("NAV", {"ret_pct": float("nan")}, ctx) == ("", "")
+
+
+def test_toned_roles_are_the_live_books_only():
+    from components.paper_book import _SCORECARD_ARCHIVE, _SCORECARD_LANES, _is_toned_role
+    live = [role for _p, role, _d in _SCORECARD_LANES if _is_toned_role(role)]
+    assert live == ["Default"] + [r for _p, r, _d in _SCORECARD_LANES if r.startswith("Twin")]
+    for _p, role, _d in _SCORECARD_LANES:
+        if role.startswith(("Previous default", "Challenger", "Control", "Theoretical", "v1")):
+            assert not _is_toned_role(role), role
+    for _p, role, _d in _SCORECARD_ARCHIVE:        # "Default · …" settled lanes stay neutral
+        assert not _is_toned_role(role), role
+
+
+def test_scorecard_tones_live_book_cells_and_leaves_the_rest_neutral():
+    from components.paper_book import scorecard_html
+    from tests.test_paper_metrics import _factor_book
+    lanes = [("v2_starter_b15_tb_fees", "Default", "d"),
+             ("v2_starter_b15_tb_fees_trail", "Twin · trailing stop", "t"),
+             ("v1_flat10", "Control", "c")]
+    df = pd.concat([_factor_book("v2_starter_b15_tb_fees", alpha=0.001, seed=1),
+                    _factor_book("v2_starter_b15_tb_fees_trail", alpha=0.001, seed=3),
+                    _factor_book("v1_flat10", alpha=0.0, seed=2)], ignore_index=True)
+    html = scorecard_html(df, None, None, lanes=lanes)
+    rows = html.split("<tr")[1:]
+    default, twin, control, spy, soxx = rows[3], rows[4], rows[5], rows[6], rows[7]
+    # a factor book's residual drawdown is ~0 → "Resid DD" reads mild → green on the live rows
+    assert 'pb-tone-good' in default and 'title="under −5% — mild"' in default
+    assert 'pb-tone-good' in twin
+    # the same number on the control and the benchmarks carries no tone
+    for neutral in (control, spy, soxx):
+        assert "pb-tone-" not in neutral
+    # the legend sits in the eyebrow
+    assert "live books only" in html and 'class="pb-tone-good">green' in html

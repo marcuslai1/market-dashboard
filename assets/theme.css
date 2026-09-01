@@ -2789,7 +2789,9 @@ details.led-details[open] > summary {
 /* Strategy scorecard (2026-08-27): the metrics the book is judged on. Role
    rails say which row is the default / challenger / legacy control — the
    same steel rail the old lane grid used for "headline". Measurements are
-   tabular; nothing is coloured by sign (the caption carries the reading). */
+   tabular; since 2026-09-01 the LIVE books' cells (Default + Twins) are toned
+   good / bad against the "?" scales (see _cell_tone in components/paper_book.py);
+   every other row stays neutral (the caption carries the reading). */
 .pb-scorecard { width: 100%; border-collapse: collapse; font-size: 12.5px;
   margin-top: 0; font-variant-numeric: tabular-nums; }
 .pb-scorecard th { font-family: var(--font-display); font-size: 9.5px;
@@ -2843,6 +2845,10 @@ th .pb-tip-body { right: 0; left: auto; }
 .pb-rationale li:last-child { border-bottom: 0; }
 .pb-rationale .pb-why { color: var(--color-text-2); font-size: 12.5px; }
 .pb-scorecard tr.pb-role-bench td { color: var(--color-text-2); border-top: 1px solid var(--color-divider); }
+/* Cell tone (2026-09-01): price-delta green / terracotta on live-book cells only. */
+.pb-tone-good { color: var(--up); }
+.pb-tone-bad { color: var(--stress); }
+.pb-scorecard td.pb-tone-good, .pb-scorecard td.pb-tone-bad { font-weight: 600; }
 .pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
 .pb-trades span { color: var(--ink-3); }
 
