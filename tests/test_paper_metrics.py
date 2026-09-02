@@ -236,3 +236,22 @@ def test_calmar_is_annualised_return_over_max_drawdown():
     assert pm._series_stats([100.0, 101.0, 102.0, 103.0])["calmar"] is None   # no drawdown
     out = pm.lane_nav_stats(_factor_book("f"), "f")
     assert "resid_sortino" in out and "resid_calmar" in out
+
+
+def test_etf_sleeve_is_exposure_not_idle_cash():
+    """2026-09-02: for INDEX_SLEEVE_LANES the parked balance is a market
+    position — it must not inflate 'cash idle' (and so must not lower the
+    per-invested-dollar beta). T-bill books keep counting the sleeve as cash."""
+    navs = [1_000_000, 1_000_000, 1_000_000]
+    df = _nav("v2_starter_b15_regime_fees", navs, cash=[100_000] * 3,
+              sleeve=[500_000] * 3)
+    out = pm.lane_nav_stats(df, "v2_starter_b15_regime_fees")
+    assert out["avg_cash_pct"] == pytest.approx(10.0)
+    assert out["avg_index_sleeve_pct"] == pytest.approx(50.0)
+    assert "SOXX" in out["sleeve_vehicle"]
+    assert pm.sleeve_short(out["sleeve_vehicle"]) == "SOXX / T-bills"
+    assert pm.sleeve_short("SPY") == "SPY" and pm.sleeve_short(None) is None
+    tb = pm.lane_nav_stats(_nav("v2_starter_b15_tb_fees", navs, cash=[100_000] * 3,
+                                sleeve=[500_000] * 3), "v2_starter_b15_tb_fees")
+    assert tb["avg_cash_pct"] == pytest.approx(60.0)
+    assert "avg_index_sleeve_pct" not in tb

@@ -14,7 +14,8 @@ instruments (``scripts/paper_exit_quality.py`` / ``paper_risk.py``) print:
   trade — expectancy overall, and per exit reason. Needs the ``entry_stop``
   column the pipeline exports since 2026-08-27; rows without it are skipped
   (older CSVs simply show no R);
-- cash not in positions (cash + any vehicle sleeve) averaged over the window;
+- cash not in positions (cash + a T-bill sleeve) averaged over the window; an
+  ETF sleeve (``INDEX_SLEEVE_LANES``) is market exposure and rides separately;
 - explicit fees (``fees_units``) as % of the pot, when a lane models them.
 
 Capture ratio / MFE are deliberately NOT here — they need intraday bars the
@@ -28,6 +29,36 @@ import pandas as pd
 
 INCEPTION_UNITS = 1_000_000
 ANN = math.sqrt(252)
+
+# Books whose cash sleeve is an INDEX position (2026-09-02, colour-is-a-claim
+# follow-up). The CSV carries the sleeve's balance and income, not its
+# vehicle; the pipeline registry names these four. For them the parked
+# balance is market exposure, not idle cash: ``avg_cash_pct`` counts only
+# ``cash_units`` and the sleeve share rides separately as
+# ``avg_index_sleeve_pct`` (+ ``sleeve_vehicle``). T-bill books keep
+# counting the sleeve as cash — that is what it is.
+INDEX_SLEEVE_LANES = {
+    "v2_starter_b15_regime_fees": "SOXX while the trend is up, T-bills otherwise",
+    "v2_starter_b15_spy_fees": "SPY",
+    "v1_wide_extthesis_100_b15_spy": "SPY",
+    "v1_wide_extthesis_100_b15_spy_fees": "SPY",
+}
+
+
+def sleeve_short(vehicle):
+    """'SOXX / T-bills', 'SPY' … for the scorecard cell; None for a T-bill or
+    no sleeve. The regime book's sleeve is SOXX only while the trend is up,
+    so its label says so — the CSV cannot split the two legs."""
+    if not vehicle:
+        return None
+    return "SOXX / T-bills" if "SOXX" in vehicle else "SPY"
+
+
+def sleeve_exposure_note(vehicle):
+    """The parenthetical after a parked-ETF figure."""
+    if vehicle and "SOXX" in vehicle:
+        return "market exposure while in SOXX, not idle cash"
+    return "market exposure, not idle cash"
 
 
 def _series_stats(vals: list[float]) -> dict:
@@ -74,9 +105,13 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
         spy = _series_stats(pd.to_numeric(rows["spy_close"], errors="coerce").tolist())
         out["spy"] = spy
     cash = pd.to_numeric(rows["cash_units"], errors="coerce")
-    if "sleeve_units" in rows.columns:
-        cash = cash + pd.to_numeric(rows["sleeve_units"], errors="coerce").fillna(0)
     navs = pd.to_numeric(rows["nav_units"], errors="coerce")
+    index_vehicle = INDEX_SLEEVE_LANES.get(policy_id)
+    sleeve = None
+    if "sleeve_units" in rows.columns:
+        sleeve = pd.to_numeric(rows["sleeve_units"], errors="coerce").fillna(0)
+        if not index_vehicle:
+            cash = cash + sleeve       # T-bills are cash; an ETF sleeve is not
     if "soxx_close" in rows.columns:
         soxx = pd.to_numeric(rows["soxx_close"], errors="coerce")
         out["soxx"] = _series_stats(soxx.tolist())
@@ -91,6 +126,10 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
                 navs, pd.to_numeric(rows["spy_close"], errors="coerce"), soxx))
     frac = (cash / navs).replace([math.inf, -math.inf], math.nan).dropna()
     out["avg_cash_pct"] = float(frac.mean() * 100.0) if not frac.empty else None
+    if index_vehicle and sleeve is not None:
+        sfrac = (sleeve / navs).replace([math.inf, -math.inf], math.nan).dropna()
+        out["avg_index_sleeve_pct"] = float(sfrac.mean() * 100.0) if not sfrac.empty else None
+        out["sleeve_vehicle"] = index_vehicle
     out.update(_sleeve_income_stats(rows, navs))
     out["as_of"] = str(rows["date"].iloc[-1])
     out["since"] = str(rows["date"].iloc[0])

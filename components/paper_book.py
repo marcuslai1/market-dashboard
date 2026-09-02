@@ -1,7 +1,9 @@
 """Signal Tracker · Paper-book band (page-contract tier 1c).
 
-Renders the pipeline's mechanical paper portfolio — policy ``v1_flat10``,
-replay-seeded 2026-04-19, Measurement-Gate-exempt — from two exported
+Renders the pipeline's mechanical paper portfolio — the headline policy
+(``_HEADLINE_POLICY``, the v2 starter default since 2026-08-28; ``v1_flat10``
+rides as the control), replay-seeded 2026-04-19, Measurement-Gate-exempt —
+from two exported
 sources: the report's ``paper_portfolio`` summary block and
 ``data/paper_nav.csv`` (daily NAV + SPY/SOXX closes). The dashboard's only
 arithmetic is rebasing exported series to a $100,000 display notional at
@@ -30,7 +32,15 @@ from lib.charts import (
     style_fig,
 )
 from lib.formatters import _escape_dollars, display_ticker
-from lib.paper_metrics import lane_nav_stats, rolling_sharpes, selection_haircut, stress_read
+from lib.paper_metrics import (
+    INDEX_SLEEVE_LANES,
+    lane_nav_stats,
+    rolling_sharpes,
+    selection_haircut,
+    sleeve_exposure_note,
+    sleeve_short,
+    stress_read,
+)
 from lib.paper_metrics import scorecard as _scorecard_rows
 
 # Exported column → display series name. NAV is the hero series; SPY/SOXX are
@@ -54,11 +64,11 @@ def _money(v: float) -> str:
 # The DEFAULT strategy the band headlines (owner decision 2026-08-27, pipeline
 # spec 2026-08-27-paper-stop-exit-cross-design addenda e/f): the wide
 # structural stop with the extension-or-thesis exit at 15%/7.5% sizing.
-# The pipeline's report block still names v1_flat10 (the frozen-stop control
-# the regime-turn playbook's falsification read is defined against, and the
-# Telegram glance's headline) — this band deliberately does NOT follow the
-# block's policy_id any more: the control is charted as the muted "legacy
-# control" line instead. Falls back to the block's policy, then the legacy
+# The pipeline's report block named v1_flat10 (the frozen-stop control the
+# regime-turn playbook's falsification read is defined against) until
+# 2026-08-31 and the v2 default since — this band deliberately does NOT
+# follow the block's policy_id either way: the headline is computed from the
+# CSV and the control is charted as the muted "legacy control" line. Falls back to the block's policy, then the legacy
 # default, when the CSV predates the default lane.
 # 2026-08-28 (owner decisions, pipeline spec 2026-08-28-paper-v2-starter-
 # default): the headline is the v2 STARTER default — the report's own
@@ -200,6 +210,12 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     prefix — the section head above already says so. A block whose returns are
     still ``None`` (seed day / no matured session) reads "seeded", mirroring the
     upstream Telegram glance line.
+
+    Colour is a claim (2026-09-01 standard, applied here 2026-09-02): "leading"
+    is green only when the block carries ``luck_cleared`` — the lane's
+    RESIDUAL Sharpe beat the best-of-N luck bar at ``_TONE_LUCK_P`` — and
+    "trailing" is red only when the book actually lost money. Unproven either
+    way reads neutral, and the clause says so.
     """
     nav = block.get("nav_return_pct")
     spy = block.get("spy_return_pct")
@@ -211,10 +227,27 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     body = (f"{_money(NOTIONAL_START)} → {nav_usd} ({nav:+.1f}%){since}, "
             f"against SPY at {spy_usd} ({spy:+.1f}%)")
     if nav > spy:
-        return (f"{body} — leading the benchmark.", "pos")
+        if block.get("luck_cleared"):
+            return (f"{body} — leading the benchmark.", "pos")
+        return (f"{body} — leading the benchmark, not yet proven beyond luck.", "")
     if nav < spy:
-        return (f"{body} — trailing the benchmark.", "neg")
+        return (f"{body} — trailing the benchmark.", "neg" if nav < 0 else "")
     return (f"{body} — tracking the benchmark.", "")
+
+
+# Pipeline ledger KI-23 (2026-09-02): three signal rows before 11 Jun differ
+# between the replay seed every book was built from and what the live run saw
+# (one phantom entry, two early exits). Worth about +1 point of NAV, the same
+# way in every book — absolute returns carry it; comparisons between books
+# do not. The dashboard says so under the verdict line rather than silently.
+_KI23_NOTE = ("Every book's return since inception is overstated by about one point: three "
+              "signal rows before June were replayed with data the live run did not have "
+              "(pipeline ledger KI-23). It moves every book the same way, so comparisons "
+              "between books stand; the absolute number does not.")
+
+
+def ki23_note_html() -> str:
+    return f'<p class="pb-chartnote"><span class="lim">{_escape_dollars(_KI23_NOTE)}</span></p>'
 
 
 # Trade-reason keys (upstream policy vocabulary) → plain-language chip labels
@@ -259,12 +292,16 @@ def headline_block(nav_df: pd.DataFrame | None, block: dict) -> dict:
         return dict(block or {})
     r = rows[0]
     spy = (r.get("spy") or {}).get("ret_pct")
+    resid = selection_haircut(nav_df, pid, residual=True) or {}
     return {
         "policy_id": pid,
         "nav_return_pct": r.get("ret_pct"),
         "spy_return_pct": spy,
         "inception": r.get("since") or (block or {}).get("inception"),
         "as_of": r.get("as_of") or (block or {}).get("as_of"),
+        # the verdict's green gate: residual Sharpe past the best-of-N luck bar
+        "luck_cleared": bool(resid) and float(resid.get("dsr") or 0.0) >= _TONE_LUCK_P,
+        "n_sessions": r.get("n_sessions"),
     }
 
 
@@ -539,8 +576,10 @@ _METRIC_HELP = {
                "−1R means the stop did exactly its job; worse than −1R = gap-downs through it."),
     "Stop drag": ("What all the stop-outs cost together, as % of the pot.",
                   "Smaller is better · −2 to −3% is normal here · the old book ran −6%."),
-    "Cash idle": ("Average share of the pot sitting in cash, not in stocks.",
-                  "High = signals are scarce; the cash-sleeve lane parks it in SPY instead."),
+    "Cash idle": ("Average share of the pot sitting in cash or T-bills — not in stocks.",
+                  "High = signals are scarce. For the ETF-sleeve books the parked cash is market "
+                  "exposure, not idle: it shows separately as '+x% in SPY / SOXX' and is counted "
+                  "in β and in the market-stripped columns, never here."),
     "Cash earned": ("What the idle cash has EARNED so far — T-bill interest for the T-bill books, "
                     "market gain or loss for the SPY / SOXX sleeve books — as % of the starting pot, "
                     "with the yearly rate it works out to on the parked balance.",
@@ -624,7 +663,8 @@ def _cell_tone(col: str, r: dict, ctx: dict) -> tuple[str, str]:
         if v < 0:
             return "bad", "lost money"
         if spy is not None and v > spy:
-            return "good", f"beat SPY ({spy:+.1f}%) on the same window"
+            ok, why = _luck_cleared(ctx, "resid")
+            return ("good" if ok else ""), f"beat SPY ({spy:+.1f}%) on the same window; {why}"
         return "", ""
     if col in _TONE_KEY:
         v = _num(r.get(_TONE_KEY[col]))
@@ -696,6 +736,19 @@ def _th(name: str, tier: int | None = None) -> str:
     return (f'<th{cls}>{_escape_dollars(name)}'
             f'<details class="pb-tip"><summary aria-label="What {_escape_dollars(name)} means">?</summary>'
             f'<div class="pb-tip-body">{tip}</div></details></th>')
+
+
+def _fmt_cash_idle(r: dict) -> str:
+    """'52%' — or, for an ETF-sleeve book, '12% <small>+28% in SOXX</small>':
+    the parked balance is market exposure and is never folded into idle."""
+    idle = _fmt_pct(r.get("avg_cash_pct"), plus=False, d=0)
+    sl = r.get("avg_index_sleeve_pct")
+    short = sleeve_short(r.get("sleeve_vehicle"))
+    if sl is None or (isinstance(sl, float) and pd.isna(sl)) or not short:
+        return idle
+    note = sleeve_exposure_note(r.get("sleeve_vehicle"))
+    return (f'{idle} <small title="parked in {short} — {note}">'
+            f'+{sl:.0f}% in {short}</small>')
 
 
 def _fmt_cash_earned(r: dict) -> str:
@@ -798,7 +851,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             _fmt_r(ex.get("mean_r"), ex.get("n")),
             _fmt_r(stp.get("mean_r"), stp.get("n")),
             _fmt_pct(r.get("stop_drag_pct"), d=2),
-            _fmt_pct(r.get("avg_cash_pct"), plus=False, d=0),
+            _fmt_cash_idle(r),
             _fmt_cash_earned(r),
             _fmt_pct(r.get("fees_pct"), plus=False, d=2) if r.get("fees_pct") is not None else "—",
         ], cls, tones)
@@ -856,8 +909,9 @@ def _group_row(mode: str, cols: list, min_tier: int) -> str:
 
 # ── Why the default strategy is built this way (2026-08-27) ───────────────
 # Collapsed by default. Each line: what is used · why · the number behind it.
-# Numbers are the 2026-08-27 read (pipeline spec 2026-08-27-paper-stop-exit-
-# cross-design + addenda); refresh them when the pre-registered read lands.
+# Numbers are the 2026-08-27 stop×exit read and the 2026-08-28 v2 starter seed
+# (pipeline specs of those dates); refreshed 2026-09-02 for the T-bill default;
+# refresh again when the pre-registered read lands.
 _RATIONALE = [
     ("Entries — the report's own BUY / ACCUMULATE signals, bought at that day's close; a fill that already sits under its own stop is refused.",
      "Entry quality was never the problem: ACCUMULATE names beat SPY by +2.3 pts over the "
@@ -873,21 +927,27 @@ _RATIONALE = [
      "pot with the names −15 pts vs SPY afterwards; thesis exits won every time. RSI and "
      "valuation triggers lost money, and the 'any' trigger that blends them in did worse than "
      "either good one alone."),
-    ("15% per name, built 7.5% a day on ACCUMULATE.",
-     "This rulebook's drawdown barely moves with size (−5.2% at 10/5 → −6.7% at 15/7.5) "
-     "because the thesis exit leaves early; Sharpe keeps rising to 15/7.5. 20/10 would mean "
-     "five names in a book where 17 of 33 share one factor."),
-    ("Cash waits for the next signal.",
-     "Signals are scarce, so ~42% of the pot idles on average — the book's main drag. The "
-     "'cash sleeve' lane parks idle cash in SPY (+5 pts over the window at no extra drawdown); "
-     "a T-bill version is the safe variant. Neither is the default yet."),
+    ("15% per name. An ACCUMULATE opens a 7.5% starter stake; only a later BUY tops it up. "
+     "Small and mid caps at half size.",
+     "The report itself says ACCUMULATE is a starter position that does not persist, so the "
+     "book replays that instead of adding another slice every day the signal repeats. Drawdown "
+     "barely moves with size because the thesis exit leaves early; 20/10 would mean five names "
+     "in a book where 17 of 33 share one factor. Half-size small caps: at full size the tier "
+     "went 1-for-6; halving it added a point of return, 0.35 of Sharpe and cut 0.8 points of "
+     "drawdown on the same fills."),
+    ("Idle cash sits in T-bills.",
+     "Signals are scarce, so about half the pot idles on average — the book's main drag. "
+     "T-bills earn ~4%/yr on it without adding market risk. The SPY-sleeve twin earned about "
+     "+5 points more over the window, but that was index exposure relabelled as book return — "
+     "exactly the comparison this book exists to make honestly."),
     ("Fees are modelled from IBKR's live schedule.",
      "Venue commissions, the Korean sell tax, FX conversion and half-spread slippage: about "
      "0.6% of the pot over four months, two-thirds of it on the nine foreign names. Immaterial."),
     ("What is not proven yet.",
-     "Two regime segments, ~20 closed trades a lane, no bear market. The comparison against "
-     "the old stop was pre-registered before the numbers were read and lands ~8 Sep 2026; "
-     "until then this is a paper book, not a verdict."),
+     "Two regime segments, ~15 closed trades a lane, no bear market. Sixty-seven rule versions "
+     "have been tried on the same window, so pure chance would hand the best of them a Sharpe "
+     "near 2.8 — no book clears that bar yet, which is why nothing on the scorecard is green. "
+     "The pre-registered read lands ~8 Sep 2026 as a progress report, not a verdict."),
 ]
 
 
@@ -926,10 +986,10 @@ def _stats_html(block: dict) -> str:
             f'style="grid-template-columns:repeat({len(chips)},1fr);">{body}</div>')
 
 
-_BAND_BANNER = ("Paper only · 90 sessions · carried by a handful of AI-hardware "
+_BAND_BANNER = ("Paper only · {n} sessions · carried by a handful of AI-hardware "
                 "names · ~15 trades a lane · not a track record · next read ~8 Sep 2026")
 _BAND_BANNER_FULL = (
-    "Paper measurement only. Ninety sessions, one trending segment and one "
+    "Paper measurement only. {n} sessions, one trending segment and one "
     "choppy one since 22 Jul; about 15 closed trades a lane. Half of the "
     "return comes from three names and most of the beat over SPY from the "
     "August AI-hardware run — 17 of the 33 names share that factor, so the "
@@ -943,9 +1003,13 @@ _BAND_BANNER_FULL = (
 def _banner_html(block: dict) -> str:
     """The band's caveat, one line; the full version on hover. Since
     2026-08-27 the dashboard owns this copy (the exported block's banner
-    describes the legacy control's window)."""
-    return (f'<p class="pb-banner">{_escape_dollars(_BAND_BANNER)}'
-            f'{help_tip(_BAND_BANNER_FULL, "Full caveat")}</p>')
+    describes the legacy control's window). The session count follows the
+    headline lane (``n_sessions`` on the block; "90" was hard-coded until
+    2026-09-02)."""
+    n = (block or {}).get("n_sessions")
+    n_txt = str(int(n)) if n else "~90"
+    return (f'<p class="pb-banner">{_escape_dollars(_BAND_BANNER.format(n=n_txt))}'
+            f'{help_tip(_BAND_BANNER_FULL.format(n=n_txt), "Full caveat")}</p>')
 
 
 # Policy_id → compact public label (the lanes the Telegram glance abbreviates
@@ -1396,10 +1460,16 @@ def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
     # dollar into T-bills / an ETF before the nav row is written, so
     # `cash_units` alone read 0 for the default book (2026-09-01 fix).
     sleeve = _num_or_none(last.get("sleeve_units")) if "sleeve_units" in rows.columns else None
-    idle = cash + (sleeve or 0.0)
+    index_vehicle = INDEX_SLEEVE_LANES.get(pid)
+    short = sleeve_short(index_vehicle)
+    # An ETF sleeve is market exposure, not idle cash (2026-09-02).
+    idle = cash + (0.0 if index_vehicle else (sleeve or 0.0))
     word = "position" if n_open == 1 else "positions"
     txt = (f"Pot now {_money(nav * factor)} · cash {_money(idle * factor)} "
            f"({idle / nav * 100:.0f}%) · {n_open} open {word}")
+    if index_vehicle and sleeve:
+        txt += (f" · {_money(sleeve * factor)} ({sleeve / nav * 100:.0f}%) parked in {short} "
+                f"({sleeve_exposure_note(index_vehicle)})")
     # What that idle cash has EARNED (owner ask 2026-09-01): the exported
     # cumulative sleeve income, in dollars and as a rate on the parked balance.
     inc = None
@@ -1411,11 +1481,14 @@ def lane_cash_html(nav_df: pd.DataFrame | None, pid: str,
         rate = stats.get("cash_yield_ann_pct")
         # vehicle by book id: the export carries the sleeve's income, not
         # its vehicle; the registry names the SPY / regime books explicitly.
-        where = ("the SPY sleeve" if "spy" in pid else
-                 "the regime sleeve" if "regime" in pid else "T-bills")
         rate_txt = f", about {rate:.1f}%/yr on the parked balance" if rate is not None else ""
-        earned = (f" · idle cash has earned {_money(inc * factor)} in {where} so far "
-                  f"({inc / nav * 100:.2f}% of the pot{rate_txt})")
+        if short:
+            # an index sleeve's income is index P&L — say so, never "interest"
+            earned = (f" · the {short} sleeve has made {_money(inc * factor)} so far "
+                      f"({inc / nav * 100:.2f}% of the pot{rate_txt} — index gain, not interest)")
+        else:
+            earned = (f" · idle cash has earned {_money(inc * factor)} in T-bills so far "
+                      f"({inc / nav * 100:.2f}% of the pot{rate_txt})")
     return f'<p class="pb-lane-cash">{_escape_dollars(txt + earned)}</p>'
 
 
@@ -1939,7 +2012,7 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         masthead=True,
     )
     if block:
-        st.markdown(_verdict_html(block), unsafe_allow_html=True)
+        st.markdown(_verdict_html(block) + ki23_note_html(), unsafe_allow_html=True)
     chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit

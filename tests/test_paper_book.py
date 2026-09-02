@@ -93,22 +93,46 @@ def test_verdict_trailing():
     assert "against SPY at" in text
     assert not text.startswith("Paper book:")
     assert "trailing" in text
+    # Colour is a claim (2026-09-02): trailing SPY while still up is not a
+    # proven loss — neutral. Red is reserved for a book that lost money.
+    assert tone == ""
+    _t, tone = verdict_bits({"nav_return_pct": -1.0, "spy_return_pct": 6.1})
     assert tone == "neg"
 
 
-def test_verdict_leading():
+def test_verdict_leading_is_green_only_past_the_luck_bar():
     text, tone = verdict_bits({"nav_return_pct": 8.0, "spy_return_pct": 6.1})
-    assert "leading" in text
+    assert "leading" in text and "not yet proven beyond luck" in text
+    assert tone == ""
+    text, tone = verdict_bits({"nav_return_pct": 8.0, "spy_return_pct": 6.1,
+                               "luck_cleared": True})
+    assert text.endswith("leading the benchmark.")
     assert tone == "pos"
 
 
 def test_verdict_html_trailing_clause_is_terracotta_not_caution_red():
     """A stress reading on the book's own performance — not a signal on any
-    stock, so it must not borrow the CAUTION hue."""
-    html = _verdict_html({"nav_return_pct": 4.2, "spy_return_pct": 6.1,
+    stock, so it must not borrow the CAUTION hue. Fires only on a real loss."""
+    html = _verdict_html({"nav_return_pct": -1.2, "spy_return_pct": 6.1,
                           "inception": "2026-04-19"})
     assert "var(--stress)" in html
     assert STATUS_NEG not in html
+    # up but behind SPY: no clause colour at all
+    html = _verdict_html({"nav_return_pct": 4.2, "spy_return_pct": 6.1})
+    assert "var(--stress)" not in html
+
+
+def test_ki23_note_rides_under_the_verdict():
+    from components.paper_book import ki23_note_html
+    html = ki23_note_html()
+    assert "KI-23" in html and "overstated by about one point" in html
+    assert 'class="lim"' in html
+
+
+def test_banner_session_count_follows_the_block():
+    from components.paper_book import _banner_html
+    assert "93 sessions" in _banner_html({"n_sessions": 93})
+    assert "~90 sessions" in _banner_html({})
 
 
 def test_verdict_html_returns_carry_market_direction():
@@ -1179,8 +1203,13 @@ def test_rolling_verdict_branches():
 def test_cell_tone_rules_follow_the_help_scales():
     from components.paper_book import _cell_tone
     ctx = {"spy_ret": 8.5, "raw": {}, "resid": {}}
-    # NAV: beat SPY = good, negative = bad, positive-but-below-SPY = neutral
-    assert _cell_tone("NAV", {"ret_pct": 14.9}, ctx)[0] == "good"
+    # NAV (2026-09-02): beating SPY is green only past the RESIDUAL luck bar;
+    # negative = bad (a fact); positive-but-below-SPY = neutral
+    tone, why = _cell_tone("NAV", {"ret_pct": 14.9}, ctx)
+    assert tone == "" and "beat SPY" in why and "luck" in why
+    resid_ok = {"spy_ret": 8.5, "raw": {},
+                "resid": {"dsr": 0.96, "n_trials": 67, "lucky_best_sharpe_ann": 2.84}}
+    assert _cell_tone("NAV", {"ret_pct": 14.9}, resid_ok)[0] == "good"
     assert _cell_tone("NAV", {"ret_pct": -1.0}, ctx)[0] == "bad"
     assert _cell_tone("NAV", {"ret_pct": 3.0}, ctx)[0] == ""
     # Sharpe: strong on the scale but no luck read → neutral, reason names the luck bar
@@ -1271,3 +1300,29 @@ def test_scorecard_tone_css_outranks_the_td_colour_rule():
     css = (Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
     assert ".pb-scorecard td.pb-tone-good { color: var(--up)" in css
     assert ".pb-scorecard td.pb-tone-bad { color: var(--stress)" in css
+
+
+# ── ETF sleeve = exposure, not idle cash (2026-09-02) ──
+def test_index_sleeve_lane_cash_line_separates_the_parked_etf():
+    df = pd.DataFrame({
+        "policy_id": ["v2_starter_b15_regime_fees"] * 2,
+        "date": ["2026-04-19", "2026-04-20"],
+        "nav_units": [1_000_000, 1_100_000],
+        "cash_units": [100_000, 100_000],
+        "sleeve_units": [600_000, 700_000],
+        "sleeve_income_units": [0, 100_000],
+        "n_positions": [1, 1],
+        "spy_close": [500.0, 510.0], "soxx_close": [200.0, 230.0],
+    })
+    html = lane_cash_html(df, "v2_starter_b15_regime_fees", 1)
+    assert "cash &#36;10,000 (9%)" in html
+    assert "parked in SOXX / T-bills (market exposure while in SOXX, not idle cash)" in html
+    assert "the SOXX / T-bills sleeve has made" in html and "index gain, not interest" in html
+
+
+def test_fmt_cash_idle_shows_etf_share_separately():
+    from components.paper_book import _fmt_cash_idle
+    assert _fmt_cash_idle({"avg_cash_pct": 52.0}) == "52%"
+    cell = _fmt_cash_idle({"avg_cash_pct": 9.0, "avg_index_sleeve_pct": 27.6,
+                           "sleeve_vehicle": "SPY"})
+    assert cell.startswith("9% <small") and "+28% in SPY" in cell
