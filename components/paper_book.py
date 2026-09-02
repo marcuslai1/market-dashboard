@@ -593,7 +593,8 @@ _METRIC_HELP = {
     "Sortino": ("Like Sharpe, but only DOWN days count as risk — big up days are not penalised.",
                 "Under 1 weak · 1–3 good · 3–5 strong · over 5 exceptional. Usually sits above Sharpe; a big gap means the wobble was mostly upside."),
     "Calmar": ("Yearly return divided by the worst fall — how much you earned per unit of pain you sat through.",
-               "Under 1 poor · 1–3 good · over 3 strong for a stock book. Short windows inflate it badly (4 months annualised) — compare lanes, do not trust the level."),
+               "Under 1 poor · 1–3 good · over 3 strong for a stock book. Not readable before ~12 months with a market decline inside the window: "
+               "until then the annualising inflates it and the worst fall has not happened yet — compare lanes, do not trust the level."),
     "Resid Sortino": ("Sortino of what the signals own after the market and semis moves are stripped out.",
                       "Same scale as Sortino. Read it beside the raw one: a big drop means the market absorbed the down days for you."),
     "Resid Calmar": ("Calmar of the residual curve — the signals' own return per unit of the drawdown their own decisions caused.",
@@ -808,10 +809,10 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
     spy = next((r.get("spy") for r in rows if r.get("spy")), None) if benchmarks else None
     soxx = next((r.get("soxx") for r in rows if r.get("soxx")), None) if benchmarks else None
     # Columns, tiered for the 1200px page measure (owner ask 2026-09-01:
-    # "I have to highlight and move right to see it"). Tier 1 = the seven
-    # numbers a reader needs on any screen; tier 2 completes the 14-column
-    # COMPACT view that fits the page width; tier 3 = the six secondary
-    # metrics revealed by the "Show all 20 columns" toggle (CSS-only, via
+    # "I have to highlight and move right to see it"). Tier 1 = the six
+    # numbers a criterion actually reads; tier 2 completes the 14-column
+    # COMPACT view that fits the page width; tier 3 = the eight long-horizon /
+    # secondary metrics revealed by the "Show all columns" toggle (CSS-only, via
     # :has() on the <details> — no rerun). Group titles are emitted twice
     # (compact / full colspans) and CSS shows the one that matches.
     cols = _SC_COLS
@@ -891,17 +892,27 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
 
 # Scorecard column spec: (header, tier, group). Tier 1 shows on every screen,
 # tier 2 completes the compact 14-column view, tier 3 is behind the toggle.
+#
+# Re-tiered 2026-09-02 (owner: "the ones that matter now by default, the
+# not-yet-important ones in the expandable"). Tier 1 = the columns a
+# pre-registered criterion or standing guard actually reads (Sharpe + Max DD
+# per the v2 convention, Resid Sharpe = the luck bar, Expectancy = Tier 1/2,
+# Cash idle = what Max DD must be read against). Tier 2 = the numbers that
+# help read tier 1 (exit split, invested basis, β, Win). Tier 3 = long-
+# horizon or immaterial at ~4 months: Calmar pair (readable at ~12 months
+# with a bear segment inside), Sortino pair, Cash earned (compounds later),
+# Fees (0.5pp), Worst pos, Stop drag.
 _SC_COLS = [
-    ("NAV", 1, "raw"), ("Sharpe", 1, "raw"), ("Sortino", 2, "raw"), ("Calmar", 3, "raw"),
+    ("NAV", 1, "raw"), ("Sharpe", 1, "raw"), ("Sortino", 3, "raw"), ("Calmar", 3, "raw"),
     ("Max DD", 1, "raw"),
-    ("Resid Sharpe", 2, "resid"), ("Resid Sortino", 3, "resid"), ("Resid Calmar", 3, "resid"),
+    ("Resid Sharpe", 1, "resid"), ("Resid Sortino", 3, "resid"), ("Resid Calmar", 3, "resid"),
     ("Resid DD", 2, "resid"),
     ("Worst pos", 3, "exp"), ("β SOXX", 2, "exp"),
     # Invested-basis pair (critique 2026-09-02): the cash-share-free yardstick.
-    # Tier 3 and neutral — descriptive, never toned.
-    ("Invested Sharpe", 3, "exp"), ("Invested DD", 3, "exp"),
-    ("Win", 1, "tq"), ("Expectancy", 1, "tq"), ("Exit-rule R", 2, "tq"), ("Stop R", 2, "tq"),
-    ("Stop drag", 3, "tq"), ("Cash idle", 2, "tq"), ("Cash earned", 1, "tq"), ("Fees", 3, "tq"),
+    # Neutral — descriptive, never toned.
+    ("Invested Sharpe", 2, "exp"), ("Invested DD", 2, "exp"),
+    ("Win", 2, "tq"), ("Expectancy", 1, "tq"), ("Exit-rule R", 2, "tq"), ("Stop R", 2, "tq"),
+    ("Stop drag", 3, "tq"), ("Cash idle", 1, "tq"), ("Cash earned", 3, "tq"), ("Fees", 3, "tq"),
 ]
 _SC_GROUP_TITLES = (("raw", "Raw results · market included"),
                     ("resid", "Signals&#39; own results · market stripped out"),

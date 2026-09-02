@@ -1163,7 +1163,9 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     assert "Invested Sharpe" in html and "Invested DD" in html
     # compact view = tiers 1+2: 14 columns incl. the lane
     spans_c = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[1])]
-    assert spans_c == [1, 4, 2, 1, 6] and sum(spans_c) == 14
+    # re-tiered 2026-09-02: raw NAV/Sharpe/Max DD · resid Sharpe/DD ·
+    # exposure β + invested pair · tq Win/Expectancy/Exit R/Stop R/Cash idle
+    assert spans_c == [1, 3, 2, 3, 5] and sum(spans_c) == 14
     assert "market included" in rows[0] and "market stripped out" in rows[0]
     assert "Hidden exposure" in rows[0] and "Trade quality" in rows[0]
     assert "Cash earned" in rows[2]
