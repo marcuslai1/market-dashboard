@@ -604,6 +604,14 @@ _METRIC_HELP = {
                  "Can be deeper than the raw Max DD when the market bailed the book out; shallower when the market caused the dip."),
     "Worst pos": ("The deepest fall any currently held name has taken from its peak while held.",
                   "The pain the portfolio drawdown hides — a wide stop means sitting through −15 to −25% on single names."),
+    "Invested Sharpe": ("Sharpe of the money actually IN stocks — the day's stock P&L over the prior day's invested value, "
+                        "with the parked cash's own earnings stripped out.",
+                        "Same scale as Sharpe. Read it beside the raw one: a book that looks smoother only because it "
+                        "holds more cash drops back here. Not a portfolio return — a yardstick for comparing sell rules."),
+    "Invested DD": ("Worst peak-to-trough fall of the invested money alone — the drawdown the stock picks and exits caused, "
+                    "before cash cushioned it.",
+                    "Same scale as Max DD. Deeper than Max DD is normal; a lane whose Max DD lead vanishes here was "
+                    "being carried by its cash share, not its exits."),
 }
 
 
@@ -846,6 +854,8 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
             _fmt_pct(r.get("resid_max_dd_pct")),
             _fmt_pct(r.get("worst_open_dd_pct")),
             _fmt_beta(r.get("beta_soxx"), r.get("beta_soxx_invested")),
+            _fmt_num(r.get("inv_sharpe")),
+            _fmt_pct(r.get("inv_max_dd_pct")),
             _fmt_pct(r.get("win_rate_pct"), plus=False, d=0),
             _fmt_r(r.get("expectancy_r"), r.get("n_r")),
             _fmt_r(ex.get("mean_r"), ex.get("n")),
@@ -859,12 +869,12 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
         body += _row("<b>SPY</b><small>benchmark · same window</small>", [
             _fmt_pct(spy.get("ret_pct")), _fmt_num(spy.get("sharpe")),
             _fmt_num(spy.get("sortino")), _fmt_num(spy.get("calmar"), 1),
-            _fmt_pct(spy.get("max_dd_pct"))] + ["—"] * 14, "pb-role-bench")
+            _fmt_pct(spy.get("max_dd_pct"))] + ["—"] * 16, "pb-role-bench")
     if soxx:
         body += _row("<b>SOXX</b><small>semis index · the factor most names load on</small>", [
             _fmt_pct(soxx.get("ret_pct")), _fmt_num(soxx.get("sharpe")),
             _fmt_num(soxx.get("sortino")), _fmt_num(soxx.get("calmar"), 1),
-            _fmt_pct(soxx.get("max_dd_pct"))] + ["—"] * 5 + ["1.00"] + ["—"] * 8, "pb-role-bench")
+            _fmt_pct(soxx.get("max_dd_pct"))] + ["—"] * 5 + ["1.00"] + ["—"] * 10, "pb-role-bench")
     n_more = sum(1 for _n, t, _g in cols if t == 3)
     return (
         '<p class="pb-lane-eyebrow">Strategy scorecard '
@@ -887,6 +897,9 @@ _SC_COLS = [
     ("Resid Sharpe", 2, "resid"), ("Resid Sortino", 3, "resid"), ("Resid Calmar", 3, "resid"),
     ("Resid DD", 2, "resid"),
     ("Worst pos", 3, "exp"), ("β SOXX", 2, "exp"),
+    # Invested-basis pair (critique 2026-09-02): the cash-share-free yardstick.
+    # Tier 3 and neutral — descriptive, never toned.
+    ("Invested Sharpe", 3, "exp"), ("Invested DD", 3, "exp"),
     ("Win", 1, "tq"), ("Expectancy", 1, "tq"), ("Exit-rule R", 2, "tq"), ("Stop R", 2, "tq"),
     ("Stop drag", 3, "tq"), ("Cash idle", 2, "tq"), ("Cash earned", 1, "tq"), ("Fees", 3, "tq"),
 ]

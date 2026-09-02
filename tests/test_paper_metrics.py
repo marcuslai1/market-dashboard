@@ -39,6 +39,22 @@ def test_series_stats_match_pipeline_convention():
     assert out["spy"]["ret_pct"] == pytest.approx(0.0)
 
 
+def test_invested_basis_strips_cash_cushion_and_sleeve_income():
+    # Half the pot in a T-bill sleeve earning 1,000 units a day; the stock
+    # half moves −4% then +4%. NAV DD is cushioned to ~−2%; the invested
+    # basis must show the full −4% and must not credit the sleeve's income.
+    navs = [1_000_000, 981_000, 1_001_200]
+    df = _nav("x", navs, cash=[0, 0, 0], sleeve=[500_000, 501_000, 502_000])
+    df["sleeve_income_units"] = [0, 1_000, 2_000]
+    out = pm.lane_nav_stats(df, "x")
+    assert out["max_dd_pct"] == pytest.approx(-1.9)
+    assert out["inv_max_dd_pct"] == pytest.approx(-4.0)
+    assert out["inv_ret_pct"] == pytest.approx(((1 - 0.04) * (1 + 0.04) - 1) * 100, abs=0.05)
+    assert out["avg_invested_pct"] == pytest.approx(50.0, abs=1.0)
+    # a series too short for the yardstick leaves the row untouched
+    assert "inv_sharpe" not in pm.lane_nav_stats(_nav("y", [1_000_000, 1_010_000]), "y")
+
+
 def test_cash_idle_counts_the_sleeve_as_not_in_positions():
     df = _nav("x", [1_000_000] * 3, cash=[0, 0, 0],
               sleeve=[500_000, 500_000, 500_000])

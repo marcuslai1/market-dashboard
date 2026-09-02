@@ -131,9 +131,46 @@ def lane_nav_stats(nav_df: pd.DataFrame | None, policy_id: str) -> dict:
         out["avg_index_sleeve_pct"] = float(sfrac.mean() * 100.0) if not sfrac.empty else None
         out["sleeve_vehicle"] = index_vehicle
     out.update(_sleeve_income_stats(rows, navs))
+    out.update(_invested_basis(rows, navs))
     out["as_of"] = str(rows["date"].iloc[-1])
     out["since"] = str(rows["date"].iloc[0])
     return out
+
+
+def _invested_basis(rows: pd.DataFrame, navs: pd.Series) -> dict:
+    """Equity-leg return per invested dollar (critique 2026-09-02).
+
+    NAV Sharpe and Max DD reward a book for holding cash: on the same trades
+    a 58%-idle twin prints a shallower drawdown than a 52%-idle one. This
+    restates each day's P&L with the sleeve's mark change (``sleeve_income_
+    units`` is cumulative, so its day-over-day difference) stripped out,
+    divided by the prior day's invested value (nav − cash − sleeve). Days
+    under 2% invested contribute 0. Pinned to ``scripts/paper_factor_
+    attribution.py::invested_basis``. NOT a portfolio return — a yardstick
+    for comparing exit rules across books with different cash shares.
+    Keys: ``inv_sharpe``, ``inv_sortino``, ``inv_max_dd_pct``, ``inv_ret_pct``,
+    ``avg_invested_pct``. Empty when the series is short."""
+    cash = pd.to_numeric(rows["cash_units"], errors="coerce").fillna(0)
+    sleeve = (pd.to_numeric(rows["sleeve_units"], errors="coerce").fillna(0)
+              if "sleeve_units" in rows.columns else pd.Series(0.0, index=rows.index))
+    income = (pd.to_numeric(rows["sleeve_income_units"], errors="coerce").fillna(0)
+              if "sleeve_income_units" in rows.columns else pd.Series(0.0, index=rows.index))
+    invested_prev = (navs - cash - sleeve).shift(1)
+    eq_pnl = navs.diff() - income.diff()
+    ok = invested_prev > 0.02 * navs.shift(1)
+    rets = (eq_pnl / invested_prev).where(ok, 0.0).iloc[1:]
+    if len(rets) < 2:          # _series_stats needs three marks
+        return {}
+    cum = [INCEPTION_UNITS]
+    for r in rets.tolist():
+        cum.append(cum[-1] * (1.0 + (0.0 if pd.isna(r) else r)))
+    st = _series_stats(cum)
+    if not st:
+        return {}
+    share = ((navs - cash - sleeve) / navs).replace([math.inf, -math.inf], math.nan).dropna()
+    return {"inv_sharpe": st["sharpe"], "inv_sortino": st["sortino"],
+            "inv_max_dd_pct": st["max_dd_pct"], "inv_ret_pct": st["ret_pct"],
+            "avg_invested_pct": float(share.mean() * 100.0) if not share.empty else None}
 
 
 def _sleeve_income_stats(rows: pd.DataFrame, navs: pd.Series) -> dict:

@@ -1158,19 +1158,22 @@ def test_scorecard_carries_residual_columns_and_haircut_adds_the_residual_senten
     import re
     spans = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[0])]
     # + "Cash earned" (2026-09-01) in the trade-quality block
-    assert spans == [1, 5, 4, 2, 8] and sum(spans) == 20
+    # exposure group = Worst pos, β SOXX + the invested-basis pair (2026-09-02)
+    assert spans == [1, 5, 4, 4, 8] and sum(spans) == 22
+    assert "Invested Sharpe" in html and "Invested DD" in html
     # compact view = tiers 1+2: 14 columns incl. the lane
     spans_c = [int(x) for x in re.findall(r'colspan="(\d+)"', rows[1])]
     assert spans_c == [1, 4, 2, 1, 6] and sum(spans_c) == 14
     assert "market included" in rows[0] and "market stripped out" in rows[0]
     assert "Hidden exposure" in rows[0] and "Trade quality" in rows[0]
     assert "Cash earned" in rows[2]
-    assert all(r.count("<td") == 20 for r in rows[3:])
-    # every data cell carries its tier; 6 tier-3 cells per row sit behind the toggle
-    # (prefix match: live-book cells may also carry a pb-tone-* class, 2026-09-01)
-    assert all(r.count('class="pb-t3') == 6 and r.count('class="pb-t1') == 6
+    assert all(r.count("<td") == 22 for r in rows[3:])
+    # every data cell carries its tier; 8 tier-3 cells per row sit behind the toggle
+    # (prefix match: live-book cells may also carry a pb-tone-* class, 2026-09-01;
+    # +2 invested-basis cells at tier 3, 2026-09-02)
+    assert all(r.count('class="pb-t3') == 8 and r.count('class="pb-t1') == 6
                for r in rows[3:])
-    assert 'class="pb-sc-more"' in html and "Show all 20 columns" in html
+    assert 'class="pb-sc-more"' in html and "Show all 22 columns" in html
     hc = haircut_html(df, "v2_starter_b15_tb_fees")
     assert "the market removed" in hc and "flattered" in hc
     assert "How much of this is luck?" in hc
