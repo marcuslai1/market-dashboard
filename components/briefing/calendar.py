@@ -1,8 +1,11 @@
 """Briefing · Week-ahead calendar (Context band, right column).
 
-Renders this-week catalysts grouped by date, plus a muted forward-catalysts
-section below a hairline divider. Extracted from dashboard.py during the
-Day-2 modularization pass.
+Renders catalysts grouped by date: this-week rows, then a muted
+forward-catalysts section below a hairline divider. Read-across prints (by
+companies the book does NOT hold) sit inline in date order with a NOT HELD
+chip — until 2026-09-03 they had their own section below the forward
+horizon, which put an Oracle print 8 days out under a TSMC print 6 weeks out.
+Extracted from dashboard.py during the Day-2 modularization pass.
 
 Visual Step 5 (ContextBand split): exposes ``calendar_card_html`` as a
 string-returning helper so the Briefing band can be composed as a single
@@ -146,6 +149,18 @@ def _cascade_block_html(event_text: str, cascades: dict | None) -> str:
     return ""
 
 
+def _not_held_chip_html(e: dict) -> str:
+    """Ownership chip for a read-across row: the company is NOT in the book.
+
+    Since the rows sit inline with the reader's own catalysts (2026-09-03),
+    this chip is the one thing that answers "is this mine?" on the row itself.
+    Same quiet outline register as the timing chip — ownership is a fact, not
+    a verdict, so it carries no colour."""
+    if e.get("type") != "read_across":
+        return ""
+    return '<span class="cal-notheld">NOT HELD</span>'
+
+
 def _why_line_html(e: dict) -> str:
     """Read-across rationale — why a company the reader does NOT hold is on a
     card about their own book. Empty for every other event class.
@@ -161,11 +176,15 @@ def _why_line_html(e: dict) -> str:
 
 
 def _group_html(group: list, muted: bool = False, cascades: dict | None = None) -> str:
-    """Return day-grouped events markup as a string."""
+    """Return day-grouped events markup as a string.
+
+    ``muted`` dims the group's forward_catalyst rows only. A read-across row
+    that lands in the forward group by date keeps full ink: muting would
+    conflate "far away" with "not yours", and the NOT HELD chip already says
+    the latter."""
     grouped: dict[str, list] = {}
     for e in group:
         grouped.setdefault(e.get("date", "—"), []).append(e)
-    style = "opacity:0.72;" if muted else ""
     out = ""
     for date_str in sorted(grouped.keys()):
         try:
@@ -175,6 +194,8 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
             short, dow = date_str, ""
         events_html = ""
         for e in grouped[date_str]:
+            style = ("opacity:0.72;"
+                     if muted and e.get("type") != "read_across" else "")
             impact = (e.get("impact") or "LOW").upper()
             tickers = e.get("tickers_affected") or []
             ticker_html = ""
@@ -187,6 +208,7 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
             # column count and must not gain extra direct children.
             text_html = (
                 f'{_escape_dollars(e.get("event", ""))}'
+                f'{_not_held_chip_html(e)}'
                 f'{_bucket_pill_html(e)}'
                 f'{_timing_line_html(e)}'
                 f'{_why_line_html(e)}'
@@ -229,15 +251,20 @@ def calendar_card_html(events: list, lane: str = "ledger",
                        cascades: dict | None = None) -> str:
     """Return the catalysts card markup.
 
-    Three sections, each below its own hairline: the day-grouped this-week
-    events, then Forward Catalysts, then Read-Across — prints by companies the
-    book does NOT hold that move names it does. Empty input → empty-state body.
+    Two sections below their own hairlines: the day-grouped this-week events,
+    then the muted Forward Catalysts. Read-across prints — by companies the
+    book does NOT hold that move names it does — are interleaved by date and
+    carry a NOT HELD chip. Empty input → empty-state body.
 
-    The sections are ordered by ownership before time: your week, your horizon,
-    then everyone else's. A read-across print two days out therefore sits below
-    a forward catalyst forty days out, which is deliberate — "is this mine?" is
-    the first question the reader asks of a calendar row, and mixing an
-    unheld supplier into the this-week list answers it wrong.
+    Time before ownership (2026-09-03, reversing the CAL-01 layout): the reader
+    scans the card as a timeline, so an Oracle print 8 days out sitting under a
+    TSMC print 6 weeks out read as broken. Ownership is answered on the row
+    (chip + why-line + affected-holding chips) rather than by section. The
+    split still exists upstream — read-across is its own capped pool in the
+    pipeline so it can never evict a holding's print — only the rendering
+    merged. A read-across row goes above the hairline when it precedes the
+    earliest forward catalyst, below it otherwise, so date order holds across
+    the divider.
 
     ``lane`` controls grid placement inside a ``.lane-wrapper``. The Briefing
     band passes ``"strip"`` so the (often long) catalyst list spans full width
@@ -262,20 +289,19 @@ def calendar_card_html(events: list, lane: str = "ledger",
     forward = [e for e in events if e.get("type") == "forward_catalyst"]
     read_across = [e for e in events if e.get("type") == "read_across"]
 
+    # Interleave read-across by date. The hairline marks the start of the
+    # forward horizon, so a read-across row dated before the earliest forward
+    # catalyst belongs above it; with no forward rows everything is "now".
+    horizon = min((e.get("date") or "9999-99-99" for e in forward),
+                  default="9999-99-99")
+    this_week += [e for e in read_across if (e.get("date") or "") < horizon]
+    forward += [e for e in read_across if (e.get("date") or "") >= horizon]
+
     body = _group_html(this_week, cascades=cascades)
 
     if forward:
         body += _subhead_html("Forward Catalysts")
         body += _group_html(forward, muted=True, cascades=cascades)
-
-    if read_across:
-        # "Not held" is the whole point of the section, so it is said in the
-        # label rather than left to be inferred from unfamiliar tickers. These
-        # rows are NOT muted: unlike forward catalysts they are mostly near-term
-        # and directly actionable, and dimming them would conflate "far away"
-        # with "not yours".
-        body += _subhead_html("Read-Across · not held")
-        body += _group_html(read_across, cascades=cascades)
 
     return card_container(
         eyebrow=_EYEBROW,
