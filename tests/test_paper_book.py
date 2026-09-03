@@ -904,6 +904,37 @@ def test_select_positions_matches_policy_rules():
     assert select_positions(None, {}).empty
 
 
+def test_select_positions_newest_purchase_first():
+    """2026-09-03: the export arrives in ticker order; the table must read
+    newest purchase first, unparseable dates last (original order kept)."""
+    df = pd.DataFrame({
+        "policy_id": ["v1_flat10"] * 4,
+        "ticker": ["AAA", "BBB", "CCC", "DDD"],
+        "entry_date": ["2026-06-11", "2026-08-28", "not-a-date", "2026-08-07"],
+        "qty": [1.0, 1.0, 1.0, 1.0],
+    })
+    assert select_positions(df, {})["ticker"].tolist() == ["BBB", "DDD", "AAA", "CCC"]
+    rows = position_rows(select_positions(df, {}), factor=None, as_of_year=2026)
+    assert [r["ticker"] for r in rows] == ["BBB", "DDD", "AAA", "CCC"]
+
+
+def test_legacy_positions_table_newest_purchase_first():
+    positions = [
+        {"ticker": "OLD", "weight_pct": 5.0, "stop": 1.0, "tranches": 1,
+         "max_dd_pct": 1.0, "entry_date": "2026-05-01"},
+        {"ticker": "NEW", "weight_pct": 5.0, "stop": 1.0, "tranches": 1,
+         "max_dd_pct": 1.0, "entry_date": "2026-08-20"},
+        {"ticker": "MID", "weight_pct": 5.0, "stop": 1.0, "tranches": 1,
+         "max_dd_pct": 1.0, "entry_date": "2026-07-04"},
+    ]
+    html = _positions_table_html(positions, factor=0.01, as_of_year=2026)
+    assert html.index("NEW") < html.index("MID") < html.index("OLD")
+    # no dates at all → original order, byte-identical to the pre-export block
+    undated = [{k: v for k, v in p.items() if k != "entry_date"} for p in positions]
+    html2 = _positions_table_html(undated)
+    assert html2.index("OLD") < html2.index("NEW") < html2.index("MID")
+
+
 def test_positions_v2_table_and_compounding_reconciles():
     rows = position_rows(_positions_df(), factor=0.1, as_of_year=2026)
     html = _positions_v2_table_html(rows)

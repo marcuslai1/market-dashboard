@@ -1345,7 +1345,31 @@ def select_positions(positions_df: pd.DataFrame | None,
     pid = _policy_for(positions_df, block)
     if pid is None:
         return pd.DataFrame()
-    return positions_df[positions_df["policy_id"] == pid]
+    return _newest_entry_first(positions_df[positions_df["policy_id"] == pid])
+
+
+def _newest_entry_first(rows: pd.DataFrame) -> pd.DataFrame:
+    """Open positions ordered by purchase date, newest first (2026-09-03,
+    user request: the export arrives in ticker order, which reads as random
+    once a dozen names are held). Mirrors ``_newest_exit_first`` for the
+    closed-trades table; rows without a parseable date sink to the bottom
+    in their original order."""
+    rows = rows.copy()
+    if "entry_date" in rows.columns:
+        rows["_entry"] = pd.to_datetime(rows["entry_date"], errors="coerce")
+        rows = (rows.sort_values("_entry", ascending=False, kind="stable",
+                                 na_position="last")
+                .drop(columns="_entry"))
+    return rows
+
+
+def _newest_entry_first_list(positions: list) -> list:
+    """Same ordering for the legacy block's ``positions`` list of dicts."""
+    def _key(p):
+        d = p.get("entry_date") if isinstance(p, dict) else None
+        ts = pd.to_datetime(d, errors="coerce") if d else pd.NaT
+        return (pd.isna(ts), -(ts.value) if not pd.isna(ts) else 0)
+    return sorted(positions or [], key=_key)
 
 
 def position_rows(df: pd.DataFrame | None, factor: float | None = None,
@@ -1449,7 +1473,8 @@ def _positions_v2_table_html(rows: list[dict]) -> str:
 
 
 _POSITIONS_V2_LEGEND = (
-    '<p class="pb-banner">How to read this: <b>Shares</b> — whole shares '
+    '<p class="pb-banner">How to read this: one row per open position, '
+    "newest purchase first. <b>Shares</b> — whole shares "
     "the &#36;100,000 pot's stake buys, rounded to the nearest share "
     "(spending a touch more or less than the measured stake — so the table "
     "can differ from the pot line by a share's worth). <b>Bought</b> — "
@@ -1561,7 +1586,7 @@ def ext_lane_views(nav_df: pd.DataFrame | None,
         factor = trade_dollars_factor(nav_df, {"policy_id": pid})
         t_rows = trade_rows(_newest_exit_first(lane_t), factor, as_of_year,
                             labels=_LANE_EXIT_LABELS.get(pid, _EXT_EXIT_LABELS))
-        p_rows = position_rows(lane_p, factor, as_of_year)
+        p_rows = position_rows(_newest_entry_first(lane_p), factor, as_of_year)
         if t_rows or p_rows:
             out.append((label, pid, p_rows, t_rows))
     return out
@@ -1621,7 +1646,7 @@ def _positions_table_html(positions: list, factor: float | None = None,
     """
     with_pnl = _has_position_pnl(positions)
     rows = ""
-    for p in positions or []:
+    for p in _newest_entry_first_list(positions):
         if not isinstance(p, dict) or not p.get("ticker"):
             continue
         wt = p.get("weight_pct")
@@ -1684,7 +1709,7 @@ _POSITIONS_LEGEND = (
 # Appended to the legend only when the optional export fields render.
 _POSITIONS_PNL_LEGEND = (
     '<p class="pb-banner"><b>Bought</b> — the day the position was first '
-    "purchased. <b>P&amp;L so far</b> — what the position has made or lost "
+    "purchased (rows run newest purchase first). <b>P&amp;L so far</b> — what the position has made or lost "
     "since purchase, in dollars of the &#36;100,000 pot; unrealized until "
     "sold.</p>"
 )
