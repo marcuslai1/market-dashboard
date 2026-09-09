@@ -155,6 +155,24 @@ def test_selection_haircut_reports_luck_benchmark_and_probability():
     assert h["dsr"] > 0.5
 
 
+def test_selection_haircut_counts_identical_books_once():
+    """2026-09-09: `v1_tc_val_*` == `v1_flat10` bit for bit (the bucket never
+    fired); the same book under six ids is ONE trial. n_lanes keeps the
+    raw count; a lane that diverges counts again."""
+    base = _walk("v1_flat10", 90, 0.0, 1)
+    twins = [base.assign(policy_id=f"v1_tc_val_{s}") for s in ("100", "33r", "33s", "50r", "50s")]
+    df = pd.concat([base, *twins, _walk("edge", 90, 0.004, 99)], ignore_index=True)
+    h = pm.selection_haircut(df, "edge")
+    assert h["n_trials"] == 2 and h["n_lanes"] == 7
+    diverged = twins[0].copy().reset_index(drop=True)
+    diverged.loc[40, "nav_units"] += 5_000          # one different session
+    h2 = pm.selection_haircut(pd.concat([df, diverged.assign(policy_id="v1_tc_val_x")],
+                                        ignore_index=True), "edge")
+    assert h2["n_trials"] == 3
+    # (residual mode keys identity on the RAW path too — the factor-book test
+    # above keeps its 13 trials because those books differ in raw NAV)
+
+
 def test_selection_haircut_silent_when_short_or_alone():
     assert pm.selection_haircut(_walk("a", 10, 0.0, 1), "a") == {}
     assert pm.selection_haircut(_walk("a", 90, 0.0, 1), "a") == {}     # one trial

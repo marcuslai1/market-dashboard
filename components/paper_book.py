@@ -493,8 +493,10 @@ def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
         return ""
     r = selection_haircut(nav_df, policy_id, residual=True)
     head = ('<p class="pb-chartnote"><b>How much of this is luck?</b> The headline is partly '
-            f'selection: we tried <b>{h["n_trials"]}</b> rule versions on the same '
-            f'<b>{h["n_sessions"]}</b> sessions and kept the best-looking one. ')
+            f'selection: we tried <b>{h["n_trials"]}</b> distinct rule versions'
+            + (f' ({h["n_lanes"]} books, identical ones counted once)'
+               if h.get("n_lanes", h["n_trials"]) != h["n_trials"] else '')
+            + f' on the same <b>{h["n_sessions"]}</b> sessions and kept the best-looking one. ')
     if r:
         luck = 100 - round(r["dsr"] * 100)
         body = ('Judge the signals on the number with <b>the market removed</b> — each day&#39;s SPY '

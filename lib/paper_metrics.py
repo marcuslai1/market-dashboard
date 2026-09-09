@@ -42,6 +42,9 @@ INDEX_SLEEVE_LANES = {
     "v2_starter_b15_spy_fees": "SPY",
     "v1_wide_extthesis_100_b15_spy": "SPY",
     "v1_wide_extthesis_100_b15_spy_fees": "SPY",
+    # 2026-09-09 sleeve-hysteresis twin: same SOXX/T-bill sleeve, switched
+    # on the regime-turn playbook's 12-of-20 leave / 10-straight return rule
+    "v2_starter_b15_regime_fees_hyst": "SOXX while the trend is up (playbook hysteresis), T-bills otherwise",
 }
 
 
@@ -450,8 +453,11 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
     Returns {} unless the lane has >= min_sessions returns and at least two
     trials exist. ``sharpe_ann`` / ``lucky_best_sharpe_ann`` are annualised
     (same ANN as the scorecard); ``dsr`` is the probability the lane's Sharpe
-    beats the best-of-N-by-luck benchmark; ``n_trials`` counts every lane
-    with >= min_sessions returns (the benchmarks are not lanes).
+    beats the best-of-N-by-luck benchmark; ``n_trials`` counts every DISTINCT
+    return series with >= min_sessions returns (the benchmarks are not lanes;
+    since 2026-09-09 lanes whose NAV series are identical — the never-firing
+    `val_*` books, r/s pairs before a re-add, `_lev`/`_rt` before a ratchet —
+    count as ONE trial; ``n_lanes`` keeps the raw count).
     ``residual=True`` runs the same read on every lane's two-factor RESIDUAL
     series (SPY + SOXX stripped) — the luck question asked after the factor
     tide is removed.
@@ -473,10 +479,20 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
     ids = trial_ids if trial_ids is not None else sorted(
         set(nav_df["policy_id"].dropna().unique()))
     srs = []
+    seen: set = set()
+    n_lanes = 0
     for pid in ids:
         rr = _rets(nav_df, pid)
         if len(rr) < min_sessions:
             continue
+        n_lanes += 1
+        # Trial identity = the RAW NAV path (the same book under two ids),
+        # in both modes — two books with different betas but the same
+        # residual are still two strategies.
+        key = tuple(round(x, 12) for x in _daily_returns(nav_df, pid))
+        if key in seen:
+            continue
+        seen.add(key)
         m = sum(rr) / len(rr)
         s_ = math.sqrt(sum((x - m) ** 2 for x in rr) / (len(rr) - 1))
         if s_ > 0:
@@ -494,6 +510,7 @@ def selection_haircut(nav_df: pd.DataFrame | None, policy_id: str,
     dsr = _norm_cdf((sr - sr0) * math.sqrt(T - 1) / math.sqrt(denom))
     return {
         "n_trials": n,
+        "n_lanes": n_lanes,
         "n_sessions": T,
         "sharpe_ann": sr * ANN,
         "lucky_best_sharpe_ann": sr0 * ANN,
