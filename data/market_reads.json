@@ -1,0 +1,83 @@
+{
+ "schema": 1,
+ "generated_utc": "2026-09-09T13:17:43+00:00",
+ "sessions_read": 4,
+ "reads_logged": 6,
+ "exit_review_at": 20,
+ "scored": false,
+ "latest": {
+  "id": "20260909T125842Z",
+  "ts_utc": "2026-09-09T12:58:42Z",
+  "ts_sgt": "2026-09-09 20:58",
+  "ts_et": "2026-09-09 08:58",
+  "confidence": "low",
+  "confidence_why": "The fall is already in the pre-market price, no event lands before tonight's close, and mean absolute move in this record is only 0.33%.",
+  "tells": [
+   "Brent back under $100 -> risk-on relief, chips flip firm",
+   "10Y above 4.85% (now 4.81) -> deeper drift, trim the stretched names",
+   "MU and SNDK green by midday -> memory decoupling from the rates theme, semis firm",
+   "Hot PPI Thursday -> Friday CPI becomes the whole week"
+  ],
+  "notes": "US pre-market read, 34 min to open. No verified headline behind the Hynix +3.6% / KOSPI +1.4% move - the iHBM cooling item that surfaced in search is May 2026, not today; treated as flow. 000660_KS Chongqing NAND-packaging KRX re-disclosure recheck due 09-10 - not leaned on. Semis and ai_power_infra both grade on SOXX so the lean is aligned; the cluster-level differentiation lives in the guidance.",
+  "headline_context": [
+   "Investing.com - Wall St futures muted as oil tops $100 for first time since July (Sep 9, 2026)",
+   "Investing.com - Morgan Stanley turns more selective on European chip stocks; IFX to Equal Weight, ASML target to EUR1700 (Sep 8, 2026; search summary, article not opened)",
+   "Investing.com premarket movers - Meta jumps on AI agent launch (Muse, $20/$100 tiers; article not opened, date unconfirmed)",
+   "CNBC - Stock futures little changed after losing session; Brent tops $99 (Sep 8, 2026)"
+  ],
+  "leans": {
+   "semis": {
+    "lean": "neutral",
+    "guidance": "dont_add",
+    "why": "SOXX already gapped -1.1% pre-open on oil>$100 + ~60% Sep-16 hike odds; Europe led down (Soitec -4.2, IFX -3.4, ASML -2.4 on a MS downgrade) but Korea went the other way (Hynix +3.6, KOSPI +1.4). Gap has pre-paid most of the news; nothing resolves before the close. Still +3.4% 5d and +4.4% vs 50d, so the drop is a giveback not a break."
+   },
+   "big_tech": {
+    "lean": "neutral",
+    "guidance": "hold",
+    "why": "QQQ -0.5% pre; META +5.1% on the Muse agent launch carries the median, everything else sags. No cluster-level direction into CPI Friday."
+   },
+   "ai_power_infra": {
+    "lean": "neutral",
+    "guidance": "dont_add",
+    "why": "Cluster -2.5% pre-open, all 4 down, 1.33x volume with 2 heavy - real selling, and the most stretched corner (BE +22% vs 50d after +34% in 5 sessions). Benchmark SOXX read is flat, but this group is the one to not add to."
+   },
+   "sg_banks": {
+    "lean": "neutral",
+    "guidance": "hold",
+    "why": "STI already closed -0.55%; target is Thursday's close ~24h out with PPI in between. Rate-path cuts both ways (funding cost vs NIM). Near a coin-flip on this timing - said so rather than manufacture a lean."
+   },
+   "market": {
+    "lean": "soft",
+    "guidance": "dont_add",
+    "why": "Brent topped $100 first time since July on IRGC strikes (Jordan base, 10 ships); ~60% priced for a Sep-16 hike; futures still sliding into the open (ES -0.36, NQ -0.52); VIX +4.7 though term structure still contango 0.89. The oil-to-inflation chain runs all session with nothing to resolve it before CPI Friday."
+   }
+  },
+  "targets": {
+   "semis": {
+    "benchmark": "SOXX",
+    "target_session": "2026-09-09",
+    "target_close_utc": "2026-09-09T20:00:00Z"
+   },
+   "big_tech": {
+    "benchmark": "QQQ",
+    "target_session": "2026-09-09",
+    "target_close_utc": "2026-09-09T20:00:00Z"
+   },
+   "ai_power_infra": {
+    "benchmark": "SOXX",
+    "target_session": "2026-09-09",
+    "target_close_utc": "2026-09-09T20:00:00Z"
+   },
+   "sg_banks": {
+    "benchmark": "^STI",
+    "target_session": "2026-09-10",
+    "target_close_utc": "2026-09-10T09:00:00Z"
+   },
+   "market": {
+    "benchmark": "SPY",
+    "target_session": "2026-09-09",
+    "target_close_utc": "2026-09-09T20:00:00Z"
+   }
+  }
+ }
+}

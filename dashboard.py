@@ -29,6 +29,7 @@ from components.briefing.action_card import action_card_html
 from components.briefing.calendar import calendar_card_html
 from components.briefing.clusters import cluster_anchor_count
 from components.briefing.macro import macro_card_html, risks_card_html
+from components.briefing.market_read import market_read_card_html
 from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
@@ -41,6 +42,7 @@ from lib.data_loader import (
     load_all_reports,
     load_earnings_cascades,
     load_macro_history,
+    load_market_reads,
     load_paper_nav,
     load_report,
     load_signal_log,
@@ -318,6 +320,15 @@ def _page_briefing() -> None:
             f'</div>',
             unsafe_allow_html=True,
         )
+
+        # Experimental market-read card. Sits BELOW the proven briefing blocks
+        # (owner decision 2026-09-09): it is a 4-session adviser and must not
+        # front-run instruments that have passed a measurement bar. Renders
+        # nothing until a read has been published, and carries no score — see
+        # components/briefing/market_read.py for why.
+        _mr = market_read_card_html(load_market_reads())
+        if _mr:
+            st.markdown(_mr, unsafe_allow_html=True)
 
         st.markdown(
             '<div style="margin-top:28px;padding:14px 16px;border-top:1px solid var(--rule);'

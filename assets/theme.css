@@ -4332,3 +4332,66 @@ a.term-index-item:hover {
 [data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] details[open] > summary {
   background: var(--color-surface-2) !important;
 }
+
+/* ── Market Read card (EXPERIMENTAL) ───────────────────────────────────────
+   Deliberately colourless. Green/red on this surface would be a claim of
+   proven good/bad, and this adviser has passed no measurement bar — see the
+   module docstring in components/briefing/market_read.py. The only visual
+   gradient is ink weight: a matured/stale read recedes toward --ink-4. */
+.mr-head {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 10px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.mr-state {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--ink-3); border: 1px solid var(--rule-strong);
+  padding: 3px 7px; white-space: nowrap;
+}
+.mr-state[data-stale="1"] { color: var(--ink-4); border-color: var(--rule); }
+.mr-when {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.mr-blurb {
+  font-size: 13px; color: var(--ink-3); line-height: 1.6;
+  margin: 0 0 14px 0; max-width: 68ch;
+}
+/* Cluster | lean | guidance | why — the three short columns align down the
+   card so the reader can scan leans without reading prose, and the why column
+   wraps freely beside them. */
+.mr-row {
+  display: grid; grid-template-columns: 122px 96px 78px 1fr;
+  gap: 10px; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--rule);
+}
+.mr-cl {
+  font-family: var(--font-display); font-size: 14px; font-weight: 600;
+  color: var(--ink);
+}
+.mr-lean, .mr-guide {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+  color: var(--ink-2); text-transform: lowercase;
+}
+.mr-guide { color: var(--ink-3); }
+.mr-why { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
+.mr-conf { font-size: 13px; color: var(--ink-2); line-height: 1.6; margin: 14px 0 0 0; }
+.mr-conf b { color: var(--ink); font-weight: 600; }
+.mr-tells { margin-top: 12px; }
+.mr-tells-lab {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3);
+}
+.mr-tells ul { margin: 6px 0 0 0; padding-left: 18px; }
+.mr-tells li { font-size: 12.5px; color: var(--ink-3); line-height: 1.55; margin-bottom: 3px; }
+.mr-foot {
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em;
+  color: var(--ink-4); line-height: 1.65; max-width: 78ch;
+}
+.mr-foot b { color: var(--ink-3); }
+@media (max-width: 760px) {
+  .mr-row { grid-template-columns: 1fr 1fr; row-gap: 2px; }
+  .mr-why { grid-column: 1 / -1; }
+}

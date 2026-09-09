@@ -438,6 +438,19 @@ def load_changelog() -> list:
     return data if isinstance(data, list) else []
 
 
+def load_market_reads() -> dict:
+    """Experimental market-read card payload (`market_read.py publish` upstream).
+
+    ``{}`` when absent — the read is on-demand, so "never published" is a normal
+    state on a fresh clone and the card is simply skipped.
+    """
+    path = DATA_DIR / "market_reads.json"
+    if not path.exists():
+        return {}
+    data = _load_json_cached(str(path), _mtime(path))
+    return data if isinstance(data, dict) else {}
+
+
 def load_report_memory() -> dict:
     """Load report_memory.json for narrative tracking."""
     mem_path = DATA_DIR / "report_memory.json"
