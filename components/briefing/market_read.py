@@ -116,6 +116,17 @@ def _age_text(when: str, state: dict) -> str:
     return f"{when} SGT"
 
 
+def _list_block(label: str, items: list, limit: int) -> str:
+    """A labelled bullet list, or ``""`` when there is nothing to show."""
+    rows = "".join(f"<li>{_escape_dollars(i)}</li>" for i in items[:limit] if i)
+    if not rows:
+        return ""
+    return (
+        f'<div class="mr-tells"><span class="mr-tells-lab">{_escape_dollars(label)}</span>'
+        f'<ul>{rows}</ul></div>'
+    )
+
+
 def _lean_rows_html(leans: dict) -> str:
     ordered = [c for c in _CLUSTER_ORDER if c in leans]
     ordered += [c for c in leans if c not in _CLUSTER_ORDER]
@@ -172,14 +183,20 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
             f'{tail}</p>'
         )
 
-    tells_html = ""
-    tells = latest.get("tells") or []
-    if tells:
-        items = "".join(f"<li>{_escape_dollars(t)}</li>" for t in tells[:4])
-        tells_html = (
-            '<div class="mr-tells"><span class="mr-tells-lab">What would change it</span>'
-            f'<ul>{items}</ul></div>'
+    tells_html = _list_block("What would change it", latest.get("tells") or [], limit=4)
+
+    # The caveats and the sources are the half of the read that argues AGAINST
+    # its own leans — what could not be verified, and who said the rest. The
+    # card asserted "Europe led down on a MS downgrade" with the source sitting
+    # unrendered in the payload until 2026-09-09; a lean without its attribution
+    # is the failure mode this instrument exists to expose.
+    notes_html = ""
+    if latest.get("notes"):
+        notes_html = (
+            '<div class="mr-tells"><span class="mr-tells-lab">Caveats</span>'
+            f'<p class="mr-note">{_escape_dollars(latest["notes"])}</p></div>'
         )
+    sources_html = _list_block("Sources", latest.get("headline_context") or [], limit=6)
 
     foot = ""
     sessions, target = (payload or {}).get("sessions_read"), (payload or {}).get("exit_review_at")
@@ -197,6 +214,7 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
     return card_container(
         eyebrow="MARKET READ · EXPERIMENTAL",
         headline="",
-        body_html=head + blurb + _lean_rows_html(leans) + conf_html + tells_html + foot,
+        body_html=(head + blurb + _lean_rows_html(leans) + conf_html
+                   + tells_html + notes_html + sources_html + foot),
         lane="lede",
     )

@@ -15,6 +15,7 @@ from components.briefing.market_read import (
     market_read_card_html,
     read_state,
 )
+from lib.formatters import _escape_dollars
 
 UTC = _dt.timezone.utc
 
@@ -33,6 +34,8 @@ def _payload(**over):
             "confidence": "low",
             "confidence_why": "the fall is already in the price",
             "tells": ["Brent back under $100 flips chips up"],
+            "notes": "No verified headline behind the Hynix move; treated as flow.",
+            "headline_context": ["Investing.com - oil tops $100 (Sep 9, 2026)"],
             "leans": {
                 "market": {"lean": "soft", "guidance": "dont_add", "why": "oil into CPI"},
                 "semis": {"lean": "neutral", "guidance": "hold", "why": "gap pre-paid"},
@@ -138,3 +141,36 @@ def test_card_is_silent_when_nothing_has_been_published():
     assert market_read_card_html({}) == ""
     assert market_read_card_html({"latest": None}) == ""
     assert market_read_card_html(_payload(latest={"leans": {}})) == ""
+
+
+# ── the read's own counter-evidence (added 2026-09-09) ───────────────────────
+
+def test_card_renders_the_caveats_and_the_sources():
+    # These are the half of the read that argues against its own leans. Both were
+    # published-but-unrendered on the first ship; the card cited "a MS downgrade"
+    # with the source sitting two lines away in the payload.
+    html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
+    assert "Caveats" in html and "No verified headline" in html
+    assert "Sources" in html and "oil tops &#36;100" in html
+
+
+def test_every_published_field_is_either_rendered_or_structural():
+    # Guards the defect class rather than the instance: publishing a field the
+    # card silently drops is how the sources went missing in the first place.
+    structural = {"id", "ts_utc", "ts_et", "revises", "targets", "leans"}
+    html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
+    for key, val in _payload()["latest"].items():
+        if key in structural:
+            continue
+        probe = val[0] if isinstance(val, list) else val
+        head = _escape_dollars(str(probe))[:30]
+        assert head in html, f"published but not rendered: {key}"
+
+
+def test_blocks_are_silent_when_their_field_is_absent():
+    p = _payload()
+    p["latest"].pop("notes")
+    p["latest"].pop("headline_context")
+    html = market_read_card_html(p, _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
+    assert "Caveats" not in html and "Sources" not in html
+    assert "Chips" in html          # the rest of the card is unaffected
