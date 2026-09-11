@@ -1,82 +1,84 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-10T08:09:37+00:00",
- "sessions_read": 5,
- "reads_logged": 7,
+ "generated_utc": "2026-09-11T11:31:57+00:00",
+ "sessions_read": 6,
+ "reads_logged": 8,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260910T080908Z",
-  "ts_utc": "2026-09-10T08:09:08Z",
-  "ts_sgt": "2026-09-10 16:09",
-  "ts_et": "2026-09-10 04:09",
-  "confidence": "low",
-  "confidence_why": "The graded close sits on the far side of an inflation print I have no edge on, and the semis cluster is simultaneously trending hard and stretched +5.6% above its 50-day.",
+  "id": "20260911T113153Z",
+  "ts_utc": "2026-09-11T11:31:53Z",
+  "ts_sgt": "2026-09-11 19:31",
+  "ts_et": "2026-09-11 07:31",
+  "confidence": "medium",
+  "confidence_why": "direction rests on a binary print about an hour out; the edge is the already-priced hike (~73%), not foreknowledge of the number, and every ref price is a pre-market high so the firm leans need the gap to hold as well as the print to cooperate",
   "tells": [
-   "PPI headline at or under ~5.0% YoY vs the ~5.3% consensus flips big_tech and market firmer; 5.6%+ with the 10Y through 4.90% flips semis soft.",
-   "First hour: if CRWV / NBIS / SKHY recover their pre-market losses, the giveback was thin-tape profit-taking and firm semis is confirmed. If they extend down, the 5-day run is unwinding.",
-   "TSM is -0.13% pre despite a record August sales print — if that number cannot hold TSM green in the US session, it reads as demand exhaustion at these prices, not as good news.",
-   "Hang Seng -1.17% is the lone Asia outlier (KOSPI -0.24, TAIEX -0.42, Nikkei -0.03). If it is China policy ahead of State Council Decree 841 effective Sep 15, it can spill into the critical-materials-exposed semis names."
+   "10Y through 5.00% after the print - the hot-CPI branch is live and every firm lean here is wrong",
+   "SOXX fails to hold +0.5% in the first hour of the regular session - the pre-market gap was thin (extended-hours bars carry no volume) and fading, not buying",
+   "SKHY and MU stay green while Korea closed -2.2% to -3.5% - confirms the US is marking the Korean close back up and the lagged-echo read is right",
+   "VIX back above 18 from 17.19 - the relief leg is gone and the contango (VIX/VIX3M 0.87) has flipped",
+   "Oracle gives back its ~7% pre-market gain - the AI-ROI floor under the semis and power complex is not real"
   ],
-  "notes": "Session 4 of 20. Calibration note carried into this read: my semis leans are 1-of-3 against a 67% always-firm base, and both misses were soft/neutral calls on days SOXX ran +1.8%. I have been systematically underweighting the semis uptrend, and this read leans firm partly on that record rather than only on today's tape — flagged so the 20-session review can separate it. sg_banks lean is a stated near-coin-flip on a one-hour horizon, not a conviction call. The SG headline query returned undated stale content (quoted STI 5,801 vs 5,702 on the tape) and was discarded.",
+  "notes": "First read under the session-6 fixed-slot protocol; logged ~19:35 SGT, roughly an hour BEFORE the 20:30 CPI release, so this is a forecast and not a reaction. sg_banks target is the Monday SGX close (~70h), every other cluster tonight US close (~8.6h) - do not pool the two horizons. SOURCING GAPS, none leaned on: (1) the CNBC CPI-preview article returned HTTP 403, so the consensus figures come from the search-result summary rather than the article text; (2) NVDA recheck DUE today (Goldman Communacopia Sep 10, any Kyber NVL144 / Rubin Ultra dating) is UNRESOLVED; (3) the MU Netlist ITC institution decision due ~Sep 11 is UNRESOLVED and MU carries cat 2026-09-11 with earnings in 19d; (4) the Korea drop has NO sourced driver - the search returned stale Jun/Jul items, so the lagged-echo reading rests on tape evidence alone (KOSPI -1.78, Nikkei -1.72, TAIEX -1.46 moving together). Calibration note: semis is my worst cluster (25% hit, n=4) and I have been wrong in BOTH directions on it; on 09-10 I went firm into a PPI print and SOXX fell -2.18%. Today shape is similar, and the stated difference is that hike odds were 58% going into that print versus ~73% going into this one.",
   "headline_context": [
-   "CNBC — TSMC August revenue surges 53.3% YoY to a record T$514.8B, +10.1% MoM, fourth straight monthly rise (Sep 10, 2026)",
-   "Investing.com — US stock futures steady as rising Treasury yields keep investors cautious ahead of PPI Thursday and CPI Friday; headline PPI seen ~5.3% YoY vs 4.7% in July (Sep 10, 2026)",
-   "Investing.com/Reuters — European shares await a widely forecast 25bp ECB hike and Lagarde comments on oil and inflation (Sep 10, 2026)",
-   "Investing.com - traders now lean toward a Fed hike at the Sep 15-16 FOMC; PPI and CPI are the last inflation reads before it (Sep 10, 2026)"
+   "CNBC - Friday CPI report is more important than usual; Dow Jones consensus +0.4% m/m / 3.4% y/y headline, +0.2% / 2.4% core (Sep 10, 2026)",
+   "CNBC - August PPI +0.4% m/m and 5.4% y/y, 0.1pp above expected; Dow -316.56 (-0.6%), S&P 500 -0.58%, Nasdaq -0.65% as WTI topped $100 (Sep 10, 2026)",
+   "CME FedWatch via CNBC - Sep 16 hike odds raised to more than 73% after the PPI print (Sep 10, 2026)",
+   "Reuters via Investing.com - Wall St futures recover as oil slides ahead of inflation test; WTI -3.3% to $99.08, Brent -3.6% to $103.76; Oracle +~7% pre-market after beating late Thursday (Sep 11, 2026)",
+   "Bloomberg oil wrap - WTI above $104 after an ~7% surge and Brent near $108 on a protracted US-Iran conflict (Sep 11, 2026); conflicts with the Friday pre-market level on the tape because the spike was Thursday and is now partly reversing"
   ],
   "leans": {
    "semis": {
     "lean": "firm",
     "guidance": "hold",
-    "why": "SOXX 5d +6.33% and TSMC printed record August sales +53.3% YoY / +10.1% MoM today; pre-market giveback is concentrated in the highest-beta AI names (CRWV -3.1, AXTI -3.0, SKHY -2.6) after +16-23% 5d runs, on volumeless pre bars. Cluster +5.6% vs 50d so hold, do not add into PPI."
+    "why": "Sep 16 hike ~73% priced going INTO the print, so repricing room on an in-line CPI is small; SOXX 5d +3.19% against SPY 5d -0.96% is real leadership, cluster only +2.1% above its 50d with 0 names RSI>=70 so there is room; the Oracle AI-ROI beat is a direct read-through. Korea (Samsung -3.53%, Hynix -2.21%) is a lagged echo of the 09-10 US close, not new information."
+   },
+   "big_tech": {
+    "lean": "firm",
+    "guidance": "dont_add",
+    "why": "rises with the tape on an in-line print because confirming the hike lets the long end stabilise, but +7.4% above the 50d is the most stretched cluster on the tape and the most duration-exposed if core runs hot with the 10Y at 4.944 and 5.00% six bp away. Direction yes, new money no."
    },
    "ai_power_infra": {
     "lean": "firm",
-    "guidance": "dont_add",
-    "why": "Same SOXX benchmark as semis so the lean must follow it, but BE is +18.7% above its 50-day after 5d +26.1% and is giving back 1.4% pre — worst place in the book to add ahead of a hot PPI consensus."
-   },
-   "big_tech": {
-    "lean": "soft",
-    "guidance": "dont_add",
-    "why": "Most stretched cluster (+9.2% vs 50d, META rsi70 after 5d +13.0). Nasdaq futures -0.01% vs S&P futures +0.20% says rotation out of long duration with the 10Y at 4.837% and rising into a PPI consensus of 5.3% YoY vs 4.7% in July."
+    "guidance": "hold",
+    "why": "structurally the SAME SOXX bet as semis (the pre-registered double-count, logged knowingly). Cluster sits -9.4% BELOW its 50d, so the +2.00% today is a rebound off a depressed base not an extension; the Oracle AI-returns beat feeds power and GPU-cloud demand most directly. Split internally: power semis NVTS/IFX ~11% below their 50d, but Bloom (fuel cells) is +14.4% above its 50d after +19.0% in 5 sessions - that leg is extended."
    },
    "sg_banks": {
-    "lean": "neutral",
+    "lean": "soft",
     "guidance": "hold",
-    "why": "STI closes ~55 minutes after this read at -0.55% on the day; one hour of tape is close to a coin flip and the neutral band is wider than the typical remaining move. No SG-specific news on the sweep."
+    "why": "target is MONDAY SGX close, ~70h out, which makes the +/-0.5% neutral band nearly unreachable and forces a direction. STI 5d -1.83% has diverged from a +3.19% SOXX all week, and Monday prices FOMC-week positioning with a hike ~73% in. Funding-cost headwind per catalysts.json global_rate_path_tightening, and SG bank earnings now swing on wealth/fee momentum rather than NIM (sg_banks_nim_compression), so a risk-off US Friday transmits through the fee engine."
    },
    "market": {
-    "lean": "neutral",
+    "lean": "firm",
     "guidance": "dont_add",
-    "why": "August PPI lands 20:30 SGT, an hour before the open and before the close being graded, and it is a genuine two-sided binary with markets now leaning toward a Fed HIKE on Sep 16. S&P futures +0.20% is not an edge over that."
+    "why": "the asymmetry is the whole bet: at ~73% priced, in-line or hot is largely in the price while a cool print is a large repricing; oil -3.44% and Oracle +7% are the two legs under the pre-market bid. The bar is high because the ref is the pre-market print (762.35, already +0.60% over the 09-10 close), not the close - firm requires the gap to HOLD through the print."
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-10",
-    "target_close_utc": "2026-09-10T20:00:00Z"
-   },
-   "ai_power_infra": {
-    "benchmark": "SOXX",
-    "target_session": "2026-09-10",
-    "target_close_utc": "2026-09-10T20:00:00Z"
+    "target_session": "2026-09-11",
+    "target_close_utc": "2026-09-11T20:00:00Z"
    },
    "big_tech": {
     "benchmark": "QQQ",
-    "target_session": "2026-09-10",
-    "target_close_utc": "2026-09-10T20:00:00Z"
+    "target_session": "2026-09-11",
+    "target_close_utc": "2026-09-11T20:00:00Z"
+   },
+   "ai_power_infra": {
+    "benchmark": "SOXX",
+    "target_session": "2026-09-11",
+    "target_close_utc": "2026-09-11T20:00:00Z"
    },
    "sg_banks": {
     "benchmark": "^STI",
-    "target_session": "2026-09-10",
-    "target_close_utc": "2026-09-10T09:00:00Z"
+    "target_session": "2026-09-14",
+    "target_close_utc": "2026-09-14T09:00:00Z"
    },
    "market": {
     "benchmark": "SPY",
-    "target_session": "2026-09-10",
-    "target_close_utc": "2026-09-10T20:00:00Z"
+    "target_session": "2026-09-11",
+    "target_close_utc": "2026-09-11T20:00:00Z"
    }
   }
  }
