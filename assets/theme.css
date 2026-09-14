@@ -4334,22 +4334,33 @@ a.term-index-item:hover {
 }
 
 /* ── Market Read card (EXPERIMENTAL) ───────────────────────────────────────
-   Deliberately colourless. Green/red on this surface would be a claim of
-   proven good/bad, and this adviser has passed no measurement bar — see the
-   module docstring in components/briefing/market_read.py. The only visual
-   gradient is ink weight: a matured/stale read recedes toward --ink-4. */
+   Colour here is STRUCTURAL ONLY (owner decisions 2026-09-09 + 2026-09-14).
+   Each section carries an accent from the non-verdict metric palette (indigo /
+   gold / teal / violet / moss) so the card reads as sections, but no hue ever
+   attaches to a call: the lean and guidance chips stay neutral ink and
+   direction is an arrow glyph. Green/red here would claim proven good/bad and
+   this adviser has passed no measurement bar — see the module docstring in
+   components/briefing/market_read.py. tests/test_market_read_card.py pins the
+   verdict tokens out of every .mr- rule. */
 .mr-head {
-  display: flex; align-items: baseline; gap: 12px;
-  padding-bottom: 10px; margin-bottom: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding-bottom: 12px; margin-bottom: 12px;
   border-bottom: 1px solid var(--rule);
 }
+/* Freshness is a fact about the clock, not a verdict — it may carry a hue. */
 .mr-state {
+  --mr-hue: var(--ink-3);
   font-family: var(--mono); font-size: 9.5px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.16em;
-  color: var(--ink-3); border: 1px solid var(--rule-strong);
-  padding: 3px 7px; white-space: nowrap;
+  color: var(--mr-hue);
+  border: 1px solid color-mix(in srgb, var(--mr-hue) 55%, transparent);
+  background: color-mix(in srgb, var(--mr-hue) 12%, transparent);
+  padding: 3px 8px; white-space: nowrap; border-radius: var(--radius-pill);
 }
-.mr-state[data-stale="1"] { color: var(--ink-4); border-color: var(--rule); }
+.mr-state[data-state="live"]    { --mr-hue: var(--accent); }
+.mr-state[data-state="in_play"] { --mr-hue: var(--metric-cost); }
+.mr-state[data-state="matured"],
+.mr-state[data-stale="1"]       { --mr-hue: var(--ink-4); }
 .mr-when {
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
   color: var(--ink-3);
@@ -4358,33 +4369,74 @@ a.term-index-item:hover {
   font-size: 13px; color: var(--ink-3); line-height: 1.6;
   margin: 0 0 14px 0; max-width: 68ch;
 }
+
+/* Section sub-panel: a hue rail on the left, a faint wash, a hued label. */
+.mr-sec {
+  --mr-hue: var(--ink-3);
+  margin-top: 12px; padding: 10px 14px 12px;
+  border-left: 2px solid var(--mr-hue);
+  background: color-mix(in srgb, var(--mr-hue) 5%, transparent);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+.mr-sec[data-sec="leans"]      { --mr-hue: var(--metric-input); }
+.mr-sec[data-sec="confidence"] { --mr-hue: var(--metric-cost); }
+.mr-sec[data-sec="tells"]      { --mr-hue: var(--metric-cache); }
+.mr-sec[data-sec="caveats"]    { --mr-hue: var(--metric-gen); }
+.mr-sec[data-sec="sources"]    { --mr-hue: var(--metric-articles); }
+.mr-sec-lab {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--mr-hue);
+}
+.mr-prose { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; margin: 6px 0 0 0; max-width: 78ch; }
+.mr-list { margin: 6px 0 0 0; padding-left: 18px; }
+.mr-list li { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 4px; }
+.mr-list li::marker { color: var(--mr-hue); }
+
+/* Confidence word as a badge in the section's own (gold) hue. */
+.mr-badge {
+  font-size: 10px; letter-spacing: 0.14em; padding: 2px 8px;
+  color: var(--ink); border: 1px solid color-mix(in srgb, var(--mr-hue) 60%, transparent);
+  border-radius: var(--radius-pill);
+}
+
 /* Cluster | lean | guidance | why — the three short columns align down the
    card so the reader can scan leans without reading prose, and the why column
-   wraps freely beside them. */
+   wraps freely beside them. Chips are NEUTRAL: no hue on a call. */
 .mr-row {
-  display: grid; grid-template-columns: 122px 96px 78px 1fr;
-  gap: 10px; align-items: baseline;
-  padding: 9px 0; border-bottom: 1px solid var(--rule);
+  display: grid; grid-template-columns: 112px 118px 82px 1fr;
+  gap: 12px; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid var(--rule);
 }
+.mr-row:last-child { border-bottom: 0; padding-bottom: 2px; }
 .mr-cl {
   font-family: var(--font-display); font-size: 14px; font-weight: 600;
   color: var(--ink);
 }
 .mr-lean, .mr-guide {
+  justify-self: start; white-space: nowrap;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
-  color: var(--ink-2); text-transform: lowercase;
+  text-transform: lowercase; padding: 2px 8px; border-radius: var(--radius-pill);
 }
-.mr-guide { color: var(--ink-3); }
+.mr-lean  { color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule-strong); }
+.mr-guide { color: var(--ink-3); border: 1px solid var(--rule); }
+.mr-arrow { font-style: normal; margin-right: 5px; color: var(--ink-2); }
 .mr-why { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
-.mr-conf { font-size: 13px; color: var(--ink-2); line-height: 1.6; margin: 14px 0 0 0; }
-.mr-conf b { color: var(--ink); font-weight: 600; }
-.mr-tells { margin-top: 12px; }
-.mr-tells-lab {
-  font-family: var(--mono); font-size: 10px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3);
+
+/* Sources drawer — collapsed by default, same summary idiom as .tm-details. */
+.mr-src > summary { cursor: pointer; list-style: none; }
+.mr-src > summary::-webkit-details-marker { display: none; }
+.mr-src > summary::after {
+  content: "▸"; margin-left: auto; color: var(--ink-3); font-size: 11px;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
-.mr-tells ul { margin: 6px 0 0 0; padding-left: 18px; }
-.mr-tells li { font-size: 12.5px; color: var(--ink-3); line-height: 1.55; margin-bottom: 3px; }
+.mr-src[open] > summary::after { transform: rotate(90deg); }
+.mr-src .mr-list li { color: var(--ink-3); }
+.mr-count {
+  font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-3);
+  border: 1px solid var(--rule-strong); border-radius: var(--radius-pill); padding: 0 6px;
+}
+
 .mr-foot {
   margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule);
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em;
@@ -4392,8 +4444,7 @@ a.term-index-item:hover {
 }
 .mr-foot b { color: var(--ink-3); }
 @media (max-width: 760px) {
-  .mr-row { grid-template-columns: 1fr 1fr; row-gap: 2px; }
+  .mr-row { grid-template-columns: auto auto 1fr; row-gap: 6px; }
+  .mr-cl  { grid-column: 1 / -1; }
   .mr-why { grid-column: 1 / -1; }
 }
-/* Caveats prose — same quiet register as the tells list it sits beside. */
-.mr-note { font-size: 12.5px; color: var(--ink-3); line-height: 1.55; margin: 6px 0 0 0; max-width: 78ch; }

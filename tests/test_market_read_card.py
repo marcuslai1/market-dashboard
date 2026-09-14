@@ -174,3 +174,29 @@ def test_blocks_are_silent_when_their_field_is_absent():
     html = market_read_card_html(p, _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
     assert "Caveats" not in html and "Sources" not in html
     assert "Chips" in html          # the rest of the card is unaffected
+
+
+# ── structural colour only (owner decision 2026-09-14) ──────────────────────
+
+def test_card_css_never_puts_a_verdict_colour_on_this_surface():
+    # The card got section accents on 2026-09-14, drawn from the non-verdict
+    # metric palette. Colour lives in theme.css, not the markup, so the guard
+    # has to read the stylesheet: no .mr- rule may reference a good/bad token.
+    import pathlib
+    import re
+
+    css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(
+        encoding="utf-8")
+    rules = re.findall(r"([^{}]*\.mr-[^{}]*)\{([^}]*)\}", css)
+    assert rules, "market-read CSS not found"
+    banned = ("--up", "--down", "--buy", "--accumulate", "--watch", "--caution",
+              "--avoid", "--stress", "#22c55e", "#ef4444", "#4ade80", "#f87171")
+    for selector, body in rules:
+        for token in banned:
+            assert token not in body, f"{selector.strip()} uses {token}"
+
+
+def test_lean_direction_is_a_glyph_not_a_hue():
+    html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
+    assert '<i class="mr-arrow" aria-hidden="true">↓</i>slightly down' in html
+    assert "data-lean" not in html and "style=" not in html
