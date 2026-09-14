@@ -122,37 +122,64 @@ def _age_text(when: str, state: dict) -> str:
     return f"{when} SGT"
 
 
+def _txt(s) -> str:
+    """Escape prose for the card; markdown emphasis from the reply is dropped."""
+    return _escape_dollars(str(s or "").replace("**", ""))
+
+
 def _section(kind: str, label: str, inner: str, aside: str = "") -> str:
     """One accented sub-panel. ``kind`` picks the structural hue in CSS."""
     return (
         f'<div class="mr-sec" data-sec="{_escape_attr(kind)}">'
-        f'<div class="mr-sec-lab">{_escape_dollars(label)}{aside}</div>'
+        f'<div class="mr-sec-lab">{_txt(label)}{aside}</div>'
         f'{inner}</div>'
     )
 
 
+def _bullets(items: list, limit: int) -> str:
+    rows = "".join(f"<li>{_txt(i)}</li>" for i in (items or [])[:limit] if i)
+    return f'<ul class="mr-list">{rows}</ul>' if rows else ""
+
+
 def _list_block(kind: str, label: str, items: list, limit: int) -> str:
     """A labelled bullet-list section, or ``""`` when there is nothing to show."""
-    rows = "".join(f"<li>{_escape_dollars(i)}</li>" for i in items[:limit] if i)
-    if not rows:
-        return ""
-    return _section(kind, label, f'<ul class="mr-list">{rows}</ul>')
+    body = _bullets(items, limit)
+    return _section(kind, label, body) if body else ""
 
 
-def _sources_block(items: list, limit: int) -> str:
-    """Sources as a collapsed drawer — attribution one click away, not a wall."""
-    shown = [i for i in items[:limit] if i]
-    if not shown:
+def _drawer(kind: str, label: str, inner: str, count: int | None = None) -> str:
+    """A collapsed sub-panel — secondary material one click away, not a wall."""
+    if not inner:
         return ""
-    rows = "".join(f"<li>{_escape_dollars(i)}</li>" for i in shown)
+    badge = f'<span class="mr-count">{count}</span>' if count else ""
     return (
-        '<details class="mr-sec mr-src" data-sec="sources">'
-        f'<summary class="mr-sec-lab">Sources<span class="mr-count">{len(shown)}</span></summary>'
-        f'<ul class="mr-list">{rows}</ul></details>'
+        f'<details class="mr-sec mr-drawer" data-sec="{_escape_attr(kind)}">'
+        f'<summary class="mr-sec-lab">{_txt(label)}{badge}</summary>{inner}</details>'
     )
 
 
-def _lean_rows_html(leans: dict) -> str:
+def _source_links(sources: list, limit: int = 8) -> str:
+    rows = ""
+    for src in (sources or [])[:limit]:
+        if not isinstance(src, dict) or not src.get("title"):
+            continue
+        url = str(src.get("url") or "")
+        title = _txt(src["title"])
+        if url.startswith(("https://", "http://")):
+            title = (f'<a class="mr-link" href="{_escape_attr(url)}" target="_blank" '
+                     f'rel="noopener noreferrer">{title}</a>')
+        date = f' <span class="mr-date">{_txt(src["date"])}</span>' if src.get("date") else ""
+        rows += f"<li>{title}{date}</li>"
+    return f'<ul class="mr-list">{rows}</ul>' if rows else ""
+
+
+def _lean_rows_html(leans: dict, sentences: dict | None = None) -> str:
+    """Cluster | lean chip | advice chip | sentence.
+
+    Lean and advice always come from the LOGGED record (the graded call); the
+    sentence is the plain-language one from the summary when there is one, else
+    the logged ``why``.
+    """
     ordered = [c for c in _CLUSTER_ORDER if c in leans]
     ordered += [c for c in leans if c not in _CLUSTER_ORDER]
     rows = ""
@@ -163,15 +190,31 @@ def _lean_rows_html(leans: dict) -> str:
         arrow = _LEAN_ARROW.get(v.get("lean"), "")
         arrow_html = f'<i class="mr-arrow" aria-hidden="true">{arrow}</i>' if arrow else ""
         guide = _GUIDANCE_WORD.get(v.get("guidance"), v.get("guidance") or "—")
+        why = (sentences or {}).get(cl) or v.get("why") or ""
         rows += (
             '<div class="mr-row">'
-            f'<span class="mr-cl">{_escape_dollars(label)}</span>'
-            f'<span class="mr-lean">{arrow_html}{_escape_dollars(lean)}</span>'
-            f'<span class="mr-guide">{_escape_dollars(guide)}</span>'
-            f'<span class="mr-why">{_escape_dollars(v.get("why") or "")}</span>'
+            f'<span class="mr-cl">{_txt(label)}</span>'
+            f'<span class="mr-lean">{arrow_html}{_txt(lean)}</span>'
+            f'<span class="mr-guide">{_txt(guide)}</span>'
+            f'<span class="mr-why">{_txt(why)}</span>'
             '</div>'
         )
-    return _section("leans", "The leans · into the next close", rows)
+    return _section("leans", "What I expect, per group", rows)
+
+
+def _confidence_block(latest: dict, prose: str, cant_know: str, caveats: str) -> str:
+    if not (latest.get("confidence") or prose or cant_know or caveats):
+        return ""
+    badge = (f'<span class="mr-badge">{_txt(latest["confidence"])}</span>'
+             if latest.get("confidence") else "")
+    inner = f'<div class="mr-prose">{_txt(prose)}</div>' if prose else ""
+    if cant_know:
+        inner += (f'<div class="mr-prose"><span class="mr-inline-lab">What I can’t know</span>'
+                  f'{_txt(cant_know)}</div>')
+    if caveats:
+        inner += (f'<div class="mr-prose"><span class="mr-inline-lab">Caveats</span>'
+                  f'{_txt(caveats)}</div>')
+    return _section("confidence", "Confidence", inner, aside=badge)
 
 
 def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str:
@@ -179,11 +222,21 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
 
     Silent (not an error state) when the file is absent: the read is on-demand,
     so "no read has ever been published" is a normal condition on a fresh clone.
+
+    Two payload shapes share ONE layout, in the order of the plain-language reply
+    the reader sees in the session (bottom line → where we are → what happened →
+    per group → what would change it → confidence → the call → sources):
+
+    * with ``latest.summary`` (from 2026-09-14) the sections carry that reply, and
+      the terse logged grading fields move to a collapsed "as logged" drawer;
+    * without one (older reads) the same sections are filled from the logged
+      fields, and the sections only a summary can supply are omitted.
     """
     latest = (payload or {}).get("latest") or {}
     leans = latest.get("leans") or {}
     if not leans:
         return ""
+    summary = latest.get("summary") if isinstance(latest.get("summary"), dict) else None
 
     state = read_state(payload, now)
     stale_attr = ' data-stale="1"' if state["stale"] else ""
@@ -201,27 +254,60 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
         'signals, and is expected to disagree with them.</p>'
     )
 
-    conf_html = ""
-    if latest.get("confidence"):
-        why = latest.get("confidence_why") or ""
-        badge = f'<span class="mr-badge">{_escape_dollars(latest["confidence"])}</span>'
-        body = f'<div class="mr-prose">{_escape_dollars(why)}</div>' if why else ""
-        conf_html = _section("confidence", "Confidence", body, aside=badge)
-
-    tells_html = _list_block("tells", "What would change it", latest.get("tells") or [], limit=4)
-
-    # The caveats and the sources are the half of the read that argues AGAINST
-    # its own leans — what could not be verified, and who said the rest. The
-    # card asserted "Europe led down on a MS downgrade" with the source sitting
-    # unrendered in the payload until 2026-09-09; a lean without its attribution
-    # is the failure mode this instrument exists to expose.
-    notes_html = ""
-    if latest.get("notes"):
-        notes_html = _section(
-            "caveats", "Caveats",
-            f'<div class="mr-prose">{_escape_dollars(latest["notes"])}</div>',
-        )
-    sources_html = _sources_block(latest.get("headline_context") or [], limit=8)
+    if summary:
+        bottom = ""
+        if summary.get("bottom_line"):
+            bottom = _section("bottom", "Bottom line",
+                              f'<div class="mr-lede">{_txt(summary["bottom_line"])}</div>')
+        where_inner = ""
+        if summary.get("where_we_are"):
+            where_inner += f'<div class="mr-prose">{_txt(summary["where_we_are"])}</div>'
+        if summary.get("macro_attribution"):
+            where_inner += (f'<div class="mr-prose"><span class="mr-inline-lab">Macro</span>'
+                            f'{_txt(summary["macro_attribution"])}</div>')
+        where = _section("where", "Where we are", where_inner) if where_inner else ""
+        happened = _list_block("happened", "What happened", summary.get("what_happened"), limit=8)
+        groups = _lean_rows_html(leans, summary.get("per_group") or {})
+        change = _list_block("tells", "What would change my mind",
+                             summary.get("change_my_mind"), limit=6)
+        conf = _confidence_block(latest, summary.get("confidence") or "",
+                                 summary.get("cant_know") or "", "")
+        call = ""
+        if summary.get("the_call"):
+            call = _section("call", "The call",
+                            f'<div class="mr-lede">{_txt(summary["the_call"])}</div>')
+        sources = _drawer("sources", "Sources", _source_links(summary.get("sources")),
+                          count=len(summary.get("sources") or []))
+        # The logged record, verbatim: what is actually graded. Kept one click away
+        # so the plain reply never hides the evidence it was written from.
+        logged_inner = ""
+        if latest.get("confidence_why"):
+            logged_inner += (f'<div class="mr-prose"><span class="mr-inline-lab">Confidence</span>'
+                             f'{_txt(latest["confidence_why"])}</div>')
+        why_rows = [f'{_CLUSTER_LABEL.get(cl, cl)}: {v.get("why")}'
+                    for cl, v in leans.items() if (v or {}).get("why")]
+        if why_rows:
+            logged_inner += '<span class="mr-inline-lab">Why, per group</span>' + _bullets(why_rows, 10)
+        if latest.get("tells"):
+            logged_inner += '<span class="mr-inline-lab">Tells</span>' + _bullets(latest["tells"], 6)
+        if latest.get("notes"):
+            logged_inner += (f'<div class="mr-prose"><span class="mr-inline-lab">Caveats</span>'
+                             f'{_txt(latest["notes"])}</div>')
+        if latest.get("headline_context"):
+            logged_inner += ('<span class="mr-inline-lab">Sources</span>'
+                             + _bullets(latest["headline_context"], 10))
+        logged = _drawer("logged", "Grading notes · as logged", logged_inner)
+        body = (bottom + where + happened + groups + change + conf + call
+                + sources + logged)
+    else:
+        groups = _lean_rows_html(leans)
+        change = _list_block("tells", "What would change my mind", latest.get("tells"), limit=4)
+        conf = _confidence_block(latest, latest.get("confidence_why") or "", "",
+                                 latest.get("notes") or "")
+        sources = _drawer("sources", "Sources",
+                          _bullets(latest.get("headline_context"), 8),
+                          count=len([h for h in (latest.get("headline_context") or [])[:8] if h]))
+        body = groups + change + conf + sources
 
     foot = ""
     sessions, target = (payload or {}).get("sessions_read"), (payload or {}).get("exit_review_at")
@@ -239,7 +325,6 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
     return card_container(
         eyebrow="MARKET READ · EXPERIMENTAL",
         headline="",
-        body_html=(head + blurb + _lean_rows_html(leans) + conf_html
-                   + tells_html + notes_html + sources_html + foot),
+        body_html=head + blurb + body + foot,
         lane="lede",
     )

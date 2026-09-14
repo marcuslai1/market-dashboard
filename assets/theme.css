@@ -4378,11 +4378,29 @@ a.term-index-item:hover {
   background: color-mix(in srgb, var(--mr-hue) 5%, transparent);
   border-radius: 0 var(--radius-card) var(--radius-card) 0;
 }
+/* Section order follows the plain-language reply. Hues are wayfinding only. */
+.mr-sec[data-sec="bottom"]     { --mr-hue: var(--accent); }
+.mr-sec[data-sec="where"]      { --mr-hue: var(--ink-3); }
+.mr-sec[data-sec="happened"]   { --mr-hue: var(--metric-articles); }
 .mr-sec[data-sec="leans"]      { --mr-hue: var(--metric-input); }
-.mr-sec[data-sec="confidence"] { --mr-hue: var(--metric-cost); }
 .mr-sec[data-sec="tells"]      { --mr-hue: var(--metric-cache); }
-.mr-sec[data-sec="caveats"]    { --mr-hue: var(--metric-gen); }
-.mr-sec[data-sec="sources"]    { --mr-hue: var(--metric-articles); }
+.mr-sec[data-sec="confidence"] { --mr-hue: var(--metric-gen); }
+.mr-sec[data-sec="call"]       { --mr-hue: var(--metric-cost); }
+.mr-sec[data-sec="sources"]    { --mr-hue: var(--ink-3); }
+.mr-sec[data-sec="logged"]     { --mr-hue: var(--ink-4); }
+/* The two plain-language commitments read largest: the bottom line and the call. */
+.mr-sec[data-sec="bottom"],
+.mr-sec[data-sec="call"] { background: color-mix(in srgb, var(--mr-hue) 9%, transparent); }
+.mr-lede {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  color: var(--ink); margin-top: 6px; max-width: 78ch;
+}
+.mr-inline-lab {
+  display: inline-block; margin-right: 8px;
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--mr-hue);
+}
+.mr-sec > .mr-inline-lab { display: block; margin-top: 10px; }
 .mr-sec-lab {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -4423,15 +4441,18 @@ a.term-index-item:hover {
 .mr-arrow { font-style: normal; margin-right: 5px; color: var(--ink-2); }
 .mr-why { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
 
-/* Sources drawer — collapsed by default, same summary idiom as .tm-details. */
-.mr-src > summary { cursor: pointer; list-style: none; }
-.mr-src > summary::-webkit-details-marker { display: none; }
-.mr-src > summary::after {
+/* Drawers (sources, grading notes) — collapsed by default, .tm-details idiom. */
+.mr-drawer > summary { cursor: pointer; list-style: none; }
+.mr-drawer > summary::-webkit-details-marker { display: none; }
+.mr-drawer > summary::after {
   content: "▸"; margin-left: auto; color: var(--ink-3); font-size: 11px;
   transition: transform var(--dur-fast) var(--ease-out);
 }
-.mr-src[open] > summary::after { transform: rotate(90deg); }
-.mr-src .mr-list li { color: var(--ink-3); }
+.mr-drawer[open] > summary::after { transform: rotate(90deg); }
+.mr-drawer .mr-list li, .mr-drawer .mr-prose { color: var(--ink-3); }
+.mr-link { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--rule-strong); }
+.mr-link:hover { color: var(--ink); text-decoration-color: var(--ink-3); }
+.mr-date { font-family: var(--mono); font-size: 10.5px; color: var(--ink-4); margin-left: 4px; }
 .mr-count {
   font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-3);
   border: 1px solid var(--rule-strong); border-radius: var(--radius-pill); padding: 0 6px;

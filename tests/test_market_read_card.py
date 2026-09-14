@@ -157,7 +157,7 @@ def test_card_renders_the_caveats_and_the_sources():
 def test_every_published_field_is_either_rendered_or_structural():
     # Guards the defect class rather than the instance: publishing a field the
     # card silently drops is how the sources went missing in the first place.
-    structural = {"id", "ts_utc", "ts_et", "revises", "targets", "leans"}
+    structural = {"id", "ts_utc", "ts_et", "revises", "targets", "leans", "summary"}
     html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
     for key, val in _payload()["latest"].items():
         if key in structural:
@@ -200,3 +200,82 @@ def test_lean_direction_is_a_glyph_not_a_hue():
     html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
     assert '<i class="mr-arrow" aria-hidden="true">↓</i>slightly down' in html
     assert "data-lean" not in html and "style=" not in html
+
+
+# ── plain-language summary (2026-09-14) ─────────────────────────────────────
+# The card used to show only the logged grading fields — terse, number-dense —
+# while the reader understood the read from the plain reply in the session. With
+# a summary the card mirrors that reply; the logged fields sit in a drawer.
+
+_NOW = _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC)
+
+
+def _with_summary(**over):
+    p = _payload()
+    p["latest"]["summary"] = {
+        "read_id": p["latest"]["id"],
+        "bottom_line": "Hold what the market gives you; do not add before CPI.",
+        "where_we_are": "20:58 SGT, US pre-market; CPI tomorrow 20:30 SGT.",
+        "macro_attribution": "Oil moved most; the lean depends on it.",
+        "what_happened": ["Brent crossed $100 overnight (tape)."],
+        "per_group": {"semis": "Flat. The gap is already paid for."},
+        "change_my_mind": ["Brent back under $100 flips chips up."],
+        "confidence": "The fall is already in the price.",
+        "cant_know": "Whether CPI surprises.",
+        "the_call": "Down, mildly. Energy holds up best.",
+        "sources": [{"title": "Oil tops $100", "url": "https://example.com/oil", "date": "Sep 9"}],
+        **over,
+    }
+    return p
+
+
+def test_summary_sections_render_in_the_order_of_the_plain_reply():
+    html = market_read_card_html(_with_summary(), _NOW)
+    order = ["Bottom line", "Where we are", "What happened", "What I expect, per group",
+             "What would change my mind", "Confidence", "The call", "Sources",
+             "Grading notes"]
+    idx = [html.index(label) for label in order]
+    assert idx == sorted(idx), dict(zip(order, idx))
+
+
+def test_every_summary_field_is_rendered():
+    p = _with_summary()
+    html = market_read_card_html(p, _NOW)
+    for key, val in p["latest"]["summary"].items():
+        if key == "read_id":
+            continue
+        if isinstance(val, dict):
+            probe = next(iter(val.values()))
+            probe = probe["title"] if isinstance(probe, dict) else probe
+        elif isinstance(val, list):
+            probe = val[0]["title"] if isinstance(val[0], dict) else val[0]
+        else:
+            probe = val
+        assert _escape_dollars(str(probe))[:25] in html, f"summary field not rendered: {key}"
+
+
+def test_summary_card_still_carries_the_logged_record_in_the_drawer():
+    html = market_read_card_html(_with_summary(), _NOW)
+    for logged in ("gap pre-paid", "No verified headline", "oil tops &#36;100", "Brent back under"):
+        assert logged in html, logged
+
+
+def test_lean_chips_come_from_the_logged_record_not_the_summary():
+    # The summary supplies sentences only; the graded call is the log's.
+    p = _with_summary(per_group={"market": "Slightly up, strongly."})
+    html = market_read_card_html(p, _NOW)
+    row = html[html.index("Whole market"):]
+    assert "slightly down" in row[:400]
+
+
+def test_summary_source_links_are_http_only():
+    p = _with_summary(sources=[{"title": "bad", "url": "javascript:alert(1)"}])
+    html = market_read_card_html(p, _NOW)
+    assert "javascript:" not in html and ">bad<" in html
+
+
+def test_a_read_without_a_summary_uses_the_same_structure_minus_summary_only_sections():
+    html = market_read_card_html(_payload(), _NOW)
+    assert "What I expect, per group" in html and "What would change my mind" in html
+    assert 'data-sec="confidence"' in html and 'data-sec="sources"' in html
+    assert "Bottom line" not in html and "The call" not in html and "Grading notes" not in html
