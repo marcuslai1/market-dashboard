@@ -1,84 +1,86 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-11T11:31:57+00:00",
- "sessions_read": 6,
- "reads_logged": 8,
+ "generated_utc": "2026-09-14T11:47:37+00:00",
+ "sessions_read": 7,
+ "reads_logged": 9,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260911T113153Z",
-  "ts_utc": "2026-09-11T11:31:53Z",
-  "ts_sgt": "2026-09-11 19:31",
-  "ts_et": "2026-09-11 07:31",
-  "confidence": "medium",
-  "confidence_why": "direction rests on a binary print about an hour out; the edge is the already-priced hike (~73%), not foreknowledge of the number, and every ref price is a pre-market high so the firm leans need the gap to hold as well as the print to cooperate",
+  "id": "20260914T114729Z",
+  "ts_utc": "2026-09-14T11:47:29Z",
+  "ts_sgt": "2026-09-14 19:47",
+  "ts_et": "2026-09-14 07:47",
+  "confidence": "low",
+  "confidence_why": "Same-day direction after a 5% headline gap is close to a coin flip: the driver is a sentiment call with pushback already visible (Trump, Burry), the pre-market print has no volume, and the record shows semis is this adviser's weakest cluster (40% hit).",
   "tells": [
-   "10Y through 5.00% after the print - the hot-CPI branch is live and every firm lean here is wrong",
-   "SOXX fails to hold +0.5% in the first hour of the regular session - the pre-market gap was thin (extended-hours bars carry no volume) and fading, not buying",
-   "SKHY and MU stay green while Korea closed -2.2% to -3.5% - confirms the US is marking the Korean close back up and the lagged-echo read is right",
-   "VIX back above 18 from 17.19 - the relief leg is gone and the contango (VIX/VIX3M 0.87) has flipped",
-   "Oracle gives back its ~7% pre-market gain - the AI-ROI floor under the semis and power complex is not real"
+   "SOXX reclaims the 07:44 ET pre-market print (~501) inside the first hour on rising volume, NVDA green -> semis and ai_power_infra flip to firm (headline dip being bought).",
+   "META and GOOG give up their pre-market gains at the open -> rotation story fails, it is outright de-risking; big_tech flips to soft.",
+   "10Y trades through 5.00% during the session -> market soft hardens and big_tech goes soft with it.",
+   "Explicit White House/Trump action against the slowdown call (beyond Sunday's remarks) -> chips bounce, semis flips to firm."
   ],
-  "notes": "First read under the session-6 fixed-slot protocol; logged ~19:35 SGT, roughly an hour BEFORE the 20:30 CPI release, so this is a forecast and not a reaction. sg_banks target is the Monday SGX close (~70h), every other cluster tonight US close (~8.6h) - do not pool the two horizons. SOURCING GAPS, none leaned on: (1) the CNBC CPI-preview article returned HTTP 403, so the consensus figures come from the search-result summary rather than the article text; (2) NVDA recheck DUE today (Goldman Communacopia Sep 10, any Kyber NVL144 / Rubin Ultra dating) is UNRESOLVED; (3) the MU Netlist ITC institution decision due ~Sep 11 is UNRESOLVED and MU carries cat 2026-09-11 with earnings in 19d; (4) the Korea drop has NO sourced driver - the search returned stale Jun/Jul items, so the lagged-echo reading rests on tape evidence alone (KOSPI -1.78, Nikkei -1.72, TAIEX -1.46 moving together). Calibration note: semis is my worst cluster (25% hit, n=4) and I have been wrong in BOTH directions on it; on 09-10 I went firm into a PPI print and SOXX fell -2.18%. Today shape is similar, and the stated difference is that hike odds were 58% going into that print versus ~73% going into this one.",
+  "notes": "Session 7, logged 19:5x SGT / 07:5x ET, US pre-market, ~8h to the US close. Attribution line: since Friday's close the largest movers are oil (WTI +2.7% to $103) and the VIX (+10% to 17.5); 10Y +3bp at 4.975%; DXY +0.4%; calendar = FOMC from Tue. Leans rest on the AI-slowdown headline, not on oil. Pre-market prints are price-only (thin). big_tech pre-market prints conflict across sources (one Investing.com snapshot had META -1.5%, GOOGL -0.5%); tape and Reuters both green - treated as bid but flagged.",
   "headline_context": [
-   "CNBC - Friday CPI report is more important than usual; Dow Jones consensus +0.4% m/m / 3.4% y/y headline, +0.2% / 2.4% core (Sep 10, 2026)",
-   "CNBC - August PPI +0.4% m/m and 5.4% y/y, 0.1pp above expected; Dow -316.56 (-0.6%), S&P 500 -0.58%, Nasdaq -0.65% as WTI topped $100 (Sep 10, 2026)",
-   "CME FedWatch via CNBC - Sep 16 hike odds raised to more than 73% after the PPI print (Sep 10, 2026)",
-   "Reuters via Investing.com - Wall St futures recover as oil slides ahead of inflation test; WTI -3.3% to $99.08, Brent -3.6% to $103.76; Oracle +~7% pre-market after beating late Thursday (Sep 11, 2026)",
-   "Bloomberg oil wrap - WTI above $104 after an ~7% surge and Brent near $108 on a protracted US-Iran conflict (Sep 11, 2026); conflicts with the Friday pre-market level on the tape because the spike was Thursday and is now partly reversing"
+   "Reuters via Investing.com - AI warnings knock Nasdaq futures, pressure tech stocks (Sep 14 05:16 ET, upd 07:24): Amodei Sat call to slow AI, Musk/Altman agree; NQ -1.72% early; hike near-fully priced for this week; Brent $108.31 +3.6%, WTI $103.35 +3.3%; Burry: competitive tactic",
+   "Investing.com - Chip stocks fall premarket on AI slowdown calls (Sep 14 06:33 ET): MU -5.0%, NVDA -2.9%, CRDO -5.6%; 'model releases could slow while spending on chips, data centers and networking continues'",
+   "CNBC - AI stocks slide after Anthropic, OpenAI CEOs urge slowdown (Sep 14, search summary, article blocked): hynix -6%, Samsung -4%, SoftBank -10%, ASML -5%, Nokia -8%, Infineon -7%",
+   "CNBC - OpenAI rules out IPO this year as Altman, Musk & Amodei warn AI is moving too fast (Sep 12, search summary)",
+   "NPR - Trump warns against slowing AI but is not against guardrails (Sep 13, search summary)",
+   "Reuters via Investing.com - Fed rate hike on Wednesday now likely, say economists (Sep 13-14, search summary); 10Y 4.99% Fri, highest in ~3 years",
+   "catalysts.json global_rate_path_tightening (Sep 11 vintage): Aug core CPI +0.3% m/m beat; FOMC Sep 15-16, decision 02:00 SGT Sep 17; BOJ Sep 17-18; Decree 841 effective Sep 15",
+   "RECHECK DUE Sep 17 (not leaned on): SK hynix wage revote Sep 15-16; Netlist ITC; FOMC macro re-state"
   ],
   "leans": {
    "semis": {
-    "lean": "firm",
-    "guidance": "hold",
-    "why": "Sep 16 hike ~73% priced going INTO the print, so repricing room on an in-line CPI is small; SOXX 5d +3.19% against SPY 5d -0.96% is real leadership, cluster only +2.1% above its 50d with 0 names RSI>=70 so there is room; the Oracle AI-ROI beat is a direct read-through. Korea (Samsung -3.53%, Hynix -2.21%) is a lagged echo of the 09-10 US close, not new information."
-   },
-   "big_tech": {
-    "lean": "firm",
+    "lean": "soft",
     "guidance": "dont_add",
-    "why": "rises with the tape on an in-line print because confirming the hike lets the long end stabilise, but +7.4% above the 50d is the most stretched cluster on the tape and the most duration-exposed if core runs hot with the 10Y at 4.944 and 5.00% six bp away. Direction yes, new money no."
+    "why": "AI-slowdown call (Amodei Sat, Altman/Musk backing) gapped chips -5% pre with no volume behind Friday's 0.75x-volume rally; Asia/Europe confirmed in real volume (hynix -6.6% on 1.26x, Soitec -13.6%, Aixtron -10.3%, Infineon -7.6% regular); hike Wed near-fully priced, 10Y 4.975%, WTI $103 deny the dip-buy. Memory, equipment and the GPU clouds hit hardest; chipmakers proper (NVDA -2.5, AVGO/TSM -3.3) least."
    },
    "ai_power_infra": {
-    "lean": "firm",
-    "guidance": "hold",
-    "why": "structurally the SAME SOXX bet as semis (the pre-registered double-count, logged knowingly). Cluster sits -9.4% BELOW its 50d, so the +2.00% today is a rebound off a depressed base not an extension; the Oracle AI-returns beat feeds power and GPU-cloud demand most directly. Split internally: power semis NVTS/IFX ~11% below their 50d, but Bloom (fuel cells) is +14.4% above its 50d after +19.0% in 5 sessions - that leg is extended."
-   },
-   "sg_banks": {
     "lean": "soft",
+    "guidance": "dont_add",
+    "why": "Bloom -7% pre from +22% above its 50-day = extension unwinding; Infineon/Aixtron already -8/-10% in the European regular session; same SOXX benchmark, same thin US pre-market gap into a hostile macro."
+   },
+   "big_tech": {
+    "lean": "neutral",
     "guidance": "hold",
-    "why": "target is MONDAY SGX close, ~70h out, which makes the +/-0.5% neutral band nearly unreachable and forces a direction. STI 5d -1.83% has diverged from a +3.19% SOXX all week, and Monday prices FOMC-week positioning with a hike ~73% in. Funding-cost headwind per catalysts.json global_rate_path_tightening, and SG bank earnings now swing on wealth/fee momentum rather than NIM (sg_banks_nim_compression), so a risk-off US Friday transmits through the fee engine."
+    "why": "QQQ -1.4% pre but the platforms are bid against the chips (META +2.7, GOOG +1.5 pre, thin; Reuters snapshot also had both green) - money rotating inside tech, not leaving it (HY flat, VIX/VIX3M 0.94 contango). NVDA/AVGO/AMD drag vs META/GOOG lift nets to QQQ near its pre-market level."
    },
    "market": {
-    "lean": "firm",
+    "lean": "soft",
     "guidance": "dont_add",
-    "why": "the asymmetry is the whole bet: at ~73% priced, in-line or hot is largely in the price while a cool print is a large repricing; oil -3.44% and Oracle +7% are the two legs under the pre-market bid. The bar is high because the ref is the pre-market print (762.35, already +0.60% over the 09-10 close), not the close - firm requires the gap to HOLD through the print."
+    "why": "SPY -0.57% pre has only priced the AI headline; the Fed hike Wed, 10Y just under 5% and oil $103 (Hormuz) build through the session and energy does not offset a tech de-risk. Mild, not sharp: credit and the vol term structure are calm."
+   },
+   "sg_banks": {
+    "lean": "neutral",
+    "guidance": "hold",
+    "why": "STI closed +0.36% today against the global risk-off, UOB +2.8% on 1.72x volume (no headline found); banks are rate beneficiaries with the 10Y near 5%, US tech weakness dents the STI only modestly. Next close Tue 17:00 SGT, within the band."
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-11",
-    "target_close_utc": "2026-09-11T20:00:00Z"
-   },
-   "big_tech": {
-    "benchmark": "QQQ",
-    "target_session": "2026-09-11",
-    "target_close_utc": "2026-09-11T20:00:00Z"
+    "target_session": "2026-09-14",
+    "target_close_utc": "2026-09-14T20:00:00Z"
    },
    "ai_power_infra": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-11",
-    "target_close_utc": "2026-09-11T20:00:00Z"
-   },
-   "sg_banks": {
-    "benchmark": "^STI",
     "target_session": "2026-09-14",
-    "target_close_utc": "2026-09-14T09:00:00Z"
+    "target_close_utc": "2026-09-14T20:00:00Z"
+   },
+   "big_tech": {
+    "benchmark": "QQQ",
+    "target_session": "2026-09-14",
+    "target_close_utc": "2026-09-14T20:00:00Z"
    },
    "market": {
     "benchmark": "SPY",
-    "target_session": "2026-09-11",
-    "target_close_utc": "2026-09-11T20:00:00Z"
+    "target_session": "2026-09-14",
+    "target_close_utc": "2026-09-14T20:00:00Z"
+   },
+   "sg_banks": {
+    "benchmark": "^STI",
+    "target_session": "2026-09-15",
+    "target_close_utc": "2026-09-15T09:00:00Z"
    }
   }
  }
