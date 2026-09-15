@@ -129,11 +129,13 @@ def test_rr_display_passes_through_normal_rr():
     assert (label, ratio, adjusted) == ("2.4:1", 2.4, False)
 
 
-def test_rr_display_distorted_without_sizing_keeps_headline():
-    # Flagged distorted but no sizing_rr supplied → keep the headline, unadjusted.
+def test_rr_display_distorted_without_sizing_prints_no_ratio():
+    # Flagged distorted with no sizing_rr: the producer says "Risk-reward math
+    # is not meaningful here" and never quotes the raw ratio (R12 F10) — the
+    # old pin kept the 9.0:1 headline beside that sentence.
     label, ratio, adjusted = rr_display({"ratio_label": "9.0:1", "ratio": 9.0,
                                          "rr_distorted": True})
-    assert (label, ratio, adjusted) == ("9.0:1", 9.0, False)
+    assert (label, ratio, adjusted) == ("n/a", 0.0, False)
 
 
 def test_rr_display_synthesizes_label_when_missing():

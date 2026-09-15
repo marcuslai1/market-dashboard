@@ -33,15 +33,40 @@ USD_TO_SGD = 1.29
 REPRICE = pd.Timestamp("2026-08-17")
 RATE_HIT_OLD, RATE_MISS_OLD = 0.07, 0.27
 RATE_HIT_NEW, RATE_MISS_NEW = 0.022, 0.66
+# Third era (external review R12 F01, 2026-09-15): the report leg — the only
+# leg whose cache tokens land in ``cache_hit_tokens`` — has billed on the
+# DeepSeek FLASH card since the 2026-08-28 run (memory leg followed 09-11 but
+# has no cache split in the export). Flash card: CNY 1.00 miss / 0.02 hit per
+# MTok at the pipeline's telemetry FX of 7.15 (``config.deepseek_card``).
+# Pricing a flash row on the Pro card overstated the saving 4.65×.
+FLASH = pd.Timestamp("2026-08-28")
+_CNY_PER_USD = 7.15
+RATE_HIT_FLASH, RATE_MISS_FLASH = 0.02 / _CNY_PER_USD, 1.00 / _CNY_PER_USD
 _CACHE_SAVING_PER_MTOK_OLD = RATE_MISS_OLD - RATE_HIT_OLD
 _CACHE_SAVING_PER_MTOK_NEW = RATE_MISS_NEW - RATE_HIT_NEW
+_CACHE_SAVING_PER_MTOK_FLASH = RATE_MISS_FLASH - RATE_HIT_FLASH
+
+
+def card_for(date) -> tuple[float, float]:
+    """(hit, miss) USD/MTok input rates in force on ``date`` (None → latest)."""
+    if date is None or pd.isna(date):
+        return RATE_HIT_FLASH, RATE_MISS_FLASH
+    d = pd.Timestamp(date)
+    if d >= FLASH:
+        return RATE_HIT_FLASH, RATE_MISS_FLASH
+    if d >= REPRICE:
+        return RATE_HIT_NEW, RATE_MISS_NEW
+    return RATE_HIT_OLD, RATE_MISS_OLD
 
 
 def _saving_per_mtok(dates: pd.Series) -> pd.Series:
     """Per-row cache-saving rate ($/MTok) under the card in force that day."""
-    new = pd.to_datetime(dates) >= REPRICE
-    return new.map({True: _CACHE_SAVING_PER_MTOK_NEW,
-                    False: _CACHE_SAVING_PER_MTOK_OLD})
+    d = pd.to_datetime(dates)
+    return pd.Series(
+        [_CACHE_SAVING_PER_MTOK_FLASH if x >= FLASH else
+         _CACHE_SAVING_PER_MTOK_NEW if x >= REPRICE else
+         _CACHE_SAVING_PER_MTOK_OLD for x in d],
+        index=dates.index, dtype=float)
 
 
 # Runs per month at the current cadence (one per weekday).
@@ -184,7 +209,7 @@ _PROMPT_BLOCKS = [
 
 
 def prompt_composition(df: pd.DataFrame) -> list[dict] | None:
-    """The latest run's prompt as shares of one whole, largest first.
+    """The latest run's prompt as shares of the whole prompt, largest first.
 
     Shares of a run rather than five time series because the question this
     section answers is *what dominates*, not *how each moved*.
@@ -205,9 +230,24 @@ def prompt_composition(df: pd.DataFrame) -> list[dict] | None:
         v = pd.to_numeric(latest.get(col), errors="coerce")
         blocks.append({"name": name, "note": note,
                        "chars": 0 if pd.isna(v) else int(v)})
-    total = sum(b["chars"] for b in blocks)
-    if not total:
+    itemised = sum(b["chars"] for b in blocks)
+    if not itemised:
         return None
+    # Shares of the WHOLE prompt (external review R12 F02, 2026-09-15): the
+    # five named blocks covered 317,644 of 523,364 chars on 09-15, so
+    # normalising to their own sum showed the system prompt at 53 % of a
+    # prompt it is 32 % of. The exported ``total_prompt_chars`` (system +
+    # user) is the denominator when present; the remainder is shown as its
+    # own block rather than silently folded into the others.
+    total = itemised
+    raw_whole = latest.get("total_prompt_chars")
+    whole = pd.to_numeric(raw_whole, errors="coerce") if raw_whole is not None else None
+    if whole is not None and not pd.isna(whole) and int(whole) > itemised:
+        total = int(whole)
+        blocks.append({"name": "Other (not itemised)",
+                       "note": "Instructions, schema, catalysts and injected "
+                               "context outside the five measured blocks",
+                       "chars": total - itemised})
     for b in blocks:
         b["share"] = b["chars"] / total * 100.0
     return sorted(blocks, key=lambda b: b["chars"], reverse=True)

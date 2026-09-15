@@ -334,10 +334,22 @@ def _f(v) -> float | None:
     return None if pd.isna(x) else x
 
 
+# Exit-reason buckets for the scorecard's "Stop R" / "Exit-rule R" split
+# (external review R12 F17, 2026-09-15). ``stop`` = price-triggered protective
+# exits (the fixed stop and the trail twin's trailing stop); ``exit_rule`` =
+# every sell the lane's own rulebook makes (CAUTION exit, the time twin's
+# 40-session time stop, factor switches, rotation exits). Only caution_exit
+# used to count, so the time twin's Exit-rule R excluded its own rule's exit
+# (1.06R over 14 shown green vs 0.98R over 15). Delist / avoid / margin
+# sells stay ``other``.
+_STOP_REASONS = frozenset({"stop", "trail_stop"})
+_RULE_REASONS = frozenset({"caution_exit", "time_stop", "factor_switch", "rotation_exit"})
+
+
 def lane_trade_stats(trades_df: pd.DataFrame | None, policy_id: str) -> dict:
-    """Closed-trade metrics for one lane. Reasons: ``stop`` = stop-loss;
-    ``caution_exit`` = the lane's exit rule; everything else (avoid/delist)
-    grouped as ``other``."""
+    """Closed-trade metrics for one lane. Reasons: ``_STOP_REASONS`` →
+    ``stop``; ``_RULE_REASONS`` → ``exit_rule``; everything else
+    (avoid/delist/margin) grouped as ``other``."""
     if trades_df is None or trades_df.empty or "policy_id" not in trades_df.columns:
         return {}
     rows = trades_df[trades_df["policy_id"] == policy_id]
@@ -358,7 +370,8 @@ def lane_trade_stats(trades_df: pd.DataFrame | None, policy_id: str) -> dict:
     by = {}
     for r, rm in zip(recs, rs, strict=False):
         reason = r.get("exit_reason")
-        key = "stop" if reason == "stop" else ("exit_rule" if reason == "caution_exit" else "other")
+        key = ("stop" if reason in _STOP_REASONS
+               else ("exit_rule" if reason in _RULE_REASONS else "other"))
         b = by.setdefault(key, {"n": 0, "wins": 0, "pnl_units": 0, "r": []})
         b["n"] += 1
         p = _f(r.get("pnl_pct"))

@@ -235,7 +235,7 @@ def test_summary_sections_render_in_the_order_of_the_plain_reply():
              "What would change my mind", "Confidence", "The call", "Sources",
              "Grading notes"]
     idx = [html.index(label) for label in order]
-    assert idx == sorted(idx), dict(zip(order, idx))
+    assert idx == sorted(idx), dict(zip(order, idx, strict=True))
 
 
 def test_every_summary_field_is_rendered():

@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-09-15",
+    "title": "Corrections from an external review of the dashboard's numbers and labels",
+    "note": "An independent code review checked every figure the dashboard derives against the pipeline that produces the data. Fixed: the Pipeline page's cache-saving and 'without cache' tiles were priced on the old Pro card although the model has billed on the cheaper Flash card since 28 Aug (they overstated the saving 4.6x); the prompt-composition shares now divide by the whole prompt, with the unmeasured part shown as its own slice; the Tracker tiles' raw-direction popover now reads the pipeline's own session-based outcomes for calls in the selected range instead of counting pipeline runs, and says so; the Tracker and Review pages now count calls by one shared rule (a HOLD day ends a call on both); Review prints foreign names in their own currency; a distorted risk-reward with no usable fallback shows 'n/a' instead of the raw ratio; the paper scorecard's Exit-rule R includes the time twin's time stop and the Stop R the trail twin's trailing stop; 'Held' on the episode table runs to the exit; the Pipeline page respects an empty date range; and calls the pipeline logged on an exchange holiday are marked 'no outcome recorded' rather than 'too early'. No signal, paper-book rule or pipeline number changed."
+  },
+  {
     "date": "2026-08-27",
     "title": "The signal tiles now show benchmark-relative alpha, not a 5-session coin flip",
     "note": "The tiles used to score every signal on whether price moved the 'right' way five sessions later. Over any five sessions about half of all names fall, so a rate near 50% was the market, not the signal - and CAUTION, which means 'don't add here' rather than 'sell', was being read as a bad sell call. Each tile is now the pipeline's own figure: the names' return ten sessions out minus their benchmark (SOXX for semis, SPY otherwise), over the rolling calibration window - the same number the Measurement Gate reads. CAUTION and AVOID tiles say they are gates. The old raw-direction view survives in each tile's ? at 5 and 20 sessions, beside the base rate."

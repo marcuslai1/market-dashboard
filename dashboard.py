@@ -428,6 +428,10 @@ def _page_signal_tracker() -> None:
         # Cheap corpus signature so the page's derived frames memoize across
         # filter/toggle reruns instead of recomputing O(reports × tickers).
         cache_key=(data_fingerprint(), DATE_START, DATE_END),
+        # The raw-direction popover reads the pipeline's exported outcomes
+        # (session basis) for calls dated inside the range — R12 F04.
+        log_df=load_signal_log(),
+        date_range=(DATE_START, DATE_END),
     )
 
 
@@ -460,7 +464,8 @@ def _page_scenario_log() -> None:
 
 def _page_pipeline_stats() -> None:
     from components.pipeline_stats import render_pipeline_stats_page
-    render_pipeline_stats_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
+    render_pipeline_stats_page(filter_reports(load_all_reports(), DATE_START, DATE_END),
+                               DATE_START, DATE_END)
 
 
 def _page_report_comparison() -> None:

@@ -11,6 +11,7 @@ import streamlit as st
 
 from components.paper_book import render_paper_book
 from components.trim_experiment import render_trim_experiment
+from lib.calls import first_of_run
 from lib.cards import card_container, render_section_head
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
@@ -28,6 +29,7 @@ from lib.formatters import (
     display_ticker,
 )
 from lib.pills import _signal_pill_html
+from lib.symbols import provider_symbol
 
 
 def _classify_episode_verdict(signal: str, ret: float | None,
@@ -151,7 +153,12 @@ def build_signal_episodes(sig_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.D
                 "signal": signal,
                 "start": ep["start"],
                 "end": ep["end"],
-                "duration_days": int((ep["end"] - ep["start"]).days) + 1,
+                # Held = entry to the economic exit (R12 F14, 2026-09-15); a
+                # BUY held through HOLD/WATCH used to print only its own
+                # streak length beside an exit date weeks later. Open
+                # episodes still measure to the streak end.
+                "duration_days": int(((exit_date if exit_date is not None else ep["end"])
+                                      - ep["start"]).days) + 1,
                 "entry_price": entry_price,
                 "exit_price": exit_price,
                 "exit_date": exit_date,
@@ -184,15 +191,10 @@ def extract_signal_history(reports: dict) -> pd.DataFrame:
 
 
 def _report_ticker_to_db(ticker: str) -> str:
-    """Convert report-style ticker (D05_SI) to DB-style (D05.SI)."""
-    # Replace the last '_' with '.' if the suffix looks like an exchange code
-    # (1-3 uppercase letters). US tickers don't have dots so pass through.
-    last_us = ticker.rfind("_")
-    if last_us > 0:
-        suffix = ticker[last_us + 1:]
-        if suffix.isalpha() and suffix.isupper() and 1 <= len(suffix) <= 3:
-            return ticker[:last_us] + "." + suffix
-    return ticker
+    """Convert report-style ticker (D05_SI) to DB-style (D05.SI) — the shared
+    mapping in ``lib.symbols`` (R12 F11: the price loader had its own, wrong,
+    comparison)."""
+    return provider_symbol(ticker)
 
 
 def _is_sgx_ticker(ticker: str) -> bool:
@@ -216,8 +218,13 @@ def compute_signal_accuracy(
 ) -> pd.DataFrame:
     """Compute forward returns for directional signal types.
 
-    For each signal, looks up the actual closing price 5/10/20 trading days
-    later (by row position in the sorted price table, not calendar days).
+    For each call, looks up the price 5/10/20 PIPELINE RUNS later — by row
+    position in ``market_data.csv``, which holds one row per run date, not
+    per exchange session (a skipped slot removes a row for every name; an SGX
+    holiday leaves a stale row). This is therefore a run-count basis, NOT the
+    pipeline's own ``price_after_Nd`` session basis, and every label built
+    from it must say so (external review R12 F04, 2026-09-15). The alpha
+    tiles never use it; the popover now prefers ``raw_direction_frame``.
     BUY/WATCH: positive returns = signal was correct.
     CAUTION: negative returns = signal was correct (avoided a loss).
     Also computes SPY benchmark return over the same window (N/A for SGX tickers).
@@ -225,22 +232,15 @@ def compute_signal_accuracy(
     if sig_df.empty or prices_df.empty:
         return pd.DataFrame()
 
-    actionable = sig_df[
-        sig_df["signal"].isin(["BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID"])
+    # One call = first row of a consecutive same-signal run over ALL signals
+    # (a HOLD day splits two CAUTION calls) — the shared rule the Review page
+    # uses (R12 F05); the directional filter comes AFTER.
+    calls = first_of_run(sig_df)
+    actionable = calls[
+        calls["signal"].isin(["BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID"])
     ].copy()
     if actionable.empty:
         return pd.DataFrame()
-
-    # Deduplicate: only keep the FIRST day of each consecutive signal streak
-    actionable = actionable.sort_values(["ticker", "date"])
-    keep = []
-    for _ticker, grp in actionable.groupby("ticker"):
-        prev_signal = None
-        for idx, row in grp.iterrows():
-            if row["signal"] != prev_signal:
-                keep.append(idx)
-            prev_signal = row["signal"]
-    actionable = actionable.loc[keep]
 
     # Pre-filter SPY prices for benchmark comparison
     spy_prices = prices_df[prices_df["ticker"] == "SPY"].sort_values("date")
@@ -349,11 +349,39 @@ _SCORECARD_SPECS = [
 _GATE_SIGNALS = ("CAUTION", "AVOID")
 
 
-def _raw_direction_note(acc_df: pd.DataFrame, sig: str, mode: str) -> str:
+_DIRECTIONAL_CALLS = ("BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID")
+
+
+def raw_direction_frame(log_df: pd.DataFrame | None, start=None, end=None) -> pd.DataFrame:
+    """Calls + forward returns for the raw-direction popover, from the
+    pipeline's exported ledger (``signal_log.csv``): ``price_after_5d/20d``
+    are the pipeline's own session-basis outcomes, the same numbers the
+    Review page scores. Clipped to calls DATED inside [start, end]. Empty
+    frame when the export is unavailable (the caller falls back to the local
+    run-count walk and labels it as such). R12 F04, 2026-09-15."""
+    if log_df is None or log_df.empty or "signal" not in log_df.columns:
+        return pd.DataFrame()
+    calls = first_of_run(log_df)
+    if calls.empty:
+        return pd.DataFrame()
+    calls = calls[calls["signal"].isin(_DIRECTIONAL_CALLS)]
+    if start is not None and end is not None and "date" in calls.columns:
+        d = pd.to_datetime(calls["date"]).dt.date
+        calls = calls[(d >= start) & (d <= end)]
+    keep = [c for c in ("date", "ticker", "signal", "return_5d", "return_20d")
+            if c in calls.columns]
+    return calls[keep].reset_index(drop=True)
+
+
+def _raw_direction_note(acc_df: pd.DataFrame, sig: str, mode: str,
+                        scope: str = "selected range, N pipeline runs later "
+                                     "(run count, not exchange sessions)") -> str:
     """The demoted view (owner call 2026-08-27, option C): raw price direction
     at 5 AND 20 sessions, each beside the base rate over every scored call, so
     a reader can see that a 5-session hit rate near 50% is the market, not the
-    signal. '' when there is nothing to show."""
+    signal. ``scope`` names the corpus and basis — it used to say 'all
+    history' over a sidebar-filtered frame (R12 F03). '' when there is
+    nothing to show."""
     if acc_df is None or acc_df.empty or "signal" not in acc_df.columns:
         return ""
     bits = []
@@ -377,7 +405,7 @@ def _raw_direction_note(acc_df: pd.DataFrame, sig: str, mode: str) -> str:
                     f"(any scored call: {base:.0f}%)")
     if not bits:
         return ""
-    return "Raw price direction, all history: " + " · ".join(bits) + "."
+    return f"Raw price direction, {scope}: " + " · ".join(bits) + "."
 
 
 def _alpha_tip_text(sig: str, alpha, raw: str) -> str:
@@ -408,14 +436,17 @@ def _alpha_tip_text(sig: str, alpha, raw: str) -> str:
                  "+10 pp exceptional. Beyond ±10 pp on a handful of calls is "
                  "noise, not skill.")
     parts = [head, scale,
-             "Benchmark = SOXX for semiconductor names, SPY otherwise, so a "
+             "Benchmark = the name's own family index (SOXX for semis and "
+             "AI-power names, QQQ for big tech, STI for the Singapore banks, "
+             "SPY otherwise), so a "
              "rising market on its own does not move this number."]
     if raw:
         parts.append(raw)
     return "  ".join(parts)
 
 
-def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> str:
+def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame,
+                          raw_scope: str | None = None) -> str:
     """Option C (owner call 2026-08-27): the tiles show the pipeline's own
     benchmark-relative alpha per signal — the number the Measurement Gate
     reads — instead of a locally computed 5-session direction. Sign is the
@@ -437,9 +468,17 @@ def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> st
         if alpha is not None and n > 0:
             val_html = f'<div class="cval">{float(alpha):+.1f} <small>pp α</small></div>'
             sub = f"n={n}" + (f" · {int(ep)} ep" if ep else "") + " · 10 sessions vs benchmark"
-            if n < DECISION_GRADE_MIN:
+            if n < DECISION_GRADE_MIN or cell.get("thin"):
+                # The producer's ``thin`` = alpha n < 10 OR fewer than 5
+                # independent episodes; the tile used to test n only, so a
+                # multi-regime cell with two episodes could read 'holding
+                # up' while the calibration card called it low-confidence
+                # (R12 F06, 2026-09-15).
                 cell_thin = True
-                flag = f'<div class="sc-flag warn-thin">⚠ thin — only {n} calls</div>'
+                why = (f"only {n} calls" if n < DECISION_GRADE_MIN
+                       else (f"only {int(ep)} independent episodes" if ep
+                             else "the pipeline flags it thin"))
+                flag = f'<div class="sc-flag warn-thin">⚠ thin — {why}</div>'
             elif single:
                 cell_thin = True
                 flag = ('<div class="sc-flag warn-thin">⚠ one regime only'
@@ -455,7 +494,8 @@ def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> st
         if sig in _GATE_SIGNALS:
             gate = ('<div class="sc-gate">gate, not a forecast · negative α = '
                     "kept you out of a laggard</div>")
-        raw = _raw_direction_note(acc_df, sig, mode)
+        raw = (_raw_direction_note(acc_df, sig, mode, raw_scope) if raw_scope
+               else _raw_direction_note(acc_df, sig, mode))
         tip = help_tip(_alpha_tip_text(sig, alpha, raw), f"What the {sig} tile means")
         cells += (
             f'<div class="calib-cell{" thin" if cell_thin else ""}">'
@@ -471,7 +511,9 @@ def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame) -> st
     return f'<div class="hair-grid calib-grid">{cells}</div>'
 
 
-def _scorecard_html(acc_df: pd.DataFrame, calibration_insights=None) -> str:
+def _scorecard_html(acc_df: pd.DataFrame, calibration_insights=None,
+                    raw_df: pd.DataFrame | None = None,
+                    raw_scope: str | None = None) -> str:
     """Signal scorecard, one cell per signal.
 
     With ``calibration_insights`` (every report since 2026-07-02) the cells
@@ -484,7 +526,8 @@ def _scorecard_html(acc_df: pd.DataFrame, calibration_insights=None) -> str:
     perf = (calibration_insights or {}).get("signal_performance") or {}
     if perf:
         decayed = (calibration_insights or {}).get("signal_performance_decayed_full") or {}
-        return _alpha_scorecard_html(perf, decayed, acc_df)
+        return _alpha_scorecard_html(perf, decayed,
+                                     raw_df if raw_df is not None else acc_df, raw_scope)
     cells = ""
     for sig, mode, verb in _SCORECARD_SPECS:
         data = acc_df[acc_df["signal"] == sig] if not acc_df.empty else pd.DataFrame()
@@ -611,7 +654,7 @@ def _readiness_html(calibration_insights) -> str:
         regimes.update(cell.get("regimes_present") or [])
         total_matured += int(cell.get("n_matured_10d") or 0)
         if (int(cell.get("n_alpha_10d") or 0) >= DECISION_GRADE_MIN
-                and not cell.get("single_regime")):
+                and not cell.get("single_regime") and not cell.get("thin")):
             decision_grade += 1
     n_regimes = len(regimes)
     if decision_grade > 0 and n_regimes >= 2:
@@ -661,7 +704,8 @@ def _method_html(calibration_insights=None) -> str:
             span = f" · {_escape_dollars(str(win['from']))} → {_escape_dollars(str(win['to']))}"
         tip = ("Each tile is the average return of the names carrying that "
                "signal, 10 sessions later, MINUS their benchmark (SOXX for "
-               "semis, SPY otherwise) — so a rising market does not flatter "
+               "semis and AI-power names, QQQ for big tech, STI for the "
+               "Singapore banks, SPY otherwise) — so a rising market does not flatter "
                "it. Computed by the pipeline over its rolling calibration "
                "window, the same figure the Measurement Gate reads. Sign is "
                "plain: positive = those names beat their benchmark. The ? on "
@@ -863,6 +907,7 @@ def _episodes_cached(
 
 def render_signal_tracker_page(
     reports: dict, prices_df: pd.DataFrame, cache_key: tuple | None = None,
+    log_df: pd.DataFrame | None = None, date_range: tuple | None = None,
 ) -> None:
     """Render the Signal Tracker page — the study page, read in sequence.
 
@@ -886,6 +931,11 @@ def render_signal_tracker_page(
         cache_key: cheap hashable signature of (corpus, date range). When given,
             the derived frames are memoized on it; when None (tests, ad-hoc
             callers) the transforms run uncached.
+        log_df: the pipeline's exported call ledger (``signal_log.csv``). When
+            given, the tiles' raw-direction popover reads its session-basis
+            outcomes for calls dated in ``date_range``; without it the local
+            run-count walk is used and labelled as such (R12 F03/F04).
+        date_range: (start, end) dates of the sidebar range.
     """
     # Scope hook for the page's drawer grammar (spec 2026-07-25 §3.3) — the CSS
     # is keyed on .stApp:has(.tracker-page) so no other page's expanders move.
@@ -911,10 +961,18 @@ def render_signal_tracker_page(
     acc_df = _acc_df_pre if _acc_df_pre is not None else compute_signal_accuracy(sig_df, prices_df)
     _ci = latest_report.get("calibration_insights")
     st.markdown(_method_html(_ci), unsafe_allow_html=True)
+    _start, _end = date_range if date_range else (None, None)
+    raw_df = raw_direction_frame(log_df, _start, _end) if log_df is not None else pd.DataFrame()
+    if not raw_df.empty:
+        span = f"{_start} → {_end}" if _start and _end else "the whole ledger"
+        raw_scope = (f"calls dated {span}, outcomes on the pipeline's own "
+                     "session basis")
+    else:
+        raw_df, raw_scope = None, None
     if acc_df.empty and not ((_ci or {}).get("signal_performance")):
         st.caption("No signals tracked yet — the scorecard fills in as calls accumulate.")
     else:
-        st.markdown(_scorecard_html(acc_df, _ci), unsafe_allow_html=True)
+        st.markdown(_scorecard_html(acc_df, _ci, raw_df, raw_scope), unsafe_allow_html=True)
         hold_count = len(sig_df[sig_df["signal"] == "HOLD"])
         note = _hold_footnote_html(hold_count)
         if note:

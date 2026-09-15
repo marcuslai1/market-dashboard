@@ -29,15 +29,11 @@ from lib.charts import (
 )
 from lib.data_loader import load_pipeline_stats, load_token_usage
 from lib.pipeline_metrics import (
-    RATE_HIT_NEW,
-    RATE_HIT_OLD,
-    RATE_MISS_NEW,
-    RATE_MISS_OLD,
-    REPRICE,
     THRESHOLDS,
     USD_TO_SGD,
     breached,
     cache_stats,
+    card_for,
     cost_stats,
     overall_status,
     post_cutover,
@@ -226,12 +222,16 @@ _DIAGNOSIS = (
 )
 
 
-def render_pipeline_stats_page(reports: dict) -> None:
+def render_pipeline_stats_page(reports: dict, date_start=None, date_end=None) -> None:
     """Render the Pipeline health page.
 
     Args:
         reports: filtered reports dict (date-keyed). Its date span drives the
-            range clip so the sidebar Range control actually applies here.
+            range clip when no explicit range is given.
+        date_start / date_end: the sidebar range itself. Passed explicitly so
+            an empty selected range clips to NOTHING and says so, instead of
+            falling back to all history unlabelled (external review R12 F12,
+            2026-09-15).
     """
     render_section_head(
         "Pipeline health",
@@ -240,12 +240,19 @@ def render_pipeline_stats_page(reports: dict) -> None:
     )
 
     _rk = sorted(reports.keys())
-    _lo = pd.Timestamp(_rk[0]) if _rk else None
-    _hi = pd.Timestamp(_rk[-1]) if _rk else None
+    if date_start is not None and date_end is not None:
+        _lo, _hi = pd.Timestamp(date_start), pd.Timestamp(date_end)
+    else:
+        _lo = pd.Timestamp(_rk[0]) if _rk else None
+        _hi = pd.Timestamp(_rk[-1]) if _rk else None
 
     def _clip(df: pd.DataFrame) -> pd.DataFrame:
-        if df.empty or _lo is None or "date" not in df.columns:
+        if df.empty or "date" not in df.columns:
             return df
+        if _lo is None:
+            # No range and no reports: an empty selection shows nothing, not
+            # all history (R12 F12).
+            return df.iloc[0:0]
         return df[(df["date"] >= _lo) & (df["date"] <= _hi)]
 
     ps = _clip(load_pipeline_stats())
@@ -359,7 +366,8 @@ def render_pipeline_stats_page(reports: dict) -> None:
             f'<div class="pm-tile" data-metric="cost"><div class="pm-tile-label">'
             f'Run rate</div><div class="pm-tile-val">{_money(cost["monthly"], 2)}'
             f'<span class="pm-tile-unit">/mo</span></div>'
-            f'<div class="pm-tile-sub">from {cost["runs"]} runs in range</div></div>'
+            f'<div class="pm-tile-sub">7-run average × 21.7 runs/mo · '
+            f'{cost["runs"]} runs in range</div></div>'
             f'<div class="pm-tile" data-counterfactual="1"><div class="pm-tile-label">'
             f'Without cache</div><div class="pm-tile-val">'
             f'{_money(cost["monthly_uncached"], 2)}<span class="pm-tile-unit">/mo</span>'
@@ -439,12 +447,10 @@ def render_pipeline_stats_page(reports: dict) -> None:
             unsafe_allow_html=True,
         )
         hit_pct = cache["latest"] * 100
-        # Rate labels follow the card in force on the latest run's date, so
-        # the legend stays truthful on both sides of the 08-17 repricing.
-        _new_card = (cache.get("latest_date") is not None
-                     and cache["latest_date"] >= REPRICE)
-        _r_hit = RATE_HIT_NEW if _new_card else RATE_HIT_OLD
-        _r_miss = RATE_MISS_NEW if _new_card else RATE_MISS_OLD
+        # Rate labels follow the card in force on the latest run's date
+        # (Pro → Pro repriced 08-17 → Flash from 08-28), so the legend stays
+        # truthful across all three eras.
+        _r_hit, _r_miss = card_for(cache.get("latest_date"))
         st.markdown(
             f'<div class="pm-cachebar">'
             f'<span class="pm-cache-hit" style="width:{hit_pct:.2f}%;"></span>'

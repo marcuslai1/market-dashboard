@@ -572,9 +572,11 @@ _METRIC_HELP = {
             "50–65% is typical for a trend book; on its own it says little — read it with expectancy."),
     "Expectancy": ("Average profit per $1 risked at the stop, over all closed trades (R-multiples).",
                    "Below 0 losing · +0.3R decent · +0.5R strong · +0.8R excellent."),
-    "Exit-rule R": ("The same, only for trades the sell rule closed.",
+    "Exit-rule R": ("The same, only for trades the lane's own sell rule closed — "
+                    "CAUTION exits, the time twin's time stop, factor and rotation switches.",
                     "Should sit well above +1R — the rule is meant to bank the winners."),
-    "Stop R": ("The same, only for trades the stop closed.",
+    "Stop R": ("The same, only for trades a stop closed — the fixed stop, or the "
+               "trail twin's trailing stop.",
                "−1R means the stop did exactly its job; worse than −1R = gap-downs through it."),
     "Stop drag": ("What all the stop-outs cost together, as % of the pot.",
                   "Smaller is better · −2 to −3% is normal here · the old book ran −6%."),

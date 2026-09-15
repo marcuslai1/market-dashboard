@@ -22,7 +22,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from lib.catalog import RETIRED_TICKERS
+from lib.symbols import RETIRED_ANY_SPELLING
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = _PROJECT_ROOT / "data"
@@ -261,7 +261,11 @@ def _load_sqlite_prices_cached(path_str: str, mtime: float) -> pd.DataFrame:
     if not df.empty and "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
         if "ticker" in df.columns:
-            df = df[~df["ticker"].isin(RETIRED_TICKERS)]
+            # Provider symbols are dotted (2308.TW); the catalog's retired
+            # list is sanitized (2308_TW). Filter on both spellings — the
+            # sanitized-only test dropped COHR/XLE and leaked four foreign
+            # retired names (R12 F11, 2026-09-15).
+            df = df[~df["ticker"].isin(RETIRED_ANY_SPELLING)]
     return df
 
 

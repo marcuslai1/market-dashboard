@@ -43,6 +43,11 @@ def rr_display(rr_obj: dict | None) -> tuple[str, float, bool]:
         if ratio is not None:
             label = sz.get("ratio_label") or f"{ratio:.1f}:1"
             return label, float(ratio), True
+        # Distorted with NO sizing fallback: the producer's own sentence says
+        # "Risk-reward math is not meaningful here" and never quotes the raw
+        # ratio, so neither do we (external review R12 F10, 2026-09-15 —
+        # CBRS printed 6.0:1 beside that sentence). Ranks last.
+        return "n/a", 0.0, False
     ratio = rr_obj.get("ratio")
     label = rr_obj.get("ratio_label") or (f"{ratio:.1f}:1" if ratio is not None else "")
     return label, float(ratio or 0), False
@@ -95,6 +100,25 @@ _CCY_PREFIX = {
 
 # Zero-decimal currencies: prices carry no minor unit, so ``,.2f`` invents cents.
 _CCY_ZERO_DECIMAL = {"KRW", "JPY"}
+
+
+# Exchange-suffix → native currency, for ledgers that carry a report key but
+# no currency column (``signal_log.csv``). The report entry wins when present.
+_SUFFIX_CCY = {"_SI": "SGD", "_KS": "KRW", "_TW": "TWD", "_DE": "EUR",
+               "_PA": "EUR", "_L": "GBP", "_HK": "HKD", "_T": "JPY"}
+
+
+def currency_for_key(key: str, watchlist: dict | None = None) -> str:
+    """Native currency for a report key: the latest report's entry if it has
+    one, else by exchange suffix, else USD. The Review page printed ``$`` on
+    65 SGD / KRW / EUR / TWD call entries (external review R12 F09)."""
+    entry = (watchlist or {}).get(key) or {}
+    if entry.get("currency"):
+        return str(entry["currency"])
+    for suffix, ccy in _SUFFIX_CCY.items():
+        if key.endswith(suffix):
+            return ccy
+    return "USD"
 
 
 def _ccy_prefix(currency) -> str:

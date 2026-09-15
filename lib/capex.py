@@ -500,9 +500,12 @@ _VERDICT = {
     "digesting": ("DIGESTING", "watch",
                   "Spending is outrunning the revenue it produces — the cycle is still "
                   "growing, but the gap bears watching."),
+    # The gloss states the two conditions the rule actually tests (gap
+    # negative AND revenue rolling over); it used to say the gap "is
+    # opening", a change it never measures (R12 F15, 2026-09-15).
     "cracking": ("CRACKING", "stress",
-                 "The spend/revenue gap is opening as revenue rolls over — "
-                 "treat as an early crack."),
+                 "Spending is outrunning the revenue it produces while revenue "
+                 "rolls over — treat as an early crack."),
     "insufficient": ("INSUFFICIENT DATA", "neutral",
                      "Not enough complete capex quarters yet — showing the signals we have."),
 }

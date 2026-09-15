@@ -395,7 +395,10 @@ def test_verdict_cracking_fragile_only_does_not_claim_gap_opening():
 def test_verdict_cracking_gap_driven_mentions_gap_opening():
     v = pulse_verdict(True, -5.0, True, False)  # gap negative + revenue falling
     assert v["state"] == "cracking"
-    assert "gap is opening" in v["gloss"]
+    # R12 F15: the gloss names the two tested conditions, never a widening
+    # the reducer does not measure (a narrowing negative gap takes this branch too).
+    assert "gap is opening" not in v["gloss"]
+    assert "rolls over" in v["gloss"]
 
 
 def test_verdict_digesting_when_gap_nonneg_but_revenue_falling():

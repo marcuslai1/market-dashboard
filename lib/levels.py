@@ -79,5 +79,8 @@ def rr_level(rr_obj: dict | None) -> Level | None:
     label, _ratio, adjusted = rr_display(rr_obj)
     if not label:
         return None
-    sub = "tight-stop adj." if adjusted else ((rr_obj or {}).get("rr_quality") or "")
+    if label == "n/a":
+        sub = "stop too tight — not meaningful"
+    else:
+        sub = "tight-stop adj." if adjusted else ((rr_obj or {}).get("rr_quality") or "")
     return Level("R:R", label, _escape_dollars(sub), "var(--brass)")

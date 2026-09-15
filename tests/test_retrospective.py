@@ -365,7 +365,7 @@ def test_digest_html_pending_month_renders_board_and_pending_group():
     d = build_month_digest(_calls_frame(), "2026-07")
     out = digest_html(d, None)
     assert "retro-board" in out
-    assert "Too early to judge" in out
+    assert "No verdict yet" in out   # R12 F16: head renamed (tombstones share it)
     assert "What worked" not in out
 
 

@@ -20,8 +20,9 @@ import pandas as pd
 import streamlit as st
 
 from components.paper_book import select_policy
+from lib.calls import first_of_run
 from lib.cards import render_section_head
-from lib.formatters import _escape_dollars, display_ticker
+from lib.formatters import _escape_dollars, _price_str, currency_for_key, display_ticker
 from lib.pills import _signal_pill_html
 
 _FALLBACK_BANNER = (
@@ -41,11 +42,9 @@ def dedupe_calls(log_df: pd.DataFrame) -> pd.DataFrame:
     two ACCUMULATE days breaks the run (two distinct calls) — the same streak
     rule ``compute_signal_accuracy`` uses on the report corpus.
     """
-    if log_df is None or log_df.empty or "signal" not in log_df.columns:
+    calls = first_of_run(log_df)
+    if calls.empty:
         return pd.DataFrame()
-    df = log_df[log_df["signal"].notna()].sort_values(["ticker", "date"])
-    first_of_run = df["signal"] != df.groupby("ticker")["signal"].shift()
-    calls = df[first_of_run]
     return calls[calls["signal"].isin(_DIRECTIONAL)].reset_index(drop=True)
 
 
@@ -65,12 +64,23 @@ def _pct_sfx(ret) -> str:
 def classify_call(row) -> tuple[str, str]:
     """(bucket, plain-text outcome) for one deduped call row.
 
-    bucket: "worked" | "failed" | "pending". Right/wrong mirrors the Signal
-    Tracker scorecard exactly — long calls are right when price rose (>0),
-    CAUTION/AVOID right when it fell or went nowhere (<=0) — so the two pages
-    can never disagree on a verdict. Only the call's own window is consulted
-    (hit flags + 20-session return); no re-marking to the latest price.
+    bucket: "worked" | "failed" | "pending". Rule, in order: a long call that
+    touched its target inside the window worked, one that touched its stop
+    failed (both → the 20-session close decides); otherwise the raw
+    20-session direction, on the legacy scorecard's convention — long right
+    when price rose (>0), CAUTION/AVOID right when it fell or went nowhere
+    (<=0). The Tracker's episode ledger measures a different horizon (to the
+    next opposing signal) and is not this rule. Only the call's own window
+    is consulted; no re-marking to the latest price.
+
+    A row the pipeline tombstoned (``maturation_status`` set: logged on a day
+    the name's exchange was shut) never matures; it stays out of the verdict
+    count and says so instead of "too early" (R12 F16, 2026-09-15).
     """
+    status = row.get("maturation_status")
+    if isinstance(status, str) and status:
+        return "pending", ("no outcome recorded — logged on a day this name's "
+                           "exchange was shut, so it never matures")
     ret = row.get("return_20d")
     ret = None if ret is None or pd.isna(ret) else float(ret)
 
@@ -186,14 +196,16 @@ def paper_month_stats(nav_df: pd.DataFrame, block: dict, month: str) -> dict | N
 
 _ICONS = {"worked": "✓", "failed": "✗", "pending": "⏳"}
 _GROUP_HEADS = [("worked", "What worked"), ("failed", "What didn't"),
-                ("pending", "Too early to judge")]
+                ("pending", "No verdict yet")]
+_NO_OUTCOME = "no outcome recorded"
 
 
-def _price(v) -> str:
-    """'&#36;203.43' — entity dollar so Streamlit never parses LaTeX."""
+def _price(v, ccy: str = "USD") -> str:
+    """Native-currency price (entity-escaped so Streamlit never parses LaTeX):
+    ``S&#36;41.20``, ``₩958,000``. Every entry used to print ``&#36;`` (R12 F09)."""
     if v is None or pd.isna(v):
         return "—"
-    return f"&#36;{float(v):,.2f}"
+    return _price_str(float(v), ccy)
 
 
 def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
@@ -218,11 +230,20 @@ def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
     # empty state says what it means in words, in the muted ramp, and the
     # sub-line carries the detail instead of repeating it. data-empty lets CSS
     # step it out of the 48px brass treatment reserved for real readings.
+    n_noout = sum(1 for _r, o in digest["groups"]["pending"] if o.startswith(_NO_OUTCOME))
+    n_wait = n_open - n_noout
     if pct is None:
         hit, empty_attr = "No verdict yet", ' data-empty="1"'
-        arith = (f"all {n_calls} calls are still inside their 20-session windows"
-                 if n_calls != 1 else
-                 "its 20-session window hasn't closed yet")
+        if n_noout and n_wait:
+            arith = (f"{n_wait} still inside their 20-session windows · "
+                     f"{n_noout} with no outcome recorded")
+        elif n_noout:
+            arith = (f"no outcome recorded for {'this call' if n_noout == 1 else 'these calls'}"
+                     " — logged on exchange-closed days")
+        else:
+            arith = (f"all {n_calls} calls are still inside their 20-session windows"
+                     if n_calls != 1 else
+                     "its 20-session window hasn't closed yet")
     else:
         hit, empty_attr = f"{pct:.0f}%", ""
         noun = "call" if n_res == 1 else "calls"
@@ -280,7 +301,7 @@ def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
     )
 
 
-def call_item_html(row, bucket: str, outcome: str) -> str:
+def call_item_html(row, bucket: str, outcome: str, ccy: str | None = None) -> str:
     """One verdict row: rail · glyph · pill · TICKER @ entry — outcome · date.
 
     The pill keeps the full signal treatment while the rail and glyph state the
@@ -290,13 +311,15 @@ def call_item_html(row, bucket: str, outcome: str) -> str:
     interrupt the outcome sentence mid-read.
     """
     tk = _escape_dollars(display_ticker(str(row["ticker"])))
+    if ccy is None:
+        ccy = currency_for_key(str(row["ticker"]))     # suffix rule when no report entry
     levels = ""
     if row["signal"] in _LONG:
         bits = []
         if pd.notna(row.get("upside_target")):
-            bits.append(f"target {_price(row['upside_target'])}")
+            bits.append(f"target {_price(row['upside_target'], ccy)}")
         if pd.notna(row.get("invalidation")):
-            bits.append(f"stop {_price(row['invalidation'])}")
+            bits.append(f"stop {_price(row['invalidation'], ccy)}")
         if bits:
             levels = f'<div class="retro-levels">{" · ".join(bits)}</div>'
     return (
@@ -305,7 +328,7 @@ def call_item_html(row, bucket: str, outcome: str) -> str:
         f'<span class="retro-pill">{_signal_pill_html(row["signal"], small=True)}</span>'
         f'<div class="retro-main">'
         f'<div class="retro-line"><b>{tk}</b> '
-        f'<span class="retro-entry">@ {_price(row.get("entry_price"))}</span> '
+        f'<span class="retro-entry">@ {_price(row.get("entry_price"), ccy)}</span> '
         f'<span class="retro-outcome">— {_escape_dollars(outcome)}</span></div>'
         f'{levels}'
         f'</div>'
@@ -314,19 +337,23 @@ def call_item_html(row, bucket: str, outcome: str) -> str:
     )
 
 
-def digest_html(digest: dict, stats: dict | None) -> str:
+def digest_html(digest: dict, stats: dict | None,
+                currencies: dict | None = None) -> str:
     """Scoreboard + the three verdict groups for one month.
 
     Empty groups are omitted: a month with nothing pending should not render an
-    empty "Too early to judge" head.
+    empty "No verdict yet" head. ``currencies`` maps ticker key → native
+    currency for the price levels (USD when absent).
     """
     board = month_scoreboard_html(digest, stats) if digest["n_calls"] else ""
     groups = ""
+    ccy = currencies or {}
     for key, title in _GROUP_HEADS:
         items = digest["groups"][key]
         if not items:
             continue
-        body = "".join(call_item_html(r, key, o) for r, o in items)
+        body = "".join(call_item_html(r, key, o, ccy.get(str(r["ticker"]), "USD"))
+                       for r, o in items)
         groups += (f'<div class="retro-group" data-bucket="{key}">'
                    f'<div class="retro-group-head"><h2>{_escape_dollars(title)}</h2>'
                    f'<span class="retro-group-n">{len(items)}</span></div>'
@@ -341,11 +368,13 @@ def digest_html(digest: dict, stats: dict | None) -> str:
 # elsewhere), and nothing is dropped from the record. Bolding by what breaks
 # comprehension if missed, never by keyword.
 _METHOD_NOTE = (
-    "Outcomes are <b>raw price direction</b> over each call's own 20-session "
-    "window — not benchmark-relative; the alpha view lives on the Briefing's "
-    "Signal Calibration band. WATCH and HOLD aren't scored here "
-    "(non-directional). <b>Retired names stay on the record</b> — dropping old "
-    "calls would flatter it."
+    "Outcomes over each call's own 20-session window: a BUY / ACCUMULATE that "
+    "touched its target worked, one that touched its stop failed (both → the "
+    "20-session close decides); otherwise <b>raw price direction</b> — a rise "
+    "for long calls, a fall or flat for CAUTION / AVOID. Not benchmark-relative; "
+    "the alpha view lives on the Tracker's Signal Calibration band. WATCH and "
+    "HOLD aren't scored here (non-directional). <b>Retired names stay on the "
+    "record</b> — dropping old calls would flatter it."
 )
 
 # The page's own legend, at the foot: where a reader confused by an
@@ -407,7 +436,9 @@ def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame,
 
     digest = build_month_digest(calls, sel)
     stats = paper_month_stats(nav_df, (latest_report or {}).get("paper_portfolio") or {}, sel)
-    st.markdown(digest_html(digest, stats), unsafe_allow_html=True)
+    _wl = (latest_report or {}).get("watchlist") or {}
+    currencies = {str(tk): currency_for_key(str(tk), _wl) for tk in calls["ticker"].unique()}
+    st.markdown(digest_html(digest, stats, currencies), unsafe_allow_html=True)
 
     st.markdown(f'<p class="retro-method">{_METHOD_NOTE}</p>', unsafe_allow_html=True)
     st.markdown(
