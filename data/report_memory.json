@@ -1,7 +1,74 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-09-16",
+  "_last_updated": "2026-09-17",
   "rolling_summaries": [
+    {
+      "date": "2026-09-17",
+      "themes": [
+        "Fed hikes 25bp / 10Y 5.01%",
+        "Semis outperform on down tape",
+        "WTI -3.3% to $102.32",
+        "INTC/AMD→BUY, GOOG→CAUTION"
+      ],
+      "signals_snapshot": {
+        "BUY": [
+          "AMD",
+          "INTC"
+        ],
+        "ACCUMULATE": [
+          "ASML"
+        ],
+        "WATCH": [
+          "D05_SI",
+          "O39_SI",
+          "000660_KS",
+          "AXTI",
+          "SNDK",
+          "MSFT"
+        ],
+        "HOLD": [
+          "U11_SI",
+          "NVDA",
+          "MU",
+          "TSM",
+          "SKHY",
+          "005930_KS"
+        ],
+        "CAUTION": [
+          "TSEM",
+          "CRWV",
+          "CBRS",
+          "SOI_PA",
+          "NBIS",
+          "AMZN",
+          "GOOG",
+          "META",
+          "AVGO",
+          "LITE",
+          "NOK",
+          "BE",
+          "IFX_DE",
+          "AIXA_DE",
+          "NVTS",
+          "PLTR",
+          "WRD",
+          "SITM"
+        ]
+      },
+      "key_prices": {
+        "SPY": 754.05,
+        "WTI": 102.32,
+        "VIX": 17.71,
+        "Gold": 4335.5
+      },
+      "interconnected_suggested": [
+        "COHR",
+        "GNRC",
+        "ORCL",
+        "QCOM"
+      ],
+      "one_liner": "Fed hikes 25bp; SPY -0.44%, SOXX +0.64%, WTI -3.3% to $102.32. INTC/AMD→BUY, GOOG→CAUTION."
+    },
     {
       "date": "2026-09-16",
       "themes": [
@@ -381,68 +448,6 @@
         "QCOM"
       ],
       "one_liner": "SPY -0.55% but SOXX +1.87% and WTI $94.17 (+2.9%) after Kharg/Jask strikes; Kioxia memory pushback cools SK Hynix."
-    },
-    {
-      "date": "2026-09-07",
-      "themes": [
-        "Oil/Hormuz escalation",
-        "Semis AI chip rally",
-        "Fed hike pricing",
-        "ECB Sep hike lock"
-      ],
-      "signals_snapshot": {
-        "WATCH": [
-          "AMD",
-          "ASML",
-          "AMZN",
-          "META",
-          "NOK",
-          "IFX_DE",
-          "SITM"
-        ],
-        "HOLD": [
-          "U11_SI",
-          "TSM",
-          "000660_KS",
-          "CRWV",
-          "AXTI",
-          "SKHY",
-          "005930_KS",
-          "GOOG",
-          "AVGO",
-          "AIXA_DE",
-          "NVTS",
-          "WRD"
-        ],
-        "CAUTION": [
-          "D05_SI",
-          "O39_SI",
-          "NVDA",
-          "INTC",
-          "MU",
-          "TSEM",
-          "CBRS",
-          "SOI_PA",
-          "SNDK",
-          "NBIS",
-          "MSFT",
-          "LITE",
-          "BE",
-          "PLTR"
-        ]
-      },
-      "key_prices": {
-        "SPY": 770.19,
-        "WTI": 91.48,
-        "VIX": 14.53,
-        "Gold": 4476.6
-      },
-      "interconnected_suggested": [
-        "COHR",
-        "ORCL",
-        "MRVL"
-      ],
-      "one_liner": "WTI $91.48 (+6.7% 5d), Hormuz premium embedded; SOXX +3.52% on AI chip demand; Sept Fed hike odds ~58%, 10Y 4.78%."
     }
   ],
   "active_narratives": [
@@ -521,10 +526,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-09-07",
-          "note": "SOXX +3.52% vs SPY -0.39% Fri; Asia chipmakers rallied Mon on AI demand. Re-ignites semis-vs-broad tape divergence; 'Nvidia supply limits AI revenue growth' headline recycles the Aug 26 earnings call (Supply Chain Dive Aug 31), not a new statement."
-        },
-        {
           "date": "2026-09-09",
           "note": "SOXX 528.4 (+1.64% vs the Sep 4 close 519.86 across Labor Day; corrected 09-14) vs SPY -0.55%. Kioxia pushed back on SK Hynix tie-up, pledged to ease memory price rises. 000660_KS/SKHY/CRWV→CAUTION, SITM→ACCUMULATE, NVTS→WATCH."
         },
@@ -547,9 +548,13 @@
         {
           "date": "2026-09-16",
           "note": "SOXX 498.85 (+0.36%) vs SPY -0.46%, QQQ -0.65% — semis outperform on down tape. Flips: AMD CAUTION→WATCH, ASML CAUTION→ACCUMULATE, NVDA CAUTION→HOLD, 000660_KS CAUTION→WATCH, SKHY WATCH→HOLD, TSM HOLD→CAUTION, NBIS HOLD→CAUTION."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "SOXX 502.06 (+0.64%) vs SPY -0.44%, QQQ +0.03% — semis outperform again on a down tape. Flips: INTC CAUTION→BUY, AMD WATCH→BUY, TSM CAUTION→HOLD, 005930_KS CAUTION→HOLD, LITE WATCH→CAUTION, AXTI CAUTION→WATCH."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "fed_rate_pivot",
@@ -576,10 +581,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-07",
-          "note": "10Y 4.78% Sep 4 (+0.46% d/d); Sep hike odds ~58% (58.4% Sep 4 close). Barr: hike if inflation doesn't moderate. Aug CPI Sep 11 remains swing."
-        },
-        {
           "date": "2026-09-09",
           "note": "US10Y 4.81% (+0.46%); SPY 765.96 (-0.55%), VIX 15.72 (+2.75). Waller 'muddies outlook' on possible Sep hike; payrolls +162k, UR 4.1%, CPI 3.3% stale."
         },
@@ -605,10 +606,10 @@
         },
         {
           "date": "2026-09-17",
-          "note": "Memory-accuracy spot-check (catalyst refresh #12): verdict BROKEN on the facts, VINDICATED on the thesis. key_levels.fed_funds_target still read '3.50-3.75% (held Jul 29)' and the summary/thesis were written in the future tense about a meeting that had already happened — the Sep 16 update note says so itself ('decision due today, not resolved in inputs'). Rewritten to the hiked 3.75-4.00% and the SEP. NOT archived despite the BROKEN verdict: the falsified claims are the rate LEVELS, while the narrative's load-bearing call (hikes not cuts) was confirmed by the very event that falsified them — archiving would have pulled correct, newly-more-relevant forward context out of the daily prompt the day after an FOMC hike. Also corrected a vintage-label defect: '10Y 5.00% Sep 15 (new high)' was a yfinance ^TNX reading mis-stamped onto a Treasury CMT date (CMT Sep 15 = 4.91%)."
+          "note": "Post-decision tape: US10Y 5.01% (+0.20%), DXY 100.33 (+0.68%), SPY 754.05 (-0.44%), VIX 17.71 (+2.97%), QQQ +0.03%; headline 'Dow sinks 600' but tape SPY only -0.44%. 2027 median dot +50bp is now the live claim."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -682,10 +683,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-07",
-          "note": "SOXX +3.52% Fri; Asia chipmakers rallied Mon on AI demand. MU/NBIS/SNDK/LITE→CAUTION. Nvidia: supply shortages limit AI revenue growth."
-        },
-        {
           "date": "2026-09-09",
           "note": "Nvidia 'no longer just AI chip company; financing revolution it built' (article). No new Big-4 capex guidance changes."
         },
@@ -708,9 +705,13 @@
         {
           "date": "2026-09-16",
           "note": "GOOG WATCH→HOLD, MSFT CAUTION→WATCH, NBIS HOLD→CAUTION, NVDA CAUTION→HOLD. US10Y 5.0% adds duration headwind. No Big-4 capex guide change."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "GOOG HOLD→CAUTION (pipeline) — duration-heavy capex mega-caps come under pressure post-hike as US10Y reaches 5.01%. No Big-4 capex guide change."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -812,10 +813,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-03",
-          "note": "Signal flips: CBRS CAUTION→WATCH; IFX_DE ACCUMULATE→WATCH. No new chip export controls. US curbs on Chinese drones/robots; China tools match ASML 2004 level (UBS)."
-        },
-        {
           "date": "2026-09-04",
           "note": "Xi-Trump September summit preview; US-China rivalry shifts to leverage. UBS: China chipmaking tools at ASML 2004 level. No new chip export controls."
         },
@@ -838,9 +835,13 @@
         {
           "date": "2026-09-16",
           "note": "ASML CAUTION→ACCUMULATE (pipeline). No new chip export controls in today's inputs."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "AXTI CAUTION→WATCH (pipeline). No new chip export controls in today's inputs; Nov 10 / Nov 27 suspension cliffs unchanged."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -912,10 +913,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-07",
-          "note": "Eurozone Aug HICP 3.3% firms Sep 10 hike to ~99%; ECB set to hike as Iran war flares. DXY 99.18 (+0.02%)."
-        },
-        {
           "date": "2026-09-09",
           "note": "ECB Sep 9-10 meeting underway; no decision yet. 'Set to hike as Iran war flares' headline recirculates; DXY 98.76 (-0.40%)."
         },
@@ -941,10 +938,10 @@
         },
         {
           "date": "2026-09-17",
-          "note": "SHARED-FIGURE GUARD (catalyst refresh #12): this narrative still carried the pre-hike Fed level 3.50-3.75% in its level-vs-conviction divergence claim. Corrected to 3.75-4.00% after the Sep 16 unanimous 25bp hike. The divergence framing itself is unaffected and arguably strengthens: the ECB hiked Sep 10 and the Fed Sep 16, so both lean the same way while the LEVEL gap widens to 125bp against the ECB DFR at 2.50%."
+          "note": "DXY 100.33 (+0.68%) post-hike; Fed-ECB policy-rate gap widens to 125bp (3.75-4.00% vs 2.50% DFR). No new ECB inputs."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "gold_data_conflict",
@@ -1034,10 +1031,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-07",
-          "note": "WTI $91.48 (+0.00% d/d; +6.7% 5d, +17.0% over month) Sep 4 close. Heaviest US-Iran clashes in weeks over weekend; Hormuz premium embedded. Aviation: 1,617 delays/71 cancellations."
-        },
-        {
           "date": "2026-09-09",
           "note": "WTI 94.17 (+2.94% d/d; +9.8% 5d, +20.4% m/m). US strikes near Kharg Island and Jask Tuesday (Fox/Stocktwits). No Hormuz reopening."
         },
@@ -1060,9 +1053,13 @@
         {
           "date": "2026-09-16",
           "note": "WTI 104.85 (+1.87% d/d; +12.71% 5d, +27.25% m/m). No Hormuz reopening or new escalation in today's inputs."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "WTI 102.32 (-3.32% Wednesday; still +6.5% 5d, +21.1% m/m). No Hormuz reopening or new escalation in today's inputs."
         }
       ],
-      "last_updated": "2026-09-16"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -1142,10 +1139,6 @@
       },
       "updates": [
         {
-          "date": "2026-08-26",
-          "note": "No external 18A signings. INTC among Tuesday's biggest movers; OpenAI claims its new chips outperform Nvidia (not Intel)."
-        },
-        {
           "date": "2026-08-27",
           "note": "No external 18A signings. New Albany fab slow progress; still set to open by 2031."
         },
@@ -1168,9 +1161,13 @@
         {
           "date": "2026-09-11",
           "note": "'Intel climbs 5% on High-NA EUV lead' refers to the Sep 8 session (INTC closed +9.05%), not Thursday — no conflict with SOXX -2.74%; the actual Sep 10 move was INTC -5.6% after Piper Sandler INITIATED at Neutral (PT $110) — corrected 09-14. INTC Q1 2026 transcript recirculates. No new external 18A signings."
+        },
+        {
+          "date": "2026-09-17",
+          "note": "INTC CAUTION→BUY (pipeline) — the first constructive re-rating after CAUTION Aug 11-Sep 16, reversing the signal-negative thesis. No new external 18A signing in today's inputs."
         }
       ],
-      "last_updated": "2026-09-11"
+      "last_updated": "2026-09-17"
     },
     {
       "id": "fed_chair_warsh_transition",
@@ -1356,87 +1353,131 @@
   ],
   "lessons_learned": [
     {
-      "lesson": "INSUFFICIENT DATA: WATCH for U11_SI has only n=3 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +1.6% over 10d (n=3)",
+      "lesson": "INSUFFICIENT DATA: WATCH for U11_SI has only n=4 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs ^STI: +1.3% over 10d (n=4)",
       "tickers_involved": [
         "U11_SI"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: CAUTION for O39_SI has only n=31 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +2.1% over 10d (n=31)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for O39_SI has only n=32 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs ^STI: +2.1% over 10d (n=32)",
       "tickers_involved": [
         "O39_SI"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: CAUTION for D05_SI has only n=28 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +0.9% over 10d (n=28)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for D05_SI has only n=29 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs ^STI: +0.9% over 10d (n=29)",
       "tickers_involved": [
         "D05_SI"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for 005930_KS has only n=9 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +6.4% over 10d (n=8)",
+      "lesson": "INSUFFICIENT DATA: HOLD for 005930_KS has only n=10 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +5.1% over 10d (n=9)",
       "tickers_involved": [
         "005930_KS"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for 000660_KS has only n=9 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: -6.0% over 10d (n=8)",
+      "lesson": "INSUFFICIENT DATA: HOLD for 000660_KS has only n=10 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: -5.4% over 10d (n=9)",
       "tickers_involved": [
         "000660_KS"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for WRD has only n=22 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SPY: -2.0% over 10d (n=22)",
+      "lesson": "INSUFFICIENT DATA: HOLD for WRD has only n=23 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SPY: -2.0% over 10d (n=23)",
       "tickers_involved": [
         "WRD"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: WATCH for TSM has only n=17 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +3.2% over 10d (n=17)",
+      "lesson": "INSUFFICIENT DATA: WATCH for TSM has only n=18 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +3.1% over 10d (n=18)",
       "tickers_involved": [
         "TSM"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: CAUTION for TSEM has only n=31 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: -1.5% over 10d (n=31)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for TSEM has only n=32 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: -1.4% over 10d (n=32)",
       "tickers_involved": [
         "TSEM"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for SNDK has only n=9 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +9.7% over 10d (n=9)",
+      "lesson": "INSUFFICIENT DATA: HOLD for SNDK has only n=10 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +8.6% over 10d (n=10)",
       "tickers_involved": [
         "SNDK"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     },
     {
-      "lesson": "INSUFFICIENT DATA: WATCH for SKHY has only n=9 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +12.6% over 10d (n=9)",
+      "lesson": "INSUFFICIENT DATA: WATCH for SKHY has only n=10 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +12.2% over 10d (n=10)",
       "tickers_involved": [
         "SKHY"
       ],
-      "computed_on": "2026-09-16"
+      "computed_on": "2026-09-17"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-09-17",
+      "topics": [
+        {
+          "topic": "Fed / FOMC hike RESOLVED",
+          "summary": "Fed hiked 25bp to 3.75-4.00% on Sep 16 — first increase since 2023, unanimous — and lifted the 2027 median dot 50bp, projecting no cuts next year. Post-decision tape: SPY 754.05 (-0.44%), US10Y 5.01% (+0.20%), DXY 100.33 (+0.68%), VIX 17.71 (+2.97%); headlines cite a 600-point Dow drop, futures edge higher pre-open.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "Semis outperform the broad tape",
+          "summary": "SOXX 502.06 (+0.64%) and QQQ 704.72 (+0.03%) held up while SPY fell -0.44%, so the semis-vs-broad divergence rotated back toward semis on Fed day after yesterday's mild outperformance. Flips: INTC CAUTION→BUY, AMD WATCH→BUY, TSM CAUTION→HOLD, 005930_KS CAUTION→HOLD.",
+          "tickers": [
+            "SOXX",
+            "INTC",
+            "AMD",
+            "TSM",
+            "005930_KS",
+            "QQQ"
+          ]
+        },
+        {
+          "topic": "Mega-cap / optics signal flips",
+          "summary": "GOOG HOLD→CAUTION on a distorted R:R (1.1% stop vs a 0.3% ceiling) with an ad-tech antitrust compliance-officer recommendation pending (per Reuters, Sep 16). LITE WATCH→CAUTION on a hard +10.1% extension block AFTER leading the S&P 500 +9.6% on an optics bounce (FQ1'27 guide $1.225-1.275B, first $100M+ OCS quarter) — a strength block, not rate pressure. AXTI CAUTION→WATCH is an UPGRADE, after Needham named AXT a co-packaged-optics beneficiary. The higher-for-longer path (10Y 5.01%, no cuts projected 2027) is a mega-cap duration headwind but did not drive either optics flip. [memory-audit correction 2026-09-17: the original entry attributed all three flips to rate pressure and filed an upgrade under 'downgrades'.]",
+          "tickers": [
+            "GOOG",
+            "LITE",
+            "AXTI"
+          ]
+        },
+        {
+          "topic": "Iran oil / Hormuz",
+          "summary": "WTI 102.32 (-3.32% Wednesday) after yesterday's +1.87%, still +6.5% over five sessions and +21.1% over the month; no Hormuz reopening or new escalation in today's inputs. Oil remains a live inflation input into the hawkish Fed path.",
+          "tickers": [
+            "XOM",
+            "CVX",
+            "WTI"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-16",
       "topics": [
@@ -1535,79 +1576,6 @@
             "IOVA",
             "PLAY",
             "RBLX"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-09-14",
-      "topics": [
-        {
-          "topic": "Macro tape / Fed",
-          "summary": "Friday US close risk-on: SPY +0.85%, QQQ +0.87%, SOXX +1.86%, VIX 15.84 (-11.21%). But 10Y 4.97% and WTI $103.04 remain constraints. Headlines focus Sep 15-16 Fed meeting, war worries, and pre-open futures decline on AI/oil.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "SOXX",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Iran oil crisis / Hormuz",
-          "summary": "WTI $103.04 (+2.99% d/d; +12.6% 5d; +26.8% m/m). No Hormuz reopening; headlines flag rising oil ahead of Fed.",
-          "tickers": [
-            "WTI",
-            "O39_SI",
-            "XOM",
-            "CVX",
-            "ASML",
-            "TSM",
-            "LITE"
-          ]
-        },
-        {
-          "topic": "Semis / AI hardware",
-          "summary": "SOXX 527.07 (+1.86%) outperformed SPY +0.85%. Signal flips: 000660_KS WATCH→CAUTION, 005930_KS HOLD→CAUTION, IFX_DE CAUTION→HOLD, NOK WATCH→CAUTION, SITM ACCUMULATE→CAUTION. Headlines cite AI-slowdown concerns.",
-          "tickers": [
-            "SOXX",
-            "000660_KS",
-            "005930_KS",
-            "IFX_DE",
-            "NOK",
-            "SITM",
-            "NVDA"
-          ]
-        },
-        {
-          "topic": "Hyperscaler AI capex / AI sentiment",
-          "summary": "Anthropic-led call for AI slowdown and pre-open tech weakness contrast Friday's risk-on tape. AMZN CAUTION→WATCH, CRWV CAUTION→WATCH. No Big-4 capex guide change.",
-          "tickers": [
-            "AMZN",
-            "CRWV",
-            "MSFT",
-            "GOOG",
-            "NVDA"
-          ]
-        },
-        {
-          "topic": "US-Canada trade / Section 338",
-          "summary": "Section 338 proclamations on Canadian goods published in Federal Register Sep 14: import bans effective Sep 29, rescoped 50% duties from Sep 15.",
-          "tickers": [
-            "DXY"
-          ]
-        },
-        {
-          "topic": "ECB",
-          "summary": "Sep 10 decision resolved: ECB hiked 25bp to 2.50% deposit rate as priced. DXY 99.31 (+0.19%). No new ECB inputs.",
-          "tickers": [
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Watchlist signal moves",
-          "summary": "Other pipeline flips: U11_SI CAUTION→WATCH.",
-          "tickers": [
-            "U11_SI"
           ]
         }
       ]
