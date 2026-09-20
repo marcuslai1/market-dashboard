@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as _dt
+from datetime import timedelta as _td
 
 from lib.cards import card_container
 from lib.charts import SURFACE_2_FALLBACK
@@ -161,6 +162,92 @@ def _not_held_chip_html(e: dict) -> str:
     return '<span class="cal-notheld">NOT HELD</span>'
 
 
+def _run_chip_html(e: dict) -> str:
+    """Span chip for a multi-day event: the range, and which day of it today is.
+
+    A conference is a WEEK, not a date, and the card used to show only its
+    start date — a reader looking at "SEP 20 · ECOC 2026" on Sep 22 could not
+    tell whether it had happened, was happening, or which of its five days
+    carried the news (ECOC's exhibition opened Sep 21, its AI-networks panel
+    ran Sep 23). Upstream (`merge._build_events_this_week`) now keeps the row
+    alive through `end_date` and stamps `running`; this chip is where the
+    reader sees it.
+
+    No colour, by the standing rule: a date range and a day counter are facts,
+    not verdicts. Same outline register as the timing and ownership chips; the
+    running one sits one step brighter because "happening now" is the thing
+    the reader is scanning for.
+    """
+    end = e.get("end_date")
+    if not end:
+        return ""
+    try:
+        start_d = _dt.strptime(e.get("date", ""), "%Y-%m-%d")
+        end_d = _dt.strptime(end, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return ""
+    if end_d <= start_d:
+        return ""
+    # "SEP 20–24", or "SEP 30–OCT 2" when it crosses a month.
+    tail = (end_d.strftime("%d") if end_d.month == start_d.month
+            else end_d.strftime("%b %d").upper())
+    span = f'{start_d.strftime("%b %d").upper()}–{tail}'
+    if not e.get("running"):
+        return f'<span class="cal-run">{span}</span>'
+    # day_index / day_total are stamped upstream against the REPORT date, so
+    # the counter reads off the same clock as the rest of the report — never
+    # the viewer's browser, which drifts from the report it annotates. A
+    # running row that predates the stamp shows the range alone.
+    day, total = e.get("day_index"), e.get("day_total")
+    counter = (f'<span class="cal-run" data-active="1">DAY {day} OF {total}</span>'
+               if day and total else "")
+    return f'<span class="cal-run" data-active="1">{span}</span>{counter}'
+
+
+def _programme_html(e: dict) -> str:
+    """What a multi-day event is doing TODAY, and its day-by-day in a drawer.
+
+    "DAY 4 OF 5" says where in the run the report is; it does not say that
+    day 4 is the panel day — the one the reader actually watches. Upstream
+    resolves `programme_today` against the report date, so the TODAY line is
+    the report's claim, not the browser's. The drawer reuses the scenario-read
+    toggle: steel = navigation, never a signal. Days the organizer page does
+    not itemise have no entry and are not padded in.
+    """
+    prog = [p for p in (e.get("programme") or [])
+            if isinstance(p, dict) and p.get("date") and p.get("what")]
+    if not prog:
+        return ""
+    today_txt = e.get("programme_today")
+    today_html = ""
+    if today_txt:
+        today_html = (
+            '<div class="cal-prog-today">'
+            '<span class="cal-prog-label">TODAY</span>'
+            f'{_escape_dollars(today_txt)}</div>'
+        )
+    rows = ""
+    for p in sorted(prog, key=lambda p: p["date"]):
+        try:
+            label = _dt.strptime(p["date"], "%Y-%m-%d").strftime("%a %b %d").upper()
+        except (ValueError, TypeError):
+            label = p["date"]
+        is_today = bool(today_txt) and p["what"] == today_txt
+        today_attr = ' data-today="1"' if is_today else ""
+        rows += (
+            f'<div class="cal-prog-row"{today_attr}>'
+            f'<span class="cal-prog-date">{label}</span>'
+            f'{_escape_dollars(p["what"])}</div>'
+        )
+    return (
+        f'{today_html}'
+        '<details class="cal-scen">'
+        '<summary class="cal-scen-toggle">Day by day</summary>'
+        f'<div class="cal-scen-body">{rows}</div>'
+        '</details>'
+    )
+
+
 def _why_line_html(e: dict) -> str:
     """Read-across rationale — why a company the reader does NOT hold is on a
     card about their own book. Empty for every other event class.
@@ -175,6 +262,28 @@ def _why_line_html(e: dict) -> str:
     return f'<div class="cal-why">{_escape_dollars(why)}</div>'
 
 
+def _group_date(e: dict) -> str:
+    """The date gutter a row files under: its own date, except a RUNNING
+    multi-day event files under the report day it is on.
+
+    A running event keeps `date` = its start so upstream sort order and the
+    range chip stay truthful, but the gutter is the card's anchor and "WHAT'S
+    COMING" must not open with a date that has already passed — the first cut
+    of this feature put ECOC under "SEP 20 · SUN" on the Sep 22 card, which
+    read as a stale row. The current day is start + (day_index - 1), both
+    stamped upstream against the report date, so this derives from the report's
+    clock, not the browser's."""
+    date_str = e.get("date", "—")
+    day = e.get("day_index")
+    if not e.get("running") or not day:
+        return date_str
+    try:
+        start = _dt.strptime(date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return date_str
+    return (start + _td(days=int(day) - 1)).strftime("%Y-%m-%d")
+
+
 def _group_html(group: list, muted: bool = False, cascades: dict | None = None) -> str:
     """Return day-grouped events markup as a string.
 
@@ -184,7 +293,7 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
     the latter."""
     grouped: dict[str, list] = {}
     for e in group:
-        grouped.setdefault(e.get("date", "—"), []).append(e)
+        grouped.setdefault(_group_date(e), []).append(e)
     out = ""
     for date_str in sorted(grouped.keys()):
         try:
@@ -208,9 +317,11 @@ def _group_html(group: list, muted: bool = False, cascades: dict | None = None) 
             # column count and must not gain extra direct children.
             text_html = (
                 f'{_escape_dollars(e.get("event", ""))}'
+                f'{_run_chip_html(e)}'
                 f'{_not_held_chip_html(e)}'
                 f'{_bucket_pill_html(e)}'
                 f'{_timing_line_html(e)}'
+                f'{_programme_html(e)}'
                 f'{_why_line_html(e)}'
                 f'{_cascade_block_html(e.get("event", ""), cascades)}'
             )

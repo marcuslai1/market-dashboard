@@ -1568,6 +1568,48 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   background: transparent; color: var(--color-text-3);
   padding: 1px 5px; margin-left: 7px; white-space: nowrap; vertical-align: 1px;
 }
+/* Run chip — a multi-day event's date range, and which day of it the report
+   is looking at ("SEP 20–24", "DAY 2 OF 5"). Before this the card showed a
+   conference's start date alone, so a five-day show read as a one-day event
+   and vanished the morning after it opened. Same outline register as the
+   timing and ownership chips: a span and a day counter are facts, not
+   verdicts, so no colour. data-active="1" (happening now) brightens to the
+   ownership chip's step — "running" is what the reader scans for. */
+.cal-run {
+  display: inline-block;
+  font-family: var(--font-display); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border: 1px solid var(--color-divider); border-radius: 0;
+  background: transparent; color: var(--color-text-4);
+  padding: 1px 5px; margin-left: 7px; white-space: nowrap; vertical-align: 1px;
+}
+.cal-run[data-active="1"] {
+  color: var(--color-text-3); border-color: var(--color-divider-strong);
+}
+/* Programme — what a multi-day event is doing TODAY (one line, body ink so it
+   is read, not skimmed) and its day-by-day inside the scenario-read drawer.
+   The TODAY label is the same mono eyebrow as the date gutter; the drawer
+   rows are quiet, with today's row lifted one step. No colour anywhere —
+   a programme is a schedule, not a verdict. */
+.cal-prog-today {
+  margin-top: 4px; font-size: 12px; color: var(--ink-2); line-height: 1.45;
+}
+.cal-prog-label {
+  display: inline-block; margin-right: 7px;
+  font-family: var(--font-display); font-size: 8.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-3);
+  vertical-align: 1px;
+}
+.cal-prog-row {
+  margin-top: 3px; font-size: 11px; color: var(--color-text-3); line-height: 1.45;
+}
+.cal-prog-row[data-today="1"] { color: var(--ink-2); }
+.cal-prog-date {
+  display: inline-block; min-width: 68px; margin-right: 6px;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em;
+  color: var(--color-text-4);
+}
+.cal-prog-row[data-today="1"] .cal-prog-date { color: var(--color-text-3); }
 .cal-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
 /* Read-across rationale — why a company the reader does NOT hold occupies a row
