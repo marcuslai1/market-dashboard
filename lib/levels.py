@@ -61,6 +61,18 @@ def trade_levels(d: dict, ccy: str, *, entry_label: str = "Entry") -> list[Level
         f'{_escape_dollars(rr.get("invalidation_reason") or "")}'
         if down_pct is not None else _escape_dollars(rr.get("invalidation_reason") or "")
     )
+    # The paper book's own stop, when it is NOT the invalidation (pipeline
+    # `book_stop`, 2026-09-21): the headline lane stops at the structural
+    # support below the invalidation when that is wider, and on 21 of 24
+    # entries it was. Stated in the same cell as text, no colour — a level
+    # the book trades, not a verdict. Absent on reports before the field.
+    bs = d.get("book_stop") or {}
+    if bs.get("differs_from_invalidation") and bs.get("level") is not None:
+        pct = bs.get("pct_below")
+        inv_sub += (
+            f' · paper book stops {_price_str(bs["level"], ccy)}'
+            + (f' (−{_fmt_num(pct, 1)}%)' if pct is not None else "")
+        )
     return [
         Level(entry_label, entry_val, entry_sub, "var(--ink)"),
         Level("Target", target_val, target_sub, "var(--up)"),
