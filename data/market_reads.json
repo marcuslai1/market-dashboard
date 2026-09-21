@@ -1,137 +1,150 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-18T11:14:07+00:00",
- "sessions_read": 10,
- "reads_logged": 12,
+ "generated_utc": "2026-09-21T10:38:26+00:00",
+ "sessions_read": 11,
+ "reads_logged": 13,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260918T111235Z",
-  "ts_utc": "2026-09-18T11:12:35Z",
-  "ts_sgt": "2026-09-18 19:12",
-  "ts_et": "2026-09-18 07:12",
+  "id": "20260921T103748Z",
+  "ts_utc": "2026-09-21T10:37:48Z",
+  "ts_sgt": "2026-09-21 18:37",
+  "ts_et": "2026-09-21 06:37",
   "confidence": "low",
-  "confidence_why": "day-2 relief rally with the gap already banked in every ref price, on a quad-witching Friday; the only conviction volume today is in Korean memory, which the graded benchmarks barely carry",
+  "confidence_why": "no scheduled US print; a same-day fade-vs-extend call on a macro-relief gap is near coin-flip, and the single-name drivers (INTC +6%, Samsung +5%, Soitec +7.5%) could not be verified in the sweep",
   "tells": [
-   "SOXX regular-session volume by 23:30 SGT - if the +0.9% gap holds on above-average volume, the memory bid is spreading to chipmakers and neutral semis is wrong to the upside",
-   "WTI back above $102 intraday (Saudi ship-to-ship workaround fails) - the oil-relief leg breaks and big_tech firm is at risk",
-   "10Y back above 5.00% - post-hike duration bid reverses; big_tech firm flips",
-   "Quad-witching close: a last-hour reversal of >0.5% on SPY is expiry flow, not information - do not read it as a tell for Monday"
+   "SOXX minus QQQ relative strength (+1.51 pre-mkt) narrowing through the session = the excess chip gap being sold (soft confirms)",
+   "SOXX regular-session volume above 1.2x its 10d average with the gap holding into the last hour = real buying, soft is wrong",
+   "10Y falling below 4.95% on the cash open = rate relief extends the gap; flips semis toward firm",
+   "Oil reversing up (WTI back above $95) = the relief story breaks; hurts big_tech and market beyond neutral"
   ],
-  "notes": "Session 10. Tape CL=F prints 95.59 (-5.60%) while CNBC/Reuters quote WTI ~$100 -1.9% for the same hour: the continuous-contract front month appears to have rolled (Oct expiry ~Sep 22) into a backwardated Nov contract, so the tape's -5.6% is a basis artifact (open item S-D commodity basis); the read leans on the ~-2%/third-day-down figure. Macro attribution line named OIL as the largest mover since the last regular close; it is the load-bearing leg of the big_tech firm lean and is explicitly in the mechanism. 09-17 session was skipped (no log). Yahoo Korea article surfaced by search was dated June 10 2026 - discarded as stale.",
+  "notes": "Session 11. Logged 18:5x SGT, no US release today. Semis lean DISAGREES with the gap sign on purpose (spec §13); ai_power_infra is the same SOXX bet, not independent. Intel/Samsung/Soitec single-name drivers not found within budget.",
   "headline_context": [
-   "CNBC - Oil prices fall for third day on Saudi Arabia supply hopes; US crude briefly dips below $100 (Sep 18)",
-   "Reuters via Investing.com - Nasdaq futures lead Wall St gains as oil retreat eases inflation worries; triple witching (Sep 18, 05:14 ET)",
-   "CNBC - Bank of Japan raises rates to 31-year high of 1.25%, 7-2 split; Nikkei +2.1%, yen weaker, 10Y JGB yield fell (Sep 18)",
-   "TradingKey (unverified) - KOSPI +2.66% close, SK Hynix +6.4%, Kioxia +9.4% on AI/semis rally (Sep 18)",
-   "CNBC - Stocks posted a comeback Thursday one day after the Fed's quarter-point hike drove averages sharply lower Wednesday (Sep 17)"
+   "CNBC live blog — Stock futures rise after Dow posts third straight losing week; S&P fut +0.66%, Nasdaq-100 fut +1.04%; 10Y near 5%; oil near $100 (2026-09-20/21, blog not openable)",
+   "Bloomberg markets wrap — US stock futures up ahead of talks, dollar steady; Brent down a 4th day, longest streak in 3 months; Trump-Xi summit anticipation (2026-09-20, not openable)",
+   "Reuters via Investing.com — Europe's STOXX 600 gains as tech rallies, oil retreat eases nerves; tech +~2% led by Soitec and Aixtron 'in line with US peers'; Brent -2.93%; no US catalyst named (2026-09-21 03:28 ET)",
+   "CNBC — Bessent and He to hold talks on AI, trade, critical minerals ahead of the Sep 24 summit (2026-09-20, not openable)",
+   "Bloomberg — US said to delay excess-capacity tariffs until after the Xi summit (2026-09-17)",
+   "Investing.com — Intel +5% pre-mkt on Reuters report of SK Hynix US memory-manufacturing talks (2026-09-16; the driver of today's +6% is UNVERIFIED)",
+   "catalysts.json BE[1] — S&P 500 inclusion effective before the open 2026-09-21 (flow event); MU Taoyuan second mediation Sep 21 (RECHECK DUE)"
   ],
   "leans": {
    "semis": {
-    "lean": "neutral",
-    "guidance": "hold",
-    "why": "SOXX +0.93% pre already in the ref; Thursday's chipmaker bounce ran on 0.90x volume (NVDA 0.82x, AVGO 0.78x) while the conviction sits in memory (Hynix +5.4% on 1.79x, Samsung +3.4%), which SOXX barely weights; quad witching; nothing beyond the gap argues for extension"
-   },
-   "big_tech": {
-    "lean": "firm",
+    "lean": "soft",
     "guidance": "dont_add",
-    "why": "NQ leading ES (+0.47 vs +0.19), Thursday's rebound came on 1.25x QQQ volume vs semis' 0.90x, and a third day of oil easing is a duration bid; but cluster +7.7% above the 50d with META rsi 74, so no adding"
+    "why": "SOXX +2.5% pre-mkt is 2.5x the Nasdaq gap with no chip-specific catalyst found; macro-relief gap (oil 4th day down, pre-summit talks) into +8.4% median stretch above the 50d after a 0.83x-volume Friday; the excess over the index gets sold with the 10Y pinned at 5%. Asia cash confirmed (KOSPI +1.6%, Samsung +5% on 1.43x) - that is the case against."
    },
    "ai_power_infra": {
+    "lean": "soft",
+    "guidance": "hold",
+    "why": "Same SOXX bet. Cluster +4.5% pre-mkt from -6.5% below the 50d = rebound, and BE's S&P add flow completed into Friday's 4.89x-volume close (flow event, done); post-inclusion day tends to give back. Hold, don't chase."
+   },
+   "big_tech": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "graded vs SOXX so same bet as semis; Infineon +2.4% / Aixtron +2.6% are real regular-session prints from -10% below the 50d (rebound, not extension) but Bloom is +24.6% above its 50d - bimodal cluster, no cluster-level edge beyond the gap"
+    "why": "QQQ +1.0% pre-mkt on oil relief; less stretched than chips (+6.4% vs 50d), META +2.5% into Connect Wed. Expect the index gap to hold without extending; 10Y at 5% caps the upside."
+   },
+   "market": {
+    "lean": "neutral",
+    "guidance": "dont_add",
+    "why": "SPY +0.6% pre-mkt; no US data today; 10Y 4.998 and Trump-Xi Thu are the week's risks. Gap holds, no extension."
    },
    "sg_banks": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "banks -0.17% on 1.45x volume today with OCBC 2.82x - third-Friday index-rebalance flow, not a signal; STI drift (-0.70% 5d) vs a Monday close that will mostly follow Friday's US tape, on which I am neutral"
-   },
-   "market": {
-    "lean": "neutral",
-    "guidance": "hold",
-    "why": "SPY flat pre (-0.06%, ES +0.19%); day-2 post-hike rebound, oil relief and quad-witching pinning pull against each other; industrial production 21:15 SGT + Fed speakers are second-order"
+    "why": "STI +0.5% today on 0.87x bank volume; Tuesday close follows a US Monday I expect to be flat-to-mixed. Nothing SG-specific in the sweep."
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-18",
-    "target_close_utc": "2026-09-18T20:00:00Z"
-   },
-   "big_tech": {
-    "benchmark": "QQQ",
-    "target_session": "2026-09-18",
-    "target_close_utc": "2026-09-18T20:00:00Z"
+    "target_session": "2026-09-21",
+    "target_close_utc": "2026-09-21T20:00:00Z"
    },
    "ai_power_infra": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-18",
-    "target_close_utc": "2026-09-18T20:00:00Z"
-   },
-   "sg_banks": {
-    "benchmark": "^STI",
     "target_session": "2026-09-21",
-    "target_close_utc": "2026-09-21T09:00:00Z"
+    "target_close_utc": "2026-09-21T20:00:00Z"
+   },
+   "big_tech": {
+    "benchmark": "QQQ",
+    "target_session": "2026-09-21",
+    "target_close_utc": "2026-09-21T20:00:00Z"
    },
    "market": {
     "benchmark": "SPY",
-    "target_session": "2026-09-18",
-    "target_close_utc": "2026-09-18T20:00:00Z"
+    "target_session": "2026-09-21",
+    "target_close_utc": "2026-09-21T20:00:00Z"
+   },
+   "sg_banks": {
+    "benchmark": "^STI",
+    "target_session": "2026-09-22",
+    "target_close_utc": "2026-09-22T09:00:00Z"
    }
   },
   "summary": {
-   "read_id": "20260918T111235Z",
-   "bottom_line": "Hold. Don't add to big tech or chips today: this is day two of a post-Fed relief bounce, the gap is already in the price, and quad witching adds noise on top.",
-   "where_we_are": "19:15 SGT / 07:15 ET Friday. US pre-market; SGX closed (STI -0.25%). Next: US industrial production 21:15 SGT, Fed speakers through the session, and the quarterly options-and-futures expiry (quad witching) into the 04:00 SGT Saturday close. No 20:30 SGT data release today.",
-   "macro_attribution": "Oil is the biggest mover since the last regular close: WTI down a third day, about -2% to roughly $100 (CNBC, Sep 18) - the tape's -5.6% print is a futures contract-roll artifact, not the move. The 10-year eased to 4.95% (tape, Thu close) and the VIX sits at 15.3, calm. The big-tech lean depends on oil and yields staying down; the chip lean does not.",
+   "read_id": "20260921T103748Z",
+   "bottom_line": "Hold what you have and do not chase this morning's chip gap. It is a macro-relief gap (oil down, US-China talks) with no chip-specific news behind it, so I expect chips to give some of it back by the close while the broader indexes hold their smaller gains.",
+   "where_we_are": "18:37 SGT Monday / 06:37 ET, US pre-market with 172 minutes to the open; Singapore closed with the STI up 0.5%. No US data today. Next scheduled events: Meta Connect Wednesday Sep 23, the Trump-Xi summit in Washington Thursday Sep 24, JOLTS Tuesday Sep 29 22:00 SGT, then Micron earnings and PCE Wednesday Sep 30.",
+   "macro_attribution": "Oil is the mover since Friday's close: Brent -2.9% and WTI -2.5% pre-market, a fourth straight down day. The 10-year is unchanged at 4.998% (Friday's close, no cash print yet), the dollar and VIX (14.9) are flat, and there is no US calendar today. The chip lean depends on that oil relief NOT being enough to push chips beyond a gap they have already banked.",
    "what_happened": [
-    "Stocks bounced Thursday, a day after the Fed's quarter-point hike and hint of one more knocked them down (CNBC, Sep 17). S&P and Nasdaq volume ran 1.17x and 1.25x normal on the bounce, chips (SOXX) only 0.90x (tape): big tech's rebound had conviction, the chipmakers' did not.",
-    "Oil fell a third day as Saudi Arabia routes extra cargoes around the attacked East-West pipeline via ship-to-ship transfers off Oman; WTI briefly broke below $100 (CNBC, Sep 18). Nasdaq futures lead, +0.47% vs S&P +0.19% (tape), as inflation worries ease (Reuters via Investing.com, Sep 18 05:14 ET).",
-    "Memory surged in Asia on real volume: SK Hynix +5.4% on 1.79x normal, Samsung +3.4%; KOSPI +2.66%, Taiwan +1.75% (tape, Fri close). No company-specific news found - this is the AI-chip trade relieved by oil and yields, not a print.",
-    "Bank of Japan hiked to 1.25%, a 31-year high, on a 7-2 split - and Japanese stocks rose while the yen and bond yields fell (CNBC, Sep 18): the market read the split vote as the end of the hiking run. Nikkei +1.72% (tape).",
-    "Pre-market: chips +0.93% (SOXX), big tech +0.45% (QQQ), S&P flat (tape) - thin, no volume behind it. Quad witching inflates volume and can swing the last hour without meaning anything."
+    "Chip index SOXX is +2.5% pre-market, all 18 tracked chip names green, while Nasdaq futures are only +1.0% and S&P futures +0.6% (tape). A chip gap 2.5x the index gap with no chip catalyst I could verify is the thing most likely to mean-revert.",
+    "Friday's chip rally (+1.8%) came on 0.83x normal volume (tape, Sep 18 close). That was a drift, not buying, and pre-market prints carry no volume at all, so today's gap is thin.",
+    "Chips sit a median 8.4% above their 50-day average (tape, facts as of Friday). A gap from that height is an extension, not a rebound. The AI power group is the opposite case: +4.5% pre-market from 6.5% BELOW its 50-day (tape).",
+    "Europe's tech sector is up about 2%, led by Soitec and Aixtron 'in line with US peers', as Brent falls a fourth day; the article names no US catalyst (Reuters via Investing.com, Sep 21). Asia confirmed with real volume: KOSPI +1.6%, Samsung +5% on 1.4x average volume, TSMC Taiwan +1.0% (tape).",
+    "US-China trade talks opened Sunday between Bessent and He ahead of the Thursday summit, and new tariffs are reportedly held back until after it (CNBC Sep 20; Bloomberg Sep 17). That removes a near-term negative for the week but is not a chip-earnings fact."
    ],
    "per_group": {
-    "semis": "flat - the +0.9% gap is already in the price; the conviction is in memory (Hynix, Samsung, Micron +1.1% pre-market), which SOXX barely carries, while the chipmakers proper (Nvidia +0.6%, Broadcom +1.0%, TSMC flat pre-market) bounced Thursday on low volume. Beyond the gap I have nothing that argues for extension, so I'm not leaning.",
-    "big_tech": "slightly up - Nasdaq futures lead, Thursday's bounce came on above-average volume, and a third day of oil easing is a bid for the longest-duration names. But the group sits 7.7% above its 50-day average with Meta's RSI at 74, so this is not an entry.",
-    "ai_power_infra": "flat - the power semiconductors are rebounding from 10% below their 50-day (Infineon +2.4%, Aixtron +2.6% in Frankfurt's regular session - a rebound, not a stretch) but Bloom, the fuel-cell name, is 25% above its own; graded against the chip index this is the same bet as chips.",
-    "sg_banks": "flat - banks -0.17% today on 1.45x volume with OCBC at 2.82x, which is third-Friday index-rebalance flow rather than selling; Monday's STI will mostly follow tonight's US close, on which I'm neutral.",
-    "market": "flat - day-two relief and cheaper oil pull one way, expiry pinning and post-hike Fed speakers the other."
+    "semis": "Chips: slightly down from the pre-market level, still green versus Friday. The extra 1.5 points of chip gap over the Nasdaq gap has no news behind it and the 10-year is pinned at 5%, so I expect that excess to be sold into the close.",
+    "big_tech": "Big tech: flat around the pre-market level. The 1% index gap on oil relief holds but does not extend with the 10-year at 5%; Meta (+2.5%) has Connect on Wednesday.",
+    "ai_power_infra": "AI power (Bloom, Navitas, Infineon): same call as chips, slightly down from here. Bloom's S&P 500 inclusion took effect this morning and the index buying already happened into Friday's 4.9x-volume close (catalysts.json BE), so the flow is spent. These names are rebounding from below their 50-day, which is why the advice is hold rather than trim.",
+    "sg_banks": "Singapore banks (Tuesday close): flat. Today's +0.9% came on light volume and nothing SG-specific surfaced.",
+    "market": "Whole market: flat around the pre-market level. No data today, the 10-year at 5% and Thursday's summit are the week's risks."
    },
    "change_my_mind": [
-    "SOXX holds its gap through the first hour on above-average volume: the memory bid is spreading to the chipmakers, and chips flips to slightly up.",
-    "WTI back above $102 (the Saudi workaround fails) or the 10-year back above 5.00%: the oil-and-yield relief breaks, and big tech flips to flat or slightly down.",
-    "A last-hour swing of more than 0.5% on the S&P today is expiry flow - ignore it as a tell for Monday."
+    "Chips extending over the Nasdaq through the session instead of the gap narrowing: my chip call is wrong.",
+    "SOXX volume above 1.2x its 10-day average with the gap intact into the last hour: real buying, chips flip to up.",
+    "The 10-year falling below 4.95% at the cash open: rate relief carries the gap higher, flips chips toward up.",
+    "Oil turning back up above $95 WTI: the relief story breaks and the whole market goes from flat to down."
    ],
-   "confidence": "low - a day-two relief rally with the gap already banked, on a quad-witching Friday; the only real volume today is in Korean memory, which the graded benchmarks barely carry.",
-   "cant_know": "Whether expiry flows pin or push the close. Same-day direction is close to a coin flip and I'm saying so for three of the five groups.",
-   "the_call": "Flat, mild. Expect the S&P and the chip index to finish within half a percent of where the pre-market has them. Big tech moves most, mildly up on the oil and yield relief; chips move least beyond their gap, because today's buying is in memory, not in the chipmakers that drive the index.",
+   "confidence": "low. There is no scheduled print, so this is a fade-versus-extend call on a relief gap, close to a coin flip, and I could not verify what is driving Intel +6%, Samsung +5% or Soitec +7.5% individually.",
+   "cant_know": "Why Intel, Samsung and Soitec specifically are up this much (the sweep found only last week's SK Hynix and analyst stories), and whether a US-China chip concession leaks before Thursday.",
+   "the_call": "Flat to slightly down from here, mild. Chips give back part of their excess gap and are the group that moves most; the broad market and big tech hold their smaller gains and move least. The AI power names follow chips but from a lower base.",
    "sources": [
     {
-     "title": "Oil prices fall for third day on Saudi Arabia supply hopes; U.S. crude briefly dips below $100",
-     "url": "https://www.cnbc.com/2026/09/18/oil-prices-today-brent-wti-saudi-arabia-houthi.html",
-     "date": "2026-09-18"
+     "title": "Stock futures rise after Dow posts third straight losing week (CNBC live blog, not openable by the crawler)",
+     "url": "https://www.cnbc.com/2026/09/20/stock-market-today-live-updates.html",
+     "date": "2026-09-20"
     },
     {
-     "title": "Nasdaq futures lead Wall St gains as oil retreat eases inflation worries (Reuters)",
-     "url": "https://ca.investing.com/news/economy-news/nasdaq-futures-lead-wall-st-gains-as-oil-retreat-eases-inflation-worries-4844572",
-     "date": "2026-09-18"
+     "title": "US stock futures up ahead of talks, dollar steady: markets wrap (Bloomberg, not openable)",
+     "url": "https://www.bloomberg.com/news/articles/2026-09-20/us-stock-futures-up-ahead-of-talks-dollar-steady-markets-wrap",
+     "date": "2026-09-20"
     },
     {
-     "title": "Bank of Japan raises interest rates to 31-year high, flags concerns over inflation",
-     "url": "https://www.cnbc.com/2026/09/18/japan-raises-rates-30-year-high-yen-jgb.html",
-     "date": "2026-09-18"
+     "title": "Europe's STOXX 600 gains as tech rallies, oil retreat eases nerves (Reuters via Investing.com)",
+     "url": "https://www.investing.com/news/stock-market-news/europes-stoxx-600-gains-as-tech-rallies-oil-retreat-eases-nerves-4908362",
+     "date": "2026-09-21"
     },
     {
-     "title": "Why Japan's markets flipped the usual script after central bank rate hike",
-     "url": "https://www.cnbc.com/2026/09/18/japan-rate-hike-stocks-rise-bond-yields-yen-fall.html",
-     "date": "2026-09-18"
+     "title": "Bessent, China's He to hold talks on AI, trade, critical minerals (CNBC, not openable)",
+     "url": "https://www.cnbc.com/2026/09/20/bessent-chinas-he-to-hold-talks-on-ai-trade-minerals-reuters.html",
+     "date": "2026-09-20"
     },
     {
-     "title": "Stock futures are little changed after Thursday's post-Fed bounce: Live updates",
-     "url": "https://www.cnbc.com/2026/09/17/stock-market-today-live-updates.html",
+     "title": "US said to delay excess-capacity tariffs until after Xi summit (Bloomberg)",
+     "url": "https://www.bloomberg.com/news/articles/2026-09-17/us-said-to-delay-excess-capacity-tariffs-until-after-xi-summit",
      "date": "2026-09-17"
+    },
+    {
+     "title": "What to expect from the Trump-Xi summit (Investing.com)",
+     "url": "https://www.investing.com/news/economy-news/what-to-expect-from-upcoming-summit-between-presidents-trump-and-xi-4908152",
+     "date": "2026-09-21"
+    },
+    {
+     "title": "Premarket movers: Intel jumps on SK Hynix memory-chip talks (Investing.com; last week's driver, today's unverified)",
+     "url": "https://www.investing.com/news/stock-market-news/premarket-movers-intel-jumps-on-sk-hynix-memorychip-talks--jb-hunt-slides-4903429",
+     "date": "2026-09-16"
     }
    ]
   }
