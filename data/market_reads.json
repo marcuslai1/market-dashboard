@@ -1,48 +1,47 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-22T11:45:51+00:00",
+ "generated_utc": "2026-09-22T12:07:03+00:00",
  "sessions_read": 12,
- "reads_logged": 14,
+ "reads_logged": 15,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260922T114512Z",
-  "ts_utc": "2026-09-22T11:45:12Z",
-  "ts_sgt": "2026-09-22 19:45",
-  "ts_et": "2026-09-22 07:45",
-  "confidence": "low",
-  "confidence_why": "The semis call is a fade of a 5-day momentum run that this record has lost three times running (09-16 firm miss, 09-18 neutral miss, 09-21 soft miss); the Asia reversal is the only new evidence and pre-market prints are thin.",
+  "id": "20260922T120628Z",
+  "ts_utc": "2026-09-22T12:06:28Z",
+  "ts_sgt": "2026-09-22 20:06",
+  "ts_et": "2026-09-22 08:06",
+  "revises": "20260922T114512Z",
+  "confidence": "medium",
+  "confidence_why": "The macro inputs (oil, 10Y, VIX) all point one way and are verified same-contract; the semis call is a digestion bet after five up days, which is near coin-flip on any single session.",
   "tells": [
-   "AMD and INTC: if both hold Monday's close through the first hour the fade is wrong (leaders not being sold)",
-   "SOXX regular-session volume above 1.2x its 10-day on a green tape = buyers not exhausted, semis flips firm",
-   "10Y above 4.98% or VIX above 16 turns a consolidation into a macro sell and drags big tech soft too",
-   "Any Xi-visit headline on chip export controls before the close (agency action, not statements) moves semis harder than anything on the tape",
-   "STI: banks giving back Tuesday's gain on lower volume by mid-session flips sg_banks neutral"
+   "Nov WTI back above 92.37 (Monday's close) during the session removes the macro support and flips market firm -> neutral.",
+   "SOXX opening more than -1.5% with QQQ following it lower means contagion, not rotation — flips big_tech firm -> neutral.",
+   "10Y back above 5.00% (^TNX) puts the two-decade-high scare back on and turns the whole read soft.",
+   "A late SOXX reversal to green on volume above 1.3x means the digestion call was wrong and the run is not done — semis soft was the miss."
   ],
-  "notes": "Session 12. Tape CL=F -2.26% matches Reuters WTI $90.13; a CNBC summary line quoting WTI $96.45 +0.7% is unreconciled (possible next-month contract) and was not leaned on — the oil read uses Brent. ai_power_infra leans soft on its SOXX benchmark, not on the group's own pre-market (+0.5%), which is the pre-registered double-count flaw.",
+  "notes": "User-sanctioned supersede of 20260922T114512Z (19:45 SGT), which used an expiring-October-contract Brent print above $102 as an 'oil cap'. Leans unchanged except market neutral -> firm. Pre-market prints carry zero volume on Yahoo (verified SOXX/AMD/INTC/NVDA/QQQ) — thin.",
   "headline_context": [
-   "Bloomberg (Sep 21) — AMD, Intel soar as Meta's Muse AI agent spurs chip stock rally; AMD tops $1T",
-   "CNBC Daily Open (Sep 22, search summary; page blocked) — AI trade goes Meta after Muse launch; SOX +4.3%, fifth straight gain",
-   "Reuters Morning Bid via Investing.com (Sep 22 00:35 ET) — Meta +11.34%, Nasdaq +2.83% to a record; WTI -2.43% to $90.13; 10Y 4.927%",
-   "Investing.com (Sep 22) — Asia stocks rise tracking US tech rally: KOSPI +0.3% after +2% early, TAIEX +0.2% after erasing 1.5%; Brent rebounds above $102; US futures flat",
-   "Reuters via Investing.com (Sep 22 04:56 ET) — investors holding expectations low for the Trump-Xi meeting to break new ground",
-   "CNBC (Sep 22, search summary; page blocked) — 10Y 4.943% -2bp; Jefferson 10:20 ET; weekly ADP 13:15 ET; Bessent: Iranian airlines shut from Wednesday"
+   "CNBC — Oil prices reverse gains as UN General Assembly meeting lifts hopes for Iran war diplomacy; Brent Nov -2.75% at $97.58; Kyodo report says Iran offered to reopen Hormuz within seven days; Bessent says Iranian airlines shut from Wednesday (Sep 22)",
+   "Bloomberg — AMD, Intel soar as Meta's Muse AI agent spurs chip rally; AMD +10% to $1T, Intel +12%, SOX +4.3%, fifth straight gain (Sep 21)",
+   "CNBC — Stock futures little changed after S&P 500 posts best day since early August; S&P +1.5%, Nasdaq +2.3% to a record; WTI Oct -4.5% to $95.78 Monday; yields retreat from a two-decade high (Sep 21/22)",
+   "CNBC Daily Open — Xi arrives Washington Wednesday 4pm ET, state dinner Thursday (Sep 22)",
+   "Tape — WTI Nov 92.37 -> 90.01 (-2.6% d, -7.7% 5s), Brent Nov 100.34 -> 98.20 (-2.1% d, -7.2% 5s), CL=F rolled Oct -> Nov today; Yahoo daily closes verified 19:52 SGT, same contract compared with itself"
   ],
   "leans": {
    "semis": {
     "lean": "soft",
     "guidance": "dont_add",
-    "why": "Day after a +4.3% SOX session (5th straight, 5d +12.5%, median +11.4% over 50d, AMD rsi73 / INTC rsi71) with the sector's own volume only 1.02x normal outside the two leaders; Asia proxies sold into their close (Hynix -1.45%, TSMC TW -0.6%) after the KOSPI failed to hold a 2% gap; pre-market -0.5% led by AMD -1.2 / AXTI -3.6 with no scheduled catalyst before the Xi visit (Sep 23-25) and Meta Connect (Sep 23). Beyond the gap: the Asia intraday reversal says the follow-through buyer is spent."
+    "why": "Day after a +4.3% SOX session (5th straight, 5d +12.5%, median +11.4% over 50d, AMD rsi73 / INTC rsi71 after the Meta Muse CPU rally) with sector volume only 1.02x normal outside the two leaders; Asia proxies sold into their close (Hynix -1.45%, TSMC TW -0.6%) while KOSPI/TAIEX held small gains; pre-market -0.9% (thin, no volume) led by AXTI -3.9 / AMD -1.4 with no scheduled catalyst before the Xi visit (Sep 23-25) and Meta Connect (Sep 23). Beyond the gap: the Asia intraday reversal in the memory/foundry proxies says the follow-through buyer is spent."
    },
    "ai_power_infra": {
     "lean": "soft",
     "guidance": "hold",
-    "why": "Scored on SOXX, so it inherits the semis give-back; the group itself is not stretched (median -1.1% vs 50d, pre +0.5%) so hold, not trim."
+    "why": "Scored on SOXX, so it inherits the semis give-back; the group itself is not stretched (median -1.1% vs 50d, pre +0.25%, Infineon +1.0) so hold, not trim."
    },
    "big_tech": {
     "lean": "firm",
     "guidance": "dont_add",
-    "why": "Rotation, not exit: pre-market bid is in the UN-stretched megacaps (MSFT +0.8, GOOG +0.7, AMZN +0.5, all within 8% of the 50d) while META (-0.65 pre, rsi78) holds most of its +11% into Connect tomorrow; QQQ volume 1.42x on Monday = conviction. Beyond the +0.08% gap: the breadth of the bid inside big tech vs the fade inside chips."
+    "why": "Rotation, not exit: pre-market bid is in the UN-stretched megacaps (MSFT +1.2, GOOG +0.6, AMZN +0.3, all within 8% of the 50d) while META (-0.7 pre, rsi78, +22% over 50d) gives back a little into Connect tomorrow; QQQ volume 1.42x on Monday = conviction. Beyond the +0.02% gap: the breadth of the bid inside big tech vs the fade inside chips, plus oil down five sessions and the 10Y off its high — a multiple tailwind for the long-duration names."
    },
    "sg_banks": {
     "lean": "firm",
@@ -50,9 +49,9 @@
     "why": "STI +0.98% today on bank leadership with UOB on 2.16x volume, DBS 1.33x (conviction at the SGX close); banks +3-5% over 50d, rsi ~60 = not stretched; Xi state visit from tomorrow is a China-sentiment tailwind for SG; ~21h horizon."
    },
    "market": {
-    "lean": "neutral",
+    "lean": "firm",
     "guidance": "hold",
-    "why": "Best S&P day since August is behind us; futures flat, 10Y eased 2bp to 4.94%, VIX 14.7 in contango; chip give-back offset by megacap rotation and summit optimism; Brent's overnight rebound above $102 caps the upside. Pre-summit, no-catalyst session = digestion."
+    "why": "Macro support is real, not a cap: Nov WTI 92.37 -> 90.01 (-2.6% today, -7.7% over 5 sessions, same contract) and Brent Nov 100.34 -> 98.20 on Iran/Hormuz diplomacy headlines; 10Y eased 2bp to 4.94% off a two-decade high; VIX 14.7 in contango; megacap rotation absorbs the chip give-back. Beyond the +0.10% gap: falling oil + easing yields into a no-release session is the mechanism, not the gap. Corrects the 19:45 row, which treated an expiring-contract Brent print above $102 as a cap."
    }
   },
   "targets": {
@@ -83,62 +82,52 @@
    }
   },
   "summary": {
-   "read_id": "20260922T114512Z",
-   "bottom_line": "Hold what you have and don't add to chips today. Monday's blow-off in AMD, Intel and Meta is being digested, not extended, and the money is rotating into the less-stretched big tech names ahead of Xi's visit and Meta Connect tomorrow.",
-   "where_we_are": "19:45 SGT, 07:45 ET, Tuesday Sep 22. US pre-market, 1h45m to the open; SGX closed (+0.98%). No major US print today: Fed Vice Chair Jefferson speaks at 22:20 SGT, the weekly ADP employment figure lands at 01:15 SGT. Xi Jinping's state visit runs Sep 23-25 and Meta Connect is Sep 23.",
-   "macro_attribution": "Oil moved most since the last US close: Brent fell more than 3% on Monday and then rebounded nearly 2% in Asia to above $102 on the Bessent Iranian-airline headline (Investing.com, Sep 22), while the 10-year eased 2 bp to 4.94%, the dollar and VIX (14.7) are flat and today's calendar is minor. The leans do not depend on oil; it is a cap on the whole market, not the reason for the chip call.",
+   "read_id": "20260922T120628Z",
+   "bottom_line": "Hold what you have. Don't add to chipmakers or big tech today; the broad market and Singapore banks have a real tailwind from oil falling for a fifth straight session, so there is no reason to trim.",
+   "where_we_are": "20:06 SGT / 08:06 ET, Tuesday. US pre-market, 84 minutes to the open; SGX closed at +0.98%. No scheduled US release before the close. Next events: Meta Connect and Xi Jinping's arrival in Washington, both Wednesday (Xi lands 4pm ET, ~4am SGT Thursday), Micron earnings Sep 30 (4:05am SGT Oct 1).",
+   "macro_attribution": "Oil has moved most: the November WTI contract fell from 92.37 to 90.01 (-2.6% today, -7.7% over five sessions, same contract compared with itself) and Brent November from 100.34 to 98.20, on reports Iran offered to reopen the Strait of Hormuz within seven days (CNBC, Sep 22). The 10-year yield eased 2bp to 4.94% and VIX sits at 14.7. The market and big-tech leans depend on this holding; press lines quoting Brent above $102 or WTI at $96 are the expiring October contract, not the live one.",
    "what_happened": [
-    "Chip stocks rallied 4.3% on Monday, the fifth straight gain, with AMD +10% to a $1 trillion valuation, Intel +12% and Meta +11% after its Muse AI agent topped the App Store (Bloomberg, Sep 21; CNBC, Sep 22). The chip index is now 12.5% higher in five sessions and the median chip name sits 11% above its 50-day line (tape).",
-    "The conviction was in the leaders, not the sector: AMD traded 1.9x and Intel 1.7x normal volume, but the median chip name only 1.0x (tape, Mon close). AMD's RSI is 73 and Intel's 71; Meta's is 78. That is a stretched tape by any price-feed measure.",
-    "Asia could not hold the follow-through: the KOSPI opened up 2% and closed +0.3%, Taiwan erased a 1.5% gain to close +0.2%, and the two Asian chip proxies closed down, SK Hynix -1.45% and TSMC Taiwan -0.6% (Investing.com, Sep 22; tape). Chips are -0.5% pre-market with AMD -1.2% and AXT -3.6% (tape, thin).",
-    "Big tech is bid where it is not stretched: Microsoft +0.8%, Google +0.7% and Amazon +0.5% pre-market, all within 8% of their 50-day, while Meta gives back 0.65% (tape). S&P futures are flat, the 10-year is 4.94% and the VIX is 14.7 with the curve calm (tape).",
-    "Singapore banks led the STI +0.98% to 5,728 today with UOB on 2.2x normal volume and DBS on 1.3x (tape, SGX close). Investors are holding expectations low for the Trump-Xi meeting to break new ground (Reuters via Investing.com, Sep 22)."
+    "Chips rallied 4.3% Monday for a fifth straight gain, AMD +10% to a $1 trillion valuation and Intel +12%, on a CPU rush tied to Meta's Muse AI agent (Bloomberg, Sep 21). AMD and Intel now sit above RSI 70 and 24-25% over their 50-day average (tape). That is an extension, not a rebound.",
+    "The S&P 500 had its best day since early August (+1.5%) and the Nasdaq closed at a record (+2.3%) as oil and yields both slipped (CNBC, Sep 21). Futures are flat this morning (tape).",
+    "Oil reversed early gains after a Kyodo report that Iran offered to reopen Hormuz within seven days; Brent November -2.75% at $97.58 (CNBC, Sep 22). Five straight down sessions in front-month crude is a tailwind for the index, not a cap.",
+    "Asia sold the chip proxies into their close: SK Hynix -1.45% and TSMC Taiwan -0.6% while the KOSPI and TAIEX held small gains (tape). Chips are -0.9% pre-market, but Yahoo pre-market bars carry zero volume, so that print is thin.",
+    "Singapore banks led the STI up 0.98%, UOB on 2.16x normal volume and DBS on 1.33x (tape, SGX close). Real buying, and the Xi state visit from Wednesday is a China-sentiment tailwind for Singapore."
    ],
    "per_group": {
-    "semis": "Slightly down. The day after a 4.3% index surge with the leaders at RSI 70+ and only normal sector volume, the Asian chip proxies sold into their close, and there is no scheduled catalyst before Xi and Connect tomorrow; that reversal is what the read adds beyond the thin -0.5% pre-market print.",
-    "ai_power_infra": "Slightly down on its chip benchmark. The group itself is not stretched (median 1% below its 50-day, Infineon and Bloom up pre-market), so hold rather than trim.",
-    "big_tech": "Slightly up. Money is rotating into the un-stretched megacaps, Microsoft, Google and Amazon, while Meta holds most of its 11% gain into Connect; Monday's 1.4x Nasdaq volume says the bid is real.",
-    "sg_banks": "Slightly up at Wednesday's SGX close. Heavy-volume bank buying into today's close and a calm US tape, with Xi's visit a China-sentiment tailwind; the banks are only 3-5% over their 50-day.",
-    "market": "Flat. Monday was the S&P's best day since August; the chip give-back is offset by the megacap rotation and summit optimism, and the oil rebound caps the upside."
+    "semis": "Chipmakers slightly down. Day after a +4.3% session with AMD and Intel above RSI 70 and Asia selling its own memory and foundry proxies into the close, with no catalyst before Wednesday. What the read adds beyond the -0.9% pre-market gap: the Asia intraday reversal says the follow-through buyer is spent. Pre-market volume is zero on Yahoo, so the gap itself is thin.",
+    "ai_power_infra": "AI power (Bloom, Navitas, Infineon) slightly down, only because it is scored against the chip index. The group itself is not stretched (median 1% below its 50-day, Infineon +1% in Frankfurt), so hold rather than trim.",
+    "big_tech": "Big tech slightly up. Rotation, not exit: the pre-market bid is in the un-stretched names (Microsoft +1.2%, Alphabet +0.6%, Amazon +0.3%, all within 8% of their 50-day) while Meta, up 22% over its 50-day, gives back a little into Connect. Beyond the flat gap: breadth of the bid inside big tech versus the fade inside chips, plus falling oil and easing yields as a multiple tailwind.",
+    "sg_banks": "Singapore banks slightly up at Wednesday's close. Bank-led STI gain on heavy volume at today's close, RSI around 60 so not stretched, and the Xi visit sentiment tailwind.",
+    "market": "Whole market slightly up. Front-month oil down five sessions, the 10-year off its two-decade high, VIX calm, and megacap rotation absorbing the chip give-back. This corrects the 19:45 read, which treated an expiring-contract Brent print above $102 as a cap on the upside."
    },
    "change_my_mind": [
-    "AMD and Intel both hold Monday's close through the first hour: the fade is wrong, chips flip to slightly up.",
-    "Chip index volume above 1.2x its 10-day average on a green tape: buyers are not exhausted, chips flip to slightly up.",
-    "10-year above 4.98% or VIX above 16: this is a macro sell, not digestion, and big tech goes slightly down too.",
-    "Any agency action on chip export controls around the Xi visit before the close moves chips harder than anything on this tape, in either direction."
+    "November WTI back above 92.37 (Monday's close) during the session removes the macro support and flips the whole-market lean to flat.",
+    "Chips opening more than 1.5% lower with big tech following them means contagion, not rotation, and flips big tech to flat.",
+    "The 10-year back above 5.00% puts the two-decade-high scare back on and turns every lean soft.",
+    "A late chip reversal to green on volume above 1.3x normal means the digestion call was wrong and the run is not done."
    ],
-   "confidence": "the chip call fades a five-day momentum run that this record has lost on three times running, the Asian reversal is the only new evidence, and pre-market prints have no volume behind them.",
-   "cant_know": "Whether Monday's chasers sell today or wait for Connect and Xi; same-day sector direction after a blow-off is close to a coin flip and the Asian fade is the one tilt.",
-   "the_call": "Chips slightly down, moderate, around 0.5-1.5%, with AMD, Intel and the small substrate names giving back the most. Big tech slightly up on Microsoft, Google and Amazon while Meta pauses. The broad market flat. Singapore banks slightly up at tomorrow's close.",
+   "confidence": "the macro inputs (oil, 10-year, VIX) all point one way and are verified same-contract; the chip call is a digestion bet after five up days, which is near coin-flip on any single session.",
+   "cant_know": "Whether a single Iran headline reverses oil intraday, and whether the CPU-rotation buyers who chased AMD and Intel on Monday come back for a sixth day.",
+   "the_call": "Up, mildly. Expect the S&P a touch higher, under half a percent, with big tech leading on Microsoft, Alphabet and Amazon. Chipmakers are the group that moves most and it is down: a moderate give-back led by AMD, Intel and AXT after five straight up days. Singapore banks move least, holding today's gain into Wednesday.",
    "sources": [
     {
-     "title": "AMD, Intel Soar as Meta's Muse AI Agent Spurs Chip Stock Rally",
+     "title": "CNBC — Oil prices reverse gains as UN General Assembly meeting lifts hopes for Iran war diplomacy",
+     "url": "https://www.cnbc.com/2026/09/22/oil-iran-us-bessent-un-crude.html",
+     "date": "2026-09-22"
+    },
+    {
+     "title": "Bloomberg — AMD, Intel soar as Meta's Muse AI agent spurs chip stock rally",
      "url": "https://www.bloomberg.com/news/articles/2026-09-21/amd-set-to-top-1-trillion-in-market-value-as-chip-stocks-soar",
      "date": "2026-09-21"
     },
     {
-     "title": "CNBC Daily Open: AI trade goes Meta after Muse launch",
-     "url": "https://www.cnbc.com/2026/09/22/cnbc-daily-open-ai-meta-muse.html",
-     "date": "2026-09-22"
+     "title": "CNBC — Stock futures little changed after S&P 500 posts best day since early August",
+     "url": "https://www.cnbc.com/2026/09/21/stock-market-today-live-updates.html",
+     "date": "2026-09-21"
     },
     {
-     "title": "Morning Bid: AI trade gets its Muse (Reuters via Investing.com)",
-     "url": "https://www.investing.com/news/economy-news/morning-bid-ai-trade-gets-its-muse-4909856",
-     "date": "2026-09-22"
-    },
-    {
-     "title": "Asia stocks rise tracking U.S. tech rally; Trump-Xi meeting eyed",
-     "url": "https://www.investing.com/news/stock-market-news/asia-stocks-rise-tracking-us-tech-rally-trumpxi-meeting-eyed-4909838",
-     "date": "2026-09-22"
-    },
-    {
-     "title": "As Trump and Xi meet, investors play both sides of AI divide (Reuters via Investing.com)",
-     "url": "https://www.investing.com/news/stock-market-news/as-trump-and-xi-meet-investors-play-both-sides-of-ai-divide-4910098",
-     "date": "2026-09-22"
-    },
-    {
-     "title": "U.S. Treasury yields ease as investors await fresh jobs data, Fed comments",
-     "url": "https://www.cnbc.com/2026/09/22/treasury-yield-us-bond-market-trump.html",
+     "title": "CNBC Daily Open — All that glitters is another U.S.-China détente",
+     "url": "https://www.cnbc.com/2026/09/22/us-china-trump-xi-summit-trade-tariffs-ai-openai-nissan-pharma.html",
      "date": "2026-09-22"
     }
    ]
