@@ -250,6 +250,45 @@ def ki23_note_html() -> str:
     return f'<p class="pb-chartnote"><span class="lim">{_escape_dollars(_KI23_NOTE)}</span></p>'
 
 
+def same_exposure_html(raw_block: dict | None, block: dict | None) -> str:
+    """The Telegram glance's two paper lines under the verdict (MarketReport
+    clean-sheet review §12.10 step 1, owner go 2026-09-24). They are computed
+    upstream for the pipeline's surfaced book and read from the report's
+    ``paper_portfolio`` block, never recomputed here.
+
+    Line 1: SOXX and the equal-weight watchlist, each held at the book's own
+    daily invested share (the rest at the T-bill rate), with "not shown to
+    beat either". Line 2: the book's average cash share, named as an unproven
+    timing call, and its running cost or benefit (SOXX at the same exposure
+    minus SOXX fully held).
+
+    Neutral ink only: colour is a claim, and neither line proves anything.
+    Returns "" when the block lacks the fields, or when it describes a
+    different book from the one the verdict line headlines."""
+    raw = raw_block or {}
+    pid = (block or {}).get("policy_id")
+    if raw.get("policy_id") and pid and raw["policy_id"] != pid:
+        return ""
+    se = raw.get("soxx_same_exposure_pct")
+    ew = raw.get("watchlist_same_exposure_pct")
+    soxx, cash = raw.get("soxx_return_pct"), raw.get("mean_cash_share_pct")
+    parts = []
+    if se is not None and ew is not None:
+        parts.append(f"At the same exposure: SOXX {se:+.1f}%, equal-weight "
+                     f"watchlist {ew:+.1f}% — not shown to beat either.")
+    elif se is not None:
+        parts.append(f"SOXX at the same exposure {se:+.1f}% — not shown to beat it.")
+    if cash is not None and se is not None and soxx is not None:
+        timing = se - soxx
+        verb = "cost" if timing < 0 else "added"
+        parts.append(f"Cash averaged {cash:.0f}%: an unproven timing call. It has "
+                     f"{verb} {abs(timing):.1f} points vs SOXX fully held ({soxx:+.1f}%).")
+    if not parts:
+        return ""
+    return (f'<p class="pb-chartnote"><span class="lim">'
+            f'{_escape_dollars(" ".join(parts))}</span></p>')
+
+
 # Trade-reason keys (upstream policy vocabulary) → plain-language chip labels
 # (first-time-reader pass 2026-07-16: "ACC tranches"/"stops" were jargon).
 _REASON_LABELS = {
@@ -2065,7 +2104,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
         masthead=True,
     )
     if block:
-        st.markdown(_verdict_html(block) + ki23_note_html(), unsafe_allow_html=True)
+        st.markdown(_verdict_html(block) + same_exposure_html(raw_block, block)
+                    + ki23_note_html(), unsafe_allow_html=True)
     chart_table = None
     if not rebased.empty:
         # st.container(border=True) is the only wrapper a Plotly element can sit

@@ -1362,3 +1362,38 @@ def test_fmt_cash_idle_shows_etf_share_separately():
     cell = _fmt_cash_idle({"avg_cash_pct": 9.0, "avg_index_sleeve_pct": 27.6,
                            "sleeve_vehicle": "SPY"})
     assert cell.startswith("9% <small") and "+28% in SPY" in cell
+
+
+# ── same-exposure lines under the verdict (clean-sheet §12.10 step 1) ──
+
+from components.paper_book import same_exposure_html
+
+_SE_BLOCK = {"policy_id": "v2_starter_b15_tb_fees", "soxx_return_pct": 35.55,
+             "soxx_same_exposure_pct": 13.32, "watchlist_same_exposure_pct": 10.7,
+             "mean_cash_share_pct": 53.0}
+
+
+def test_same_exposure_lines_match_the_glance_in_neutral_ink():
+    out = same_exposure_html(_SE_BLOCK, {"policy_id": "v2_starter_b15_tb_fees"})
+    assert ("At the same exposure: SOXX +13.3%, equal-weight watchlist +10.7% "
+            "— not shown to beat either.") in out
+    assert ("Cash averaged 53%: an unproven timing call. It has cost 22.2 points "
+            "vs SOXX fully held (+35.5%).") in out
+    assert "color" not in out and "var(--up)" not in out
+
+
+def test_same_exposure_says_added_when_cash_helped():
+    blk = dict(_SE_BLOCK, soxx_return_pct=-20.0, soxx_same_exposure_pct=-9.0)
+    assert "It has added 11.0 points" in same_exposure_html(blk, {})
+
+
+def test_same_exposure_skipped_for_a_different_book_or_missing_fields():
+    assert same_exposure_html(_SE_BLOCK, {"policy_id": "v1_flat10"}) == ""
+    assert same_exposure_html({"nav_return_pct": 3.0}, {}) == ""
+    assert same_exposure_html(None, None) == ""
+
+
+def test_same_exposure_soxx_only_without_the_watchlist_leg():
+    blk = {k: v for k, v in _SE_BLOCK.items() if k != "watchlist_same_exposure_pct"}
+    assert "SOXX at the same exposure +13.3% — not shown to beat it." in \
+        same_exposure_html(blk, {})

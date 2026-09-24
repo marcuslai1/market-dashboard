@@ -25,6 +25,7 @@ from components.briefing import (
     render_changes,
     render_pulse,
 )
+from components.briefing.accumulate_status import accumulate_banner_html
 from components.briefing.action_card import action_card_html
 from components.briefing.calendar import calendar_card_html
 from components.briefing.clusters import cluster_anchor_count
@@ -226,15 +227,12 @@ def _page_briefing() -> None:
         # ACCUMULATE paper-phase status — one measured line (replaces the old
         # per-ticker "PAPER TRADE" labels; the [paper] tag rides in what_to_do).
         # Present only on days carrying ≥1 ACCUMULATE; sourced from the pipeline's
-        # gate readout, so it never drifts from the Measurement Gate.
-        _aps = report.get("accumulate_paper_status")
-        if isinstance(_aps, dict) and _aps.get("line"):
-            _grad = _aps.get("graduated")
-            st.markdown(
-                f'<div class="briefing-banner" data-tone="{"ok" if _grad else "test"}">'
-                f'{"✅" if _grad else "🧪"} {_aps["line"]}</div>',
-                unsafe_allow_html=True,
-            )
+        # gate readout, so it never drifts from the Measurement Gate. A cleared
+        # Gate reads per regime in the neutral tone since 2026-09-24 (no "✅ …
+        # Live-eligible" — components/briefing/accumulate_status.py).
+        _aps_html = accumulate_banner_html(report.get("accumulate_paper_status"))
+        if _aps_html:
+            st.markdown(_aps_html, unsafe_allow_html=True)
 
         # Crisis flag — heuristic scan for "crisis dislocation" in writeup text
         _crisis_markers = {"crisis dislocation", "crisis-dislocation", "crisis_dislocation"}
