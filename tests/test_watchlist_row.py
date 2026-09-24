@@ -150,3 +150,10 @@ def test_ratio_labels_are_left_alone():
     html = render_ticker_details_html("BE", d)
     assert '<div class="tk-rr-val">2.1:1</div>' in html
     assert "n/a" not in html
+
+
+
+def test_row_prints_day_count_in_grey_under_the_pill():
+    html = render_ticker_details_html("CBRS", {"signal": "ACCUMULATE"}, signal_days=1)
+    assert '<div class="tk-sig-days" title="Reports in a row with this call">day 1</div>' in html
+    assert "tk-sig-days" not in render_ticker_details_html("CBRS", {"signal": "ACCUMULATE"})

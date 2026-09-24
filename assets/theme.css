@@ -1140,6 +1140,17 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent); flex: 0 0 auto;
 }
+/* "day N" under the pill: how many reports in a row the call has held.
+   Metadata grey, never a signal colour — persistence is a fact about the call,
+   not a rating (MarketReport clean-sheet §12.12: one-day and lasting "add"
+   calls show no detectable outcome difference). */
+.tk-sig-days {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
 .tk-last { text-align: right; }
 .tk-last-px { font-size: 13.5px; font-variant-numeric: tabular-nums; }
 .tk-last-chg { font-size: 11px; }

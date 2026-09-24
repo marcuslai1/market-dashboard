@@ -219,10 +219,25 @@ def verdict_bits(block: dict) -> tuple[str, str]:
     """
     nav = block.get("nav_return_pct")
     spy = block.get("spy_return_pct")
+    soxx = block.get("soxx_return_pct")
     since = f" since {_human_date(block['inception'])}" if block.get("inception") else ""
-    if nav is None or spy is None:
+    if nav is None or (spy is None and soxx is None):
         return (f"Paper book seeded{since} — first fills pending.", "")
     nav_usd = _money(NOTIONAL_START * (1 + nav / 100.0))
+    if soxx is not None:
+        # SOXX is the owner's bar (MarketReport clean-sheet review §12.10,
+        # owner go 2026-09-24), matching the Telegram glance. The line under
+        # the verdict holds SOXX at the book's own cash level.
+        soxx_usd = _money(NOTIONAL_START * (1 + soxx / 100.0))
+        body = (f"{_money(NOTIONAL_START)} → {nav_usd} ({nav:+.1f}%){since}, "
+                f"against SOXX at {soxx_usd} ({soxx:+.1f}%)")
+        if nav > soxx:
+            if block.get("luck_cleared"):
+                return (f"{body} — ahead of the semis index.", "pos")
+            return (f"{body} — ahead of the semis index, not yet proven beyond luck.", "")
+        if nav < soxx:
+            return (f"{body} — behind the semis index.", "neg" if nav < 0 else "")
+        return (f"{body} — tracking the semis index.", "")
     spy_usd = _money(NOTIONAL_START * (1 + spy / 100.0))
     body = (f"{_money(NOTIONAL_START)} → {nav_usd} ({nav:+.1f}%){since}, "
             f"against SPY at {spy_usd} ({spy:+.1f}%)")
@@ -336,6 +351,7 @@ def headline_block(nav_df: pd.DataFrame | None, block: dict) -> dict:
         "policy_id": pid,
         "nav_return_pct": r.get("ret_pct"),
         "spy_return_pct": spy,
+        "soxx_return_pct": (r.get("soxx") or {}).get("ret_pct"),
         "inception": r.get("since") or (block or {}).get("inception"),
         "as_of": r.get("as_of") or (block or {}).get("as_of"),
         # the verdict's green gate: residual Sharpe past the best-of-N luck bar

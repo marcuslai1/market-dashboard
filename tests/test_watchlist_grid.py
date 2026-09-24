@@ -175,3 +175,40 @@ def test_footer_states_the_count_and_the_dot_legend():
     foot = footer_html(4, 32)
     assert "4 of 32" in foot
     assert "changed" in foot.lower()
+
+
+# ── "day N": consecutive reports with the same shipped call (§12.12) ──
+
+from components.watchlist.grid import signal_day_counts  # noqa: E402
+
+_LOG = [("2026-09-22", "CBRS", "WATCH"), ("2026-09-23", "CBRS", "WATCH"),
+        ("2026-09-24", "CBRS", "ACCUMULATE"),
+        ("2026-09-22", "TSEM", "CAUTION"), ("2026-09-23", "TSEM", "CAUTION"),
+        ("2026-09-24", "TSEM", "CAUTION"),
+        ("2026-09-22", "NEW", "WATCH"), ("2026-09-24", "NEW", "WATCH")]
+
+
+def test_day_counts_count_consecutive_reports_with_the_same_call():
+    shown = {"CBRS": "ACCUMULATE", "TSEM": "CAUTION", "NEW": "WATCH"}
+    assert signal_day_counts(_LOG, "2026-09-24", shown) == {
+        "CBRS": 1, "TSEM": 3, "NEW": 1}      # NEW's missing 09-23 ends the count
+
+
+def test_day_counts_are_as_of_the_viewed_report():
+    assert signal_day_counts(_LOG, "2026-09-23", {"CBRS": "WATCH"}) == {"CBRS": 2}
+
+
+def test_day_counts_skip_a_name_whose_logged_call_differs_from_the_pill():
+    assert signal_day_counts(_LOG, "2026-09-24", {"CBRS": "WATCH"}) == {}
+    assert signal_day_counts(_LOG, "2026-09-25", {"CBRS": "ACCUMULATE"}) == {}
+
+
+def test_grid_passes_day_counts_only_when_given():
+    seen = {}
+
+    def _row(tk, d, signal_changed=False, earnings_hist=None, signal_days=None):
+        seen[tk] = signal_days
+        return ""
+
+    build_grid_html(ITEMS, set(), {}, _row, day_counts={"NVDA": 4})
+    assert seen["NVDA"] == 4 and seen["MSFT"] is None

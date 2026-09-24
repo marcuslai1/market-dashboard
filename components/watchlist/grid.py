@@ -144,26 +144,63 @@ def group_header_html(signal: str, count: int) -> str:
     )
 
 
+def signal_day_counts(log_rows, as_of: str, shown: dict) -> dict[str, int]:
+    """How many consecutive reports each name has carried its current call.
+
+    *log_rows* is an iterable of ``(date, ticker, signal)`` from the shipped
+    signal log (``data/signal_log.csv``), with dates as ``YYYY-MM-DD`` strings.
+    *as_of* is the report being viewed. *shown* is ``{ticker: signal}`` as that
+    report displays it. Report dates are the log's own distinct dates up to
+    *as_of*. A report where the name is absent, or carries another call, ends
+    the count.
+
+    A name whose logged call on *as_of* differs from the displayed one gets no
+    count, so the number can never describe a different call from the pill.
+    Neutral by design (MarketReport clean-sheet review §12.12): the record shows
+    no detectable outcome difference between one-day and lasting "add" calls,
+    so the count states persistence and claims nothing about quality."""
+    by_date: dict[str, dict[str, str]] = {}
+    for d, tk, sig in log_rows:
+        if d <= as_of:
+            by_date.setdefault(d, {})[tk] = sig
+    dates = sorted(by_date)
+    if not dates or dates[-1] != as_of:
+        return {}
+    out = {}
+    for tk, sig in (shown or {}).items():
+        if by_date[as_of].get(tk) != sig:
+            continue
+        n = 0
+        for d in reversed(dates):
+            if by_date[d].get(tk) != sig:
+                break
+            n += 1
+        out[tk] = n
+    return out
+
+
 def build_grid_html(
     items,
     changed_tickers,
     earnings_map: dict,
     row_builder: Callable[..., str],
+    day_counts: dict | None = None,
 ) -> str:
-    """The whole table as one string: wrapper, column header, groups, rows."""
+    """The whole table as one string: wrapper, column header, groups, rows.
+
+    *day_counts* (``signal_day_counts``) is passed to each row as
+    ``signal_days`` only when given, so row builders without the keyword
+    keep working."""
     changed = changed_tickers or set()
     parts = [column_header_html()]
     for sig, rows in group_items(items):
         parts.append(group_header_html(sig, len(rows)))
-        parts.extend(
-            row_builder(
-                tk,
-                d,
-                signal_changed=(tk in changed),
-                earnings_hist=(earnings_map or {}).get(tk),
-            )
-            for tk, d in rows
-        )
+        for tk, d in rows:
+            kw = {"signal_changed": tk in changed,
+                  "earnings_hist": (earnings_map or {}).get(tk)}
+            if day_counts is not None:
+                kw["signal_days"] = day_counts.get(tk)
+            parts.append(row_builder(tk, d, **kw))
     return (
         '<div class="tk-scroll" role="table" '
         'aria-label="Watchlist — click a row to expand">'
@@ -194,6 +231,7 @@ def footer_html(n_shown: int, n_total: int) -> str:
         '<div class="tk-foot">'
         f'Showing {n_shown} of {n_total} names · '
         '<span class="tk-changed tk-changed-legend"></span> '
-        'a steel dot marks a signal that changed since the prior report.'
+        'a steel dot marks a signal that changed since the prior report; '
+        '"day N" under a signal counts the reports in a row it has held.'
         '</div>'
     )

@@ -347,8 +347,9 @@ _BLOCK = {
 
 
 def test_verdict_html_escapes_and_tones():
+    # _BLOCK carries soxx_return_pct, so the verdict reads against SOXX
     html = _verdict_html(_BLOCK)
-    assert "trailing the benchmark" in html
+    assert "behind the semis index" in html
     assert 'class="pb-verdict"' in html
 
 
@@ -1397,3 +1398,23 @@ def test_same_exposure_soxx_only_without_the_watchlist_leg():
     blk = {k: v for k, v in _SE_BLOCK.items() if k != "watchlist_same_exposure_pct"}
     assert "SOXX at the same exposure +13.3% — not shown to beat it." in \
         same_exposure_html(blk, {})
+
+
+# ── verdict against SOXX when the block carries it (clean-sheet §12.10) ──
+
+def test_verdict_prefers_soxx_and_stays_neutral_while_up():
+    text, tone = verdict_bits({"nav_return_pct": 18.73, "spy_return_pct": 8.62,
+                               "soxx_return_pct": 35.55, "inception": "2026-04-19"})
+    assert text == ("$100,000 → $118,730 (+18.7%) since 19 Apr 2026, against SOXX at "
+                    "$135,550 (+35.5%) — behind the semis index.")
+    assert tone == ""
+    assert "SPY" not in text
+
+
+def test_verdict_soxx_red_only_on_a_real_loss_green_only_past_luck():
+    assert verdict_bits({"nav_return_pct": -2.0, "soxx_return_pct": 5.0})[1] == "neg"
+    text, tone = verdict_bits({"nav_return_pct": 9.0, "soxx_return_pct": 5.0})
+    assert text.endswith("ahead of the semis index, not yet proven beyond luck.")
+    assert tone == ""
+    assert verdict_bits({"nav_return_pct": 9.0, "soxx_return_pct": 5.0,
+                         "luck_cleared": True})[1] == "pos"

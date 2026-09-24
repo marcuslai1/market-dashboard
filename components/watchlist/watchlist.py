@@ -23,7 +23,8 @@ from lib.data_loader import load_earnings_history
 
 
 def render_watchlist(
-    watchlist: dict, changed_tickers: set[str] | None = None
+    watchlist: dict, changed_tickers: set[str] | None = None,
+    day_counts: dict | None = None,
 ) -> None:
     """The whole book: filter chips, the dense grid, the footnotes.
 
@@ -83,7 +84,8 @@ def render_watchlist(
     # auto-closes it), and .tk-scroll must genuinely contain the rows so the
     # fixed-column grid can swipe horizontally on phones.
     st.markdown(
-        build_grid_html(shown, changed_set, eh_map, render_ticker_details_html),
+        build_grid_html(shown, changed_set, eh_map, render_ticker_details_html,
+                        day_counts=day_counts),
         unsafe_allow_html=True,
     )
     st.markdown(method_note_html(), unsafe_allow_html=True)

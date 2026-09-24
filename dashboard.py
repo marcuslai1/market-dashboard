@@ -34,6 +34,7 @@ from components.briefing.market_read import market_read_card_html
 from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
+from components.watchlist.grid import signal_day_counts
 from lib.cards import render_section_head
 from lib.catalog import SIGNAL_ORDER, SIGNAL_VERBS
 from lib.clock import today as clock_today
@@ -390,7 +391,18 @@ def _page_watchlist() -> None:
         render_section_head("The Watchlist", sub_label, masthead=True)
         _render_live_caption(_live, LIVE_PRICES and _is_latest)
         render_pulse(benchmarks)
-        render_watchlist(watchlist, changed_tickers=changed)
+        # "day N" under each pill: consecutive reports with the same shipped
+        # call, from the signal log (MarketReport clean-sheet §12.12 display).
+        _log = load_signal_log()
+        _day_counts = {}
+        if not _log.empty and {"date", "ticker", "signal"} <= set(_log.columns):
+            _log = _log.dropna(subset=["date", "ticker", "signal"])
+            _day_counts = signal_day_counts(
+                _log.assign(date=_log["date"].dt.strftime("%Y-%m-%d"))[
+                    ["date", "ticker", "signal"]].itertuples(index=False, name=None),
+                str(selected_date)[:10],
+                {tk: v.get("signal") for tk, v in watchlist.items()})
+        render_watchlist(watchlist, changed_tickers=changed, day_counts=_day_counts)
 
         # Contrarian candidates moved off the Briefing (overhaul 2026-07):
         # oversold names with a recovery thesis are name-level setups, so they

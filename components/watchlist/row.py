@@ -62,7 +62,7 @@ def _rr_cell(label: str, adjusted: bool) -> tuple[str, str]:
 
 
 def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
-                               earnings_hist=None) -> str:
+                               earnings_hist=None, signal_days: int | None = None) -> str:
     """Build a complete <details> block: row as summary, writeup+drilldown as body.
 
     ``signal_changed=True`` adds ``data-signal-changed="true"`` to the
@@ -71,6 +71,9 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
 
     ``earnings_hist`` (optional) is passed straight through to the drill-down for
     the quarter-on-quarter earnings-history table.
+
+    ``signal_days`` (optional; ``grid.signal_day_counts``) prints "day N" under
+    the pill in metadata grey. It is persistence, not a rating: no colour.
     """
     sig = d.get("signal", "HOLD")
     display_tk = _escape_dollars(display_ticker(tk))
@@ -109,6 +112,11 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
         else "cold" if rsi is not None and rsi <= 30
         else ""
     )
+    days_html = (
+        f'<div class="tk-sig-days" title="Reports in a row with this call">'
+        f'day {int(signal_days)}</div>'
+        if isinstance(signal_days, int) and signal_days > 0 else ''
+    )
     rr_val, rr_sub_text = _rr_cell(rr_label, rr_adjusted)
     rr_sub = (f'<div class="tk-rr-sub">{_escape_dollars(rr_sub_text)}</div>'
               if rr_sub_text else '')
@@ -119,7 +127,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
         f'<div class="tk-tick-id"><span class="tk-tick-tk">{display_tk}</span>'
         f'{changed_dot}</div>'
         f'<div class="tk-tick-cluster">{CLUSTER_MAP.get(tk, "")}</div></div>'
-        f'<div>{_signal_pill_html(sig)}</div>'
+        f'<div>{_signal_pill_html(sig)}{days_html}</div>'
         f'<div class="tk-last">'
         f'<div class="tk-last-px">'
         f'{f"{pfx}{_fmt_num(price, dec)}" if price is not None else "—"}</div>'
