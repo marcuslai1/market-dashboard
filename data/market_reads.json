@@ -1,120 +1,108 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-24T12:12:37+00:00",
- "sessions_read": 14,
- "reads_logged": 17,
+ "generated_utc": "2026-09-25T11:03:35+00:00",
+ "sessions_read": 15,
+ "reads_logged": 18,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260924T120324Z",
-  "ts_utc": "2026-09-24T12:03:24Z",
-  "ts_sgt": "2026-09-24 20:03",
-  "ts_et": "2026-09-24 08:03",
+  "id": "20260925T110319Z",
+  "ts_utc": "2026-09-25T11:03:19Z",
+  "ts_sgt": "2026-09-25 19:03",
+  "ts_et": "2026-09-25 07:03",
   "confidence": "low",
-  "confidence_why": "yield-driven tape with a data print inside the horizon; the semis call bets against the gap on a 4-session pattern, and the record's semis cluster is 33% hit",
+  "confidence_why": "SOXX has moved ~2% a day either way this week; the only edge beyond the gap is a five-session close-above-ref streak that can end any day, and Friday before MU invites de-risking",
   "tells": [
-   "10Y at the close: above ~5.18% = fresh leg up, flips semis to soft; back below 5.11% (yesterday's close) = big tech lean fails",
-   "Initial jobless claims 20:30 SGT (consensus ~201k, prior 196k): a sub-195k print pushes yields and is the main threat to the semis firm lean",
-   "Memory names (MU, SNDK) turning green in the first hour = the dip bid is live; still red by 23:00 SGT = the gap extends",
-   "META vs QQQ: META leading the megacap decline confirms the stretched-name unwind"
+   "10Y vs Thursday's 5.225% high: back above = big_tech/market soft",
+   "SOXX first hour: full gap give-back on heavy volume = pre-MU profit-taking, semis soft",
+   "Durable goods 20:30 SGT + Fed speakers: yields up on a hot print",
+   "CL=F below 90 on Iran deal confirmation = market firm"
   ],
-  "notes": "ai_power_infra omitted: same SOXX benchmark as semis, nothing distinct to say. Logged ~20:10 SGT, before the 20:30 SGT jobless-claims release.",
+  "notes": "ai_power_infra omitted (SOXX double-count; nothing independent to say). Session 15.",
   "headline_context": [
-   "CNBC — 10-year Treasury yield continues to rise from 19-year high (2026-09-24)",
-   "CNBC — Nasdaq futures fall 1% after soaring Treasury yields trigger market sell-off (live updates, 2026-09-23/24)",
-   "Investing.com — 30-year Treasury yield hits 5.39%, a 22-year high, after hot PMI data (2026-09-23)",
-   "CNBC — U.S.-China trade truce extended for two months, Bessent says, as Xi begins state visit (2026-09-24)"
+   "Investing.com/Reuters — Wall St futures gain as AI enthusiasm eases worries over higher oil prices, yields (Sep 25 05:50 ET)",
+   "CNBC live updates via search summary (article 403) — Dow third straight loss Sep 24; 10Y 5.225% highest since 2007; stocks off lows on Reuters report of US-Iran phased Hormuz deal talks (Sep 24)"
   ],
   "leans": {
    "semis": {
     "lean": "firm",
     "guidance": "dont_add",
-    "why": "SOXX -2.05% pre-market on yields alone (no chip-specific news found), Asia chips did not sell (Samsung +3.2%, Hynix +1.2%, TAIEX -0.1%); same setup 09-23 (Nasdaq fut -1%) and SOXX closed flat vs 20:00 ref; four straight closes at/above the 20:00 ref = dip bid. Bet: partial gap fill from the pre-market low. Don't add: +12.7% 5d, +10% vs 50d, MU print 09-30"
+    "why": "SOXX +1.28% pre on AI-demand news (Meta Muse traction, Akamai-Anthropic $11.6bn), 17/18 green, Samsung +3.2%. Added beyond the gap: SOXX has closed above the 20:00 ref five straight sessions (09-18..09-24) through a 19-year-high 10Y, so the yield channel is not binding chips right now. Mild. Don't add: +9% 5d, +10.9% vs 50d median, Thu vol 0.65x, MU print 09-30"
    },
    "big_tech": {
-    "lean": "soft",
+    "lean": "firm",
     "guidance": "dont_add",
-    "why": "09-23 megacaps kept falling after the gap while semis held (QQQ -0.61% vs ref); GOOG/AMZN already below 50d on 1.23x volume = distribution; META rsi77 +21.7% vs 50d is the stretched one; long-duration names carry the yield leg"
-   },
-   "market": {
-    "lean": "neutral",
-    "guidance": "dont_add",
-    "why": "offsetting: semis bid vs megacap leak; SPY gap -0.53% already banked, 5d +1.8%, VIX term structure still in contango (0.89)"
+    "why": "QQQ +0.59% pre is mostly its chip weights; megacap cluster median only +0.25% (MSFT flat, META +0.1% at RSI 81). Mild, less than semis; most exposed if the 10Y re-breaks 5.22%"
    },
    "sg_banks": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "STI -0.67% today already took the US yield hit; US-China truce extension to Jan 10 (Bessent, CNBC 09-24) is a mild Asia positive against a soft US handover; banks not stretched (+2.7% vs 50d)"
+    "why": "STI closed +0.51% at 5710.65, exactly on its 20d; Monday close after a weekend where the Iran-deal report can firm or die; no SG catalyst before MAS MPS by 10-14"
+   },
+   "market": {
+    "lean": "neutral",
+    "guidance": "hold",
+    "why": "SPY +0.34% pre, held between oil -2.2% (helps) and the 10Y at 5.16% (hurts); Dow on a fourth losing week; durable goods 20:30 SGT + Williams/Schmid/Hammack speaking"
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-24",
-    "target_close_utc": "2026-09-24T20:00:00Z"
+    "target_session": "2026-09-25",
+    "target_close_utc": "2026-09-25T20:00:00Z"
    },
    "big_tech": {
     "benchmark": "QQQ",
-    "target_session": "2026-09-24",
-    "target_close_utc": "2026-09-24T20:00:00Z"
-   },
-   "market": {
-    "benchmark": "SPY",
-    "target_session": "2026-09-24",
-    "target_close_utc": "2026-09-24T20:00:00Z"
+    "target_session": "2026-09-25",
+    "target_close_utc": "2026-09-25T20:00:00Z"
    },
    "sg_banks": {
     "benchmark": "^STI",
+    "target_session": "2026-09-28",
+    "target_close_utc": "2026-09-28T09:00:00Z"
+   },
+   "market": {
+    "benchmark": "SPY",
     "target_session": "2026-09-25",
-    "target_close_utc": "2026-09-25T09:00:00Z"
+    "target_close_utc": "2026-09-25T20:00:00Z"
    }
   },
   "summary": {
-   "read_id": "20260924T120324Z",
-   "bottom_line": "Rising bond yields are pulling everything down before the open. Don't add anywhere today. I expect chips to win back part of their early drop and the big tech names to keep sliding.",
-   "where_we_are": "Thursday 20:03 SGT / 08:03 ET. US pre-market, opening in about 85 minutes. Singapore has closed. US weekly jobless claims are out at 20:30 SGT, and Micron reports on 1 Oct at 4:05am SGT.",
-   "macro_attribution": "The 10-year Treasury yield has moved the most: it closed at 5.11%, is about 5.15% this morning, and is at a 19-year high. Oil (+1.1% to $93.7) and the VIX fear gauge (+6.5% to 16.2) are secondary, and the dollar is flat. Today's call depends on the 10-year yield. Oil is not driving it.",
+   "read_id": "20260925T110319Z",
+   "bottom_line": "Hold what you have; don't add chips or big tech after a 9% five-day run in chips and before Micron reports next Wednesday. I lean mildly up tonight, with low confidence.",
+   "where_we_are": "Friday 19:03 SGT / 07:03 ET. US pre-market; the open is at 21:30 SGT. Singapore is closed until Monday. August durable-goods orders come out at 20:30 SGT, and three Fed officials (Williams, Schmid, Hammack) speak during the session (Investing.com/Reuters, Sep 25).",
+   "macro_attribution": "Oil moved most overnight: US crude is down 2.2% to $93 (tape) after a report that US and Iranian negotiators are weighing a phased deal to reopen the Strait of Hormuz (CNBC citing Reuters, Sep 24; seen only as a search summary, article not opened). The 10-year Treasury yield is flat at 5.16% (tape) after touching its highest level since 2007 on Thursday. The lean depends on that yield not breaking back above about 5.22%; cheaper oil helps but is not the bet.",
    "what_happened": [
-    "Chip stocks are down about 2% pre-market and the Nasdaq futures are down 1% (tape). I found no chip-specific news, only yields (CNBC, Sep 24). Pre-market trading has no volume behind it, so the move is thin until the open.",
-    "Taiwan did not sell off: its index was flat and TSMC in Taipei fell only 0.6% today (tape). Correction (20:13 SGT, before the 20:30 release): Korea is shut for a holiday today. The Samsung +3.2% and SK Hynix +1.2% first quoted here were Wednesday's session, before the US yield selloff, so they say nothing about today.",
-    "Yesterday had the same setup: Nasdaq futures were down 1% on yields (CNBC, Sep 23), but the chip index closed flat from 8pm while big tech kept falling (tape). Chips have now closed at or above their 8pm level four sessions running.",
-    "Chips are still stretched. They are up 12.7% in five days and 10% above their 50-day average (tape), which is why I say don't add even though I lean up.",
-    "The US–China trade truce has been extended to Jan 10, Treasury Secretary Bessent said as Xi's visit began (CNBC, Sep 24). That is mildly positive for Asia but not a chip story. Chip export controls are off the agenda."
+    "Chip stocks are up 1.3% before the open, with 17 of 18 names higher, led by Samsung (+3.2% in Seoul) and AXT, which makes compound-semiconductor wafers (+3.6%) (tape). Pre-market prices carry no volume, so this is thin until the open confirms it.",
+    "Chips have run 9% in five sessions and sit about 11% above their 50-day average (tape). Thursday's +2% close came on only 0.65x normal volume: a drift higher, not a stampede.",
+    "Futures are up on AI-demand news: traction for Meta's Muse app, and Akamai +21% on an $11.6bn cloud deal with Anthropic (Investing.com/Reuters, Sep 25 05:50 ET).",
+    "Big tech is barely moving: Microsoft flat, Meta +0.1% with its momentum gauge (RSI) at 81, which is stretched (tape). The Nasdaq-100's gain is mostly its chip weights.",
+    "Singapore banks closed up 0.8% (median) and the STI up 0.5% to 5,711, right on its 20-day average (tape). Their next close is Monday."
    ],
    "per_group": {
-    "semis": "slightly up from here — dip buyers take back part of the 2% gap, with memory makers (Micron, SanDisk) leading.",
-    "big_tech": "slightly down — the big platform names kept falling after yesterday's gap while chips held. Google and Amazon are already below their 50-day averages, and Meta is the most stretched (+22% above its 50-day).",
-    "sg_banks": "flat at Friday's close — the index already took the yield hit today (-0.7%), and the trade-truce news offsets a soft US handover.",
-    "market": "flat from here — the chip bounce and the big tech slide roughly cancel out."
+    "semis": "Slightly up, mildly. The gap rides the same AI-demand news that has driven the whole run, and chips have closed above their 20:00 SGT price in each of the last five sessions even with 19-year-high yields. That streak, not the gap, is the bet; Friday profit-taking before Micron's report is the risk.",
+    "big_tech": "Slightly up, less than chips. The index gain rides its chip weights; the megacaps themselves are flat and are the most exposed if the 10-year yield climbs.",
+    "sg_banks": "Flat into Monday. The index sits right on its 20-day average, and weekend news on the Iran talks can cut either way.",
+    "market": "Flat. The S&P 500 is caught between falling oil, which helps, and a 10-year yield above 5%, which hurts; the Dow is heading for a fourth losing week."
    },
    "change_my_mind": [
-    "Jobless claims well under consensus (~201k) at 20:30 SGT push yields higher and flip chips to down.",
-    "If the 10-year yield closes above about 5.18%, that is a fresh leg up, and chips (the most stretched group) fall hardest. That flips chips to down.",
-    "If Micron and SanDisk are still red at 23:00 SGT, the dip bid is not showing up, and that flips chips to down.",
-    "If the 10-year falls back below 5.11%, everything bounces and the big tech call is wrong."
+    "The 10-year yield closes back above Thursday's 5.22% high: big tech and the whole market turn slightly down.",
+    "Chips give back the whole pre-market gain in the first hour on heavy volume: chips slightly down (profit-taking before Micron).",
+    "A hot durable-goods number at 20:30 SGT plus hawkish Fed speakers pushing yields up: the whole market slightly down.",
+    "The Iran deal is confirmed and crude drops below $90: the whole market slightly up."
    ],
-   "confidence": "low, because bond yields are driving the tape, a data print lands inside the window, and the chip call bets against the morning gap on a four-day pattern.",
-   "cant_know": "Whether today is the day the yield climb finally breaks the chip rally. It hasn't in four sessions, and that is the whole bet.",
-   "the_call": "Mixed, and mild. The market ends roughly where it opens. Chips win back some of the morning's drop (+0.5 to 1% from pre-market), led by memory. Big tech drifts lower, with Meta, the most stretched, taking the worst of it.",
+   "confidence": "chips have moved about 2% a day in either direction this week, and the only thing I add beyond the gap is a five-session streak that can end any day.",
+   "cant_know": "Whether the Iran-deal report firms up or dies over the weekend, and what three Fed speakers say mid-session.",
+   "the_call": "Up, mildly. The S&P 500 ends roughly flat to a little higher. Chips lead again; Microsoft and Meta barely move. Singapore banks drift flat into Monday.",
    "sources": [
     {
-     "title": "10-year Treasury yield continues to rise from 19-year high",
-     "url": "https://www.cnbc.com/2026/09/24/us-treasury-yields-bonds-fed-inflation.html",
-     "date": "2026-09-24"
+     "title": "Wall St futures gain as AI enthusiasm eases worries over higher oil prices, yields (Reuters via Investing.com)",
+     "url": "https://www.investing.com/news/economy-news/wall-st-futures-gain-as-ai-enthusiasm-eases-worries-over-higher-oil-prices-yields-4917018",
+     "date": "2026-09-25"
     },
     {
-     "title": "Nasdaq futures fall 1% after soaring Treasury yields trigger market sell-off: Live updates",
-     "url": "https://www.cnbc.com/2026/09/23/stock-market-today-live-updates.html",
-     "date": "2026-09-23"
-    },
-    {
-     "title": "30-year Treasury yield hits 5.39%, a 22-year high, after hot PMI data",
-     "url": "https://www.investing.com/news/stock-market-news/30year-treasury-yield-hits-539-a-22year-high-after-hot-pmi-data-93CH-4915064",
-     "date": "2026-09-23"
-    },
-    {
-     "title": "U.S.-China trade truce extended for two months, Bessent says, as Xi begins state visit",
-     "url": "https://www.cnbc.com/2026/09/24/us-china-trade-truce-bessent-trump-xi.html",
+     "title": "Stock futures are little changed as Dow heads for fourth straight losing week (CNBC live updates; search summary only, page not opened)",
+     "url": "https://www.cnbc.com/2026/09/24/stock-market-today-live-updates.html",
      "date": "2026-09-24"
     }
    ]
