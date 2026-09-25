@@ -1,7 +1,72 @@
 {
   "_schema_version": "1.0",
-  "_last_updated": "2026-09-23",
+  "_last_updated": "2026-09-24",
   "rolling_summaries": [
+    {
+      "date": "2026-09-24",
+      "themes": [
+        "Rate shock / US10Y 2007 high",
+        "Semis underperform / signal flips",
+        "Oil: WTI roll day (Nov contract up)"
+      ],
+      "signals_snapshot": {
+        "ACCUMULATE": [
+          "CBRS"
+        ],
+        "WATCH": [
+          "D05_SI",
+          "O39_SI",
+          "U11_SI",
+          "NVDA",
+          "ASML",
+          "CRWV",
+          "MSFT"
+        ],
+        "HOLD": [
+          "IFX_DE",
+          "WRD"
+        ],
+        "CAUTION": [
+          "AMD",
+          "INTC",
+          "MU",
+          "TSM",
+          "TSEM",
+          "000660_KS",
+          "AXTI",
+          "SOI_PA",
+          "SNDK",
+          "NBIS",
+          "SKHY",
+          "005930_KS",
+          "AMZN",
+          "GOOG",
+          "META",
+          "AVGO",
+          "LITE",
+          "NOK",
+          "BE",
+          "AIXA_DE",
+          "NVTS",
+          "PLTR",
+          "SITM"
+        ]
+      },
+      "key_prices": {
+        "SPY": 767.81,
+        "WTI": 92.16,
+        "VIX": 15.18,
+        "Gold": 4318.4
+      },
+      "interconnected_suggested": [
+        "COHR",
+        "GNRC",
+        "QCOM",
+        "MRVL",
+        "ORCL"
+      ],
+      "one_liner": "Rate shock: US10Y 5.11% (2007 high), SPY -0.72%, SOXX -1.23%; GOOG/AMZN→CAUTION, NVDA/ASML→WATCH."
+    },
     {
       "date": "2026-09-23",
       "themes": [
@@ -392,69 +457,6 @@
         "MRVL"
       ],
       "one_liner": "SOXX +0.36% diverges from SPY -0.46%; US10Y hits 5.0% into today's FOMC decision. WTI $104.85 (+1.87%)."
-    },
-    {
-      "date": "2026-09-15",
-      "themes": [
-        "AI trade split",
-        "Semis underperform",
-        "Fed Sep 15-16 meeting",
-        "Oil elevated",
-        "US-Canada Section 338"
-      ],
-      "signals_snapshot": {
-        "WATCH": [
-          "D05_SI",
-          "O39_SI",
-          "SNDK",
-          "SKHY",
-          "GOOG",
-          "LITE"
-        ],
-        "HOLD": [
-          "U11_SI",
-          "MU",
-          "TSM",
-          "NBIS"
-        ],
-        "CAUTION": [
-          "NVDA",
-          "AMD",
-          "INTC",
-          "ASML",
-          "TSEM",
-          "000660_KS",
-          "CRWV",
-          "CBRS",
-          "AXTI",
-          "SOI_PA",
-          "005930_KS",
-          "AMZN",
-          "MSFT",
-          "META",
-          "AVGO",
-          "NOK",
-          "BE",
-          "IFX_DE",
-          "AIXA_DE",
-          "NVTS",
-          "PLTR",
-          "WRD",
-          "SITM"
-        ]
-      },
-      "key_prices": {
-        "SPY": 760.88,
-        "WTI": 102.84,
-        "VIX": 17.1,
-        "Gold": 4345.0
-      },
-      "interconnected_suggested": [
-        "COHR",
-        "Wiwynn",
-        "QCOM"
-      ],
-      "one_liner": "SOXX -5.63% splits AI trade; AMZN/MSFT/NVDA flip to CAUTION. WTI $102.84 (-0.4%) stays +26.6% m/m as Fed meeting starts."
     }
   ],
   "active_narratives": [
@@ -533,10 +535,6 @@
       "key_levels": {},
       "updates": [
         {
-          "date": "2026-09-15",
-          "note": "SOXX 497.4 (-5.63%) vs SPY -0.45% — sharp underperformance reverses Sep 14 outperformance. Flips: NVDA/IFX_DE→CAUTION, MU→HOLD, LITE/SKHY/SNDK→WATCH, TSM→HOLD. AI trade split cited."
-        },
-        {
           "date": "2026-09-16",
           "note": "SOXX 498.85 (+0.36%) vs SPY -0.46%, QQQ -0.65% — semis outperform on down tape. Flips: AMD CAUTION→WATCH, ASML CAUTION→ACCUMULATE, NVDA CAUTION→HOLD, 000660_KS CAUTION→WATCH, SKHY WATCH→HOLD, TSM HOLD→CAUTION, NBIS HOLD→CAUTION."
         },
@@ -559,9 +557,13 @@
         {
           "date": "2026-09-23",
           "note": "SOXX 572.78 (+2.40%) vs SPY -0.02%, QQQ +0.81% vs Monday's close (the report printed +1.79/-0.06/+0.60 off Monday's after-hours print) — semis outperform again to a new high above Sep 22's 559.34. Flip: ASML HOLD→CAUTION on a six-session '5-day' window (true 5-session +9.8%, under the 10% block) — a data artifact, not a fade."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "SOXX 565.72 (-1.23%) vs SPY -0.72%, QQQ -0.84% — semis underperform after new highs. Flips: NVDA CAUTION→WATCH, ASML CAUTION→WATCH, IFX_DE CAUTION→HOLD."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "fed_rate_pivot",
@@ -588,10 +590,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-15",
-          "note": "US10Y 4.96% (-0.28%); DXY 99.59 (+0.48%). FOMC Sep 15-16 begins; Aug CPI Sep 11 resolved at 3.4% y/y (flat vs July's 3.4% BLS headline — 'up' is the FRED SA series 3.3→3.4; hot core per prior). Macro lead repeats payrolls +162k, UR 4.1%."
-        },
-        {
           "date": "2026-09-16",
           "note": "US10Y 5.0% yield (+0.71% d/d from 4.96%) — new high. Sep 15-16 FOMC decision due today, not resolved in inputs; headlines cite Fed hike expectations. Macro lead repeats payrolls +162k, UR 4.1% stale."
         },
@@ -614,9 +612,13 @@
         {
           "date": "2026-09-23",
           "note": "US10Y 4.97% (+0.10% tape); DXY 100.43 (+0.21%) is Monday Sep 21's settled bar — no Sep 22 DXY bar at run time. Macro lead repeats/stale: payrolls +162k, UR 4.1%, CPI 3.4% — no new prints. Fed at 3.75-4.00% post the Sep 16 hike."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "US10Y 5.11% (+2.9% vs Sep 22's 4.97; the report's +3.04% is vs Sep 21's bar, as the Sep 22 ^TNX bar was missing) — highest since July 2007; SPY -0.72%, VIX +6.83% to 15.18 on rate shock. No new prints: payrolls +162k, UR 4.1%, CPI 3.4% stale. Fed 3.75-4.00%."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "singapore_cluster_weakness",
@@ -690,10 +692,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-15",
-          "note": "AI trade split: AMZN/MSFT/CRWV WATCH→CAUTION, GOOG CAUTION→WATCH, NBIS CAUTION→HOLD. SOXX -5.63% on AI uncertainty. No Big-4 capex guide change."
-        },
-        {
           "date": "2026-09-16",
           "note": "GOOG WATCH→HOLD, MSFT CAUTION→WATCH, NBIS HOLD→CAUTION, NVDA CAUTION→HOLD. US10Y 5.0% adds duration headwind. No Big-4 capex guide change."
         },
@@ -716,9 +714,13 @@
         {
           "date": "2026-09-23",
           "note": "GOOG WATCH→BUY (pulled back into its 50-day entry band, $345-348), AMZN BUY→WATCH (slipped just under its 50-day) — both fell on the session while semis led. No Big-4 capex guide change."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "GOOG BUY→CAUTION, AMZN WATCH→CAUTION as US10Y 5.11% rate shock raises duration/funding-cost headwind. No Big-4 capex guide change."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "pltr_defense_ai_momentum",
@@ -822,10 +824,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-10",
-          "note": "US-China sanctions/tariffs headlines recirculate; China Aug exports seen accelerating, inflation rebounding. ASML wins top chipmakers for new EUV. No new chip export controls."
-        },
-        {
           "date": "2026-09-11",
           "note": "US-China summit preview recirculates (soybeans, drone tariffs); China Aug inflation seen rebounding, trade data flags a demand gap. ASML High-NA pieces. No new chip export controls; no new Intel 18A signings."
         },
@@ -848,9 +846,13 @@
         {
           "date": "2026-09-23",
           "note": "ASML HOLD→CAUTION (pipeline) on a six-session '5-day' window (true 5-session +9.8%, under the 10% block) — a data artifact, not a signal fade. Xi-Trump summit gate 2026-09-24 now T-1 (state visit Sep 23-25). No new chip export controls."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "ASML CAUTION→WATCH. Xi-Trump summit is today (Sep 24); no new chip export controls or tariff announcements in inputs. Nov 10/27 suspension cliffs unchanged."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "china_stimulus_manufacturing_resilience",
@@ -921,10 +923,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-10",
-          "note": "ECB decision due Sep 10; no outcome in today's inputs. DXY 98.75 (-0.10%). Eurozone Economic Calendar only."
-        },
-        {
           "date": "2026-09-11",
           "note": "ECB hiked 25bp to a 2.50% deposit rate at the Sep 9-10 meeting (headlines: 'ECB hikes to 2.5%'), as ~99% priced — dated item resolved. DXY 99.15 (+0.38%)."
         },
@@ -947,9 +945,13 @@
         {
           "date": "2026-09-22",
           "note": "DXY 100.36 (+0.14%). Fed-ECB rate gap unchanged at 125bp (3.75-4.00% vs 2.50% DFR); no new ECB inputs. Next input: Aug bank lending ~Sep 25."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "DXY 101.10 on US10Y 5.11% rate shock (≈+0.4% vs the prior close 100.72; the report's +0.67% is two sessions vs Sep 21's 100.43, as the Sep 22 DXY bar was missing). Fed-ECB rate gap unchanged at 125bp (3.75-4.00% vs 2.50% DFR). No new ECB inputs."
         }
       ],
-      "last_updated": "2026-09-22"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "gold_data_conflict",
@@ -1039,10 +1041,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-15",
-          "note": "WTI 102.84 (-0.40% d/d; +12.4% 5d, +26.6% m/m). No Hormuz reopening or new escalation in today's inputs."
-        },
-        {
           "date": "2026-09-16",
           "note": "WTI 104.85 (+1.87% d/d; +12.71% 5d, +27.25% m/m). No Hormuz reopening or new escalation in today's inputs."
         },
@@ -1065,9 +1063,13 @@
         {
           "date": "2026-09-23",
           "note": "WTI 94.59 (-1.24% d/d; -10.6% 5d per tape), extending the slide off the Sep 15 ~106 high. No new Hormuz reopening or escalation headlines."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "WTI 92.16 settled Sep 23 on the NOVEMBER contract, up ~3.1% from its Sep 22 settle ~89.35. The report's -2.57% d/d compares it with October's final Sep 22 settle (94.59) across the contract roll, and its -10.03% 5d mixes contracts. So there was no fresh slide. No new Hormuz reopening or escalation headlines."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     },
     {
       "id": "microsoft_openai_azure_dependency",
@@ -1328,10 +1330,6 @@
       },
       "updates": [
         {
-          "date": "2026-09-04",
-          "note": "AMZN HOLD→WATCH (pipeline signal); no new suit developments."
-        },
-        {
           "date": "2026-09-10",
           "note": "AMZN WATCH→CAUTION; no new suit developments."
         },
@@ -1354,94 +1352,150 @@
         {
           "date": "2026-09-23",
           "note": "AMZN BUY→WATCH (pipeline), one session after the Sep 22 CAUTION→BUY. No new suit developments."
+        },
+        {
+          "date": "2026-09-24",
+          "note": "AMZN WATCH→CAUTION (pipeline) as rate shock hits consumer/ad names. No new FTC suit developments."
         }
       ],
-      "last_updated": "2026-09-23"
+      "last_updated": "2026-09-24"
     }
   ],
   "lessons_learned": [
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for U11_SI has only n=17 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +0.2% over 10d (n=17)",
-      "tickers_involved": [
-        "U11_SI"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: CAUTION for O39_SI has only n=30 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +2.3% over 10d (n=30)",
-      "tickers_involved": [
-        "O39_SI"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: CAUTION for D05_SI has only n=27 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs ^STI: +0.8% over 10d (n=27)",
-      "tickers_involved": [
-        "D05_SI"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: HOLD for 005930_KS has only n=11 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +3.7% over 10d (n=10)",
-      "tickers_involved": [
-        "005930_KS"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: HOLD for 000660_KS has only n=12 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: -1.2% over 10d (n=11)",
-      "tickers_involved": [
-        "000660_KS"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: HOLD for WRD has only n=26 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SPY: -2.2% over 10d (n=26)",
+      "lesson": "INSUFFICIENT DATA: HOLD for WRD has only n=27 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SPY: -2.1% over 10d (n=27)",
       "tickers_involved": [
         "WRD"
       ],
-      "computed_on": "2026-09-23"
+      "computed_on": "2026-09-24"
     },
     {
-      "lesson": "INSUFFICIENT DATA: HOLD for TSM has only n=11 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: -1.3% over 10d (n=11)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for U11_SI has only n=10 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs ^STI: -5.5% over 10d (n=10)",
+      "tickers_involved": [
+        "U11_SI"
+      ],
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: HOLD for TSM has only n=12 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: -1.5% over 10d (n=12)",
       "tickers_involved": [
         "TSM"
       ],
-      "computed_on": "2026-09-23"
+      "computed_on": "2026-09-24"
     },
     {
-      "lesson": "INSUFFICIENT DATA: CAUTION for TSEM has only n=30 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: -1.0% over 10d (n=30)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for TSEM has only n=31 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: -1.0% over 10d (n=31)",
       "tickers_involved": [
         "TSEM"
       ],
-      "computed_on": "2026-09-23"
+      "computed_on": "2026-09-24"
     },
     {
-      "lesson": "INSUFFICIENT DATA: CAUTION for SOI_PA has only n=18 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +1.7% over 10d (n=18)",
-      "tickers_involved": [
-        "SOI_PA"
-      ],
-      "computed_on": "2026-09-23"
-    },
-    {
-      "lesson": "INSUFFICIENT DATA: HOLD for SNDK has only n=13 over a single regime (chop) — do not adjust stance based on this.",
-      "evidence": "avg alpha vs SOXX: +6.9% over 10d (n=13)",
+      "lesson": "INSUFFICIENT DATA: CAUTION for SNDK has only n=11 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +9.4% over 10d (n=11)",
       "tickers_involved": [
         "SNDK"
       ],
-      "computed_on": "2026-09-23"
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: CAUTION for SKHY has only n=9 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +5.2% over 10d (n=9)",
+      "tickers_involved": [
+        "SKHY"
+      ],
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: CAUTION for PLTR has only n=30 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs QQQ: +8.0% over 10d (n=30)",
+      "tickers_involved": [
+        "PLTR"
+      ],
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: CAUTION for O39_SI has only n=31 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs ^STI: +2.2% over 10d (n=31)",
+      "tickers_involved": [
+        "O39_SI"
+      ],
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: WATCH for NVTS has only n=4 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: -4.2% over 10d (n=4)",
+      "tickers_involved": [
+        "NVTS"
+      ],
+      "computed_on": "2026-09-24"
+    },
+    {
+      "lesson": "INSUFFICIENT DATA: CAUTION for NVDA has only n=16 over a single regime (chop) — do not adjust stance based on this.",
+      "evidence": "avg alpha vs SOXX: +0.9% over 10d (n=16)",
+      "tickers_involved": [
+        "NVDA"
+      ],
+      "computed_on": "2026-09-24"
     }
   ],
   "news_digest": [
+    {
+      "date": "2026-09-24",
+      "topics": [
+        {
+          "topic": "Rate shock / bond selloff",
+          "summary": "US10Y yield surged to 5.11% (≈+2.9% vs Sep 22; the report's +3.04% runs from Sep 21's bar), highest since July 2007; SPY -0.72%, QQQ -0.84%, VIX +6.83% to 15.18. No new FRED prints — payrolls +162k, UR 4.1%, CPI 3.4% stale.",
+          "tickers": [
+            "SPY",
+            "QQQ",
+            "DXY"
+          ]
+        },
+        {
+          "topic": "Semis / AI signals",
+          "summary": "SOXX -1.23% underperformed SPY -0.72% and QQQ -0.84% as the rate shock hit duration. Flips: NVDA/ASML CAUTION→WATCH, IFX_DE CAUTION→HOLD, AMZN/GOOG→CAUTION, CBRS CAUTION→ACCUMULATE.",
+          "tickers": [
+            "NVDA",
+            "ASML",
+            "IFX_DE",
+            "AMZN",
+            "GOOG",
+            "CBRS"
+          ]
+        },
+        {
+          "topic": "Oil / Iran-Hormuz",
+          "summary": "WTI settled $92.16 on the November contract, up ~3.1% from its Sep 22 settle ~89.35. The report's -2.57% compares October's final Sep 22 settle (94.59) across the roll, and its -10.03% 5d mixes contracts. No new Hormuz reopening or escalation headlines; blockade intact.",
+          "tickers": [
+            "WTI",
+            "XOM",
+            "CVX"
+          ]
+        },
+        {
+          "topic": "US-China summit",
+          "summary": "Xi-Trump state visit runs Sep 23-25 with the summit today, Sep 24. No new China tariff announcements or chip export controls in today's inputs; Section 301 decision still held until after the summit.",
+          "tickers": [
+            "ASML",
+            "NVDA",
+            "INTC"
+          ]
+        },
+        {
+          "topic": "Gold / dollar",
+          "summary": "Gold 4318.4 (-1.33%) and DXY 101.10 (≈+0.4% vs the prior close; the report's +0.67% spans two sessions from Sep 21) as the US10Y surge lifted the dollar and pressured bullion.",
+          "tickers": [
+            "GLD",
+            "DXY"
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-23",
       "topics": [
@@ -1548,50 +1602,6 @@
           "tickers": [
             "AMD",
             "GME"
-          ]
-        }
-      ]
-    },
-    {
-      "date": "2026-09-21",
-      "topics": [
-        {
-          "topic": "Fed rate path / rates",
-          "summary": "US10Y back at 5.0% (+1.03% d/d from 4.95%) as 'Wall Street braces for more Fed rate hikes' headlines recirculate; DXY 100.31 (+0.09%). Macro lead repeats, still stale: payrolls +162k, unemployment 4.1%, CPI 3.4% YoY — no new prints.",
-          "tickers": [
-            "SPY",
-            "QQQ",
-            "DXY"
-          ]
-        },
-        {
-          "topic": "Semis rally vs signal fade",
-          "summary": "SOXX +2.69% to 533.07 vs SPY +0.13% — semis lead a narrow tape to a new high, and a 'chip ETF keeps beating the S&P 500' piece recirculates. Pipeline again fades the run: TSM BUY→WATCH; 005930_KS/SKHY/NBIS/NOK→CAUTION.",
-          "tickers": [
-            "SOXX",
-            "TSM",
-            "NVDA",
-            "AMD",
-            "NBIS"
-          ]
-        },
-        {
-          "topic": "Iran oil / Hormuz",
-          "summary": "WTI 94.06, -2.10% on the session and -6.0% over five sessions — the week's biggest macro change, extending the Sep 15-18 slide from near 106. No new Hormuz reopening or escalation headlines in today's inputs.",
-          "tickers": [
-            "WTI",
-            "XOM",
-            "CVX"
-          ]
-        },
-        {
-          "topic": "Mega-cap signals / dip-buying",
-          "summary": "MSFT WATCH→BUY is the session's strongest upgrade; GOOG HOLD→WATCH and U11_SI HOLD→WATCH also flipped. Headline flags Robinhood/Sandisk/AMD/Moderna surging into buy areas on the risk-on tape (VIX 14.81, -4.08%).",
-          "tickers": [
-            "MSFT",
-            "GOOG",
-            "U11_SI",
-            "AMD"
           ]
         }
       ]
