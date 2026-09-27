@@ -27,8 +27,9 @@ import re
 
 import streamlit as st
 
-from components.terminology_content import SECTIONS
+from components.terminology_content import SECTIONS, data_only_section
 from lib.cards import _section_head_html, render_section_head
+from lib.data_loader import load_all_reports
 
 _PLACEHOLDER = "Search terms — press Enter"
 
@@ -139,6 +140,19 @@ def page_html(sections, matched_ids) -> str:
             f'<div class="term-body">{body}</div></div>')
 
 
+def mechanical_since(reports: dict) -> str | None:
+    """First report date stamped data-only (meta.llm_enabled False), or None."""
+    dates = [d for d, r in (reports or {}).items()
+             if ((r or {}).get("meta") or {}).get("llm_enabled") is False]
+    return min(dates) if dates else None
+
+
+def sections_for(reports: dict) -> list:
+    """SECTIONS, led by the dated model-off notice once a data-only report exists."""
+    since = mechanical_since(reports)
+    return [data_only_section(since), *SECTIONS] if since else list(SECTIONS)
+
+
 def render_terminology_page() -> None:
     """Render the Terminology page."""
     # masthead=True is the shared 30px/2px document head used by every top-level
@@ -158,11 +172,12 @@ def render_terminology_page() -> None:
         placeholder=_PLACEHOLDER,
         label_visibility="collapsed",
     )
-    matched = [s for s in SECTIONS if matches(s, query)]
+    sections = sections_for(load_all_reports())
+    matched = [s for s in sections if matches(s, query)]
     matched_ids = {s["id"] for s in matched}
 
     st.markdown(
         f'<div class="term-status">{status_line(len(matched), query)}</div>',
         unsafe_allow_html=True,
     )
-    st.markdown(page_html(SECTIONS, matched_ids), unsafe_allow_html=True)
+    st.markdown(page_html(sections, matched_ids), unsafe_allow_html=True)

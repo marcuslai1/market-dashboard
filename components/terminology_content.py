@@ -133,6 +133,43 @@ def _wait_gradient() -> str:
 # number they turn on, then the inputs, then how the record is scored, then the
 # caveats that qualify all of it.
 
+def data_only_section(since: str) -> dict:
+    """The dated notice shown first once the report model is switched off
+    (MarketReport report LLM off, spec 2026-09-28): from ``since`` every label
+    is mechanical and the narrative is the Daily Briefing card. The sections
+    below keep describing model-era reports, which stay as they shipped."""
+    return {
+        "id": "report-model-off",
+        "title": "Report model switched off",
+        "descriptor": f"From {since}",
+        "kw": ("model deepseek llm writeup writeups mechanical briefing accumulate avoid "
+               "data-only cutover narrative"),
+        "answer": (
+            f"From {since} no language model writes the report. Every label from that "
+            "date is the mechanical one, and the daily narrative is the Daily Briefing card."
+        ),
+        "body": _grid([
+            ("Labels",
+             "BUY, WATCH, HOLD and CAUTION come from the price, RSI, volume and hard-block "
+             "rules alone. ACCUMULATE and AVOID were only ever set by the model, so they no "
+             "longer appear; older reports keep theirs."),
+            ("Writeups",
+             "Per-name writeups, cluster summaries, the macro note, scenario odds and "
+             f"interconnected picks stop from {since}. Sections below that describe them "
+             f"apply to reports before {since}."),
+            ("Daily briefing",
+             "Written by Claude in the terminal from the day's data: moves and why, "
+             "earnings, catalysts, chart facts. Every load-bearing fact carries a source; it "
+             "makes no directional call and uses no signal labels."),
+            ("Measurement",
+             "Labels keep being logged and scored. Reads never pool rows from before and "
+             f"after {since}: the two eras are different instruments."),
+        ]),
+        "drawers": [],
+        "history": [],
+    }
+
+
 SECTIONS = [
     # 1 ─────────────────────────────────────────────────────────────────────
     {

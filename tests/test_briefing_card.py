@@ -64,3 +64,15 @@ def test_null_geopolitical_does_not_crash_the_scenario_log():
     assert _get_probs({"geopolitical": None}) is not None
     df = extract_scenario_history({"2026-09-29": {"geopolitical": None}})
     assert len(df) == 0
+
+
+def test_terminology_leads_with_the_model_off_notice_only_after_a_data_only_report():
+    from components.terminology import mechanical_since, page_html, sections_for
+    model = {"2026-09-25": {"meta": {"llm_enabled": True}}, "2026-09-24": {"meta": {}}}
+    assert mechanical_since(model) is None and sections_for(model)[0]["id"] != "report-model-off"
+    both = dict(model, **{"2026-09-30": {"meta": {"llm_enabled": False}},
+                          "2026-10-01": {"meta": {"llm_enabled": False}}})
+    secs = sections_for(both)
+    assert mechanical_since(both) == "2026-09-30" and secs[0]["id"] == "report-model-off"
+    html = page_html(secs, {s["id"] for s in secs})
+    assert "Report model switched off" in html and "From 2026-09-30" in html
