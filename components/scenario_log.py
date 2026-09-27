@@ -52,9 +52,9 @@ def _get_probs(rpt):
 
     Returns dict of {scenario_name: (display_string, midpoint_float)}.
     """
-    geo = rpt.get("geopolitical", {})
+    geo = rpt.get("geopolitical") or {}
     # New format: geopolitical.probabilities = {base: 50, ...}
-    probs = geo.get("probabilities", {})
+    probs = geo.get("probabilities") or {}
     if probs:
         out = {}
         for k, v in probs.items():
@@ -70,7 +70,7 @@ def _get_probs(rpt):
         return out
     # Legacy format: geopolitical.scenarios = {base_case: {probability: "50-55%"}}
     result = {}
-    for name, sc in geo.get("scenarios", {}).items():
+    for name, sc in (geo.get("scenarios") or {}).items():
         prob_str = _sc_dict(sc).get("probability", "—")
         mid = None
         try:
@@ -90,10 +90,10 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
     """Build scenario probability tracking from all reports."""
     rows = []
     for date_str, report in reports.items():
-        geo = report.get("geopolitical", {})
+        geo = report.get("geopolitical") or {}
 
         # New simple format: geopolitical.probabilities = {base: 50, optimistic: 22, ...}
-        probs = geo.get("probabilities", {})
+        probs = geo.get("probabilities") or {}
         if probs:
             # Per-case writeups (restored 2026-06-08) live alongside the integer
             # probabilities in geopolitical.scenarios[name].description. Surface
@@ -118,7 +118,7 @@ def extract_scenario_history(reports: dict) -> pd.DataFrame:
             continue  # Skip legacy format if new format present
 
         # Legacy format: geopolitical.scenarios = {base_case: {probability: "50-55%", ...}}
-        scenarios = geo.get("scenarios", {})
+        scenarios = geo.get("scenarios") or {}
         for name, sc in scenarios.items():
             sc = _sc_dict(sc)
             prob_str = sc.get("probability", "")

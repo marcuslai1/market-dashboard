@@ -29,6 +29,7 @@ from components.briefing.accumulate_status import accumulate_banner_html
 from components.briefing.action_card import action_card_html
 from components.briefing.calendar import calendar_card_html
 from components.briefing.clusters import cluster_anchor_count
+from components.briefing.daily_briefing import briefing_card_html
 from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.market_read import market_read_card_html
 from components.briefing.stance import stance_band_html
@@ -42,6 +43,7 @@ from lib.data_loader import (
     data_fingerprint,
     list_report_dates,
     load_all_reports,
+    load_briefings,
     load_earnings_cascades,
     load_macro_history,
     load_market_reads,
@@ -197,10 +199,16 @@ def _page_briefing() -> None:
         _live = fetch_live_quotes() if LIVE_PRICES else {}
         report = overlay_live(_base_report, _live) if _live else _base_report
 
-        snapshot = report.get("portfolio_snapshot", {})
-        watchlist = report.get("watchlist", {})
-        benchmarks = report.get("benchmarks", {})
-        geo = report.get("geopolitical", {})
+        # `or {}`: a key present as null (not just absent) must not crash the page.
+        snapshot = report.get("portfolio_snapshot") or {}
+        watchlist = report.get("watchlist") or {}
+        benchmarks = report.get("benchmarks") or {}
+        geo = report.get("geopolitical") or {}
+        # Data-only report (MarketReport report LLM off, 2026-09-28 spec §6/O6): the
+        # pipeline stamps meta.llm_enabled = False. Labels stay on the measurement
+        # pages; the advice surface (the single-action card) is not shown, and the
+        # narrative comes from the daily briefing card.
+        data_only = (report.get("meta") or {}).get("llm_enabled") is False
         events = report.get("events_this_week", []) or []
 
         # Stance band: single st.markdown so the lane-wrapper actually scopes both
@@ -303,7 +311,10 @@ def _page_briefing() -> None:
         # that used to stack here — clusters, calibration, earnings, the macro
         # trigger map, contrarians, capex — now live on their own tabs (see the
         # section mapping in docs/overhaul-plan.md); nothing was deleted.
-        _left = action_card_html(watchlist, events) + macro_card_html(
+        _briefing = briefing_card_html(load_briefings(),
+                                       (report.get("meta") or {}).get("report_date"))
+        _action = "" if data_only else action_card_html(watchlist, events)
+        _left = _briefing + _action + macro_card_html(
             report.get("macro_summary", ""), geo,
             report.get("commodities_note", ""),
             report.get("macro_indicators", {}),
@@ -526,7 +537,7 @@ _latest_rpt = load_report(_latest_date) if _report_dates else {}
 # sidebar was unreachable on narrow viewports — no longer holds: theme.css
 # force-pins the sidebar-expand chip visible at every width (see the
 # stExpandSidebarButton block), so the sidebar refresh is always reachable.
-_sig_counts = _latest_rpt.get("portfolio_snapshot", {}).get("signal_counts", {})
+_sig_counts = (_latest_rpt.get("portfolio_snapshot") or {}).get("signal_counts") or {}
 
 _status_html = '<div class="sidebar-status">'
 _status_html += (

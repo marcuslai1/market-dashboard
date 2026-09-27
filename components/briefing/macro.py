@@ -273,6 +273,7 @@ def macro_card_html(macro_summary: str, geo: dict, commodities_note: str = "",
     ``macro_history`` is the per-series observation run behind the prints
     sparklines; optional, so callers that only have today's report still render.
     """
+    geo = geo or {}  # a report can carry geopolitical: null (data-only run)
     body = ""
     if macro_summary:
         body += f'<p class="macro-lead">{_escape_dollars(macro_summary)}</p>'
@@ -452,6 +453,7 @@ def risks_card_html(geo: dict) -> str:
     severity dot (§2.5) keys off it. When/if an entry is a dict with
     ``severity``, that value is preferred over inference.
     """
+    geo = geo or {}  # a report can carry geopolitical: null (data-only run)
     risks = (geo.get("active_risks") or [])[:5]
     body = ""
     for r in risks:

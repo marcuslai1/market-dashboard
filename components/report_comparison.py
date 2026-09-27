@@ -351,15 +351,25 @@ def render_report_comparison_page(reports: dict) -> None:
 
     # ── Interconnected Stocks Diff ──
     st.subheader("Interconnected Stocks Diff")
-    inter_a = {s.get("ticker", s.get("name", "?")) for s in rpt_a.get("interconnected", [])}
-    inter_b = {s.get("ticker", s.get("name", "?")) for s in rpt_b.get("interconnected", [])}
+    # A data-only report (MarketReport report LLM off, 2026-09-28) has no model-picked
+    # interconnected names; diffing it against a model-era report would list every
+    # old name as "Removed", which reads as a judgement that was never made.
+    if any((r.get("meta") or {}).get("llm_enabled") is False for r in (rpt_a, rpt_b)):
+        st.caption("Not compared — one of these reports was produced without the "
+                   "report model, so it carries no interconnected picks.")
+        inter_a = inter_b = set()
+        _compared = False
+    else:
+        _compared = True
+        inter_a = {s.get("ticker", s.get("name", "?")) for s in (rpt_a.get("interconnected") or [])}
+        inter_b = {s.get("ticker", s.get("name", "?")) for s in (rpt_b.get("interconnected") or [])}
     added = inter_b - inter_a
     removed = inter_a - inter_b
     if added:
         st.markdown(f"**Added:** {', '.join(sorted(added))}")
     if removed:
         st.markdown(f"**Removed:** {', '.join(sorted(removed))}")
-    if not added and not removed:
+    if _compared and not added and not removed:
         st.caption("No changes to interconnected stocks.")
 
     # ── Key Metric Shifts ──
