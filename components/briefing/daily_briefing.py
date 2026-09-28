@@ -19,6 +19,7 @@ Constraints, all upstream decisions:
 """
 from __future__ import annotations
 
+from components.briefing.daily_briefing_v2 import briefing_v2_html
 from components.briefing.market_read import _bullets, _drawer, _section, _source_links, _txt
 from lib.cards import card_container
 from lib.formatters import _escape_attr, _escape_dollars
@@ -48,7 +49,9 @@ def briefing_card_html(payload: dict, report_date: str | None = None) -> str:
     knows how old it is).
     """
     latest = (payload or {}).get("latest") or {}
-    matters = [m for m in (latest.get("what_matters") or []) if m]
+    if latest.get("schema") == 2:
+        return briefing_v2_html(latest, report_date)
+    matters =[m for m in (latest.get("what_matters") or []) if m]
     sections = latest.get("sections") if isinstance(latest.get("sections"), dict) else {}
     if not matters and not sections:
         return ""
