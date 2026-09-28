@@ -1,22 +1,33 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-28T04:42:35+00:00",
+ "generated_utc": "2026-09-28T11:16:08+00:00",
  "latest": {
-  "id": "20260928T044233Z",
-  "ts_sgt": "2026-09-28T12:42:33+08:00",
+  "id": "20260928T111607Z",
+  "ts_sgt": "2026-09-28T19:16:07+08:00",
   "data_date": "2026-09-28",
   "what_matters": [
-   "MU reports FQ4 Wed 09-30 after the close (Thu 01 Oct 4:05am SGT): consensus revenue ~$51.2B (range $46.9B-$59.8B, 35 analysts), EPS ~$31.59; company guide $50.0B +/- $1.0B, EPS $31 +/- 1.",
-   "Weekend: Trump rejected Iran's conditional proposal to reopen Hormuz; Brent +1.8% to $106.31 Monday and US futures lower (after Friday's close, so not in this data).",
-   "MSFT +3.7% Friday (2.1 sigma, 1.6x volume) on a Copilot overhaul (Home, Code, Autopilot); SK Hynix and Samsung down ~4% Monday on Korea's first session back from Chuseok."
+   {
+    "kind": "earnings",
+    "tag_note": "in 2 days",
+    "head": "Micron reports Thursday 1 Oct, 04:05 SGT.",
+    "detail": "The first print since its 24 Aug leadership restructure. Consensus and guide are under Earnings."
+   },
+   {
+    "kind": "after",
+    "tag_note": "weekend",
+    "head": "Trump rejected Iran's proposal to reopen the Strait of Hormuz.",
+    "detail": "Oil rose Monday. None of this is in Friday's US prices.",
+    "src": [
+     5
+    ]
+   },
+   {
+    "kind": "move",
+    "tag_note": "2.1x usual",
+    "head": "Microsoft +3.7% Friday on a Copilot overhaul.",
+    "detail": "Volume 1.6x its average, the day's only notably heavy trading."
+   }
   ],
-  "sections": {
-   "overnight": "Data = US close Fri 25 Sep, plus SGX/KRX Monday 28 Sep partial sessions as of 12:05 SGT. Tape: SPY +0.5%, QQQ +0.5%, SOXX +1.2% (5d +7.4%), VIX -5.1%, US10Y 5.18% (+2bp), WTI -2.3% (5d -7.9%), gold +0.5%. MSFT +3.66% (2.1 sigma, vol 1.6x): unveiled Copilot Home, Code and Autopilot; Oppenheimer raised its target to $570 (CNBC / Yahoo Finance, 25 Sep). UOB (U11_SI) +2.1% Monday midday (2.0 sigma, vol 0.72x): no reported cause found. SK Hynix (000660_KS) -4.1% and Samsung (005930_KS) -4.3% vs the pre-holiday close, Monday midday: first session after Chuseok; Bloomberg ties Hynix's drop to profit-taking, foreign selling and a report that Solidigm is weighing a US IPO (Bloomberg, 28 Sep). BE +8.3% Friday (1.2 sigma): rebound after the prior session's drop on Oracle's Project Jupiter force-majeure notice; Investing.com credits a Morgan Stanley note, a Yahoo Finance headline says Oracle reaffirmed the 2.4 GW contract (the catalyst recheck due 29 Sep should confirm from the primary source). After the data: Trump rejected Iran's proposal to reopen Hormuz (Iran sought a blockade lift, sanctions relief and a ceasefire); Brent +1.8% to $106.31, WTI Nov +1.3% to $93.62 Monday (CNBC, 28 Sep); Bloomberg reports the bond selloff resuming.",
-   "earnings": "Out since last run: none. Coming: MU FQ4 Wed 30 Sep after the close = Thu 01 Oct 4:05am SGT. Consensus revenue ~$51.2B (range $46.9B-$59.8B), 35 analysts; EPS ~$31.59 (yfinance sell-side average). Company guide: revenue $50.0B +/- $1.0B, GM ~86%, non-GAAP EPS $31 +/- 1, FCF > $30B. First print since the 24 Aug leadership restructure. No options-implied move in the data. No other watchlist prints dated in the next 14 days.",
-   "catalysts_calendar": "Macro (SGT): JOLTS Aug, Tue 29 Sep 10:00pm · PCE / personal income Aug, Wed 30 Sep 8:30pm · MU print Thu 01 Oct 4:05am · non-farm payrolls Sep, Fri 02 Oct 8:30pm. Tonight's scheduled drivers: none of these (JOLTS is Tuesday); Monday's named news is the Iran/oil headline. Rechecks due: BE 29 Sep (lead-plaintiff deadline, Project Jupiter force majeure) · _macro 30 Sep (Section 338 Canada bans effective 29 Sep) · 01 Oct: MU print, PLTR Maven program-of-record by 30 Sep, IFX_DE Mitsubishi/ROHM/Toshiba JV deadline 30 Sep, CBRS CS-4 shipments by 30 Sep, NVTS transfer-motion reply 30 Sep, ASML and NVDA print dates · 05 Oct: AMD, AMZN FTC case, GOOG ad-tech final judgment, payrolls + Japan MOF FX release. New FRED print: 5y breakeven 2.34% (prior 2.33).",
-   "chart_facts": "Far above the 50-day average: BE +25.7% (RSI 62.8) · AMD +24.9% (RSI 73.0) · INTC +24.2% (RSI 66.9, -3.5% Friday) · META +22.2% (RSI 71.4, 5d +13.0%, -3.3% Friday) · AXTI +20.6%. MU +14.9% above into its print (RSI 63.2). Below the 50-day: AVGO -6.2%, AIXA_DE -7.3%, WRD -5.8% (-4.5% Friday on 1.27x volume), AMZN -2.5%, GOOG -0.2%. MSFT's 1.6x volume was the only notably heavy tape.",
-   "data_notes": "Coverage 33/33, no skips, no stale bars, latch inactive. The digest header prints 'US session 2026-09-28'; the last US session in the data is Fri 2026-09-25 (meta.session_freshness.last_us_session). SGX and KRX bars are Monday partial sessions at 12:05 SGT, and KRX d/d is vs the 23 Sep pre-Chuseok close. Report LLM off from this run (llm_enabled false)."
-  },
   "sources": [
    {
     "title": "Morning report data 2026-09-28",
@@ -63,9 +74,441 @@
     "url": "https://finance.yahoo.com/energy/articles/bloom-energy-jumps-8-oracle-165523316.html",
     "date": "2026-09-25"
    }
-  ]
+  ],
+  "revises": "20260928T044233Z",
+  "after_data": [
+   {
+    "lead": "Trump rejected Iran's proposal to reopen Hormuz.",
+    "text": "Iran had asked for the blockade to be lifted, sanctions relief and a ceasefire.",
+    "src": [
+     5
+    ]
+   },
+   {
+    "lead": "Oil Monday:",
+    "text": "Brent +1.8% to $106.31, WTI November +1.3% to $93.62.",
+    "src": [
+     5
+    ]
+   },
+   {
+    "lead": "Bonds:",
+    "text": "Bloomberg reports the selloff resuming.",
+    "src": [
+     6
+    ]
+   }
+  ],
+  "as_of": [
+   {
+    "label": "US prices",
+    "when": "Fri 25 Sep close",
+    "note": "Every US move, the tape, chart facts"
+   },
+   {
+    "label": "SGX · KRX prices",
+    "when": "Mon 28 Sep, 12:05 SGT",
+    "note": "Part-day. KRX vs the 23 Sep pre-Chuseok close"
+   },
+   {
+    "label": "News checked",
+    "when": "Mon 28 Sep, 12:42 SGT",
+    "note": "Includes the weekend: see After the data"
+   }
+  ],
+  "calendar": [
+   {
+    "sgt": "2026-09-29T22:00",
+    "kind": "macro",
+    "what": "JOLTS job openings (Aug)",
+    "impact": "medium"
+   },
+   {
+    "sgt": "2026-09-30T20:30",
+    "kind": "macro",
+    "what": "PCE inflation, personal income (Aug)",
+    "impact": "medium"
+   },
+   {
+    "sgt": "2026-10-01T04:05",
+    "kind": "earnings",
+    "what": "Micron fiscal Q4",
+    "impact": "high"
+   },
+   {
+    "sgt": "2026-10-02T20:30",
+    "kind": "macro",
+    "what": "Non-farm payrolls (Sep)",
+    "impact": "high"
+   }
+  ],
+  "chart_facts": {
+   "names": [
+    "BE",
+    "AMD",
+    "INTC",
+    "META",
+    "AXTI",
+    "MU",
+    "WRD",
+    "AVGO",
+    "AIXA_DE"
+   ],
+   "note": "Also just below the average: Amazon -2.5%, Google -0.2%. Micron sits +14.9% above going into its print."
+  },
+  "data_notes": "The digest header's 'US session 2026-09-28' is the run date. The last US session in the data is Fri 25 Sep. The report model is off from this run.",
+  "earnings": {
+   "out": [],
+   "coming": [
+    {
+     "key": "MU",
+     "period": "fiscal Q4",
+     "when_sgt": "2026-10-01T04:05",
+     "when_note": "Wed 30 Sep after the US close",
+     "revenue": {
+      "consensus": 51.2,
+      "guide_low": 49.0,
+      "guide_high": 51.0,
+      "range_low": 46.9,
+      "range_high": 59.8,
+      "analysts": 35
+     },
+     "eps": {
+      "consensus": 31.59,
+      "guide_low": 30,
+      "guide_high": 32
+     },
+     "facts": "Guide also: GM ~86%, FCF > $30B. No options-implied move in the data."
+    }
+   ],
+   "note": "Consensus: yfinance sell-side average, in the morning report. Guide: Micron's guidance as tracked in catalysts.json. No other watchlist prints in the next 14 days."
+  },
+  "group_notes": {
+   "KRX": "vs the 23 Sep close, before Chuseok, so several days of news",
+   "SGX": "part-day to 12:05 SGT"
+  },
+  "movers": [
+   {
+    "key": "MSFT",
+    "why": "Unveiled Copilot Home, Code and Autopilot; Oppenheimer raised its target to $570.",
+    "why_state": "found",
+    "src": [
+     2,
+     3
+    ]
+   },
+   {
+    "key": "BE",
+    "why": "Rebound after Oracle's Project Jupiter force-majeure notice. One source credits a Morgan Stanley note; another says Oracle reaffirmed the 2.4 GW contract. The 29 Sep recheck confirms from the primary source.",
+    "why_state": "found",
+    "src": [
+     7,
+     8
+    ]
+   },
+   {
+    "key": "U11_SI",
+    "why": "No reported cause found in the allowlisted outlets.",
+    "why_state": "none_found"
+   },
+   {
+    "key": "000660_KS",
+    "why": "Profit-taking and foreign selling on the first session back; report that Solidigm is weighing a US IPO.",
+    "why_state": "found",
+    "src": [
+     4
+    ],
+    "size_note": "size not comparable"
+   },
+   {
+    "key": "005930_KS",
+    "why": "First session after the holiday, alongside Hynix.",
+    "why_state": "found",
+    "size_note": "size not comparable"
+   }
+  ],
+  "rechecks": [
+   {
+    "date": "2026-09-29",
+    "items": [
+     {
+      "name": "Bloom Energy",
+      "q": "Did Oracle's force-majeure notice get a primary-source answer? Lead-plaintiff motions filed?"
+     }
+    ]
+   },
+   {
+    "date": "2026-09-30",
+    "items": [
+     {
+      "name": "Canada",
+      "q": "Are the US Section 338 bans (effective 29 Sep) in force, suspended or answered?"
+     }
+    ]
+   },
+   {
+    "date": "2026-10-01",
+    "items": [
+     {
+      "name": "Micron",
+      "q": "Print vs the guide; FQ1 guide and HBM4 commentary"
+     },
+     {
+      "name": "Palantir",
+      "q": "Maven a program of record by 30 Sep?"
+     },
+     {
+      "name": "Infineon",
+      "q": "Did Mitsubishi / ROHM / Toshiba announce their power-chip JV?"
+     },
+     {
+      "name": "Cerebras",
+      "q": "CS-4 first shipments by 30 Sep?"
+     },
+     {
+      "name": "Navitas",
+      "q": "Reply on the transfer motion (due 30 Sep)?"
+     },
+     {
+      "name": "ASML, NVIDIA",
+      "q": "Print dates posted?"
+     }
+    ]
+   },
+   {
+    "date": "2026-10-05",
+    "items": [
+     {
+      "name": "AMD",
+      "q": "Q3 print date posted?"
+     },
+     {
+      "name": "Amazon",
+      "q": "FTC ad-auction case: answer or motion to dismiss?"
+     },
+     {
+      "name": "Google",
+      "q": "Ad-tech final judgment entered?"
+     },
+     {
+      "name": "Macro",
+      "q": "Payrolls; any September yen intervention?"
+     }
+    ]
+   }
+  ],
+  "schema": 2,
+  "tape_note": "Quiet tape: no index moved more than 1.1x its usual day.",
+  "tonight": "No scheduled US release.",
+  "numbers": {
+   "tape": [
+    {
+     "name": "SPY",
+     "chg_pct": 0.54,
+     "5d_pct": 1.27,
+     "x_usual": 0.8,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "QQQ",
+     "chg_pct": 0.46,
+     "5d_pct": 3.3,
+     "x_usual": 0.4,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "SOXX",
+     "chg_pct": 1.17,
+     "5d_pct": 7.43,
+     "x_usual": 0.4,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "VIX",
+     "chg_pct": -5.11,
+     "5d_pct": 0.41,
+     "x_usual": 0.8,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "US10Y",
+     "chg_pct": 0.43,
+     "5d_pct": 3.72,
+     "x_usual": 0.5,
+     "level": 5.18,
+     "bp": 2
+    },
+    {
+     "name": "DXY",
+     "chg_pct": -0.32,
+     "5d_pct": 0.75,
+     "x_usual": 1.1,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "WTI",
+     "chg_pct": -2.33,
+     "5d_pct": -7.87,
+     "x_usual": 0.7,
+     "level": null,
+     "bp": null
+    },
+    {
+     "name": "Gold",
+     "chg_pct": 0.54,
+     "5d_pct": -2.34,
+     "x_usual": 0.4,
+     "level": null,
+     "bp": null
+    }
+   ],
+   "movers": {
+    "MSFT": {
+     "name": "Microsoft",
+     "market": "US",
+     "chg_pct": 3.66,
+     "x_usual": 2.1,
+     "vol_ratio": 1.6,
+     "stale": false
+    },
+    "BE": {
+     "name": "Bloom Energy",
+     "market": "US",
+     "chg_pct": 8.27,
+     "x_usual": 1.2,
+     "vol_ratio": 0.89,
+     "stale": false
+    },
+    "U11_SI": {
+     "name": "UOB",
+     "market": "SGX",
+     "chg_pct": 2.14,
+     "x_usual": 2.0,
+     "vol_ratio": 0.72,
+     "stale": false
+    },
+    "000660_KS": {
+     "name": "SK Hynix",
+     "market": "KRX",
+     "chg_pct": -4.1,
+     "x_usual": 0.5,
+     "vol_ratio": 0.67,
+     "stale": false
+    },
+    "005930_KS": {
+     "name": "Samsung Electronics",
+     "market": "KRX",
+     "chg_pct": -4.31,
+     "x_usual": 0.7,
+     "vol_ratio": 0.77,
+     "stale": false
+    }
+   },
+   "also_moved": [
+    {
+     "name": "WeRide",
+     "market": "US",
+     "chg_pct": -4.49,
+     "x_usual": 1.4,
+     "vol_ratio": 1.27,
+     "stale": false,
+     "key": "WRD"
+    },
+    {
+     "name": "Meta Platforms",
+     "market": "US",
+     "chg_pct": -3.33,
+     "x_usual": 1.2,
+     "vol_ratio": 0.96,
+     "stale": false,
+     "key": "META"
+    }
+   ],
+   "chart": {
+    "BE": {
+     "name": "Bloom Energy",
+     "vs_sma50_pct": 25.7,
+     "rsi": 62.8
+    },
+    "AMD": {
+     "name": "AMD",
+     "vs_sma50_pct": 24.95,
+     "rsi": 73.0
+    },
+    "INTC": {
+     "name": "Intel",
+     "vs_sma50_pct": 24.18,
+     "rsi": 66.9
+    },
+    "META": {
+     "name": "Meta Platforms",
+     "vs_sma50_pct": 22.16,
+     "rsi": 71.4
+    },
+    "AXTI": {
+     "name": "AXT",
+     "vs_sma50_pct": 20.64,
+     "rsi": 59.0
+    },
+    "MU": {
+     "name": "Micron",
+     "vs_sma50_pct": 14.94,
+     "rsi": 63.2
+    },
+    "WRD": {
+     "name": "WeRide",
+     "vs_sma50_pct": -5.83,
+     "rsi": 42.7
+    },
+    "AVGO": {
+     "name": "Broadcom",
+     "vs_sma50_pct": -6.17,
+     "rsi": 44.0
+    },
+    "AIXA_DE": {
+     "name": "Aixtron",
+     "vs_sma50_pct": -7.27,
+     "rsi": 42.7
+    }
+   },
+   "names": {
+    "MSFT": "Microsoft",
+    "BE": "Bloom Energy",
+    "U11_SI": "UOB",
+    "000660_KS": "SK Hynix",
+    "005930_KS": "Samsung Electronics",
+    "AMD": "AMD",
+    "INTC": "Intel",
+    "META": "Meta Platforms",
+    "AXTI": "AXT",
+    "MU": "Micron",
+    "WRD": "WeRide",
+    "AVGO": "Broadcom",
+    "AIXA_DE": "Aixtron"
+   },
+   "health": {
+    "fetched": 33,
+    "expected": 33,
+    "skipped": [],
+    "stale_tickers": [],
+    "no_new_us_session": false,
+    "last_us_session": "2026-09-25",
+    "latch_active": false,
+    "holes": []
+   }
+  }
  },
  "recent": [
+  {
+   "id": "20260928T111607Z",
+   "data_date": "2026-09-28",
+   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT."
+  },
   {
    "id": "20260928T044233Z",
    "data_date": "2026-09-28",
