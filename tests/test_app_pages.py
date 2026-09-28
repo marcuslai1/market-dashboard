@@ -7,6 +7,7 @@ the real dashboard.py and visits all 8 nav targets. Live quotes are stubbed:
 no network in CI.
 """
 import glob
+import json
 
 import pytest
 from streamlit.testing.v1 import AppTest
@@ -188,8 +189,11 @@ def test_terminology_search_removes_non_matching_sections():
     assert 'id="valuation"' in page, "the matching section was dropped"
     assert 'id="rr"' not in page, "a non-matching section still rendered"
     assert "1 of 12 sections matches" in page
-    # The rail still lists everything: it is how a reader learns what exists.
-    assert page.count("term-index-item") == 12
+    # The rail still lists everything: it is how a reader learns what exists —
+    # incl. the dated model-off notice once a data-only report exists (2026-09-28).
+    from components.terminology import sections_for
+    from lib.data_loader import load_all_reports
+    assert page.count("term-index-item") == len(sections_for(load_all_reports()))
 
 
 def test_terminology_no_match_says_so():
@@ -254,7 +258,12 @@ def test_briefing_renders_action_card():
     at = _boot()
     assert not at.exception
     page = " ".join(str(m.value) for m in at.markdown)
-    assert "IF YOU ONLY DO ONE THING TODAY" in page
+    # MarketReport spec O6 (2026-09-28): a data-only report (meta.llm_enabled False)
+    # hides the advice card by design — the expectation follows the latest report.
+    latest = max(glob.glob("data/morning_report_*.json"))
+    with open(latest, encoding="utf-8") as fh:
+        data_only = (json.load(fh).get("meta") or {}).get("llm_enabled") is False
+    assert ("IF YOU ONLY DO ONE THING TODAY" in page) is not data_only
 
 
 def _capex_pulse_app():

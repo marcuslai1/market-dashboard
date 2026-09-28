@@ -1299,24 +1299,47 @@ def test_cell_tone_rules_follow_the_help_scales():
 
 
 def test_toned_roles_are_the_live_books_only():
-    from components.paper_book import _SCORECARD_ARCHIVE, _SCORECARD_LANES, _is_toned_role
+    from components.paper_book import (
+        _RETIRED_BOOKS,
+        _SCORECARD_ARCHIVE,
+        _SCORECARD_LANES,
+        _is_toned_role,
+    )
     live = [role for _p, role, _d in _SCORECARD_LANES if _is_toned_role(role)]
     assert live == ["Default"] + [r for _p, r, _d in _SCORECARD_LANES if r.startswith("Twin")]
     for _p, role, _d in _SCORECARD_LANES:
         if role.startswith(("Previous default", "Challenger", "Control", "Theoretical", "v1")):
             assert not _is_toned_role(role), role
     for _p, role, _d in _SCORECARD_ARCHIVE:        # "Default · …" settled lanes stay neutral
-        assert not _is_toned_role(role), role
+        assert not _is_toned_role(role) or _p in _RETIRED_BOOKS, role
+
+
+def test_retired_books_are_archived_and_never_toned():
+    # MarketReport briefing rebuild (spec O4, 2026-09-28): the pipeline stopped advancing every
+    # twin and v1 lane; a frozen book proves nothing forward, so it leaves the live scorecard and
+    # its cells never carry colour, even under its old "Twin ·" role.
+    from components.paper_book import (
+        _RETIRED_BOOKS,
+        _SCORECARD_ARCHIVE,
+        _SCORECARD_LANES,
+        _is_toned_lane,
+    )
+    live = {p for p, _r, _d in _SCORECARD_LANES}
+    assert live == {"v2_starter_b15_tb_fees", "v2_starter_b15_all", "v1_flat10"}
+    assert {p for p, _r, _d in _SCORECARD_ARCHIVE} >= _RETIRED_BOOKS
+    assert not _is_toned_lane("v2_starter_b15_tb_fees_trail", "Twin · trailing stop")
+    assert _is_toned_lane("v2_starter_b15_tb_fees", "Default")
 
 
 def test_scorecard_tones_live_book_cells_and_leaves_the_rest_neutral():
     from components.paper_book import scorecard_html
     from tests.test_paper_metrics import _factor_book
+    # a hypothetical LIVE twin: every real twin was retired 2026-09-28 (never toned)
     lanes = [("v2_starter_b15_tb_fees", "Default", "d"),
-             ("v2_starter_b15_tb_fees_trail", "Twin · trailing stop", "t"),
+             ("v2_live_twin", "Twin · trailing stop", "t"),
              ("v1_flat10", "Control", "c")]
     df = pd.concat([_factor_book("v2_starter_b15_tb_fees", alpha=0.001, seed=1),
-                    _factor_book("v2_starter_b15_tb_fees_trail", alpha=0.001, seed=3),
+                    _factor_book("v2_live_twin", alpha=0.001, seed=3),
                     _factor_book("v1_flat10", alpha=0.0, seed=2)], ignore_index=True)
     html = scorecard_html(df, None, None, lanes=lanes)
     rows = html.split("<tr")[1:]

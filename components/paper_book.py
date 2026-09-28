@@ -392,42 +392,20 @@ def _verdict_html(block: dict) -> str:
 _SCORECARD_LANES = [
     # Each row answers a question that is still OPEN (owner cut 2026-08-28:
     # "surely some aren't relevant any more"). Settled lanes live in
-    # _SCORECARD_ARCHIVE and render inside a collapsed drawer — they keep
-    # accruing upstream for their pre-registered reads; only the display moves.
+    # _SCORECARD_ARCHIVE and render inside a collapsed drawer. Since the
+    # 2026-09-28 report-model switch-off the pipeline advances only five books
+    # (MarketReport spec O4); every twin and v1 lane left this list then.
     # Descriptions (rewritten 2026-09-01, owner: "an outsider would have no
     # idea what they mean"): plain words, no rulebook shorthand. Each = what
     # the book does, then the question it exists to answer. "Same as Default
     # but …" is the contract — every twin changes exactly one thing.
     ("v2_starter_b15_tb_fees", "Default",
-     "Buys each BUY / ACCUMULATE name as a starter stake (max 15% of the pot). Sells if support breaks, if the "
-     "name runs far above its trend, or if the report says the story broke. Small caps half size · spare cash "
-     "in T-bills · real fees."),
-    ("v2_starter_b15_tb_fees_mcstop", "Twin · tighter stop on small caps",
-     "Same as Default, but small caps use the report's tighter stop instead of the wider support level. "
-     "Question: were small-cap losses about the stop level or the stake size?"),
-    ("v2_starter_b15_regime_fees", "Twin · spare cash in the semis ETF",
-     "Same as Default, but spare cash sits in the semis ETF (SOXX) while the market trend is up, T-bills "
-     "otherwise. Question: does parking cash in the sector add more than market risk?"),
-    ("v2_starter_b15_tb_fees_full", "Twin · small caps at full size",
-     "Same as Default, but small caps get a full-size stake. Question: is the half-size rule doing anything?"),
-    ("v2_starter_b15_tb_fees_trail", "Twin · trailing stop",
-     "Same as Default, plus a trailing stop: the stop follows the price up, always 15% below the highest price "
-     "seen. Question: does selling names that drift off their peak help?"),
-    ("v2_starter_b15_tb_fees_time", "Twin · time limit on dead money",
-     "Same as Default, plus a time limit: after 40 trading days a name still not up 5% is sold and the cash "
-     "freed. Question: does freeing money from stocks going nowhere help?"),
+     "Buys each BUY name as a starter stake (max 15% of the pot; before 28 Sep 2026 also each ACCUMULATE "
+     "name). Sells if support breaks, if the name runs far above its trend, or (before 28 Sep 2026) if the "
+     "report said the story broke. Small caps half size · spare cash in T-bills · real fees."),
     ("v2_starter_b15_all", "Theoretical · unlimited cash",
      "Every signal at full size as if cash were unlimited (balance may go negative, no interest). Not a real "
      "portfolio — what the signals alone earn when money is never the limit."),
-    ("v1_wide_extthesis_100_b15", "Previous default (v1)",
-     "The rulebook before Default: same sells, but it kept buying more each day a name stayed on ACCUMULATE; "
-     "no T-bill interest, no fees. Shows what one-time starter stakes cost or saved."),
-    ("v1_wide_ext_100_b12", "Challenger (v1)",
-     "Previous default that ignores the report's story-broke sells — it only sells when a name runs far above "
-     "trend — with smaller stakes (12% max). Question: do the report's thesis downgrades add anything?"),
-    ("v1_wide_extthesis_100_b15_lc", "v1 · large companies only",
-     "Previous default that never buys a small or mid-sized company. The other answer to the small-cap "
-     "question: leave them out instead of shrinking them."),
     ("v1_flat10", "Control",
      "The original book: stop just under the 50-day average price, never sells on CAUTION. The baseline "
      "everything else is measured against."),
@@ -576,7 +554,41 @@ def haircut_html(nav_df: pd.DataFrame | None, policy_id: str) -> str:
 
 
 # Settled iterations — measured, kept for the record, rendered collapsed.
+# 2026-09-28: the lanes retired at the report-model switch-off lead the list
+# (MarketReport briefing rebuild spec O4 — they stopped trading on 25 Sep;
+# their questions closed unanswered, not settled).
 _SCORECARD_ARCHIVE = [
+    ("v2_starter_b15_tb_fees_mcstop", "Twin · tighter stop on small caps",
+     "Same as Default, but small caps use the report's tighter stop instead of the wider support level. "
+     "Question: were small-cap losses about the stop level or the stake size?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v2_starter_b15_regime_fees", "Twin · spare cash in the semis ETF",
+     "Same as Default, but spare cash sits in the semis ETF (SOXX) while the market trend is up, T-bills "
+     "otherwise. Question: does parking cash in the sector add more than market risk?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v2_starter_b15_tb_fees_full", "Twin · small caps at full size",
+     "Same as Default, but small caps get a full-size stake. Question: is the half-size rule doing anything?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v2_starter_b15_tb_fees_trail", "Twin · trailing stop",
+     "Same as Default, plus a trailing stop: the stop follows the price up, always 15% below the highest price "
+     "seen. Question: does selling names that drift off their peak help?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v2_starter_b15_tb_fees_time", "Twin · time limit on dead money",
+     "Same as Default, plus a time limit: after 40 trading days a name still not up 5% is sold and the cash "
+     "freed. Question: does freeing money from stocks going nowhere help?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v1_wide_extthesis_100_b15", "Previous default (v1)",
+     "The rulebook before Default: same sells, but it kept buying more each day a name stayed on ACCUMULATE; "
+     "no T-bill interest, no fees. Shows what one-time starter stakes cost or saved."
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v1_wide_ext_100_b12", "Challenger (v1)",
+     "Previous default that ignores the report's story-broke sells — it only sells when a name runs far above "
+     "trend — with smaller stakes (12% max). Question: do the report's thesis downgrades add anything?"
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
+    ("v1_wide_extthesis_100_b15_lc", "v1 · large companies only",
+     "Previous default that never buys a small or mid-sized company. The other answer to the small-cap "
+     "question: leave them out instead of shrinking them."
+     " Retired 28 Sep 2026 with the question unanswered (report model switched off)."),
     ("v2_starter_b15_tb_fees_mc67", "Default · small caps at two-thirds size",
      "Same as Default with small caps at two-thirds of a full stake — the middle point between full and half. "
      "Settled: results move smoothly between the two."),
@@ -702,6 +714,25 @@ def _is_toned_role(role: str) -> bool:
     """Only the Default book and its one-rule Twins carry colour. Exact match
     on "Default" so the archive's "Default · …" settled lanes stay neutral."""
     return role == "Default" or role.startswith("Twin ·")
+
+
+# Books the pipeline stopped advancing at the 2026-09-28 report-model
+# switch-off (MarketReport spec O4). Their curves end 25 Sep: colour is a
+# claim, and a frozen book proves nothing going forward — never toned.
+_RETIRED_BOOKS = frozenset({
+    "v2_starter_b15_tb_fees_mcstop",
+    "v2_starter_b15_regime_fees",
+    "v2_starter_b15_tb_fees_full",
+    "v2_starter_b15_tb_fees_trail",
+    "v2_starter_b15_tb_fees_time",
+    "v1_wide_extthesis_100_b15",
+    "v1_wide_ext_100_b12",
+    "v1_wide_extthesis_100_b15_lc",
+})
+
+
+def _is_toned_lane(policy_id: str, role: str) -> bool:
+    return _is_toned_role(role) and policy_id not in _RETIRED_BOOKS
 
 
 def _num(v):
@@ -897,7 +928,7 @@ def scorecard_html(nav_df, trades_df, positions_df, lanes=None,
         lane = (f'<b>{_escape_dollars(role)}</b><small>{_escape_dollars(desc)}</small>'
                 f'{_seeded_tag(r["policy_id"])}')
         tones = None
-        if _is_toned_role(role):
+        if _is_toned_lane(r["policy_id"], role):
             ctx = {"spy_ret": spy.get("ret_pct") if spy else None,
                    "raw": selection_haircut(nav_df, r["policy_id"]),
                    "resid": selection_haircut(nav_df, r["policy_id"], residual=True)}
@@ -2240,7 +2271,8 @@ def render_paper_book(latest_report: dict, nav_df: pd.DataFrame,
     if archive:
         _door_marker("ref")
         with st.expander(f"**Retired experiments** · {len(_SCORECARD_ARCHIVE)} "
-                         "variants already measured and settled", expanded=False):
+                         "variants, settled or stopped at the 28 Sep switch-off",
+                         expanded=False):
             st.markdown(archive, unsafe_allow_html=True)
     # 5. Last door on the band (owner call 2026-08-27b): the raw chart frame
     #    is a screen-reader / data-parity fallback almost nobody opens, so it
