@@ -177,7 +177,7 @@ def test_v2_card_css_never_puts_a_verdict_colour_on_this_surface():
     import re
 
     css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
-    rules = re.findall(r"([^{}]*\.bf-[^{}]*)\{([^}]*)\}", css)
+    rules = re.findall(r"([^{}]*\.bf\b[^{}]*)\{([^}]*)\}", css)     # .bf-x and the .bf-scoped kind hues
     assert rules, "briefing v2 CSS not found"
     banned = ("--up", "--down", "--buy", "--accumulate", "--watch", "--caution", "--avoid",
               "#22c55e", "#ef4444", "#4ade80", "#f87171")

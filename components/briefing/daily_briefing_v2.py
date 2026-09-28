@@ -13,8 +13,10 @@ Constraints, all upstream decisions:
 
 1. **Information, not advice.** No directional call, no signal label; the log and publish
    steps refuse both. Nothing here adds a judgment.
-2. **Colour is a claim.** No hue on any move — a rise is not "good". Hues encode category
-   only (macro teal, earnings violet); ``--stress`` marks a real data fault and nothing else.
+2. **Colour is a claim.** No hue on any move — a rise is not "good", and a rise and a fall
+   share one hue. Hues encode the kind of item only (``data-kind``: macro teal, earnings
+   violet, after-the-data brass, price data from the report indigo; rechecks and data
+   notes stay ink); ``--stress`` marks a real data fault and nothing else.
 3. **No rule lines.** Chart facts draw a zero line only; +5 % / +20 % are gate rules.
 4. **Searched ≠ not looked up.** "No reported cause found" and the publish-listed names
    nobody looked up render differently.
@@ -93,12 +95,15 @@ def _chips(idx, sources: list) -> str:
     return out
 
 
-def _sec(title: str, body: str, aside: str = "", cls: str = "", prov: str = "") -> str:
+def _sec(title: str, body: str, aside: str = "", cls: str = "", prov: str = "", kind: str = "") -> str:
+    """One card section. ``kind`` tags a section that holds one kind of item (its heading
+    marker takes that kind's hue); mixed sections leave it empty and stay ink."""
     if not body:
         return ""
     aside_html = f'<span class="bf-aside">{_txt(aside)}</span>' if aside else ""
     prov_html = f'<p class="bf-prov">{_txt(prov)}</p>' if prov else ""
-    return (f'<section class="bf-sec {cls}"><div class="bf-sh"><h3>{_txt(title)}</h3>{aside_html}</div>'
+    kind_attr = f' data-kind="{_escape_attr(kind)}"' if kind else ""
+    return (f'<section class="bf-sec {cls}"{kind_attr}><div class="bf-sh"><h3>{_txt(title)}</h3>{aside_html}</div>'
             f'{body}{prov_html}</section>')
 
 
@@ -118,10 +123,11 @@ def _masthead(latest: dict, state: str, when: str) -> str:
                 if isinstance(c, dict) and str(c.get("sgt", "")) > written.replace(" ", "T")][:3]
     nxt = ""
     if upcoming:
-        nxt = ('<div class="bf-next"><b>Next</b>'
-               + "".join(f'<span><strong>{_txt(c.get("what"))}</strong> {_txt(_date(c["sgt"], "%a"))} '
-                         f'{_txt(_hm(c["sgt"]))}</span>' for c in upcoming)
-               + '<span class="bf-dim">all SGT</span></div>')
+        nxt = ('<div class="bf-next"><b>Next<small>SGT</small></b><div class="bf-next-list">'
+               + "".join(f'<span data-kind="{_escape_attr(c.get("kind"))}"><strong>{_txt(c.get("what"))}</strong> '
+                         f'<time datetime="{_escape_attr(c["sgt"])}+08:00">{_txt(_date(c["sgt"], "%a"))} '
+                         f'{_txt(_hm(c["sgt"]))}</time></span>' for c in upcoming)
+               + '</div></div>')
     return (f'<section class="bf-sec bf-mast"><div class="bf-mast-top"><h2 class="bf-date">{_txt(date)}</h2>'
             f'<div class="bf-chips">{state}<span class="bf-chip">{_txt(when)}</span></div></div>'
             f'{asof}{nxt}</section>')
@@ -155,7 +161,7 @@ def _after(latest: dict, sources: list) -> str:
     if not rows:
         return ""
     return _sec("After the data", f'<div class="bf-box"><ul>{rows}</ul></div>', "since the US close",
-                cls="bf-after", prov="Not in the US prices below. Later sessions (SGX, KRX) may already include it.")
+                cls="bf-after", kind="after", prov="Not in the US prices below. Later sessions (SGX, KRX) may already include it.")
 
 
 def _tape(latest: dict, nums: dict) -> str:
@@ -175,7 +181,7 @@ def _tape(latest: dict, nums: dict) -> str:
     note = f'<p class="bf-cap">{_txt(latest["tape_note"])}</p>' if latest.get("tape_note") else ""
     last = (nums.get("health") or {}).get("last_us_session")
     return _sec("The tape", f'<div class="bf-tape">{tiles}</div>{note}',
-                f"US close {_date(last)}" if last else "", prov="Numbers: morning report")
+                f"US close {_date(last)}" if last else "", prov="Numbers: morning report", kind="price")
 
 
 def _movers(latest: dict, nums: dict, sources: list) -> str:
@@ -215,7 +221,7 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
             + (f', vol {a["vol_ratio"]:.2f}×' if _num(a.get("vol_ratio")) is not None else "") + ")"
             for a in also)
         table += f'<p class="bf-also"><b>Also moved, not looked up:</b> {bits}</p>'
-    return _sec("Names that moved", table, "grouped by when the price was taken",
+    return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
                 prov="× usual = the move divided by the name's typical daily swing (one standard deviation "
                      "over recent reports). Moves of 2× or more are always looked up; smaller ones only when "
                      "tied to a tracked catalyst. Prices: morning report.")
@@ -272,20 +278,28 @@ def _range_bar(fig: dict, label: str, unit: str, nd: int) -> str:
     def pos(v):
         return f"{(v - lo) / (hi - lo) * 100:.2f}%"
 
+    def lab(v, text: str, row: str) -> str:
+        # One label per row (consensus above, range ends below, guide under those), so
+        # labels never collide; one near an edge anchors inward instead of centring
+        # (~1.4 % of a phone-width bar per character, half of it each side).
+        p = (v - lo) / (hi - lo) * 100
+        half = len(text) * 0.7
+        align = "" if p < half else " bf-r" if p > 100 - half else " bf-c"
+        return f'<span class="bf-lab {row}{align}" style="left:{p:.2f}%">{_txt(text)}</span>'
+
     parts = '<span class="bf-axis"></span>'
     labels = ""
     rl, rh = _num(fig.get("range_low")), _num(fig.get("range_high"))
     if rl is not None and rh is not None:
         parts += f'<span class="bf-range" style="left:{pos(rl)};width:{(rh - rl) / (hi - lo) * 100:.2f}%"></span>'
-        labels += (f'<span class="bf-lab bf-bot bf-c" style="left:{pos(rl)}">{rl:.{nd}f}</span>'
+        labels += (f'<span class="bf-lab bf-bot" style="left:{pos(rl)}">{rl:.{nd}f}</span>'
                    f'<span class="bf-lab bf-bot bf-r" style="left:{pos(rh)}">{rh:.{nd}f}</span>')
     gl, gh = _num(fig.get("guide_low")), _num(fig.get("guide_high"))
     if gl is not None and gh is not None:
         parts += f'<span class="bf-guide" style="left:{pos(gl)};width:{(gh - gl) / (hi - lo) * 100:.2f}%"></span>'
-        labels += (f'<span class="bf-lab bf-bot bf-c" style="left:{pos((gl + gh) / 2)}">'
-                   f'guide {gl:.{nd}f}–{gh:.{nd}f}</span>')
+        labels += lab((gl + gh) / 2, f"guide {gl:.{nd}f}–{gh:.{nd}f}", "bf-gd")
     parts += f'<span class="bf-cons" style="left:{pos(cons)}"></span>'
-    labels += f'<span class="bf-lab bf-top bf-c" style="left:{pos(cons)}">consensus {cons:.{nd}f}</span>'
+    labels += lab(cons, f"consensus {cons:.{nd}f}", "bf-top")
     aria = f"{label}: consensus {cons}" + (f", guide {gl} to {gh}" if gl is not None else "") + (
         f", analyst range {rl} to {rh}" if rl is not None else "")
     return (f'<div class="bf-rng"><div class="bf-rlab"><b>{_txt(label)}</b>, {_txt(unit)}</div>'
@@ -337,7 +351,7 @@ def _earnings(latest: dict, nums: dict, sources: list) -> str:
     if not body and not earn.get("note"):
         return ""
     return _sec("Earnings", body or '<p class="bf-cap">None reported and none due.</p>', "next 14 days",
-                prov=earn.get("note") or "")
+                prov=earn.get("note") or "", kind="earnings")
 
 
 def _chart(latest: dict, nums: dict) -> str:
@@ -354,9 +368,11 @@ def _chart(latest: dict, nums: dict) -> str:
         return (v - lo) / (hi - lo) * 100
 
     z = pos(0)
-    ticks = "".join(
-        f'<span style="left:{pos(t):.2f}%{";transform:none" if t == lo else ";transform:translateX(-100%)" if t == hi else ""}">'
-        f'{_signed(t, 0) if t else "0"}</span>' for t in range(lo, hi + 1, 10))
+    ticks = ""
+    for t in range(lo, hi + 1, 10):
+        minor = "" if t in (lo, 0, hi) else ' class="bf-minor"'       # dropped on a narrow card
+        align = ";transform:none" if t == lo else ";transform:translateX(-100%)" if t == hi else ""
+        ticks += f'<span{minor} style="left:{pos(t):.2f}%{align}">{_signed(t, 0) if t else "0"}</span>'
     body = (f'<div class="bf-cfhead" aria-hidden="true"><span>Name</span><div class="bf-ax">{ticks}</div>'
             f'<span>RSI</span></div><ul class="bf-cf" aria-label="Distance from the 50-day average">')
     for k, v in rows:
@@ -380,7 +396,7 @@ def _chart(latest: dict, nums: dict) -> str:
         body += f'<p class="bf-cap">{_txt(note)}</p>'
     last = (nums.get("health") or {}).get("last_us_session")
     return _sec("Chart facts", body, "% from the 50-day average" + (f" · {_date(last)}" if last else ""),
-                prov="% from the 50-day moving average and RSI: morning report")
+                prov="% from the 50-day moving average and RSI: morning report", kind="price")
 
 
 def _health(latest: dict, nums: dict) -> str:
