@@ -454,7 +454,9 @@ def _further(nums: dict) -> str:
     2026-09-29; 60 days = the earnings feed's reach). publish joins them from the data into
     ``numbers.further_out``; dates only. The second month (``later``) shows open under a
     "less certain" label (owner 09-29: visible at once, not a fold): more of its earnings dates
-    are the feed's estimates. Its earnings rows take a dashed edge — a line style, not a hue."""
+    are the feed's estimates. Its earnings rows take a dashed edge — a line style, not a hue.
+    Headed "Upcoming events" since 2026-09-30 (owner: "Further out" named the distance, not what
+    is in it); the data key stays ``further_out``."""
     rows = [r for r in nums.get("further_out") or [] if isinstance(r, dict) and r.get("date") and r.get("what")]
     if not rows:
         return ""
@@ -465,7 +467,7 @@ def _further(nums: dict) -> str:
         body += ('<div class="bf-later"><p class="bf-later-h"><b>Later · 31–60 days · less certain</b> '
                  'Earnings dates this far out are often estimates and may move.</p>'
                  f'{_far_list(later)}</div>')
-    return _sec("Further out", body, "to two months · dates only",
+    return _sec("Upcoming events", body, "to two months · dates only",
                 prov="Earnings dates past 14 days come from Yahoo Finance's calendar; some are its estimates, "
                      "not dates the company has announced; they are the exchange's local date. Macro: "
                      "high-impact releases only, dated in New York time, so a Singapore-morning release "

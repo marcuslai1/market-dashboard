@@ -20,7 +20,7 @@ import streamlit as st
 # read (2026-09-29). The signal blocks (stance band, changes ribbon, clusters,
 # action card) and the model-written ones (active risks, macro note) were
 # removed once the report LLM went off on 09-28; the calendar folded into the
-# briefing card's Week ahead + Further out. Signals stay on the measurement pages.
+# briefing card's Week ahead + Upcoming events. Signals stay on the measurement pages.
 from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html
 from components.briefing.market_read import market_read_card_html

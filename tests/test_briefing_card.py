@@ -121,7 +121,7 @@ def _v2(**over):
 def test_v2_renders_in_reading_order():
     html = briefing_card_html(_v2(), "2026-09-28")
     heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "Markets", "Names that moved",
-                                        "Week ahead", "Earnings", "Further out", "Chart facts", "Data notes",
+                                        "Week ahead", "Earnings", "Upcoming events", "Chart facts", "Data notes",
                                         "All sources")]
     order = [html.index(s) for s in ["Monday 28 September", *heads, "Information, not advice"]]
     assert order == sorted(order)
@@ -160,7 +160,7 @@ def test_v2_week_and_earnings_and_chart():
 
 def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     html = briefing_card_html(_v2(), "2026-09-28")
-    far = html[html.index("<h3>Further out</h3>"):html.index("<h3>Chart facts</h3>")]
+    far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>Chart facts</h3>")]
     soon, later = far.split('<div class="bf-later">')
     assert soon.count("<li>") == 4 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
     assert '<b data-kind="event">OCP Global Summit 2026<small>to Thu 15 Oct</small></b>' in soon
@@ -172,7 +172,7 @@ def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     assert "some are its estimates" in far
     none = _v2()
     none["latest"]["numbers"].pop("further_out")
-    assert "Further out" not in briefing_card_html(none, "2026-09-28")   # older records: section absent
+    assert "Upcoming events" not in briefing_card_html(none, "2026-09-28")   # older records: section absent
 
 
 def test_v2_flags_a_real_data_fault_only():
@@ -220,7 +220,7 @@ def _earnings_map():
 
 def test_v2_earnings_detail_draws_charts_and_the_week_grid_lists_the_rest():
     html = briefing_card_html(_v2(data_date="2026-09-28"), "2026-09-28", _earnings_map())
-    earn = html[html.index("<h3>Earnings</h3>"):html.index("<h3>Further out</h3>")]
+    earn = html[html.index("<h3>Earnings</h3>"):html.index("<h3>Upcoming events</h3>")]
     assert earn.count('class="ec"') == 2 and "bf-rbar" not in earn          # revenue + EPS charts, no flat range bars
     assert "~51.2" in earn                                                  # the coming bar uses the briefing's own consensus
     assert "company forecast ~+20.6%" in earn and "company's own forecast" in earn
