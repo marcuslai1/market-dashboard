@@ -8,7 +8,10 @@ speed-up and the expected slowdown at a glance. Two forms from one series builde
   a neutral hairline on each past bar = what analysts expected beforehand, with its number
   beside it, and a "vs previous quarter" multiplier row (1.2×, 1.7×, ~1.2×) so the speed-up is a number.
   The rows form a table: on a wide chart the title and row labels share a left gutter; on a
-  narrow one the labels stack and a "what analysts expected" row carries the estimates.
+  narrow one the labels stack and a "what analysts expected" row carries the estimates. On a
+  roomy chart (≥ 860px) the two comparisons move onto the plot and their rows step aside: the
+  result vs analysts beside the analysts' number (12.8 +6%), the multiplier between the two
+  quarter labels it compares (Sep–Nov — 1.7× — Dec–Feb).
 - ``eps_chart_html`` — same grammar for earnings per share, drawn from a zero line
   because EPS can be negative, with a "vs analysts" row.
 - ``mini=True`` — the thumbnail for the briefing's "reporting this week" grid: bars and
@@ -202,13 +205,30 @@ def _pct(cur, ref) -> str:
     return f"{(cur / ref - 1) * 100:+.0f}%".replace("-", "−")
 
 
+def _growth(mult: str) -> tuple[str, str]:
+    """A ``_mult`` string split for the plot: ('0.9×', '−15%') stacks the drop under the
+    multiplier; ('1.7×', '') otherwise."""
+    main, _, drop = mult.partition(" (")
+    return main, drop.rstrip(")")
+
+
+def _growth_tip(frm: str, to: str, cur, prev, how: str = "") -> str:
+    """Hover text for a growth label: 'Sep–Nov 2025 → Dec–Feb 2026: 1.75× (+75%)'."""
+    if not _mult(cur, prev):
+        return ""
+    return f"{frm} → {to}{' (' + how + ')' if how else ''}: {cur / prev:.2f}× ({_pct(cur, prev)})"
+
+
 def _pos(v: float, lo: float, hi: float) -> float:
     return (v - lo) / (hi - lo) * 100 if hi > lo else 0.0
 
 
 def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, rows_below: list,
            head: str = "") -> str:
-    """cols: [{label, year, bar, tick, tip, coming: {est, band, whisker}}]; values already scaled.
+    """cols: [{label, year, bar, tick, tip, beat, growth, coming: {est, band, whisker}}]; values
+    already scaled. ``beat`` rides beside the estimate's number and ``growth`` (a ``_mult``
+    string, vs the column before) sits between the two quarter labels — both drawn only on a
+    roomy chart (theme.css), where the rows marked ``ec-row-onplot`` step aside.
     ``head`` = the title; inside ``.ec`` so a wide chart can set it in the label gutter."""
     zero = _pos(0.0, lo, hi)
     body = ""
@@ -240,10 +260,16 @@ def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, row
             tp = _pos(c["tick"], lo, hi)
             inner += f'<span class="ec-tick" style="bottom:{tp:.2f}%"></span>'
             if c.get("tick_val"):                            # the estimate's number beside its line (wide only)
-                inner += f'<span class="ec-tv" style="bottom:{tp:.2f}%">{_t(c["tick_val"])}</span>'
+                beat = f'<b class="ec-tvb">{_t(c["beat"])}</b>' if c.get("beat") else ""
+                inner += f'<span class="ec-tv" style="bottom:{tp:.2f}%">{_t(c["tick_val"])}{beat}</span>'
         if c.get("missing"):
             inner += '<span class="ec-miss">not on file</span>' if not mini else '<span class="ec-miss">·</span>'
-        lab = "" if mini else f'<span class="ec-x">{_t(c["label"])}<small>{_t(c["year"])}</small></span>'
+        grow = ""
+        if c.get("growth") and not mini:
+            g, drop = _growth(c["growth"])
+            grow = (f'<span class="ec-g" title="{_t(c.get("growth_tip", ""))}">{_t(g)}'
+                    + (f'<small>{_t(drop)}</small>' if drop else "") + "</span>")
+        lab = "" if mini else f'<span class="ec-x">{grow}{_t(c["label"])}<small>{_t(c["year"])}</small></span>'
         axis = f'<span class="ec-zero" style="bottom:{zero:.2f}%"></span>'
         body += (f'<div class="ec-col{" ec-coming" if cm else ""}" title="{_t(c.get("tip", ""))}">'
                  f'<div class="ec-plot">{axis}{inner}</div>{lab}</div>')
@@ -281,7 +307,7 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
     scale, unit = _unit(max(vals))
     hi = max(vals) / scale * 1.12
     cols, mults, vs_an, ests = [], [], [], []
-    prev = None
+    prev, prev_lab = None, ""
     for q in past:
         lab, yr = period_label(q["qe"])
         if q.get("missing"):
@@ -295,13 +321,15 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         tip = f"{lab} {yr}: revenue {currency} {q['rev'] / scale:,.2f} {unit}"
         if est:
             tip += f"; analysts expected {est / scale:,.2f} ({q.get('rev_est_src') or 'source not recorded'})"
+        m = _mult(q["rev"], prev)
         cols.append({"label": lab, "year": yr, "bar": q["rev"] / scale, "val": _val_label(q["rev"] / scale),
                      "tick": est / scale if est else None, "tick_val": _val_label(est / scale) if est else "",
-                     "tip": tip})
-        mults.append(_mult(q["rev"], prev))
+                     "beat": _pct(q["rev"], est), "tip": tip, "growth": m,
+                     "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", q["rev"], prev)})
+        mults.append(m)
         vs_an.append(_pct(q["rev"], est))
         ests.append(_val_label(est / scale) if est else "")
-        prev = q["rev"]
+        prev, prev_lab = q["rev"], f"{lab} {yr}"
     coming_note = ""
     if coming and (cest or company):
         lab, yr = period_label(coming["qe"])
@@ -310,11 +338,14 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         tip = f"{lab} {yr} (coming): analysts expect {cest / scale:,.2f} {unit}" if cest else f"{lab} {yr} (coming)"
         if company:
             tip += f"; company forecast {company[0] / scale:,.2f}–{company[1] / scale:,.2f}"
-        cols.append({"label": lab, "year": yr, "coming": {"est": cest / scale if cest else None, "band": band,
-                     "whisker": wh, "val": f"~{_val_label(cest / scale)}" if cest else ""}, "tip": tip})
         m_an = _mult(cest, prev)
         m_co = _mult(sum(company) / 2, prev) if company else ""
-        mults.append("~" + (m_an or m_co) if (m_an or m_co) else "")
+        m = "~" + (m_an or m_co) if (m_an or m_co) else ""
+        cols.append({"label": lab, "year": yr, "coming": {"est": cest / scale if cest else None, "band": band,
+                     "whisker": wh, "val": f"~{_val_label(cest / scale)}" if cest else ""}, "tip": tip,
+                     "growth": m, "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", cest or sum(company) / 2, prev,
+                                                             "analysts expect" if m_an else "company forecast")})
+        mults.append(m)
         vs_an.append("")
         ests.append("")
         parts = []
@@ -343,10 +374,10 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         lines = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in (l1, l2) if x)
         return _chart(cols, 0.0, hi, mini=True, aria=aria, rows_below=[]) + lines
     head = _head("Revenue", f"{currency} {unit}".strip())
-    rows = [("vs previous quarter", mults)]
+    rows = [("vs previous quarter", mults, "ec-row-onplot")]             # between the quarter labels when roomy
     if any(vs_an):
         rows.append(("what analysts expected", ests, "ec-row-narrow"))    # on the chart when it is wide
-        rows.append(("vs what analysts expected", vs_an))
+        rows.append(("vs what analysts expected", vs_an, "ec-row-onplot"))  # beside that number when roomy
     notes = [x for x in ((f"Latest quarter vs a year earlier: {yoy}" if yoy else ""), coming_note) if x]
     note = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in notes)
     return _chart(cols, 0.0, hi, mini=False, aria=aria, rows_below=rows, head=head) + note
@@ -371,9 +402,11 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
         lab, yr = period_label(q["qe"])
         est = q.get("eps_est")
         tip = f"{lab} {yr}: EPS {q['eps']:.2f}" + (f"; analysts expected {est:.2f}" if est is not None else "")
+        beat = _pct(q["eps"], est) if est and q["eps"] and est > 0 and q["eps"] > 0 else ""
         cols.append({"label": lab, "year": yr, "bar": q["eps"], "val": _num_label(q["eps"], 2),
-                     "tick": est, "tick_val": _num_label(est, 2) if est is not None else "", "tip": tip})
-        vs_an.append(_pct(q["eps"], est) if est and q["eps"] and est > 0 and q["eps"] > 0 else "")
+                     "tick": est, "tick_val": _num_label(est, 2) if est is not None else "", "beat": beat,
+                     "tip": tip})
+        vs_an.append(beat)
         ests.append(_num_label(est, 2) if est is not None else "")
     if coming and cest is not None:
         lab, yr = period_label(coming["qe"])
@@ -385,7 +418,7 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
         f"{c['label']} {c['year']} {c['val']}" for c in cols if c.get("bar") is not None)
     head = _head("Earnings per share", currency)
     rows = [] if mini else [("what analysts expected", ests, "ec-row-narrow"),
-                            ("vs what analysts expected", vs_an)]
+                            ("vs what analysts expected", vs_an, "ec-row-onplot")]
     return _chart(cols, lo, hi, mini=mini, aria=aria, rows_below=rows, head=head)
 
 
@@ -394,14 +427,22 @@ def block_html(charts: str, company: bool = False) -> str:
     use it: the key comes first (owner 2026-09-29), and ``.ec-block``-scoped rules outrank
     Streamlit's markdown ``p`` reset, which zeroed the headings' top margin and set the notes
     at 16px inside the Watchlist drawer."""
-    return f'<div class="ec-block">{key_html(company)}{charts}</div>' if charts else ""
+    if not charts:
+        return ""
+    key = key_html(company, beat='class="ec-tvb"' in charts, growth='class="ec-g"' in charts)
+    return f'<div class="ec-block">{key}{charts}</div>'
 
 
-def key_html(company: bool = False) -> str:
-    """The chart key: what the tick and the outlined bar mean (identity is never colour-alone)."""
+def key_html(company: bool = False, beat: bool = False, growth: bool = False) -> str:
+    """The chart key: what the tick and the outlined bar mean (identity is never colour-alone).
+    ``beat`` / ``growth`` add entries for the on-plot numbers, shown only on a roomy chart."""
     items = ['<span class="ec-k-bar">reported</span>',
              '<span class="ec-k-tick">what analysts expected beforehand</span>',
              '<span class="ec-k-est">coming quarter — an estimate, not a result</span>']
     if company:
         items.append('<span class="ec-k-band">company\'s own forecast</span>')
+    if beat:
+        items.append('<span class="ec-k-beat">result vs what analysts expected</span>')
+    if growth:
+        items.append('<span class="ec-k-g">revenue vs the quarter before</span>')
     return '<div class="ec-key">' + "".join(items) + "</div>"

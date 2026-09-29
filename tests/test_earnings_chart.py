@@ -105,12 +105,43 @@ def test_analysts_estimate_number_sits_beside_its_line():
     mu = [dict(r) for r in MU]
     mu[4]["revenue_estimate"] = 35.84e9
     html_ = revenue_chart_html(quarter_series(mu))
-    assert re.findall(r'<span class="ec-tv"[^>]*>(.*?)</span>', html_) == ["35.8"]
+    assert re.findall(r'<span class="ec-tv"[^>]*>([^<]*)', html_) == ["35.8"]
     assert _rows(html_)["what analysts expected"] == ["", "", "", "", "35.8", ""]
     assert 'class="ec-row ec-row-narrow"><span class="ec-rh">what analysts expected' in html_
     eps = eps_chart_html(quarter_series(MU))
-    assert re.findall(r'<span class="ec-tv"[^>]*>(.*?)</span>', eps) == ["1.59", "2.86", "3.96", "9.16", "20.69"]
+    assert re.findall(r'<span class="ec-tv"[^>]*>([^<]*)', eps) == ["1.59", "2.86", "3.96", "9.16", "20.69"]
     assert "ec-tv" not in revenue_chart_html(quarter_series(mu), mini=True)     # no marks on a thumbnail
+
+
+def test_roomy_chart_puts_both_comparisons_on_the_plot():
+    """Owner 2026-09-29: the result-vs-analysts % sits beside the analysts' number (12.8 +6%),
+    and growth sits between the two quarters it compares; their table rows are marked so CSS
+    drops them where the plot carries the numbers (and keeps them on a phone)."""
+    mu = [dict(r) for r in MU]
+    mu[2]["revenue_estimate"] = 12.8e9
+    html_ = revenue_chart_html(quarter_series(mu), company=(49.0e9, 51.0e9))
+    assert '12.8<b class="ec-tvb">+7%</b>' in html_
+    assert re.findall(r'<span class="ec-g"[^>]*>([^<]*)', html_) == ["1.2×", "1.2×", "1.7×", "1.7×", "~1.2×"]
+    assert 'title="Sep–Nov 2025 → Dec–Feb 2026: 1.75× (+75%)"' in html_
+    assert 'title="Mar–May 2026 → Jun–Aug 2026 (analysts expect): 1.24× (+24%)"' in html_
+    assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs previous quarter' in html_
+    assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs what analysts expected' in html_
+    eps = eps_chart_html(quarter_series(MU))
+    assert '9.16<b class="ec-tvb">+33%</b>' in eps and "ec-g" not in eps     # EPS has no growth labels
+    drop = revenue_chart_html(quarter_series([_row("2025-12-31", 213.39e9), _row("2026-03-31", 181.52e9)]))
+    assert '<span class="ec-g" title="Oct–Dec 2025 → Jan–Mar 2026: 0.85× (−15%)">0.9×<small>−15%</small></span>' in drop
+    assert "ec-g" not in revenue_chart_html(quarter_series(MU), mini=True)
+    gap = [_row("2025-06-30", 1.0e9), _row("2025-09-30", 1.2e9), _row("2025-12-31", 1.3e9),
+           _row("2026-03-31", 1.1e9), _row("2026-06-30", eps=0.5), _row("2026-09-30", rev_est=2.0e9)]
+    assert re.findall(r'<span class="ec-g"[^>]*>([^<]*)', revenue_chart_html(quarter_series(gap))) == [
+        "1.2×", "1.1×", "0.8×"]                                                 # never across the missing quarter
+
+
+def test_key_explains_the_on_plot_numbers_only_when_drawn():
+    key = block_html(revenue_chart_html(quarter_series(MU)) + eps_chart_html(quarter_series(MU)))
+    assert "result vs what analysts expected" in key and "revenue vs the quarter before" in key
+    bare = block_html(eps_chart_html(quarter_series([_row("2025-03-31", eps=1.0), _row("2025-06-30", eps=1.2)])))
+    assert "result vs what analysts expected" not in bare and "revenue vs the quarter before" not in bare
 
 
 def test_title_sits_inside_the_chart_so_a_wide_chart_can_gutter_it():
