@@ -115,6 +115,11 @@ def _v2(**over):
             "chart": {"BE": {"name": "Bloom Energy", "vs_sma50_pct": 25.7, "rsi": 62.8},
                       "AVGO": {"name": "Broadcom", "vs_sma50_pct": -6.2, "rsi": 44.0}},
             "names": {"MU": "Micron"},
+            "further_out": [{"date": "2026-10-14", "kind": "macro", "what": "CPI Report (September)", "later": False},
+                            {"date": "2026-10-14", "kind": "earnings", "key": "ASML", "what": "ASML", "later": False},
+                            {"date": "2026-10-28", "kind": "macro", "what": "FOMC Rate Decision", "later": False},
+                            {"date": "2026-11-03", "kind": "earnings", "key": "AMD", "what": "AMD", "later": True},
+                            {"date": "2026-11-17", "kind": "earnings", "key": "NVDA", "what": "Nvidia", "later": True}],
             "health": {"fetched": 33, "expected": 33, "stale_tickers": [], "latch_active": False,
                        "last_us_session": "2026-09-25", "holes": []},
         },
@@ -126,7 +131,8 @@ def _v2(**over):
 def test_v2_renders_in_reading_order():
     html = briefing_card_html(_v2(), "2026-09-28")
     heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "The tape", "Names that moved",
-                                        "Week ahead", "Earnings", "Chart facts", "Data notes", "All sources")]
+                                        "Week ahead", "Earnings", "Further out", "Chart facts", "Data notes",
+                                        "All sources")]
     order = [html.index(s) for s in ["Monday 28 September", *heads, "Information, not advice"]]
     assert order == sorted(order)
     assert "Overnight" not in html                                     # not the v1 renderer
@@ -155,6 +161,20 @@ def test_v2_week_and_earnings_and_chart():
     assert "~$51.2B" in html and "$50.0B ± 1.0" in html and "consensus 51.2" in html
     assert "+25.7%" in html and "−6.2%" in html and "RSI" in html
     assert "all clear" in html and "bf-fault" not in html
+
+
+def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
+    html = briefing_card_html(_v2(), "2026-09-28")
+    far = html[html.index("<h3>Further out</h3>"):html.index("<h3>Chart facts</h3>")]
+    soon, later = far.split('<details class="bf-later">')
+    assert soon.count("<li>") == 2 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
+    assert "Later, 31–60 days:</b> 2 events across 2 dates" in later and "Nvidia earnings" in later
+    assert "AMD" not in soon                                          # the second month stays folded
+    assert '<b data-kind="earnings">ASML earnings</b>' in far and '<b data-kind="macro">FOMC Rate Decision</b>' in far
+    assert "some are its estimates" in far
+    none = _v2()
+    none["latest"]["numbers"].pop("further_out")
+    assert "Further out" not in briefing_card_html(none, "2026-09-28")   # older records: section absent
 
 
 def test_v2_flags_a_real_data_fault_only():

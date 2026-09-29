@@ -7,7 +7,8 @@ morning report into ``latest.numbers``. This module only lays them out.
 
 Reading order: masthead (date, what each number is as of, next timed events) → what
 matters → after the data → tape → names that moved (grouped by the market whose session
-the price is from) → week ahead → earnings → chart facts → data notes → sources.
+the price is from) → week ahead → earnings → further out (dates only, to two months; the
+second month folded) → chart facts → data notes → sources.
 
 Constraints, all upstream decisions:
 
@@ -354,6 +355,40 @@ def _earnings(latest: dict, nums: dict, sources: list) -> str:
                 prov=earn.get("note") or "", kind="earnings")
 
 
+def _far_list(rows: list) -> str:
+    days: dict = {}
+    for r in rows:
+        days.setdefault(str(r["date"])[:10], []).append(r)
+    return '<ul class="bf-far">' + "".join(
+        f'<li><time datetime="{_escape_attr(d)}">{_txt(_date(d))}</time><span>'
+        + "".join(f'<b data-kind="{_escape_attr(r.get("kind"))}">{_txt(r["what"])}'
+                  f'{" earnings" if r.get("kind") == "earnings" else ""}</b>' for r in evs)
+        + '</span></li>' for d, evs in sorted(days.items())) + "</ul>"
+
+
+def _further(nums: dict) -> str:
+    """Dated events past the week-ahead and 14-day earnings windows, out to two months (owner
+    2026-09-29; 60 days = the earnings feed's reach). publish joins them from the data into
+    ``numbers.further_out``; dates only. The second month (``later``) is folded: more of its
+    earnings dates are the feed's estimates."""
+    rows = [r for r in nums.get("further_out") or [] if isinstance(r, dict) and r.get("date") and r.get("what")]
+    if not rows:
+        return ""
+    soon = [r for r in rows if not r.get("later")]
+    later = [r for r in rows if r.get("later")]
+    body = _far_list(soon) if soon else ""
+    if later:
+        n_days = len({str(r["date"])[:10] for r in later})
+        body += (f'<details class="bf-later"><summary><b>Later, 31–60 days:</b> {len(later)} '
+                 f'event{"s" if len(later) != 1 else ""} across {n_days} date{"s" if n_days != 1 else ""} '
+                 f'· more of these dates are estimates</summary>{_far_list(later)}</details>')
+    return _sec("Further out", body, "to two months · dates only",
+                prov="Earnings dates past 14 days come from Yahoo Finance's calendar; some are its estimates, "
+                     "not dates the company has announced; they are the exchange's local date. Macro: "
+                     "high-impact releases only, dated in New York time, so a Singapore-morning release "
+                     "(MAS) shows the day before.")
+
+
 def _chart(latest: dict, nums: dict) -> str:
     rows = [(k, v) for k, v in (nums.get("chart") or {}).items()
             if isinstance(v, dict) and _num(v.get("vs_sma50_pct")) is not None]
@@ -456,6 +491,7 @@ def briefing_v2_html(latest: dict, report_date: str | None = None) -> str:
         + _movers(latest, nums, sources)
         + _week(latest)
         + _earnings(latest, nums, sources)
+        + _further(nums)
         + _chart(latest, nums)
         + _health(latest, nums)
         + _sources(sources)

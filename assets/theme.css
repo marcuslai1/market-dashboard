@@ -4681,6 +4681,18 @@ a.term-index-item:hover {
 .bf-key span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px;
   vertical-align: -1px; border-left: 2px solid var(--bf-k); background: color-mix(in srgb, var(--bf-k) 22%, transparent); }
 
+/* further out (dates only, to a month) */
+.bf .bf-far { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bf .bf-far li { display: grid; grid-template-columns: 86px 1fr; gap: 10px; align-items: baseline;
+  font-size: 13.5px; line-height: 1.45; }
+.bf-far li time { font-family: var(--font-display); font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+.bf-far li span { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.bf-far li b { font-weight: 500; color: var(--ink); padding-left: 8px; border-left: 2px solid var(--bf-k, var(--ink-3)); }
+.bf-later { margin-top: 14px; }
+.bf-later summary { cursor: pointer; font-size: 14px; color: var(--ink-2); }
+.bf-later summary b { color: var(--ink); font-weight: 600; }
+.bf-later .bf-far { margin-top: 10px; }
+
 /* earnings */
 .bf-ec { display: grid; gap: 16px; padding: 14px 16px; border: 1px solid var(--rule-strong);
   border-left: 3px solid var(--metric-gen); background: var(--paper); }
@@ -4775,4 +4787,5 @@ a.term-index-item:hover {
   .bf-movers td.bf-why { grid-column: 1 / -1; }
   .bf-movers td.bf-mv { text-align: right; }
   .bf .bf-rchk li { grid-template-columns: 1fr; gap: 2px; }
+  .bf .bf-far li { grid-template-columns: 1fr; gap: 2px; }
 }
