@@ -4,8 +4,7 @@ Push hostile payloads (LLM/web-sourced fields) through the real string builders
 and assert they're neutralized — text nodes escaped, URLs sanitized, no attribute
 breakout. Guards the escaping contract end-to-end, not just the helpers.
 """
-from components.briefing.calendar import calendar_card_html
-from components.briefing.macro import macro_card_html
+from components.briefing.daily_briefing import briefing_card_html
 from components.watchlist.drilldown import render_drilldown_detail_html
 from components.watchlist.row import render_ticker_details_html
 
@@ -53,19 +52,13 @@ def test_avoid_source_fields_escaped():
     assert "<b>x</b>" not in out
 
 
-def test_macro_summary_escaped():
-    out = macro_card_html(XSS, {}, "", {})
-    assert "<script>" not in out
-
-
-def test_calendar_event_escaped():
-    out = calendar_card_html([{"date": "2026-07-01", "event": XSS, "impact": "HIGH"}])
-    assert "<script>" not in out
-
-
-def test_calendar_read_across_why_escaped():
-    out = calendar_card_html([{
-        "date": "2026-07-01", "event": "AMAT Earnings", "impact": "MEDIUM",
-        "type": "read_across", "tickers_affected": ["ASML"], "why": XSS,
-    }])
-    assert "<script>" not in out
+def test_further_out_row_escaped():
+    # numbers.further_out carries pipeline calendar text (event names) into the card.
+    payload = {"latest": {"schema": 2, "data_date": "2026-09-29",
+                          "what_matters": [{"kind": "data", "head": "x"}],
+                          "numbers": {"further_out": [
+                              {"date": "2026-10-14", "kind": "event", "what": XSS, "later": False},
+                              {"date": "2026-11-14", "kind": "earnings", "what": XSS, "later": True,
+                               "read_across": ["<b>NVDA</b>"]}]}}}
+    out = briefing_card_html(payload, "2026-09-29")
+    assert "<script>" not in out and "<b>NVDA</b>" not in out

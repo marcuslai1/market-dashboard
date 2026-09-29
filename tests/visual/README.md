@@ -16,7 +16,7 @@ Plotly canvas output all come from that image.
 
 | Baseline | Source test | Notes |
 |---|---|---|
-| `briefing`, `watchlist`, `signal-tracker`, `pipeline-stats`, `scenario-log`, `report-comparison`, `terminology` | `test_pages.py` | the 7 pages, each captured full-page |
+| `briefing`, `watchlist`, `signal-tracker`, `retrospective`, `terminology` | `test_pages.py` | the 5 pages, each captured full-page (Pipeline Stats, Scenario Log and Report Comparison were removed 2026-09-29) |
 | `watchlist-nvda-drilldown` | `test_states.py` | NVDA row `<details>` expanded |
 | `watchlist-nvda-earnings-drawer` | `test_states.py` | NVDA row **and** its nested `Earnings` drawer expanded — the only capture of the quarter-on-quarter earnings-history table + reported-EPS sparkline, which sit two `<details>` deep and are invisible in the state above |
 | `signal-tracker-ledger` | `test_states.py` | first by-name episode ledger row expanded |
@@ -104,8 +104,8 @@ layers because the fetch happens in two different processes:
 
 ### 2. `TEST_DATE` clock freeze (current value: see conftest.py)
 
-Four pages — **signal-tracker, pipeline-stats, scenario-log, report-comparison** —
-filter their content to a **today-anchored 30-day window** (`dashboard.py`:
+**Signal-tracker** (and, until 2026-09-29, pipeline-stats, scenario-log and report-comparison)
+filters its content to a **today-anchored 30-day window** (`dashboard.py`:
 `_default_end = clock_today(); _default_start = _default_end - timedelta(days=30)`,
 feeding the sidebar `st.date_input`). If "today" moved with the wall clock, which
 reports fall inside that window would change and these baselines would rot day by
@@ -150,8 +150,6 @@ regressions in it are caught. The masked regions:
 - **Sidebar date input** (`[data-testid="stDateInput"]`) — global, rendered on
   every page; its default range is today-anchored.
 - **Live-price caption** (`text=/LIVE ·|FETCH FAILED/`) — Briefing + Watchlist.
-- **Capex "CURATION OVERDUE — N d old" staleness banner** — Briefing only; its
-  age-in-days is computed from `date.today()`.
 
 **No charts are masked.** Plotly canvases render deterministically under the
 frozen clock + network block and are captured in full, so there are **zero

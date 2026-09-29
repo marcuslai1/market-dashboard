@@ -2,36 +2,23 @@
 
 Each test names the finding it closes. The review's own probe file lives in
 the pipeline repo's audit folder (codex-reviews/2026-09-15) and is opt-in;
-these are the permanent, collected pins.
+these are the permanent, collected pins. F01/F02/F12/F13 (Pipeline Stats) and
+F15 (capex pulse) went with those surfaces on 2026-09-29.
 """
 from __future__ import annotations
 
-import inspect
 from datetime import date
 
 import pandas as pd
 import pytest
 
-import components.pipeline_stats as ps_page
 from components import retrospective as review
 from components import signal_tracker as tracker
 from lib.calls import first_of_run
-from lib.capex import pulse_verdict
 from lib.data_loader import _load_sqlite_prices_cached
 from lib.formatters import currency_for_key, rr_display
 from lib.levels import rr_level
 from lib.paper_metrics import lane_trade_stats
-from lib.pipeline_metrics import (
-    FLASH,
-    RATE_HIT_FLASH,
-    RATE_HIT_NEW,
-    RATE_MISS_FLASH,
-    RATE_MISS_NEW,
-    REPRICE,
-    cache_saving_per_run,
-    card_for,
-    prompt_composition,
-)
 from lib.symbols import RETIRED_ANY_SPELLING, provider_symbol
 
 
@@ -39,50 +26,6 @@ def _frame(rows):
     df = pd.DataFrame(rows)
     df["date"] = pd.to_datetime(df["date"])
     return df
-
-
-# ── F01 — cache saving priced on the card in force, incl. the Flash era ──
-def test_f01_card_for_has_three_eras():
-    assert card_for(pd.Timestamp("2026-08-16")) == (0.07, 0.27)
-    assert card_for(REPRICE) == (RATE_HIT_NEW, RATE_MISS_NEW)
-    assert card_for(FLASH) == (RATE_HIT_FLASH, RATE_MISS_FLASH)
-    assert card_for(None) == (RATE_HIT_FLASH, RATE_MISS_FLASH)
-    # Flash card = CNY 1.00 miss / 0.02 hit at 7.15
-    assert pytest.approx(1.00 / 7.15) == RATE_MISS_FLASH
-    assert pytest.approx(0.02 / 7.15) == RATE_HIT_FLASH
-
-
-def test_f01_saving_per_run_uses_flash_rate_on_flash_rows():
-    df = _frame([
-        {"date": "2026-08-16", "cache_hit_tokens": 1_000_000},
-        {"date": "2026-08-20", "cache_hit_tokens": 1_000_000},
-        {"date": "2026-09-11", "cache_hit_tokens": 1_000_000},
-    ])
-    expected = (0.20 + (0.66 - 0.022) + (1.00 - 0.02) / 7.15) / 3
-    assert cache_saving_per_run(df) == pytest.approx(expected)
-
-
-# ── F02 — prompt shares divide by the whole prompt ──
-def test_f02_composition_uses_total_prompt_chars_with_other_slice():
-    df = _frame([{
-        "date": "2026-09-15", "system_prompt_chars": 160_000,
-        "watchlist_data_chars": 80_000, "tavily_chars": 30_000,
-        "yfinance_chars": 20_000, "memory_chars": 10_000,
-        "total_prompt_chars": 500_000,
-    }])
-    blocks = prompt_composition(df)
-    by = {b["name"]: b for b in blocks}
-    assert by["Other (not itemised)"]["chars"] == 200_000
-    assert by["System prompt"]["share"] == pytest.approx(32.0)
-    assert sum(b["share"] for b in blocks) == pytest.approx(100.0)
-
-
-def test_f02_composition_without_total_column_still_normalises_itemised():
-    df = _frame([{"date": "2026-09-15", "system_prompt_chars": 60,
-                  "watchlist_data_chars": 40}])
-    blocks = prompt_composition(df)
-    assert {b["name"] for b in blocks} & {"Other (not itemised)"} == set()
-    assert sum(b["share"] for b in blocks) == pytest.approx(100.0)
 
 
 # ── F03 / F04 — popover names its corpus + basis; pipeline outcomes preferred ──
@@ -215,27 +158,6 @@ def test_f11_retired_filter_drops_dotted_symbols(tmp_path):
     assert list(out["ticker"]) == ["NVDA"]
 
 
-# ── F12 — an empty selected range clips to nothing and says so ──
-def test_f12_empty_range_warns_instead_of_showing_all_history(monkeypatch):
-    telemetry = _frame([{"date": "2026-09-01", "computed_cost_usd": 0.05,
-                         "cache_hit_tokens": 1, "cache_miss_tokens": 1}])
-    monkeypatch.setattr(ps_page, "load_pipeline_stats", lambda: telemetry)
-    monkeypatch.setattr(ps_page, "load_token_usage", lambda: pd.DataFrame())
-    monkeypatch.setattr(ps_page, "render_section_head", lambda *a, **k: None)
-    seen = []
-    monkeypatch.setattr(ps_page.st, "warning", lambda msg, *a, **k: seen.append(str(msg)))
-    monkeypatch.setattr(ps_page.st, "markdown", lambda *a, **k: None)
-    ps_page.render_pipeline_stats_page({}, date(2020, 1, 1), date(2020, 1, 2))
-    assert seen and "No pipeline data" in seen[0]
-
-
-# ── F13 — run-rate tile names its seven-run basis ──
-def test_f13_run_rate_tile_names_seven_run_basis():
-    src = inspect.getsource(ps_page)
-    assert "7-run average × 21.7 runs/mo" in src
-    assert "from {cost[\"runs\"]} runs in range</div>" not in src
-
-
 # ── F14 — Held runs to the economic exit ──
 def test_f14_held_duration_spans_entry_to_exit():
     sig = _frame([
@@ -247,12 +169,6 @@ def test_f14_held_duration_spans_entry_to_exit():
     buy = eps[eps["signal"] == "BUY"].iloc[0]
     assert buy["exit_date"] == pd.Timestamp("2026-06-11")
     assert int(buy["duration_days"]) == 11         # was 1 (streak length)
-
-
-# ── F15 — capex CRACKING gloss claims only what the rule tests ──
-def test_f15_cracking_gloss_has_no_unmeasured_widening_claim():
-    v = pulse_verdict(True, -5.0, True, False)
-    assert v["state"] == "cracking" and "gap is opening" not in v["gloss"]
 
 
 # ── F16 — tombstoned calls are 'no outcome recorded', not 'too early' ──

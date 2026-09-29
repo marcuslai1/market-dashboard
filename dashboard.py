@@ -16,23 +16,14 @@ from pathlib import Path
 
 import streamlit as st
 
-# The Briefing body keeps only the glance blocks; the study blocks (clusters,
-# calibration, earnings, catalyst map, contrarians, capex) moved to their own
-# tabs (overhaul 2026-07) and are imported lazily inside those page functions.
-from components.briefing import (
-    clusters_strip_html,
-    fundamentals_strip_html,
-    render_changes,
-    render_pulse,
-)
-from components.briefing.accumulate_status import accumulate_banner_html
-from components.briefing.action_card import action_card_html
-from components.briefing.calendar import calendar_card_html
-from components.briefing.clusters import cluster_anchor_count
+# The Briefing page is the pulse strip, the daily briefing card and the market
+# read (2026-09-29). The signal blocks (stance band, changes ribbon, clusters,
+# action card) and the model-written ones (active risks, macro note) were
+# removed once the report LLM went off on 09-28; the calendar folded into the
+# briefing card's Week ahead + Further out. Signals stay on the measurement pages.
+from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html
-from components.briefing.macro import macro_card_html, risks_card_html
 from components.briefing.market_read import market_read_card_html
-from components.briefing.stance import stance_band_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
 from components.watchlist.grid import signal_day_counts
@@ -44,8 +35,6 @@ from lib.data_loader import (
     list_report_dates,
     load_all_reports,
     load_briefings,
-    load_earnings_cascades,
-    load_macro_history,
     load_market_reads,
     load_paper_nav,
     load_report,
@@ -85,8 +74,6 @@ st.markdown(f"<style>{_THEME_CSS}</style>", unsafe_allow_html=True)
 if is_first_mount():
     st.markdown(
         "<style>"
-        ".risk-card[data-severity=\"HIGH\"] {"
-        " animation: risk-severity-pulse var(--dur-slow) var(--ease-out) 1; }"
         ".tk-details[data-signal-changed=\"true\"] > summary {"
         " animation: tk-signal-flash var(--dur-slow) var(--ease-out) 1; }"
         ".tk-details[data-signal=\"ACCUMULATE\"][data-signal-changed=\"true\"] > summary {"
@@ -126,35 +113,6 @@ mark_mounted()
 # script, AFTER the sidebar has assigned LIVE_PRICES / DATE_START / DATE_END —
 # the functions read those module globals at call time.
 # ════════════════════════════════════════════
-# ── Drill-in modals ──
-# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
-# opens as a dialog from the matching Briefing card, so drilling in never leaves
-# the page. st.dialog supplies the dimmed backdrop, click-outside dismiss and
-# close control natively; theme.css only styles the surface so it wears the same
-# blueprint grammar (square corners, 2px masthead-weight header rule) as the
-# page behind it — "zooming into the same document, not opening a different app".
-@st.dialog("Where each group stands", width="large")
-def _clusters_dialog(report: dict) -> None:
-    from components.briefing import render_clusters
-    render_clusters(
-        report.get("clusters", {}),
-        report.get("watchlist", {}),
-        report.get("extension_regime"),
-    )
-
-
-@st.dialog("Fundamentals — the full measure list", width="large")
-def _fundamentals_dialog(watchlist: dict) -> None:
-    # Deliberately NOT render_capex_pulse(): that carries an st.expander, and a
-    # Streamlit widget inside a dialog reruns the script, which dismisses the
-    # dialog. The measure list and the earnings scorecard are pure markup
-    # (the latter uses native <details>), so the dialog stays put.
-    from components.briefing import render_earnings
-    from components.briefing.fundamentals import fundamentals_detail_html
-    st.markdown(fundamentals_detail_html(), unsafe_allow_html=True)
-    render_earnings(watchlist)
-
-
 def _page_briefing() -> None:
     _dates = list_report_dates()
     if not _dates:
@@ -169,23 +127,9 @@ def _page_briefing() -> None:
     _prev_date = _dates[-2] if len(_dates) >= 2 else None
     if not _base_report and _prev_date:
         latest_date, _base_report = _prev_date, load_report(_prev_date)
-        _prev_date = _dates[-3] if len(_dates) >= 3 else None
     if not _base_report:
         st.error("No readable report files found in data/.")
         st.stop()
-    _prev_report = load_report(_prev_date) if _prev_date else None
-
-    # Drill-in dialogs are opened HERE, on the main script run — deliberately
-    # outside the body fragment below. A fragment rerun only patches its own DOM
-    # subtree, so a dialog opened inside one executes but never attaches (the
-    # content renders into nothing). The card buttons therefore set a flag and
-    # request a full-app rerun; we pop it here and open the dialog at page level.
-    _pending_modal = (st.session_state.pop("_open_modal", None)
-                      or st.query_params.get("modal"))
-    if _pending_modal == "clusters":
-        _clusters_dialog(_base_report)
-    elif _pending_modal == "fundamentals":
-        _fundamentals_dialog(_base_report.get("watchlist", {}))
 
     # Live prices are the only per-minute-changing input on the Briefing, and the
     # Yahoo fetch can stall for a few seconds. Rendering the body inside a fragment
@@ -198,138 +142,29 @@ def _page_briefing() -> None:
     def _render_briefing_body() -> None:
         _live = fetch_live_quotes() if LIVE_PRICES else {}
         report = overlay_live(_base_report, _live) if _live else _base_report
-
-        # `or {}`: a key present as null (not just absent) must not crash the page.
-        snapshot = report.get("portfolio_snapshot") or {}
-        watchlist = report.get("watchlist") or {}
         benchmarks = report.get("benchmarks") or {}
-        geo = report.get("geopolitical") or {}
-        # Data-only report (MarketReport report LLM off, 2026-09-28 spec §6/O6): the
-        # pipeline stamps meta.llm_enabled = False. Labels stay on the measurement
-        # pages; the advice surface (the single-action card) is not shown, and the
-        # narrative comes from the daily briefing card.
-        data_only = (report.get("meta") or {}).get("llm_enabled") is False
-        events = report.get("events_this_week", []) or []
 
-        # Stance band: single st.markdown so the lane-wrapper actually scopes both
-        # the lede (stance deck) and ledger (signal counts) as grid children.
-        st.markdown(
-            stance_band_html(snapshot, len(watchlist), report.get("extension_regime")),
-            unsafe_allow_html=True,
-        )
-
-        # Data-coverage banner — only when the report ran on incomplete data.
-        # A degraded run disarms cluster medians + extension-regime checks, so the
-        # whole briefing should carry a visible trust caveat. Silent on clean days.
+        # Data-coverage banner — only when the report ran on incomplete data, so
+        # the page carries a visible trust caveat. Silent on clean days.
         _dc = (report.get("meta") or {}).get("data_coverage") or {}
         if _dc.get("coverage_degraded"):
             _skipped = _dc.get("skipped") or []
             _skip_note = f" Missing: {', '.join(_skipped[:8])}." if _skipped else ""
             st.markdown(
                 '<div class="briefing-banner" data-tone="warn">⚠ Data coverage degraded — '
-                f'{_dc.get("fetched")}/{_dc.get("expected")} names fetched.'
-                f'{_skip_note} Cluster medians and extension-regime checks are '
-                'disarmed today; treat signals as provisional.</div>',
-                unsafe_allow_html=True,
-            )
-
-        # ACCUMULATE paper-phase status — one measured line (replaces the old
-        # per-ticker "PAPER TRADE" labels; the [paper] tag rides in what_to_do).
-        # Present only on days carrying ≥1 ACCUMULATE; sourced from the pipeline's
-        # gate readout, so it never drifts from the Measurement Gate. A cleared
-        # Gate reads per regime in the neutral tone since 2026-09-24 (no "✅ …
-        # Live-eligible" — components/briefing/accumulate_status.py).
-        _aps_html = accumulate_banner_html(report.get("accumulate_paper_status"))
-        if _aps_html:
-            st.markdown(_aps_html, unsafe_allow_html=True)
-
-        # Crisis flag — heuristic scan for "crisis dislocation" in writeup text
-        _crisis_markers = {"crisis dislocation", "crisis-dislocation", "crisis_dislocation"}
-        _crisis_detected = any(
-            any(m in str(wl_entry.get("writeup") or {}).lower() for m in _crisis_markers)
-            for wl_entry in watchlist.values()
-        )
-        if _crisis_detected:
-            st.markdown(
-                '<div class="briefing-banner" data-tone="crisis">'
-                'CRISIS DISLOCATION FLAG ACTIVE — elevated signal noise. '
-                'Treat all AVOID/CAUTION signals as provisional.'
-                '</div>',
+                f'{_dc.get("fetched")}/{_dc.get("expected")} names fetched.{_skip_note}</div>',
                 unsafe_allow_html=True,
             )
 
         _render_live_caption(_live, LIVE_PRICES)
         render_pulse(benchmarks)
-        render_changes(
-            watchlist,
-            _prev_report.get("watchlist", {}) if _prev_report else {},
-        )
 
-        # Market internals — compact, verdict-first showcase (design revision
-        # 2026-07-24): Clusters (left, per-group one-liners) + the Fundamentals
-        # verdicts (right, capex + earnings). The deep evidence — anchor tables,
-        # capex datasheet, trend charts — stays on the Clusters and Fundamentals
-        # tabs (progressive disclosure). Same 1.55fr/1fr grid as the main band.
-        # st.columns (not the CSS grid) because each column needs a real
-        # st.button to open its modal, and a widget can't live inside an
-        # st.markdown HTML string. Same 1.55/1 ratio as the band below.
-        # st.columns (not the CSS grid) because each card ends in a real
-        # st.button, and a widget can't live inside an st.markdown string. The
-        # keyed container IS the card frame (theme.css strips the inner .card's
-        # border), so the button sits in normal flow as the card's LAST CHILD —
-        # left-aligned to the content edge, shrink-to-fit, 12px below the last
-        # row. Cards size to their own content (align-items:start), so the two
-        # buttons do not share a baseline — that is intended.
-        _cl_strip = clusters_strip_html(
-            report.get("clusters", {}), watchlist, report.get("extension_regime")
-        )
-        _fx_strip = fundamentals_strip_html(watchlist)
-        if _cl_strip or _fx_strip:
-            _cl_col, _fx_col = st.columns([1.55, 1], gap="large")
-            with _cl_col:
-                if _cl_strip:
-                    with st.container(key="clusters_card"):
-                        st.markdown(_cl_strip, unsafe_allow_html=True)
-                        _n = cluster_anchor_count(report.get("clusters", {}))
-                        if st.button(f"View all {_n} anchors →",
-                                     key="open_clusters_modal"):
-                            st.session_state["_open_modal"] = "clusters"
-                            st.rerun(scope="app")
-            with _fx_col:
-                if _fx_strip:
-                    with st.container(key="fundamentals_card"):
-                        st.markdown(_fx_strip, unsafe_allow_html=True)
-                        if st.button("View all measures →",
-                                     key="open_fundamentals_modal"):
-                            st.session_state["_open_modal"] = "fundamentals"
-                            st.rerun(scope="app")
-
-        # Briefing body — 1.55fr / 1fr grid (design-spec §6), composed as ONE
-        # st.markdown so CSS grid sees the two columns as siblings
-        # (DESIGN_HANDOFF §3.4). Left lede: the single action + the macro note;
-        # right rail: active risks + the week-ahead calendar. The study blocks
-        # that used to stack here — clusters, calibration, earnings, the macro
-        # trigger map, contrarians, capex — now live on their own tabs (see the
-        # section mapping in docs/overhaul-plan.md); nothing was deleted.
+        # The daily briefing (Claude in the terminal, MarketReport /briefing skill):
+        # moves and why, the week ahead, earnings, further-out dates, chart facts.
         _briefing = briefing_card_html(load_briefings(),
                                        (report.get("meta") or {}).get("report_date"))
-        _action = "" if data_only else action_card_html(watchlist, events)
-        _left = _briefing + _action + macro_card_html(
-            report.get("macro_summary", ""), geo,
-            report.get("commodities_note", ""),
-            report.get("macro_indicators", {}),
-            load_macro_history(),
-        )
-        _right = risks_card_html(geo) + calendar_card_html(
-            events, lane="ledger", cascades=load_earnings_cascades(),
-        )
-        st.markdown(
-            f'<div class="briefing-grid">'
-            f'<div class="bg-col">{_left}</div>'
-            f'<div class="bg-col">{_right}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+        if _briefing:
+            st.markdown(_briefing, unsafe_allow_html=True)
 
         # Experimental market-read card. Sits BELOW the proven briefing blocks
         # (owner decision 2026-09-09): it is a 4-session adviser and must not
@@ -424,9 +259,12 @@ def _page_watchlist() -> None:
     _render_watchlist_body()
 
 
-# The Clusters and Fundamentals TABS were removed (2026-07-24). Their depth now
-# opens as a modal from the matching Briefing card, so the reader drills in
-# without leaving the page — see _clusters_dialog / _fundamentals_dialog above.
+# Tabs removed 2026-09-29: Scenario Log (model-written scenario odds, no new data
+# since the report LLM went off on 09-28), Pipeline Stats (DeepSeek tokens and
+# cost, all zero since 09-28 — restore from git if the LLM flag is turned back
+# on) and Report Comparison (a signal-change view the Watchlist date picker and
+# the Tracker's signal-changes drawer already cover). The Clusters and
+# Fundamentals tabs went on 2026-07-24; their Briefing cards on 2026-09-29.
 
 
 def _page_signal_tracker() -> None:
@@ -465,35 +303,6 @@ def _page_retrospective() -> None:
     render_retrospective_page(_latest, load_signal_log(), load_paper_nav())
 
 
-def _page_scenario_log() -> None:
-    from components.briefing import render_catalyst_playbook
-    from components.briefing.macro import scenario_odds_html
-    from components.scenario_log import render_scenario_log_page
-
-    # Scenario odds + the Macro Trigger Map both moved off the Briefing (overhaul
-    # 2026-07): the scenario-probability bar and the per-event bull/bear playbook
-    # belong with the scenarios they describe. Latest report.
-    _cat_dates = list_report_dates()
-    if _cat_dates:
-        _cat_latest = load_report(_cat_dates[-1])
-        _odds = scenario_odds_html(_cat_latest.get("geopolitical", {}))
-        if _odds:
-            st.markdown(_odds, unsafe_allow_html=True)
-        render_catalyst_playbook(_cat_latest.get("macro_trigger_map", []) or [])
-    render_scenario_log_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
-
-
-def _page_pipeline_stats() -> None:
-    from components.pipeline_stats import render_pipeline_stats_page
-    render_pipeline_stats_page(filter_reports(load_all_reports(), DATE_START, DATE_END),
-                               DATE_START, DATE_END)
-
-
-def _page_report_comparison() -> None:
-    from components.report_comparison import render_report_comparison_page
-    render_report_comparison_page(filter_reports(load_all_reports(), DATE_START, DATE_END))
-
-
 def _page_terminology() -> None:
     from components.terminology import render_terminology_page
     render_terminology_page()
@@ -509,9 +318,6 @@ _PAGES = {
     "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
     "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
     "Retrospective": st.Page(_page_retrospective, title="Retrospective", url_path="retrospective"),
-    "Pipeline Stats": st.Page(_page_pipeline_stats, title="Pipeline Stats", url_path="pipeline-stats"),
-    "Scenario Log": st.Page(_page_scenario_log, title="Scenario Log", url_path="scenario-log"),
-    "Report Comparison": st.Page(_page_report_comparison, title="Report Comparison", url_path="report-comparison"),
     "Terminology": st.Page(_page_terminology, title="Terminology", url_path="terminology"),
 }
 _pg = st.navigation(list(_PAGES.values()), position="hidden")

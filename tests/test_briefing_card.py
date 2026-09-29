@@ -2,14 +2,11 @@
 
 The card renders MarketReport's hand-written daily briefing (``data/briefings.json``,
 ``scripts/briefing.py publish``). Pins: silent when absent, sections in reading order,
-sources linked, staleness stated, escaping. The null-safety tests pin the pages that
-used to crash when a report carried ``geopolitical`` / ``interconnected`` as null.
+sources linked, staleness stated, escaping.
 """
 from __future__ import annotations
 
 from components.briefing.daily_briefing import briefing_card_html
-from components.briefing.macro import macro_card_html, risks_card_html
-from components.scenario_log import _get_probs, extract_scenario_history
 
 
 def _payload(**over):
@@ -53,17 +50,6 @@ def test_revision_is_marked():
 def test_text_is_escaped():
     html = briefing_card_html(_payload(what_matters=["<script>alert(1)</script>"]), "2026-09-25")
     assert "<script>" not in html
-
-
-def test_null_geopolitical_does_not_crash_the_briefing_cards():
-    assert isinstance(macro_card_html("", None), str)
-    assert isinstance(risks_card_html(None), str)
-
-
-def test_null_geopolitical_does_not_crash_the_scenario_log():
-    assert _get_probs({"geopolitical": None}) is not None
-    df = extract_scenario_history({"2026-09-29": {"geopolitical": None}})
-    assert len(df) == 0
 
 
 def test_terminology_leads_with_the_model_off_notice_only_after_a_data_only_report():
@@ -118,6 +104,10 @@ def _v2(**over):
             "further_out": [{"date": "2026-10-14", "kind": "macro", "what": "CPI Report (September)", "later": False},
                             {"date": "2026-10-14", "kind": "earnings", "key": "ASML", "what": "ASML", "later": False},
                             {"date": "2026-10-28", "kind": "macro", "what": "FOMC Rate Decision", "later": False},
+                            {"date": "2026-10-12", "kind": "event", "what": "OCP Global Summit 2026",
+                             "end_date": "2026-10-15", "later": False},
+                            {"date": "2026-10-20", "kind": "earnings", "what": "Oracle", "later": False,
+                             "read_across": ["Nvidia", "CoreWeave"]},
                             {"date": "2026-11-03", "kind": "earnings", "key": "AMD", "what": "AMD", "later": True},
                             {"date": "2026-11-17", "kind": "earnings", "key": "NVDA", "what": "Nvidia", "later": True}],
             "health": {"fetched": 33, "expected": 33, "stale_tickers": [], "latch_active": False,
@@ -157,6 +147,7 @@ def test_v2_sources_are_chips_where_used_and_repo_paths_are_not_links():
 def test_v2_week_and_earnings_and_chart():
     html = briefing_card_html(_v2(), "2026-09-28")
     assert "Tonight" in html and "No scheduled US release." in html and "JOLTS (Aug)" in html
+    assert '<span data-kind="event">Conference</span>' in html                # legend names the new kind
     assert "Catalyst rechecks due:</b> 1 item across 1 date" in html
     assert "~$51.2B" in html and "$50.0B ± 1.0" in html and "consensus 51.2" in html
     assert "+25.7%" in html and "−6.2%" in html and "RSI" in html
@@ -166,10 +157,13 @@ def test_v2_week_and_earnings_and_chart():
 def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     html = briefing_card_html(_v2(), "2026-09-28")
     far = html[html.index("<h3>Further out</h3>"):html.index("<h3>Chart facts</h3>")]
-    soon, later = far.split('<details class="bf-later">')
-    assert soon.count("<li>") == 2 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
-    assert "Later, 31–60 days:</b> 2 events across 2 dates" in later and "Nvidia earnings" in later
-    assert "AMD" not in soon                                          # the second month stays folded
+    soon, later = far.split('<div class="bf-later">')
+    assert soon.count("<li>") == 4 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
+    assert '<b data-kind="event">OCP Global Summit 2026<small>to Thu 15 Oct</small></b>' in soon
+    assert "Oracle earnings<small>not held · moves Nvidia, CoreWeave</small>" in soon
+    assert "Later · 31–60 days · less certain" in later and "often estimates" in later
+    assert "Nvidia earnings" in later and "AMD" not in soon
+    assert "<details" not in far                                      # static: visible without a click
     assert '<b data-kind="earnings">ASML earnings</b>' in far and '<b data-kind="macro">FOMC Rate Decision</b>' in far
     assert "some are its estimates" in far
     none = _v2()

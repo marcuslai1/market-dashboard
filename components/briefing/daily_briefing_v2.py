@@ -8,7 +8,7 @@ morning report into ``latest.numbers``. This module only lays them out.
 Reading order: masthead (date, what each number is as of, next timed events) → what
 matters → after the data → tape → names that moved (grouped by the market whose session
 the price is from) → week ahead → earnings → further out (dates only, to two months; the
-second month folded) → chart facts → data notes → sources.
+second month under a "less certain" label) → chart facts → data notes → sources.
 
 Constraints, all upstream decisions:
 
@@ -255,7 +255,7 @@ def _week(latest: dict) -> str:
                  f'across {len(rchk)} date{"s" if len(rchk) != 1 else ""}</summary><ul>{li}</ul></details>')
     if body:
         body += ('<div class="bf-key"><span data-kind="macro">Macro release</span>'
-                 '<span data-kind="earnings">Earnings</span></div>')
+                 '<span data-kind="earnings">Earnings</span><span data-kind="event">Conference</span></div>')
     return _sec("Week ahead", body, "all times SGT", prov="Calendar: morning report · Rechecks: catalysts.json")
 
 
@@ -355,22 +355,35 @@ def _earnings(latest: dict, nums: dict, sources: list) -> str:
                 prov=earn.get("note") or "", kind="earnings")
 
 
+def _far_item(r: dict) -> str:
+    """One further-out row: a conference carries its last day, a read-across print
+    (a company off the watchlist) says it is not held and which names it moves."""
+    extra = ""
+    if r.get("end_date"):
+        extra = f'<small>to {_txt(_date(r["end_date"]))}</small>'
+    elif isinstance(r.get("read_across"), list):
+        moves = ", ".join(str(m) for m in r["read_across"][:4])
+        extra = f'<small>not held{" · moves " + _txt(moves) if moves else ""}</small>'
+    suffix = " earnings" if r.get("kind") == "earnings" else ""
+    return f'<b data-kind="{_escape_attr(r.get("kind"))}">{_txt(r["what"])}{suffix}{extra}</b>'
+
+
 def _far_list(rows: list) -> str:
     days: dict = {}
     for r in rows:
         days.setdefault(str(r["date"])[:10], []).append(r)
     return '<ul class="bf-far">' + "".join(
         f'<li><time datetime="{_escape_attr(d)}">{_txt(_date(d))}</time><span>'
-        + "".join(f'<b data-kind="{_escape_attr(r.get("kind"))}">{_txt(r["what"])}'
-                  f'{" earnings" if r.get("kind") == "earnings" else ""}</b>' for r in evs)
+        + "".join(_far_item(r) for r in evs)
         + '</span></li>' for d, evs in sorted(days.items())) + "</ul>"
 
 
 def _further(nums: dict) -> str:
     """Dated events past the week-ahead and 14-day earnings windows, out to two months (owner
     2026-09-29; 60 days = the earnings feed's reach). publish joins them from the data into
-    ``numbers.further_out``; dates only. The second month (``later``) is folded: more of its
-    earnings dates are the feed's estimates."""
+    ``numbers.further_out``; dates only. The second month (``later``) shows open under a
+    "less certain" label (owner 09-29: visible at once, not a fold): more of its earnings dates
+    are the feed's estimates. Its earnings rows take a dashed edge — a line style, not a hue."""
     rows = [r for r in nums.get("further_out") or [] if isinstance(r, dict) and r.get("date") and r.get("what")]
     if not rows:
         return ""
@@ -378,15 +391,16 @@ def _further(nums: dict) -> str:
     later = [r for r in rows if r.get("later")]
     body = _far_list(soon) if soon else ""
     if later:
-        n_days = len({str(r["date"])[:10] for r in later})
-        body += (f'<details class="bf-later"><summary><b>Later, 31–60 days:</b> {len(later)} '
-                 f'event{"s" if len(later) != 1 else ""} across {n_days} date{"s" if n_days != 1 else ""} '
-                 f'· more of these dates are estimates</summary>{_far_list(later)}</details>')
+        body += ('<div class="bf-later"><p class="bf-later-h"><b>Later · 31–60 days · less certain</b> '
+                 'Earnings dates this far out are often estimates and may move.</p>'
+                 f'{_far_list(later)}</div>')
     return _sec("Further out", body, "to two months · dates only",
                 prov="Earnings dates past 14 days come from Yahoo Finance's calendar; some are its estimates, "
                      "not dates the company has announced; they are the exchange's local date. Macro: "
                      "high-impact releases only, dated in New York time, so a Singapore-morning release "
-                     "(MAS) shows the day before.")
+                     "(MAS) shows the day before. Conferences: the pipeline's tech-events list. Not held: "
+                     "results from a company off the watchlist that move names on it (looked up 21 days "
+                     "ahead).")
 
 
 def _chart(latest: dict, nums: dict) -> str:

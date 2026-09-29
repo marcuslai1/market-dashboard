@@ -34,26 +34,6 @@ def test_pulse_no_session_no_tag(markdown_capture):
     assert "ext-tag" not in "".join(markdown_capture)
 
 
-def test_action_card_delta_suffix_reflects_session(markdown_capture):
-    from components.briefing.action_card import render_action_card
-    wl = {"NVDA": {"signal": "WATCH", "price": 208.0, "chg_pct": -1.4,
-                   "currency": "USD", "live_session": "PRE"}}
-    render_action_card(wl, [])
-    html = "".join(markdown_capture)
-    assert "pre-mkt" in html
-    assert "% today" not in html
-
-
-def test_action_card_delta_suffix_regular_session(markdown_capture):
-    from components.briefing.action_card import render_action_card
-    wl = {"NVDA": {"signal": "WATCH", "price": 210.96, "chg_pct": 0.19,
-                   "currency": "USD"}}
-    render_action_card(wl, [])
-    html = "".join(markdown_capture)
-    assert "today" in html
-    assert "pre-mkt" not in html and "after-hrs" not in html
-
-
 def test_live_caption_names_the_session(markdown_capture):
     from lib.pills import _render_live_caption
     live = {"__meta__": {"fetched_at": "2026-07-13T09:30:00+00:00",

@@ -169,92 +169,6 @@ def load_report(date_str: str) -> dict:
     return _load_json_cached(str(path), _mtime(path))
 
 
-# ── Macro print history (Briefing prints-grid sparklines) ───────────────────
-# A report's ``macro_indicators`` carry only value/prior/chg — FRED series
-# history is not exported. The trend line is therefore reconstructed from the
-# archive: every stored report froze the latest-available observation on its own
-# date, so the run of distinct observation dates *is* the series.
-#
-# Sampled, not read whole. The Briefing deliberately parses only the latest two
-# reports (see ``_page_briefing``) and ``load_all_reports`` decodes ~9MB that
-# grows with every pipeline run; sampling keeps the cost fixed forever. One
-# report per 10-day bucket is the granularity the corpus justifies: a monthly
-# print stays "latest available" for ~28 days, so every 10-day bucket boundary
-# falls inside its window and no observation is skipped. (Measured against a
-# full scan: 10-day sampling recovers every CPI/PCE observation in the archive.
-# It misses one April jobs print that existed for a single day, 2026-06-05,
-# because the FRED block was added the day before the May release superseded
-# it — an artifact of where the corpus starts, not a recurring gap.)
-_MACRO_HISTORY_BUCKETS = 30     # ~10 months, ample for the 7 points a cell plots
-_MACRO_HISTORY_POINTS = 7
-
-
-def _history_sample(dates, buckets: int) -> list[str]:
-    """Newest report date in each of the last *buckets* 10-day windows.
-
-    Ascending. Pure (no IO) so the sampling rule is unit-testable. The corpus's
-    newest date always survives — it is the newest date of its own bucket — so
-    today's print can never be missed.
-    """
-    by_bucket: dict[tuple, str] = {}
-    for d in sorted(dates):
-        try:
-            key = (d[:7], (int(d[8:10]) - 1) // 10)
-        except ValueError:                      # a filename we can't date-parse
-            continue
-        by_bucket[key] = d                      # later date in a bucket wins
-    return [by_bucket[k] for k in sorted(by_bucket)[-buckets:]]
-
-
-@st.cache_data(max_entries=4)
-def _macro_history_cached(fingerprint: tuple, points: int) -> dict[str, list[float]]:
-    """Per-label observation runs, oldest→newest, from the sampled reports.
-
-    Reads the sampled files directly rather than through ``load_report``: these
-    are wanted once, to distill a few hundred bytes, and routing ~25 full
-    reports through that per-file cache would evict the ones hot-path pages
-    actually re-read.
-    """
-    by_series: dict[str, dict[str, float]] = {}
-    for date_str, _unused_mtime in fingerprint:
-        path = DATA_DIR / f"morning_report_{date_str}.json"
-        try:
-            report = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue                            # fails soft, like every loader
-        for label, d in (report.get("macro_indicators") or {}).items():
-            if not isinstance(d, dict):
-                continue
-            asof, value = d.get("asof"), d.get("value")
-            if not asof or not isinstance(value, (int, float)) or isinstance(value, bool):
-                continue
-            # Keyed by observation date and filled oldest→newest, so a later
-            # report's revision of the same observation overwrites the first
-            # print — the series shows what FRED currently says, not what it
-            # said first.
-            by_series.setdefault(label, {})[asof] = float(value)
-    return {
-        label: [v for _asof, v in sorted(obs.items())[-points:]]
-        for label, obs in by_series.items()
-    }
-
-
-def load_macro_history(points: int = _MACRO_HISTORY_POINTS) -> dict[str, list[float]]:
-    """Macro-print observation runs keyed by print label (``"CPI (YoY)"`` …).
-
-    Values are chronological and at most *points* long. Short (or absent) for a
-    series the archive has not seen twice yet — the caller draws no line below
-    two points rather than inventing a shape. The caller also re-seats the last
-    two points on today's report (``prior`` → ``value``), so the line can never
-    contradict the figure printed above it.
-    """
-    dates = _history_sample(list_report_dates(), _MACRO_HISTORY_BUCKETS)
-    fingerprint = tuple(
-        (d, _mtime(DATA_DIR / f"morning_report_{d}.json")) for d in dates
-    )
-    return _macro_history_cached(fingerprint, points)
-
-
 @st.cache_data(max_entries=4)
 def _load_sqlite_prices_cached(path_str: str, mtime: float) -> pd.DataFrame:
     df = _safe_read_csv(Path(path_str))
@@ -351,44 +265,6 @@ def load_paper_positions() -> pd.DataFrame:
 
 
 @st.cache_data(max_entries=4)
-def _load_pipeline_stats_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    df = _safe_read_csv(Path(path_str))
-    if df.empty:
-        return df
-    extra_cols = ["yfinance_articles", "yfinance_chars", "tavily_articles",
-                  "tavily_chars", "system_prompt_chars", "watchlist_data_chars",
-                  "memory_chars", "total_prompt_chars", "computed_cost_usd",
-                  "cache_hit_tokens", "cache_miss_tokens"]
-    # Ensure all expected columns exist (fill missing with NaN)
-    for c in extra_cols:
-        if c not in df.columns:
-            df[c] = float("nan")
-    if not df.empty:
-        df["date"] = pd.to_datetime(df["date"])
-    return df
-
-
-def load_pipeline_stats() -> pd.DataFrame:
-    """Load pipeline article stats from CSV export."""
-    path = DATA_DIR / "pipeline_stats.csv"
-    return _load_pipeline_stats_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
-def _load_token_usage_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    df = _safe_read_csv(Path(path_str))
-    if not df.empty and "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"])
-    return df
-
-
-def load_token_usage() -> pd.DataFrame:
-    """Load Claude API usage from CSV export."""
-    path = DATA_DIR / "claude_analysis.csv"
-    return _load_token_usage_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
 def _load_signal_log_cached(path_str: str, mtime: float) -> pd.DataFrame:
     df = _safe_read_csv(Path(path_str))
     if df.empty or "date" not in df.columns:
@@ -409,26 +285,6 @@ def load_signal_log() -> pd.DataFrame:
     """Load signal_evaluation_log export (paper-trade outcomes)."""
     path = DATA_DIR / "signal_log.csv"
     return _load_signal_log_cached(str(path), _mtime(path))
-
-
-def load_capex_quarterly() -> dict:
-    """Hand-maintained quarterly capex file for the AI Capex Pulse band.
-
-    ``{}`` when missing/malformed (band degrades, never crashes); validation
-    and row-dropping live in ``lib.capex.parse_capex``, not here.
-    """
-    path = DATA_DIR / "capex_quarterly.json"
-    if not path.exists():
-        return {}
-    return _load_json_cached(str(path), _mtime(path))
-
-
-def load_earnings_cascades() -> dict:
-    """Hand-maintained earnings-cascade config (pre-wired bull/bear reads)."""
-    path = DATA_DIR / "earnings_cascades.json"
-    if not path.exists():
-        return {}
-    return _load_json_cached(str(path), _mtime(path))
 
 
 def load_changelog() -> list:

@@ -4550,6 +4550,7 @@ a.term-index-item:hover {
 .bf [data-kind="after"]    { --bf-k: var(--brass); }
 .bf [data-kind="move"], .bf [data-kind="price"] { --bf-k: var(--metric-input); }
 .bf [data-kind="check"], .bf [data-kind="data"] { --bf-k: var(--ink-3); }
+.bf [data-kind="event"]    { --bf-k: var(--ink-2); }
 
 .bf .bf-sec { padding: 20px 0; border-top: 1px solid var(--rule); }
 .bf .bf-sec:first-child { border-top: 0; padding-top: 4px; }
@@ -4688,10 +4689,11 @@ a.term-index-item:hover {
 .bf-far li time { font-family: var(--font-display); font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
 .bf-far li span { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .bf-far li b { font-weight: 500; color: var(--ink); padding-left: 8px; border-left: 2px solid var(--bf-k, var(--ink-3)); }
-.bf-later { margin-top: 14px; }
-.bf-later summary { cursor: pointer; font-size: 14px; color: var(--ink-2); }
-.bf-later summary b { color: var(--ink); font-weight: 600; }
-.bf-later .bf-far { margin-top: 10px; }
+.bf-far li b small { margin-left: 6px; font-size: 12.5px; font-weight: 400; color: var(--ink-3); }
+.bf-later { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--rule-strong); }
+.bf .bf-later-h { margin: 0 0 10px; font-size: 13.5px; line-height: 1.45; color: var(--ink-3); }
+.bf-later-h b { margin-right: 6px; color: var(--ink-2); font-weight: 600; }
+.bf-later .bf-far li b[data-kind="earnings"] { border-left-style: dashed; }
 
 /* earnings */
 .bf-ec { display: grid; gap: 16px; padding: 14px 16px; border: 1px solid var(--rule-strong);

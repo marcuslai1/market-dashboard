@@ -2,12 +2,11 @@
 
 The review verified rerun determinism with an ad-hoc AppTest drive that was
 never committed — so CI could not catch a crash in the render-only components
-(pipeline_stats, terminology, masthead, watchlist drilldown). This walk boots
-the real dashboard.py and visits all 8 nav targets. Live quotes are stubbed:
-no network in CI.
+(terminology, masthead, watchlist drilldown). This walk boots the real
+dashboard.py and visits all 5 nav targets (three tabs removed 2026-09-29).
+Live quotes are stubbed: no network in CI.
 """
 import glob
-import json
 
 import pytest
 from streamlit.testing.v1 import AppTest
@@ -19,9 +18,6 @@ PAGES = [
     "Watchlist",
     "Signal Tracker",
     "Retrospective",
-    "Pipeline Stats",
-    "Scenario Log",
-    "Report Comparison",
     "Terminology",
 ]
 
@@ -206,92 +202,17 @@ def test_terminology_no_match_says_so():
     assert "0 of 12 sections match" in page
 
 
-def _pipeline_page_app():
-    """Boot ONLY the Pipeline health page (see _tracker_page_app for why
-    non-default pages can't be driven through dashboard.py). ASCII-only."""
-    from components.pipeline_stats import render_pipeline_stats_page
-    from lib.data_loader import load_all_reports
-
-    render_pipeline_stats_page(load_all_reports())
-
-
-def test_pipeline_page_leads_with_a_verdict():
-    """The page's whole point is answering "is this healthy?" before any
-    number. If the band ever stops rendering, the page is telemetry again."""
-    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
-    at.run()
-    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert 'class="pm-verdict' in page
-    assert any(w in page for w in ("Healthy", "Watch", "Over budget"))
-    # Five metric identities, each carrying its own hue via data-metric.
-    for key in ("cost", "cache", "input", "gen", "articles"):
-        assert f'data-metric="{key}"' in page, f"{key} cell missing from the strip"
-
-
-def test_pipeline_totals_are_labelled_as_range_clipped():
-    """Every figure on the page inherits the range chip, so a range-clipped
-    total must not be labelled a lifetime one. Calling it "spent since cutover"
-    when the sidebar had clipped it to a month was the same class of error as
-    the cumsum this redesign fixed — and too small a pixel change for the
-    visual baseline to catch, so it is asserted on the markup."""
-    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
-    at.run()
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert "Spent in range" in page
-    assert "since cutover" not in page, "a clipped total claims to be all-time"
-
-
-def test_pipeline_page_states_that_the_palette_rules_changed():
-    """A reader arriving from the Watchlist needs to know green/red are absent
-    here. That disclosure is the cost of giving one page its own palette."""
-    at = AppTest.from_function(_pipeline_page_app, default_timeout=60)
-    at.run()
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert "No signal colours" in page
-
-
-def test_briefing_renders_action_card():
-    """The single-action callout stays on the Briefing (design-spec §1 block 4).
-    Post-overhaul it composes into the 1.55fr/1fr grid via action_card_html, so
-    its eyebrow — not a separate 'Today's Trade' head — is the stable marker."""
+def test_briefing_is_pulse_briefing_and_market_read_only():
+    """Since 2026-09-29 the Briefing tab is the pulse strip, the daily briefing
+    card and the market read. The signal blocks and the cards the report LLM
+    used to write (off since 09-28) were removed — pin that they stay gone."""
     at = _boot()
     assert not at.exception
     page = " ".join(str(m.value) for m in at.markdown)
-    # MarketReport spec O6 (2026-09-28): a data-only report (meta.llm_enabled False)
-    # hides the advice card by design — the expectation follows the latest report.
-    latest = max(glob.glob("data/morning_report_*.json"))
-    with open(latest, encoding="utf-8") as fh:
-        data_only = (json.load(fh).get("meta") or {}).get("llm_enabled") is False
-    assert ("IF YOU ONLY DO ONE THING TODAY" in page) is not data_only
-
-
-def _capex_pulse_app():
-    """Boot ONLY the AI Capex Pulse band, moved to the Fundamentals tab in the
-    2026-07 overhaul. ASCII-only source (see _tracker_page_app for why)."""
-    from components.briefing.capex_pulse import render_capex_pulse
-
-    render_capex_pulse()
-
-
-def test_fundamentals_renders_capex_pulse_band():
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_function(_capex_pulse_app, default_timeout=30)
-    at.run()
-    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    assert any("AI Capex Pulse" in str(m.value) for m in at.markdown)
-
-
-def test_fundamentals_capex_pulse_shows_a_verdict():
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_function(_capex_pulse_app, default_timeout=30)
-    at.run()
-    assert not at.exception
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert any(v in page for v in
-               ("INTACT", "DIGESTING", "CRACKING", "INSUFFICIENT DATA"))
+    for gone in ("IF YOU ONLY DO ONE THING TODAY", "ACTIVE RISKS", "Catalysts that move signals",
+                 "where each group stands", "the cycle cross-check", "THE MACRO NOTE"):
+        assert gone not in page, gone
+    assert "DAILY BRIEFING" in page
 
 
 def _watchlist_page_app():

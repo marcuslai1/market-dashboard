@@ -3,7 +3,7 @@
 Production leaves TEST_DATE unset, so ``today()`` is exactly ``datetime.date.today()``.
 The visual-regression harness sets ``TEST_DATE=YYYY-MM-DD`` to freeze the render
 date, keeping the committed pixel baselines of the today-anchored, date-filtered
-pages (signal-tracker, pipeline-stats, scenario-log, report-comparison) stable as
+pages (signal-tracker; pipeline-stats, scenario-log and report-comparison until 2026-09-29) stable as
 the wall clock advances. This is a guarded, test-only date seam — no signal or
 logic change.
 """
