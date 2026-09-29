@@ -158,6 +158,20 @@ def test_v2_week_and_earnings_and_chart():
     assert "all clear" in html and "bf-fault" not in html
 
 
+def test_calendar_sections_share_the_rose_marker():
+    """Owner 2026-09-30: 'a nicer colour instead of grey' for Upcoming events; Week ahead holds the
+    same kind of thing, so both carry it — on the heading marker only, never through --bf-k."""
+    import pathlib
+    import re
+    html = briefing_card_html(_v2(data_date="2026-09-28"), "2026-09-28", _earnings_map())
+    cal = re.findall(r'<section class="bf-sec bf-cal"[^>]*><div class="bf-sh"><h3>(.*?)</h3>', html)
+    assert cal == ["Week ahead", "Upcoming events"]
+    css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
+    assert ".bf .bf-cal > .bf-sh h3::before { background: var(--calendar); }" in css
+    assert "--calendar:var(--calendar-dark);" in css
+    assert not re.search(r"--bf-k:\s*var\(--calendar\)", css)
+
+
 def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     html = briefing_card_html(_v2(), "2026-09-28")
     far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>Chart facts</h3>")]

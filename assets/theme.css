@@ -112,6 +112,7 @@
   --brass-fill:#c9a66b;                                       /* shared */
   --muted-fill-light:#b7b7ba;     --muted-fill-dark:#5d5d60;  /* secondary series */
   --stress-light:#a3453b;         --stress-dark:#e08a80;      /* terracotta */
+  --calendar-light:#9a4870;       --calendar-dark:#e6a0c0;    /* soft rose: the briefing's calendar sections */
 
   /* —— Metric-family palette · Pipeline health page ONLY ——
      One hue per metric, five muted technical tones on a shared lightness band
@@ -154,6 +155,7 @@
   --brass:var(--brass-dark);
   --muted-fill:var(--muted-fill-dark);
   --stress:var(--stress-dark);
+  --calendar:var(--calendar-dark);
   --metric-cost:var(--metric-cost-dark);
   --metric-cache:var(--metric-cache-dark);
   --metric-input:var(--metric-input-dark);
@@ -4532,7 +4534,8 @@ a.term-index-item:hover {
    fall. Hues encode the KIND of item only, one per kind, through --bf-k:
    macro teal (--metric-cache), earnings violet (--metric-gen), after-the-data
    news brass (--brass), price data from the report indigo (--metric-input);
-   rechecks and data notes stay ink. --stress marks a real data fault and
+   rechecks and data notes stay ink; the two calendar sections' heading
+   markers are soft rose (--calendar, 2026-09-30). --stress marks a real data fault and
    nothing else. No rule lines on the chart facts (gate rules are not briefing
    content). Layout follows the card's own width (container queries), so the
    same markup works in the lede column and on a phone.
@@ -4562,6 +4565,11 @@ a.term-index-item:hover {
   font-weight: 600 !important; color: var(--ink) !important; }
 .bf .bf-sh h3::before, .bf .bf-srcs summary h3::before { content: ""; flex: none; width: 4px; height: 0.95em;
   border-radius: 1px; background: var(--bf-k, var(--rule-strong)); }
+/* the two calendar sections (Week ahead, Upcoming events) share a soft rose marker (owner 2026-09-30:
+   "a nicer colour instead of grey"). The marker only — not --bf-k, so an item inside without a kind
+   keeps its neutral fallback. Rose is the most distinct free hue: orange sat within dE 6-8 of the brass
+   'After the data' marker and WATCH amber; rose is dE >= 8.9 from every hue on the card. */
+.bf .bf-cal > .bf-sh h3::before { background: var(--calendar); }
 .bf-aside, .bf-dim { font-size: 12.5px; color: var(--ink-3); }
 .bf .bf-prov { font-size: 12.5px; line-height: 1.45; color: var(--ink-3); margin: 10px 0 0; }
 .bf .bf-cap { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 12px 0 0; }

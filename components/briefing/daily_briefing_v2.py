@@ -266,7 +266,8 @@ def _week(latest: dict) -> str:
     if body:
         body += ('<div class="bf-key"><span data-kind="macro">Macro release</span>'
                  '<span data-kind="earnings">Earnings</span><span data-kind="event">Conference</span></div>')
-    return _sec("Week ahead", body, "all times SGT", prov="Calendar: morning report · Rechecks: catalysts.json")
+    return _sec("Week ahead", body, "all times SGT", cls="bf-cal",
+                prov="Calendar: morning report · Rechecks: catalysts.json")
 
 
 def _event(c: dict) -> str:
@@ -467,7 +468,7 @@ def _further(nums: dict) -> str:
         body += ('<div class="bf-later"><p class="bf-later-h"><b>Later · 31–60 days · less certain</b> '
                  'Earnings dates this far out are often estimates and may move.</p>'
                  f'{_far_list(later)}</div>')
-    return _sec("Upcoming events", body, "to two months · dates only",
+    return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
                 prov="Earnings dates past 14 days come from Yahoo Finance's calendar; some are its estimates, "
                      "not dates the company has announced; they are the exchange's local date. Macro: "
                      "high-impact releases only, dated in New York time, so a Singapore-morning release "
