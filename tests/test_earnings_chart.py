@@ -59,14 +59,14 @@ def test_csv_estimate_wins_over_backfill_and_backfill_fills_gaps():
 
 def test_revenue_chart_growth_year_on_year_and_the_coming_note():
     html_ = revenue_chart_html(quarter_series(MU), "US$", company=(49.0e9, 51.0e9), whisker=(46.9e9, 59.8e9))
-    # whole-number % (owner 2026-09-29: '1.7×' is not a whole number)
-    assert _rows(html_)["vs previous quarter"] == ["", "+22%", "+21%", "+75%", "+74%", "~+24%"]
+    # a % to one decimal (owner 2026-09-29), not the first ship's 1.2× / 1.7×
+    assert _rows(html_)["vs previous quarter"] == ["", "+21.7%", "+20.6%", "+74.9%", "+73.7%", "~+23.9%"]
     notes = _notes(html_)
-    assert "Latest quarter vs a year earlier: +346%" in notes
-    assert "Coming quarter vs the last: analysts ~+24% · company forecast ~+21%" in notes
+    assert "Latest quarter vs a year earlier: +345.7%" in notes
+    assert "Coming quarter vs the last: analysts ~+23.9% · company forecast ~+20.6%" in notes
     assert "×" not in html_
     assert _notes(revenue_chart_html(quarter_series(MU), mini=True)) == [
-        "Last quarter: +74% vs the one before · +346% vs a year ago", "Next: ~+24% (analysts)"]
+        "Last quarter: +73.7% vs the one before · +345.7% vs a year ago", "Next: ~+23.9% (analysts)"]
     assert 'class="ec-est"' in html_ and 'class="ec-band"' in html_ and 'class="ec-whisker"' in html_
     assert "~51.4" not in html_ and "~51.3" in html_                        # 51.35 rounds as a number, not a story
 
@@ -79,13 +79,13 @@ def test_no_multiplier_across_a_missing_quarter():
     assert '<span class="ec-miss">·</span>' in html_ and html_.count('class="ec-miss"') == 1   # a dot; words only on hover
     assert _notes(html_) == ["Last quarter not on file"]                        # never "2.0e9 / 1.1e9" across the gap
     full = revenue_chart_html(s)
-    assert "not on file" in full and "~+82%" not in full
+    assert "not on file" in full and "~+81.8%" not in full
 
 
 def test_shrinking_quarter_reads_as_a_minus():
     rows = [_row("2025-12-31", 213.39e9), _row("2026-03-31", 181.52e9)]
     html_ = revenue_chart_html(quarter_series(rows))
-    assert _rows(html_)["vs previous quarter"] == ["", "−15%"]
+    assert _rows(html_)["vs previous quarter"] == ["", "−14.9%"]
 
 
 def test_eps_chart_draws_from_zero_and_handles_negatives():
@@ -93,7 +93,7 @@ def test_eps_chart_draws_from_zero_and_handles_negatives():
             _row("2025-09-30", eps=0.15, eps_est=0.10)]
     html_ = eps_chart_html(quarter_series(rows))
     assert "ec-neg" in html_ and "−0.06" in html_
-    assert _rows(html_)["vs what analysts expected"] == ["", "+400%", "+50%"]   # no % on a negative base
+    assert _rows(html_)["vs what analysts expected"] == ["", "+400.0%", "+50.0%"]   # no % on a negative base
 
 
 def test_empty_table_cells_are_dashes_not_holes():
@@ -118,27 +118,27 @@ def test_analysts_estimate_number_sits_beside_its_line():
 
 
 def test_roomy_chart_puts_both_comparisons_on_the_plot():
-    """Owner 2026-09-29: the result-vs-analysts % sits beside the analysts' number (12.8 +6%),
+    """Owner 2026-09-29: the result-vs-analysts % sits beside the analysts' number (12.8 +6.6%),
     and growth sits between the two quarters it compares; their table rows are marked so CSS
     drops them where the plot carries the numbers (and keeps them on a phone)."""
     mu = [dict(r) for r in MU]
     mu[2]["revenue_estimate"] = 12.8e9
     html_ = revenue_chart_html(quarter_series(mu), company=(49.0e9, 51.0e9))
-    assert '12.8<b class="ec-tvb">+7%</b>' in html_
-    assert re.findall(r'<span class="ec-g"[^>]*>([^<]*)', html_) == ["+22%", "+21%", "+75%", "+74%", "~+24%"]
-    assert 'title="Sep–Nov 2025 → Dec–Feb 2026: +75%"' in html_
-    assert 'title="Mar–May 2026 → Jun–Aug 2026 (analysts expect): +24%"' in html_
+    assert '12.8<b class="ec-tvb">+6.6%</b>' in html_
+    assert re.findall(r'<span class="ec-g"[^>]*>([^<]*)', html_) == ["+21.7%", "+20.6%", "+74.9%", "+73.7%", "~+23.9%"]
+    assert 'title="Sep–Nov 2025 → Dec–Feb 2026: +74.9%"' in html_
+    assert 'title="Mar–May 2026 → Jun–Aug 2026 (analysts expect): +23.9%"' in html_
     assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs previous quarter' in html_
     assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs what analysts expected' in html_
     eps = eps_chart_html(quarter_series(MU))
-    assert '9.16<b class="ec-tvb">+33%</b>' in eps and "ec-g" not in eps     # EPS has no growth labels
+    assert '9.16<b class="ec-tvb">+33.2%</b>' in eps and "ec-g" not in eps     # EPS has no growth labels
     drop = revenue_chart_html(quarter_series([_row("2025-12-31", 213.39e9), _row("2026-03-31", 181.52e9)]))
-    assert '<span class="ec-g" title="Oct–Dec 2025 → Jan–Mar 2026: −15%">−15%</span>' in drop
+    assert '<span class="ec-g" title="Oct–Dec 2025 → Jan–Mar 2026: −14.9%">−14.9%</span>' in drop
     assert "ec-g" not in revenue_chart_html(quarter_series(MU), mini=True)
     gap = [_row("2025-06-30", 1.0e9), _row("2025-09-30", 1.2e9), _row("2025-12-31", 1.3e9),
            _row("2026-03-31", 1.1e9), _row("2026-06-30", eps=0.5), _row("2026-09-30", rev_est=2.0e9)]
     assert re.findall(r'<span class="ec-g"[^>]*>([^<]*)', revenue_chart_html(quarter_series(gap))) == [
-        "+20%", "+8%", "−15%"]                                                  # never across the missing quarter
+        "+20.0%", "+8.3%", "−15.4%"]                                                  # never across the missing quarter
 
 
 def test_key_explains_the_on_plot_numbers_only_when_drawn():

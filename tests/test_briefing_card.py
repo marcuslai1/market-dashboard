@@ -223,7 +223,7 @@ def test_v2_earnings_detail_draws_charts_and_the_week_grid_lists_the_rest():
     earn = html[html.index("<h3>Earnings</h3>"):html.index("<h3>Further out</h3>")]
     assert earn.count('class="ec"') == 2 and "bf-rbar" not in earn          # revenue + EPS charts, no flat range bars
     assert "~51.2" in earn                                                  # the coming bar uses the briefing's own consensus
-    assert "company forecast ~+21%" in earn and "company's own forecast" in earn
+    assert "company forecast ~+20.6%" in earn and "company's own forecast" in earn
     assert "Reporting in the next 7 days" in earn and "GOOG" in earn         # within 7 days, not written up
     assert earn.count('class="bf-eg"') == 1 and "AMZN" not in earn          # MU is written up; AMZN is 22 days out
 

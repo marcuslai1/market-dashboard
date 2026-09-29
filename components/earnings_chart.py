@@ -6,13 +6,13 @@ speed-up and the expected slowdown at a glance. Two forms from one series builde
 - ``revenue_chart_html`` — solid bars = reported quarters, a dashed-outline bar = the
   coming quarter (analysts' estimate; the company's own forecast as a band when known),
   a neutral hairline on each past bar = what analysts expected beforehand, with its number
-  beside it, and a "vs previous quarter" growth row (+22%, +75%, ~+24%; whole-number %, not the
-  first ship's 1.7×) so the speed-up is a number.
+  beside it, and a "vs previous quarter" growth row (+21.7%, +74.9%, ~+23.9%; a % to one decimal,
+  not the first ship's 1.7×) so the speed-up is a number.
   The rows form a table: on a wide chart the title and row labels share a left gutter; on a
   narrow one the labels stack and a "what analysts expected" row carries the estimates. On a
   roomy chart (≥ 860px) the two comparisons move onto the plot and their rows step aside: the
   result vs analysts beside the analysts' number (12.8 +6%), the growth between the two
-  quarter labels it compares (Sep–Nov — +75% — Dec–Feb).
+  quarter labels it compares (Sep–Nov — +74.9% — Dec–Feb).
 - ``eps_chart_html`` — same grammar for earnings per share, drawn from a zero line
   because EPS can be negative, with a "vs analysts" row.
 - ``mini=True`` — the thumbnail for the briefing's "reporting this week" grid: bars and
@@ -191,22 +191,24 @@ def _val_label(v: float) -> str:
 
 
 def _pct(cur, ref) -> str:
+    """cur vs ref as a % to one decimal ('+5.8%'; owner 2026-09-29: whole numbers hid the
+    difference between +21% and +22%). ``+ 0.0`` turns a rounded −0.0 into +0.0."""
     if cur is None or ref is None or ref == 0:
         return ""
-    return f"{(cur / ref - 1) * 100:+,.0f}%".replace("-", "−")
+    return f"{round((cur / ref - 1) * 100, 1) + 0.0:+,.1f}%".replace("-", "−")
 
 
 def _growth(cur, prev) -> str:
-    """cur vs prev as a whole-number % ('+75%', '−15%'; owner 2026-09-29: '1.7×' is not a whole
-    number). prev is None when the quarter before is not on file — no figure then, never one
-    across a gap; none across a zero or negative quarter either."""
+    """cur vs prev as a % ('+74.9%', '−14.9%'; owner 2026-09-29: a % rather than '1.7×').
+    prev is None when the quarter before is not on file — no figure then, never one across a
+    gap; none across a zero or negative quarter either."""
     if cur is None or prev is None or prev <= 0 or cur <= 0:
         return ""
     return _pct(cur, prev)
 
 
 def _growth_tip(frm: str, to: str, cur, prev, how: str = "") -> str:
-    """Hover text for a growth label: 'Sep–Nov 2025 → Dec–Feb 2026: +75%'."""
+    """Hover text for a growth label: 'Sep–Nov 2025 → Dec–Feb 2026: +74.9%'."""
     g = _growth(cur, prev)
     return f"{frm} → {to}{' (' + how + ')' if how else ''}: {g}" if g else ""
 
