@@ -4815,8 +4815,12 @@ a.term-index-item:hover {
   border-radius: 4px 4px 0 0; background: transparent; }
 .ec-band { width: min(38px, 84%); background: color-mix(in srgb, var(--metric-gen) 24%, transparent); }
 .ec-whisker { position: absolute; left: calc(50% + min(19px, 42%)); width: 1px; background: var(--ink-3); }
-.ec-tick { width: min(36px, 80%); height: 2px; margin-bottom: -1px; background: var(--ink);
-  box-shadow: 0 0 0 1.5px var(--paper); }
+/* a hairline, not a band: no paper halo (owner 2026-09-29 — the halo cut a dark stripe through the bar) */
+.ec-tick { width: min(34px, 76%); height: 1.5px; margin-bottom: -0.75px; background: var(--ink); }
+/* the estimate's number, right of its line; hidden on a narrow chart (the table's
+   "what analysts expected" row carries it there) */
+.ec-tv { display: none; position: absolute; left: calc(50% + min(17px, 38%) + 4px); transform: translateY(50%);
+  font-family: var(--font-display); font-size: 11.5px; line-height: 1; color: var(--ink-3); white-space: nowrap; }
 .ec-val { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
 .ec-val-est { color: var(--ink-3); font-style: italic; font-weight: 500; }
 .ec-x { display: block; margin-top: 6px; text-align: center; font-size: 12px; line-height: 1.25; color: var(--ink-3); }
@@ -4829,6 +4833,30 @@ a.term-index-item:hover {
 .ec-row { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); margin-top: 8px; }
 .ec-rh { grid-column: 1 / -1; font-size: 12px; letter-spacing: 0.04em; color: var(--ink-3); }
 .ec-rc { text-align: center; font-family: var(--font-display); font-size: 13px; color: var(--ink-2); }
+.ec-rc.ec-na { color: var(--ink-4); }
+.ec-row-narrow .ec-rc { color: var(--ink-3); }
+/* Wide chart: the rows read as a table — labels in a left gutter on the same line as their
+   numbers, hairline between rows — instead of a heading line over a row of loose numbers.
+   The plot takes the same gutter so every number stays under its bar. */
+.ec { position: relative; container-type: inline-size; }
+@container (min-width: 600px) {
+  /* the title takes the gutter's top, so the left column holds every label and none of it is blank */
+  .ec-block .ec .ec-h, .ec .ec-h { position: absolute; left: 0; top: 16px; width: calc(var(--ec-gut, 164px) - 12px);
+    margin: 0; line-height: 1.3; }
+  .ec-hc { display: none; }
+  .ec-hu { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink-3); }
+  .ec-cols { padding: 30px 0 0 var(--ec-gut, 164px); }
+  .ec-row { position: relative; margin-top: 0; padding: 6px 0 6px var(--ec-gut, 164px);
+    border-top: 1px solid var(--rule); align-items: center; }
+  .ec-cols + .ec-row { margin-top: 10px; }
+  /* grid-column auto: an absolutely placed grid child with a grid area anchors to that area,
+     not the row's padding box, and would sit on the numbers instead of in the gutter */
+  .ec-rh { grid-column: auto; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: calc(var(--ec-gut, 164px) - 12px);
+    letter-spacing: 0.02em; line-height: 1.25; }
+  .ec-row-narrow { display: none; }
+  .ec-tv { display: block; }
+}
 .ec-miss { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 12px;
   font-style: italic; line-height: 1.2; color: var(--ink-3); }
 .ec-note, .ec-block .ec-note { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
@@ -4840,7 +4868,7 @@ a.term-index-item:hover {
 .ec-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
 .ec-key span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
 .ec-k-bar::before { width: 10px; height: 10px; background: var(--metric-gen); border-radius: 2px 2px 0 0; }
-.ec-k-tick::before { width: 14px; height: 2px; background: var(--ink); }
+.ec-k-tick::before { width: 14px; height: 1.5px; background: var(--ink); }
 .ec-k-est::before { width: 10px; height: 10px; box-sizing: border-box; border: 1.5px dashed var(--metric-gen); border-bottom: 0; }
 .ec-k-band::before { width: 10px; height: 10px; background: color-mix(in srgb, var(--metric-gen) 24%, transparent); }
 

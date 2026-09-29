@@ -5,8 +5,10 @@ speed-up and the expected slowdown at a glance. Two forms from one series builde
 
 - ``revenue_chart_html`` — solid bars = reported quarters, a dashed-outline bar = the
   coming quarter (analysts' estimate; the company's own forecast as a band when known),
-  a neutral tick on each past bar = what analysts expected beforehand, and a
-  "vs previous quarter" multiplier row (1.2×, 1.7×, ~1.2×) so the speed-up is a number.
+  a neutral hairline on each past bar = what analysts expected beforehand, with its number
+  beside it, and a "vs previous quarter" multiplier row (1.2×, 1.7×, ~1.2×) so the speed-up is a number.
+  The rows form a table: on a wide chart the title and row labels share a left gutter; on a
+  narrow one the labels stack and a "what analysts expected" row carries the estimates.
 - ``eps_chart_html`` — same grammar for earnings per share, drawn from a zero line
   because EPS can be negative, with a "vs analysts" row.
 - ``mini=True`` — the thumbnail for the briefing's "reporting this week" grid: bars and
@@ -204,8 +206,10 @@ def _pos(v: float, lo: float, hi: float) -> float:
     return (v - lo) / (hi - lo) * 100 if hi > lo else 0.0
 
 
-def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, rows_below: list) -> str:
-    """cols: [{label, year, bar, tick, tip, coming: {est, band, whisker}}]; values already scaled."""
+def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, rows_below: list,
+           head: str = "") -> str:
+    """cols: [{label, year, bar, tick, tip, coming: {est, band, whisker}}]; values already scaled.
+    ``head`` = the title; inside ``.ec`` so a wide chart can set it in the label gutter."""
     zero = _pos(0.0, lo, hi)
     body = ""
     for c in cols:
@@ -233,19 +237,32 @@ def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, row
                     top = max(e1, _pos(cm["whisker"][1], lo, hi) if cm.get("whisker") else e1)
                     inner += f'<span class="ec-val ec-val-est" style="bottom:calc({top:.2f}% + 3px)">{_t(cm["val"])}</span>'
         if c.get("tick") is not None and not mini:          # marks are unreadable at thumbnail size
-            inner += f'<span class="ec-tick" style="bottom:{_pos(c["tick"], lo, hi):.2f}%"></span>'
+            tp = _pos(c["tick"], lo, hi)
+            inner += f'<span class="ec-tick" style="bottom:{tp:.2f}%"></span>'
+            if c.get("tick_val"):                            # the estimate's number beside its line (wide only)
+                inner += f'<span class="ec-tv" style="bottom:{tp:.2f}%">{_t(c["tick_val"])}</span>'
         if c.get("missing"):
             inner += '<span class="ec-miss">not on file</span>' if not mini else '<span class="ec-miss">·</span>'
         lab = "" if mini else f'<span class="ec-x">{_t(c["label"])}<small>{_t(c["year"])}</small></span>'
         axis = f'<span class="ec-zero" style="bottom:{zero:.2f}%"></span>'
         body += (f'<div class="ec-col{" ec-coming" if cm else ""}" title="{_t(c.get("tip", ""))}">'
                  f'<div class="ec-plot">{axis}{inner}</div>{lab}</div>')
+    # A table under the axis: row label in a left gutter on a wide chart, above its row on a
+    # narrow one (theme.css container query); an empty cell is a dash, never a hole.
     rows = "".join(
-        f'<div class="ec-row"><span class="ec-rh">{_t(h)}</span>'
-        + "".join(f'<span class="ec-rc">{_t(v)}</span>' for v in vals) + "</div>"
-        for h, vals in rows_below if any(vals))
+        f'<div class="ec-row{" " + cls[0] if cls else ""}"><span class="ec-rh">{_t(h)}</span>'
+        + "".join(f'<span class="ec-rc">{_t(v)}</span>' if v else '<span class="ec-rc ec-na">–</span>'
+                  for v in vals) + "</div>"
+        for h, vals, *cls in rows_below if any(vals))
     return (f'<div class="ec{" ec-mini" if mini else ""}" role="img" aria-label="{_t(aria)}" '
-            f'style="--ec-n:{len(cols)}"><div class="ec-cols">{body}</div>{rows}</div>')
+            f'style="--ec-n:{len(cols)}">{head}<div class="ec-cols">{body}</div>{rows}</div>')
+
+
+def _head(what: str, unit: str) -> str:
+    """'<b>Revenue</b>, US$ billions' — the comma drops and the unit takes its own line when the
+    title sits in a wide chart's gutter."""
+    return (f'<p class="ec-h"><b>{_t(what)}</b><span class="ec-hc">, </span>'
+            f'<span class="ec-hu">{_t(unit)}</span></p>')
 
 
 def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | None = None,
@@ -263,7 +280,7 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
     vals += [x for x in (cest, *(company or ()), *(whisker or ())) if x]
     scale, unit = _unit(max(vals))
     hi = max(vals) / scale * 1.12
-    cols, mults, vs_an = [], [], []
+    cols, mults, vs_an, ests = [], [], [], []
     prev = None
     for q in past:
         lab, yr = period_label(q["qe"])
@@ -271,6 +288,7 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
             cols.append({"label": lab, "year": yr, "missing": True, "tip": f"{lab} {yr}: not on file"})
             mults.append("")
             vs_an.append("")
+            ests.append("")
             prev = None
             continue
         est = q.get("rev_est")
@@ -278,9 +296,11 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         if est:
             tip += f"; analysts expected {est / scale:,.2f} ({q.get('rev_est_src') or 'source not recorded'})"
         cols.append({"label": lab, "year": yr, "bar": q["rev"] / scale, "val": _val_label(q["rev"] / scale),
-                     "tick": est / scale if est else None, "tip": tip})
+                     "tick": est / scale if est else None, "tick_val": _val_label(est / scale) if est else "",
+                     "tip": tip})
         mults.append(_mult(q["rev"], prev))
         vs_an.append(_pct(q["rev"], est))
+        ests.append(_val_label(est / scale) if est else "")
         prev = q["rev"]
     coming_note = ""
     if coming and (cest or company):
@@ -296,6 +316,7 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         m_co = _mult(sum(company) / 2, prev) if company else ""
         mults.append("~" + (m_an or m_co) if (m_an or m_co) else "")
         vs_an.append("")
+        ests.append("")
         parts = []
         if cest and prev:
             parts.append(f"analysts ~{cest / prev:.2f}×")
@@ -321,13 +342,14 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         l2 = f"Next: {nxt} ({'analysts' if cest else 'company'})" if nxt else ""
         lines = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in (l1, l2) if x)
         return _chart(cols, 0.0, hi, mini=True, aria=aria, rows_below=[]) + lines
-    head = f'<p class="ec-h"><b>Revenue</b>, {_t(currency)} {_t(unit)}</p>'
+    head = _head("Revenue", f"{currency} {unit}".strip())
     rows = [("vs previous quarter", mults)]
     if any(vs_an):
+        rows.append(("what analysts expected", ests, "ec-row-narrow"))    # on the chart when it is wide
         rows.append(("vs what analysts expected", vs_an))
     notes = [x for x in ((f"Latest quarter vs a year earlier: {yoy}" if yoy else ""), coming_note) if x]
     note = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in notes)
-    return head + _chart(cols, 0.0, hi, mini=False, aria=aria, rows_below=rows) + note
+    return _chart(cols, 0.0, hi, mini=False, aria=aria, rows_below=rows, head=head) + note
 
 
 def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = None, mini: bool = False) -> str:
@@ -344,24 +366,27 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
     lo, hi = min(0.0, min(vals)), max(0.0, max(vals))
     pad = (hi - lo) * 0.12 or 1.0
     lo, hi = (lo - pad if lo < 0 else lo), hi + pad
-    cols, vs_an = [], []
+    cols, vs_an, ests = [], [], []
     for q in past:
         lab, yr = period_label(q["qe"])
         est = q.get("eps_est")
         tip = f"{lab} {yr}: EPS {q['eps']:.2f}" + (f"; analysts expected {est:.2f}" if est is not None else "")
         cols.append({"label": lab, "year": yr, "bar": q["eps"], "val": _num_label(q["eps"], 2),
-                     "tick": est, "tip": tip})
+                     "tick": est, "tick_val": _num_label(est, 2) if est is not None else "", "tip": tip})
         vs_an.append(_pct(q["eps"], est) if est and q["eps"] and est > 0 and q["eps"] > 0 else "")
+        ests.append(_num_label(est, 2) if est is not None else "")
     if coming and cest is not None:
         lab, yr = period_label(coming["qe"])
         cols.append({"label": lab, "year": yr, "coming": {"est": cest, "band": company, "whisker": None,
                      "val": f"~{_num_label(cest, 2)}"}, "tip": f"{lab} {yr} (coming): analysts expect {cest:.2f}"})
         vs_an.append("")
+        ests.append("")
     aria = f"Earnings per share by quarter, {currency}: " + ", ".join(
         f"{c['label']} {c['year']} {c['val']}" for c in cols if c.get("bar") is not None)
-    head = f'<p class="ec-h"><b>Earnings per share</b>, {_t(currency)}</p>'
-    return head + _chart(cols, lo, hi, mini=mini, aria=aria,
-                         rows_below=[] if mini else [("vs what analysts expected", vs_an)])
+    head = _head("Earnings per share", currency)
+    rows = [] if mini else [("what analysts expected", ests, "ec-row-narrow"),
+                            ("vs what analysts expected", vs_an)]
+    return _chart(cols, lo, hi, mini=mini, aria=aria, rows_below=rows, head=head)
 
 
 def block_html(charts: str, company: bool = False) -> str:

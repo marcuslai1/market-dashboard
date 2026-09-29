@@ -27,6 +27,15 @@ def _notes(html_):
     return re.findall(r'<p class="ec-note">(.*?)</p>', html_)
 
 
+def _rows(html_):
+    """{row label: [cell text, ...]} for the table under the axis ("" = a dash cell)."""
+    out = {}
+    for label, cells in re.findall(r'<div class="ec-row[^"]*"><span class="ec-rh">(.*?)</span>(.*?)</div>', html_):
+        out[label] = [("" if "ec-na" in cls else v) for cls, v in
+                      re.findall(r'<span class="(ec-rc[^"]*)">(.*?)</span>', cells)]
+    return out
+
+
 def test_period_label_names_the_three_months():
     assert period_label("2026-05-31") == ("Mar–May", "2026")
     assert period_label("2026-02-28") == ("Dec–Feb", "2026")
@@ -50,8 +59,7 @@ def test_csv_estimate_wins_over_backfill_and_backfill_fills_gaps():
 
 def test_revenue_chart_multipliers_year_on_year_and_the_coming_note():
     html_ = revenue_chart_html(quarter_series(MU), "US$", company=(49.0e9, 51.0e9), whisker=(46.9e9, 59.8e9))
-    cells = re.findall(r'<span class="ec-rc">(.*?)</span>', html_)
-    assert cells[:6] == ["", "1.2×", "1.2×", "1.7×", "1.7×", "~1.2×"]
+    assert _rows(html_)["vs previous quarter"] == ["", "1.2×", "1.2×", "1.7×", "1.7×", "~1.2×"]
     notes = _notes(html_)
     assert "Latest quarter vs a year earlier: 4.5×" in notes
     assert "Coming quarter vs the last: analysts ~1.24× · company forecast ~1.21×" in notes
@@ -81,7 +89,42 @@ def test_eps_chart_draws_from_zero_and_handles_negatives():
             _row("2025-09-30", eps=0.15, eps_est=0.10)]
     html_ = eps_chart_html(quarter_series(rows))
     assert "ec-neg" in html_ and "−0.06" in html_
-    assert re.findall(r'<span class="ec-rc">(.*?)</span>', html_) == ["", "+400%", "+50%"]   # no % on a negative base
+    assert _rows(html_)["vs what analysts expected"] == ["", "+400%", "+50%"]   # no % on a negative base
+
+
+def test_empty_table_cells_are_dashes_not_holes():
+    """Owner 2026-09-29: blank cells under the chart read as a broken table — a dash says 'none'."""
+    html_ = revenue_chart_html(quarter_series(MU))
+    assert '<span class="ec-rc ec-na">–</span>' in html_
+    assert '<span class="ec-rc"></span>' not in html_
+
+
+def test_analysts_estimate_number_sits_beside_its_line():
+    """Owner 2026-09-29: the estimate's number on the chart, not just its position. On a narrow
+    chart the same numbers ride in a 'what analysts expected' row (CSS shows one or the other)."""
+    mu = [dict(r) for r in MU]
+    mu[4]["revenue_estimate"] = 35.84e9
+    html_ = revenue_chart_html(quarter_series(mu))
+    assert re.findall(r'<span class="ec-tv"[^>]*>(.*?)</span>', html_) == ["35.8"]
+    assert _rows(html_)["what analysts expected"] == ["", "", "", "", "35.8", ""]
+    assert 'class="ec-row ec-row-narrow"><span class="ec-rh">what analysts expected' in html_
+    eps = eps_chart_html(quarter_series(MU))
+    assert re.findall(r'<span class="ec-tv"[^>]*>(.*?)</span>', eps) == ["1.59", "2.86", "3.96", "9.16", "20.69"]
+    assert "ec-tv" not in revenue_chart_html(quarter_series(mu), mini=True)     # no marks on a thumbnail
+
+
+def test_title_sits_inside_the_chart_so_a_wide_chart_can_gutter_it():
+    html_ = revenue_chart_html(quarter_series(MU))
+    assert html_.index('class="ec-h"') > html_.index('class="ec"') and html_.index('class="ec-h"') < html_.index('class="ec-cols"')
+    assert '<b>Revenue</b><span class="ec-hc">, </span><span class="ec-hu">US$ billions</span>' in html_
+
+
+def test_tick_is_a_hairline_without_a_halo():
+    """Owner 2026-09-29: the tick's paper halo cut a dark band through the reported bar."""
+    import pathlib
+    css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
+    body = re.search(r"\n\.ec-tick \{([^}]*)\}", css).group(1)
+    assert "box-shadow" not in body and "height: 1.5px" in body
 
 
 def test_charts_are_escaped_and_silent_without_history():
