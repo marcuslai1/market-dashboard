@@ -1109,7 +1109,7 @@ _BAND_BANNER_FULL = (
     "August AI-hardware run — 17 of the 33 names share that factor, so the "
     "book holds ~3–4 real bets, not 9. The cash constraint hid only one "
     "trade (a loser), so the per-trade numbers are not sizing luck; whether "
-    "they hold on new names in a different tape is what the pre-registered "
+    "they hold on new names in a different market is what the pre-registered "
     "read around 8 Sep 2026 tests. Not a performance verdict."
 )
 

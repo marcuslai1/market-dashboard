@@ -120,12 +120,13 @@ def _v2(**over):
 
 def test_v2_renders_in_reading_order():
     html = briefing_card_html(_v2(), "2026-09-28")
-    heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "The tape", "Names that moved",
+    heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "Markets", "Names that moved",
                                         "Week ahead", "Earnings", "Further out", "Chart facts", "Data notes",
                                         "All sources")]
     order = [html.index(s) for s in ["Monday 28 September", *heads, "Information, not advice"]]
     assert order == sorted(order)
     assert "Overnight" not in html                                     # not the v1 renderer
+    assert "The tape" not in html and "stocks, rates, dollar, oil, gold" in html   # plain name (owner 09-29)
 
 
 def test_v2_movers_group_by_market_and_keep_searched_apart_from_not_looked_up():

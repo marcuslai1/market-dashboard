@@ -231,7 +231,7 @@ def _scorecard_table_html(rows: list) -> str:
         '<th class="num" title="Matured 10-session observations (rows · independent episodes)">n</th>'
         '<th class="num" title="Share of calls whose raw 10-session return beat +2%">Win</th>'
         '<th class="num" title="Mean raw 10-session return — includes the market&#39;s '
-        'own move, so a falling tape drags every cell; the money/avoidance column">Avg 10d</th>'
+        'own move, so a falling market drags every cell; the money/avoidance column">Avg 10d</th>'
         '<th class="num" title="Same 10-session return minus each name&#39;s cluster '
         'benchmark (SOXX / QQQ / STI / SPY) — strips the market out">'
         f'<span class="lc">α</span></th>{ep_th}</tr></thead>'

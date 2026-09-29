@@ -6,7 +6,7 @@ volume, % from the 50-day average, RSI, data health, display names) from the day
 morning report into ``latest.numbers``. This module only lays them out.
 
 Reading order: masthead (date, what each number is as of, next timed events) → what
-matters → after the data → tape → names that moved (grouped by the market whose session
+matters → after the data → markets → names that moved (grouped by the market whose session
 the price is from) → week ahead → earnings → further out (dates only, to two months; the
 second month under a "less certain" label) → chart facts → data notes → sources.
 
@@ -181,8 +181,10 @@ def _tape(latest: dict, nums: dict) -> str:
         return ""
     note = f'<p class="bf-cap">{_txt(latest["tape_note"])}</p>' if latest.get("tape_note") else ""
     last = (nums.get("health") or {}).get("last_us_session")
-    return _sec("The tape", f'<div class="bf-tape">{tiles}</div>{note}',
-                f"US close {_date(last)}" if last else "", prov="Numbers: morning report", kind="price")
+    # "Markets", not "The tape" (owner 2026-09-29: trader shorthand a reader should not need).
+    aside = "stocks, rates, dollar, oil, gold" + (f" · US close {_date(last)}" if last else "")
+    return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside,
+                prov="Numbers: morning report", kind="price")
 
 
 def _movers(latest: dict, nums: dict, sources: list) -> str:

@@ -162,9 +162,9 @@ def _status_chips_html(d: dict) -> str:
     if d.get("momentum_warn"):
         # Plain-English label; the reason strings stay verbatim — they are report
         # data (thresholds included), only the chrome is ours. Terracotta, not
-        # amber: a tape divergence is a data condition, and amber is WATCH.
+        # amber: a price divergence is a data condition, and amber is WATCH.
         reasons = d.get("momentum_warn_reasons") or []
-        reason_str = "; ".join(reasons) if reasons else "tape diverging"
+        reason_str = "; ".join(reasons) if reasons else "price action diverging"
         chips.append(_chip(
             f'Momentum warning · {_escape_dollars(reason_str)}', STRESS,
             "rgba(224,138,128,0.14)", spaced=False,

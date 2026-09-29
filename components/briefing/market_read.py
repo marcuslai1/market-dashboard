@@ -248,7 +248,7 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
         '</div>'
     )
     blurb = (
-        '<p class="mr-blurb">A same-session view of the overnight tape, written '
+        '<p class="mr-blurb">A same-session view of overnight markets, written '
         'before the US close and graded against it afterwards. It is deliberately '
         'independent of the morning report — it does not see the report’s '
         'signals, and is expected to disagree with them.</p>'
