@@ -150,9 +150,9 @@ def test_v2_week_and_earnings_and_chart():
     assert "Tonight" in html and "No scheduled US release." in html and "JOLTS (Aug)" in html
     assert '<span data-kind="event">Conference</span>' in html                # legend names the new kind
     assert "Catalyst rechecks due:</b> 1 item across 1 date" in html
-    assert "~$51.2B" in html and "$50.0B ± 1.0" in html and "expected 51.2" in html
+    assert "~$51.2B" in html and "$50.0B ± 1.0" in html and "analysts 51.2" in html
     assert "Analysts expect" in html and "Company forecast" in html and "Analyst estimates" in html
-    for jargon in ("Consensus revenue", "Company guide", "consensus 51.2", ">EPS<"):
+    for jargon in ("Consensus revenue", "Company guide", "consensus 51.2", "expected 51.2", ">EPS<"):
         assert jargon not in html, jargon                                   # plain labels (owner 09-29)
     assert "+25.7%" in html and "−6.2%" in html and "RSI" in html
     assert "all clear" in html and "bf-fault" not in html

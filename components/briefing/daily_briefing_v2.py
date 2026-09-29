@@ -302,7 +302,7 @@ def _range_bar(fig: dict, label: str, unit: str, nd: int) -> str:
         parts += f'<span class="bf-guide" style="left:{pos(gl)};width:{(gh - gl) / (hi - lo) * 100:.2f}%"></span>'
         labels += lab((gl + gh) / 2, f"company {gl:.{nd}f}–{gh:.{nd}f}", "bf-gd")
     parts += f'<span class="bf-cons" style="left:{pos(cons)}"></span>'
-    labels += lab(cons, f"expected {cons:.{nd}f}", "bf-top")
+    labels += lab(cons, f"analysts {cons:.{nd}f}", "bf-top")    # whose number, not "expected" (reads as ours)
     aria = f"{label}: analysts expect {cons}" + (f", company forecast {gl} to {gh}" if gl is not None else "") + (
         f", analyst estimates {rl} to {rh}" if rl is not None else "")
     return (f'<div class="bf-rng"><div class="bf-rlab"><b>{_txt(label)}</b>, {_txt(unit)}</div>'
