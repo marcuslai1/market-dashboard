@@ -53,4 +53,7 @@ PULSE_ORDER = [
     ("VIX",   "Fear gauge",  True),
     ("US10Y", "10-yr yield", False),
     ("SOXX",  "Semis ETF",   False),
+    # USD/SGD (2026-09-29, owner: USD assets, lives in SGD). inverse=None = neutral
+    # ink: a currency pair has no good direction for a reader (colour is a claim).
+    ("USDSGD", "S$ per US$", None),
 ]

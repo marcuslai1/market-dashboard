@@ -892,7 +892,9 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 }
 
 .pulse-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr);   /* 5-benchmark tape (was 8) — fills the width */
+  /* 5 core benchmarks + USD/SGD when the report carries it (2026-09-29); the count
+     rides inline as --pulse-n so a 5-cell strip on an older report still fills the width */
+  display: grid; grid-template-columns: repeat(var(--pulse-n, 6), 1fr);
   /* Two-weight logic: the TOP rule is full-strength --color-text — a shelf the
      numbers sit on, opening the data band (in dark mode it reads as the bright
      "white line", but it is the text token inverted, so it re-themes). The
@@ -970,7 +972,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    overflowed (Gold/DXY/US10Y/SOXX fell off the right edge). Wrap to two rows of
    four so every benchmark stays visible. */
 @media (max-width: 719px) {
-  .pulse-grid { grid-template-columns: repeat(3, 1fr); }   /* 5-cell tape wraps 3 + 2 on narrow */
+  .pulse-grid { grid-template-columns: repeat(3, 1fr); }   /* wraps 3 + 3 (3 + 2 without USD/SGD) on narrow */
   .pulse-cell:nth-child(3n) { border-right: 0; }
   .pulse-cell:nth-child(n + 4) {
     border-top: 1px solid var(--rule);
@@ -4629,6 +4631,10 @@ a.term-index-item:hover {
 /* tape */
 .bf-tape { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px;
   background: var(--rule); border: 1px solid var(--rule); }
+/* nine tiles (USD/SGD joined 2026-09-29) read as 3 x 3, not 4 + 4 + 1; eight stay 4 + 4 */
+@container (min-width: 561px) {
+  .bf-tape:has(> .bf-tile:nth-child(9):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 .bf-tile { background: var(--paper-2); padding: 10px 12px 11px; display: grid; gap: 4px; }
 .bf-n { font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--metric-input); }
@@ -4796,7 +4802,8 @@ a.term-index-item:hover {
 /* ── earnings trajectory charts (components/earnings_chart.py, 2026-09-29) ──────────
    One hue (earnings violet); beat/miss is the tick's position, never a colour. */
 .ec { font-family: var(--font-body); margin: 4px 0 2px; }
-.ec-h { margin: 14px 0 4px; font-size: 13.5px; color: var(--ink-2); }
+/* .ec-block-scoped twins outrank Streamlit's markdown `p` reset (0,1,1) inside the drawer */
+.ec-h, .ec-block .ec-h { margin: 14px 0 4px; font-size: 13.5px; color: var(--ink-2); }
 .ec-h b { color: var(--ink); font-weight: 600; }
 .ec-cols { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); padding-top: 20px; }
 .ec-plot { position: relative; height: 150px; }
@@ -4815,17 +4822,22 @@ a.term-index-item:hover {
 .ec-x { display: block; margin-top: 6px; text-align: center; font-size: 12px; line-height: 1.25; color: var(--ink-3); }
 .ec-x small { display: block; font-size: 12px; }
 .ec-coming .ec-x { font-style: italic; }
+@media (max-width: 480px) {
+  .ec-x { font-size: 11px; letter-spacing: -0.02em; white-space: nowrap; }
+  .ec-x small { font-size: 11px; }
+}
 .ec-row { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); margin-top: 8px; }
 .ec-rh { grid-column: 1 / -1; font-size: 12px; letter-spacing: 0.04em; color: var(--ink-3); }
 .ec-rc { text-align: center; font-family: var(--font-display); font-size: 13px; color: var(--ink-2); }
 .ec-miss { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 12px;
   font-style: italic; line-height: 1.2; color: var(--ink-3); }
-.ec-note { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+.ec-note, .ec-block .ec-note { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
 .ec-mini .ec-cols { padding-top: 4px; }
 .ec-mini .ec-plot { height: 44px; }
 .ec-mini .ec-bar, .ec-mini .ec-est { width: min(12px, 56%); }
 .ec-mini .ec-note { margin-top: 4px; font-size: 12px; }
-.ec-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+/* the key sits ABOVE the charts (owner 2026-09-29: read what the marks mean first) */
+.ec-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
 .ec-key span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
 .ec-k-bar::before { width: 10px; height: 10px; background: var(--metric-gen); border-radius: 2px 2px 0 0; }
 .ec-k-tick::before { width: 14px; height: 2px; background: var(--ink); }

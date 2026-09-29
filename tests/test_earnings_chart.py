@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 
 from components.earnings_chart import (
+    block_html,
     eps_chart_html,
     key_html,
     period_label,
@@ -88,6 +89,18 @@ def test_charts_are_escaped_and_silent_without_history():
     html_ = revenue_chart_html(quarter_series(MU), currency="<b>X</b>")
     assert "<b>X</b>" not in html_
     assert "what analysts expected beforehand" in key_html() and "company's own forecast" in key_html(company=True)
+    assert block_html("") == ""
+
+
+def test_key_sits_above_the_charts_on_both_surfaces():
+    """Owner 2026-09-29: the key goes on top, so the marks are explained before they are read."""
+    from components.briefing.daily_briefing_v2 import _detail_charts
+    from components.watchlist.drilldown_drawers import _earnings_body_html
+    recs = [dict(r, ticker="MU") for r in MU]
+    for html_ in (_detail_charts("MU", {}, {}, {"MU": recs}), _earnings_body_html({}, str, recs)):
+        assert 'class="ec-key"' in html_ and 'class="ec-h"' in html_
+        assert html_.index('class="ec-key"') < html_.index('class="ec-h"')
+        assert '<div class="ec-block">' in html_       # scoped rules outrank Streamlit's p reset
 
 
 def test_chart_css_carries_no_verdict_colour():

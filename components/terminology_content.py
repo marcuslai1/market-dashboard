@@ -822,14 +822,15 @@ SECTIONS = [
     {
         "id": "pulse",
         "title": "Pulse Strip",
-        "descriptor": "How the eight benchmarks are formatted",
+        "descriptor": "How the benchmarks are formatted",
         "kw": ("pulse strip benchmark benchmarks spy qqq vix wti gold dxy us10y "
-               "soxx decimals inverted volatility"),
+               "soxx usdsgd usd/sgd sgd singapore dollar currency decimals inverted volatility"),
         "answer": (
-            "Eight benchmarks — SPY · QQQ · VIX · WTI · Gold · DXY · US10Y · SOXX "
+            "Six benchmarks — SPY · QQQ · VIX · US10Y · SOXX · USD/SGD "
             "— each showing the latest level and the day's percent change. Colour "
-            "follows the sign, except <b>VIX</b>, which is inverted: rising "
-            "volatility is the risk-off direction."
+            "follows the sign, except <b>VIX</b>, which is inverted (rising "
+            "volatility is the risk-off direction), and <b>USD/SGD</b>, which stays "
+            "neutral: a currency move is good for some readers and bad for others."
         ),
         "body": _grid([
             ("VIX", "The CBOE Volatility Index — 30-day implied volatility on S&amp;P 500 "
@@ -837,9 +838,13 @@ SECTIONS = [
             ("WTI", "West Texas Intermediate front-month crude, in USD per barrel."),
             ("DXY", "The U.S. Dollar Index against a basket of major currencies."),
             ("US10Y", "The 10-year U.S. Treasury yield, in percent."),
+            ("USD/SGD", "Singapore dollars per US dollar at the US close (4 pm New York). A rise "
+                        "means the US dollar strengthened, so a US-dollar holding is worth more "
+                        "in SGD. The day's move runs US close to US close, the same window as the "
+                        "stock figures."),
             ("Decimals",
              "Four-digit prices (SPY at 5,800) show 0 decimals for readability; sub-1000 "
-             "prices show 2."),
+             "prices show 2; USD/SGD shows 4."),
         ], label_w="124px"),
         "drawers": [],
         "history": [],

@@ -31,9 +31,9 @@ import re
 
 from components.briefing.market_read import _txt
 from components.earnings_chart import (
+    block_html,
     eps_chart_html,
     eps_currency,
-    key_html,
     quarter_series,
     revenue_chart_html,
     revenue_currency,
@@ -46,7 +46,7 @@ _MARKET_LABEL = {"US": "US", "SGX": "Singapore", "KRX": "Korea", "Europe": "Euro
 _KIND_LABEL = {"earnings": "Earnings", "after": "After the data", "move": "Biggest move",
                "macro": "Macro", "check": "Recheck", "data": "Data"}
 _BENCH_LABEL = {"SOXX": "SOXX · semis", "US10Y": "US 10-year", "DXY": "Dollar · DXY",
-                "WTI": "Oil · WTI", "Gold": "Gold"}
+                "USDSGD": "US$ vs S$ · USD/SGD", "WTI": "Oil · WTI", "Gold": "Gold"}
 _MINUS = "−"
 
 
@@ -352,7 +352,7 @@ def _detail_charts(key: str, rev: dict, eps: dict, earnings: dict) -> str:
     eps_co = (_num(eps.get("guide_low")), _num(eps.get("guide_high")))
     charts = (revenue_chart_html(s, revenue_currency(key), company=company, whisker=whisker)
               + eps_chart_html(s, eps_currency(key), company=eps_co if None not in eps_co else None))
-    return charts + key_html(company=bool(company)) if charts else ""
+    return block_html(charts, company=bool(company))
 
 
 def _week_grid(latest: dict, nums: dict, earnings: dict, skip: set) -> str:

@@ -364,6 +364,14 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
                          rows_below=[] if mini else [("vs what analysts expected", vs_an)])
 
 
+def block_html(charts: str, company: bool = False) -> str:
+    """Key on top, then the charts, in one ``.ec-block`` ("" without charts). Both surfaces
+    use it: the key comes first (owner 2026-09-29), and ``.ec-block``-scoped rules outrank
+    Streamlit's markdown ``p`` reset, which zeroed the headings' top margin and set the notes
+    at 16px inside the Watchlist drawer."""
+    return f'<div class="ec-block">{key_html(company)}{charts}</div>' if charts else ""
+
+
 def key_html(company: bool = False) -> str:
     """The chart key: what the tick and the outlined bar mean (identity is never colour-alone)."""
     items = ['<span class="ec-k-bar">reported</span>',

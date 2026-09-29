@@ -21,9 +21,9 @@ does not sprout three empty summaries.
 from __future__ import annotations
 
 from components.earnings_chart import (
+    block_html,
     eps_chart_html,
     eps_currency,
-    key_html,
     quarter_series,
     revenue_chart_html,
     revenue_currency,
@@ -182,7 +182,7 @@ def _earnings_body_html(d: dict, price_fn, earnings_hist) -> str:
         charts = (revenue_chart_html(s, revenue_currency(key)) + eps_chart_html(s, eps_currency(key)))
         if charts:
             parts.append(_drilldown_section_html("Revenue and earnings per share by quarter"))
-            parts.append(charts + key_html())
+            parts.append(block_html(charts))
     eh = _earnings_history_html(earnings_hist) if earnings_hist else ""
     if eh:
         parts.append(_drilldown_section_html("Earnings history"))
