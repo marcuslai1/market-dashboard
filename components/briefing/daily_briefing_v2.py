@@ -300,26 +300,28 @@ def _range_bar(fig: dict, label: str, unit: str, nd: int) -> str:
     gl, gh = _num(fig.get("guide_low")), _num(fig.get("guide_high"))
     if gl is not None and gh is not None:
         parts += f'<span class="bf-guide" style="left:{pos(gl)};width:{(gh - gl) / (hi - lo) * 100:.2f}%"></span>'
-        labels += lab((gl + gh) / 2, f"guide {gl:.{nd}f}–{gh:.{nd}f}", "bf-gd")
+        labels += lab((gl + gh) / 2, f"company {gl:.{nd}f}–{gh:.{nd}f}", "bf-gd")
     parts += f'<span class="bf-cons" style="left:{pos(cons)}"></span>'
-    labels += lab(cons, f"consensus {cons:.{nd}f}", "bf-top")
-    aria = f"{label}: consensus {cons}" + (f", guide {gl} to {gh}" if gl is not None else "") + (
-        f", analyst range {rl} to {rh}" if rl is not None else "")
+    labels += lab(cons, f"expected {cons:.{nd}f}", "bf-top")
+    aria = f"{label}: analysts expect {cons}" + (f", company forecast {gl} to {gh}" if gl is not None else "") + (
+        f", analyst estimates {rl} to {rh}" if rl is not None else "")
     return (f'<div class="bf-rng"><div class="bf-rlab"><b>{_txt(label)}</b>, {_txt(unit)}</div>'
             f'<div class="bf-rbar" role="img" aria-label="{_escape_attr(aria)}">{parts}{labels}</div></div>')
 
 
 def _figures(rev: dict) -> str:
+    # Plain labels, not analyst shorthand (owner 2026-09-29, after "the tape"): "consensus" →
+    # what analysts expect, "guide" → the company's own forecast, "range" → lowest to highest.
     cells = []
     if _num(rev.get("consensus")) is not None:
-        an = f'<small>{rev["analysts"]} analysts</small>' if rev.get("analysts") else ""
-        cells.append(("Consensus revenue", f'~${rev["consensus"]:.1f}B{an}'))
+        an = f'<small>average of {rev["analysts"]}</small>' if rev.get("analysts") else ""
+        cells.append(("Analysts expect", f'~${rev["consensus"]:.1f}B{an}'))
     gl, gh = _num(rev.get("guide_low")), _num(rev.get("guide_high"))
     if gl is not None and gh is not None:
-        cells.append(("Company guide", f'${(gl + gh) / 2:.1f}B ± {(gh - gl) / 2:.1f}<small>its own</small>'))
+        cells.append(("Company forecast", f'${(gl + gh) / 2:.1f}B ± {(gh - gl) / 2:.1f}<small>its own guidance</small>'))
     rl, rh = _num(rev.get("range_low")), _num(rev.get("range_high"))
     if rl is not None and rh is not None:
-        cells.append(("Analyst range", f'${rl:.1f}–{rh:.1f}B<small>low to high</small>'))
+        cells.append(("Analyst estimates", f'${rl:.1f}–{rh:.1f}B<small>lowest to highest</small>'))
     if not cells:
         return ""
     return '<dl class="bf-nums">' + "".join(f'<div><dt>{_txt(k)}</dt><dd>{v}</dd></div>' for k, v in cells) + "</dl>"
@@ -343,7 +345,7 @@ def _earnings(latest: dict, nums: dict, sources: list) -> str:
                  f'<div class="bf-ec-when"><b><time datetime="{_escape_attr(sgt)}+08:00">'
                  f'{_txt(_date(sgt))} · {_txt(_hm(sgt))} SGT</time></b>{when_note}</div></div>'
                  f'{_figures(rev)}{_range_bar(rev, "Revenue", "US$ billions", 1)}'
-                 f'{_range_bar(eps, "EPS", "US$", 2)}{facts}</div>')
+                 f'{_range_bar(eps, "Earnings per share", "US$", 2)}{facts}</div>')
     out = [e for e in earn.get("out") or [] if isinstance(e, dict) and e.get("text")]
     if out:
         body += '<ul class="bf-out">' + "".join(
