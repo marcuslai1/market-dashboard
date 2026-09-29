@@ -68,7 +68,7 @@ def test_revenue_chart_growth_year_on_year_and_the_coming_note():
     assert _notes(revenue_chart_html(quarter_series(MU), mini=True)) == [
         "Last quarter: +73.7% vs the one before · +345.7% vs a year ago", "Next: ~+23.9% (analysts)"]
     assert 'class="ec-est"' in html_ and 'class="ec-band"' in html_ and 'class="ec-whisker"' in html_
-    assert "~51.4" not in html_ and "~51.3" in html_                        # 51.35 rounds as a number, not a story
+    assert "~51.35" in html_                                                # the data's own precision, not a story
 
 
 def test_no_multiplier_across_a_missing_quarter():
@@ -109,8 +109,8 @@ def test_analysts_estimate_number_sits_beside_its_line():
     mu = [dict(r) for r in MU]
     mu[4]["revenue_estimate"] = 35.84e9
     html_ = revenue_chart_html(quarter_series(mu))
-    assert re.findall(r'<span class="ec-tv"[^>]*>([^<]*)', html_) == ["35.8"]
-    assert _rows(html_)["what analysts expected"] == ["", "", "", "", "35.8", ""]
+    assert re.findall(r'<span class="ec-tv"[^>]*>([^<]*)', html_) == ["35.84"]
+    assert _rows(html_)["what analysts expected"] == ["", "", "", "", "35.84", ""]
     assert 'class="ec-row ec-row-narrow"><span class="ec-rh">what analysts expected' in html_
     eps = eps_chart_html(quarter_series(MU))
     assert re.findall(r'<span class="ec-tv"[^>]*>([^<]*)', eps) == ["1.59", "2.86", "3.96", "9.16", "20.69"]
@@ -190,3 +190,29 @@ def test_chart_css_carries_no_verdict_colour():
     for selector, body in rules:
         for token in ("--up", "--down", "--buy", "--caution", "--avoid", "--stress", "#22c55e", "#ef4444"):
             assert token not in body, f"{selector.strip()} uses {token}"
+
+
+def _f(label: str) -> float:
+    return float(label.lstrip("~+").replace("−", "-").replace(",", "").rstrip("%"))
+
+
+def test_every_percentage_checks_out_against_the_printed_numbers():
+    """Owner 2026-09-29, "11.2 to 11.3 is 0.8?": 11.315 vs 11.22 printed as 11.3 vs 11.2, which
+    reads +0.9%. Labels now carry the data's own precision and each % is worked from them."""
+    mu = [dict(r) for r in MU]
+    for r, est in zip(mu[:5], (8.87e9, 11.22e9, 12.84e9, 20.07e9, 35.84e9), strict=True):
+        r["revenue_estimate"] = est
+    html_ = revenue_chart_html(quarter_series(mu), company=(49.0e9, 51.0e9))
+    vals = re.findall(r'class="ec-val[^"]*"[^>]*>([^<]*)', html_)
+    assert vals == ["9.301", "11.315", "13.643", "23.86", "41.456", "~51.35"]
+    beats = re.findall(r'class="ec-tv"[^>]*>([^<]*)<b class="ec-tvb">([^<]*)', html_)
+    assert beats[1] == ("11.22", "+0.8%")
+    for v, (est, pct) in zip(vals[:5], beats, strict=True):
+        assert f"{(_f(v) / _f(est) - 1) * 100:+.1f}%" == pct.replace("−", "-")
+    grows = re.findall(r'<span class="ec-g"[^>]*>([^<]*)', html_)
+    for a, b, g in zip(vals[:-1], vals[1:], grows, strict=True):
+        assert f"{(_f(b) / _f(a) - 1) * 100:+.1f}%" == g.lstrip("~").replace("−", "-")
+    eps = eps_chart_html(quarter_series(MU))
+    for v, (est, pct) in zip(re.findall(r'class="ec-val"[^>]*>([^<]*)', eps),
+                             re.findall(r'class="ec-tv"[^>]*>([^<]*)<b class="ec-tvb">([^<]*)', eps), strict=True):
+        assert f"{(_f(v) / _f(est) - 1) * 100:+.1f}%" == pct.replace("−", "-")

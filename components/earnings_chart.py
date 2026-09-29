@@ -186,8 +186,17 @@ def _num_label(v: float, nd: int = 1) -> str:
 
 
 def _val_label(v: float) -> str:
-    """Bar label: 1 decimal, 2 below 10 so small revenues (0.03, 0.78) stay readable."""
-    return _num_label(v, 2 if abs(v) < 10 else 1)
+    """Bar label to the data's own precision: up to 3 decimals, trailing zeros trimmed (41.456,
+    23.86, 8.87). Owner 2026-09-29, "11.2 to 11.3 is 0.8?": at one decimal 11.315 printed as
+    11.3 and 11.22 as 11.2, so the one-decimal % beside them could not be checked."""
+    s = _num_label(v, 3)
+    return s.rstrip("0").rstrip(".")
+
+
+def _shown(v, scale: float = 1.0, nd: int = 3):
+    """``v`` as its label prints it (display units, ``nd`` decimals). Every % on a chart is
+    worked from these, so it checks out against the numbers beside it."""
+    return None if v is None else round(v / scale, nd)
 
 
 def _pct(cur, ref) -> str:
@@ -298,6 +307,7 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
     vals += [x for x in (cest, *(company or ()), *(whisker or ())) if x]
     scale, unit = _unit(max(vals))
     hi = max(vals) / scale * 1.12
+    cv = _shown(cest, scale) if cest else None                            # the coming estimate, as printed
     cols, grows, vs_an, ests = [], [], [], []
     prev, prev_lab = None, ""
     for q in past:
@@ -310,32 +320,35 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
             prev = None
             continue
         est = q.get("rev_est")
-        tip = f"{lab} {yr}: revenue {currency} {q['rev'] / scale:,.2f} {unit}"
+        rv = _shown(q["rev"], scale)
+        ev = _shown(est, scale) if est else None
+        tip = f"{lab} {yr}: revenue {currency} {_val_label(rv)} {unit}"
         if est:
-            tip += f"; analysts expected {est / scale:,.2f} ({q.get('rev_est_src') or 'source not recorded'})"
-        g = _growth(q["rev"], prev)
-        cols.append({"label": lab, "year": yr, "bar": q["rev"] / scale, "val": _val_label(q["rev"] / scale),
-                     "tick": est / scale if est else None, "tick_val": _val_label(est / scale) if est else "",
-                     "beat": _pct(q["rev"], est), "tip": tip, "growth": g,
-                     "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", q["rev"], prev)})
+            tip += f"; analysts expected {_val_label(ev)} ({q.get('rev_est_src') or 'source not recorded'})"
+        g = _growth(rv, prev)
+        cols.append({"label": lab, "year": yr, "bar": q["rev"] / scale, "val": _val_label(rv),
+                     "tick": est / scale if est else None, "tick_val": _val_label(ev) if est else "",
+                     "beat": _pct(rv, ev), "tip": tip, "growth": g,
+                     "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", rv, prev)})
         grows.append(g)
-        vs_an.append(_pct(q["rev"], est))
-        ests.append(_val_label(est / scale) if est else "")
-        prev, prev_lab = q["rev"], f"{lab} {yr}"
+        vs_an.append(_pct(rv, ev))
+        ests.append(_val_label(ev) if est else "")
+        prev, prev_lab = rv, f"{lab} {yr}"
     coming_note = ""
     if coming and (cest or company):
         lab, yr = period_label(coming["qe"])
         band = tuple(x / scale for x in company) if company else None
         wh = tuple(x / scale for x in whisker) if whisker else None
-        tip = f"{lab} {yr} (coming): analysts expect {cest / scale:,.2f} {unit}" if cest else f"{lab} {yr} (coming)"
+        co = _shown(sum(company) / 2, scale) if company else None           # the forecast's midpoint
+        tip = f"{lab} {yr} (coming): analysts expect {_val_label(cv)} {unit}" if cest else f"{lab} {yr} (coming)"
         if company:
-            tip += f"; company forecast {company[0] / scale:,.2f}–{company[1] / scale:,.2f}"
-        g_an = _growth(cest, prev)
-        g_co = _growth(sum(company) / 2, prev) if company else ""
+            tip += f"; company forecast {_val_label(_shown(company[0], scale))}–{_val_label(_shown(company[1], scale))}"
+        g_an = _growth(cv, prev)
+        g_co = _growth(co, prev)
         g = "~" + (g_an or g_co) if (g_an or g_co) else ""
         cols.append({"label": lab, "year": yr, "coming": {"est": cest / scale if cest else None, "band": band,
-                     "whisker": wh, "val": f"~{_val_label(cest / scale)}" if cest else ""}, "tip": tip,
-                     "growth": g, "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", cest or sum(company) / 2, prev,
+                     "whisker": wh, "val": f"~{_val_label(cv)}" if cest else ""}, "tip": tip,
+                     "growth": g, "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", cv or co, prev,
                                                              "analysts expect" if g_an else "company forecast")})
         grows.append(g)
         vs_an.append("")
@@ -352,10 +365,10 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         last = on_file[-1]
         ago = next((q for q in on_file if _mi(last["qe"]) - _mi(q["qe"]) == 12), None)
         if ago:
-            yoy = _growth(last["rev"], ago["rev"])
+            yoy = _growth(_shown(last["rev"], scale), _shown(ago["rev"], scale))
     aria = (f"Revenue by quarter, {currency} {unit}: " + ", ".join(
         f"{c['label']} {c['year']} {c['val']}" for c in cols if c.get("bar") is not None)
-        + (f"; coming quarter analysts expect {cest / scale:,.1f}" if cest else ""))
+        + (f"; coming quarter analysts expect {_val_label(cv)}" if cest else ""))
     if mini:
         last_g = grows[len(past) - 1] if past and not past[-1].get("missing") else ""
         nxt = grows[-1] if coming and len(grows) > len(past) else ""
@@ -394,7 +407,8 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
         lab, yr = period_label(q["qe"])
         est = q.get("eps_est")
         tip = f"{lab} {yr}: EPS {q['eps']:.2f}" + (f"; analysts expected {est:.2f}" if est is not None else "")
-        beat = _pct(q["eps"], est) if est and q["eps"] and est > 0 and q["eps"] > 0 else ""
+        rv, ev = _shown(q["eps"], nd=2), _shown(est, nd=2)                 # as printed, 2 decimals
+        beat = _pct(rv, ev) if ev and rv and ev > 0 and rv > 0 else ""
         cols.append({"label": lab, "year": yr, "bar": q["eps"], "val": _num_label(q["eps"], 2),
                      "tick": est, "tick_val": _num_label(est, 2) if est is not None else "", "beat": beat,
                      "tip": tip})
