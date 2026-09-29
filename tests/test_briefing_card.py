@@ -204,3 +204,30 @@ def test_v2_card_css_never_puts_a_verdict_colour_on_this_surface():
             assert token not in body, f"{selector.strip()} uses {token}"
         if "--stress" in body:
             assert "bf-fault" in selector, f"{selector.strip()} uses --stress outside the fault chip"
+
+
+def _earnings_map():
+    def r(qe, rev=None, rev_est=None, eps=None, eps_est=None, ann=None):
+        return {"ticker": "", "quarter_end": qe, "revenue_actual": rev, "revenue_estimate": rev_est,
+                "eps_actual": eps, "eps_estimate": eps_est, "announce_date": ann}
+    mu = [r("2026-08-31", rev_est=51.35e9, eps_est=31.71, ann="2026-09-30"), r("2026-05-31", 41.456e9, eps=25.11, eps_est=20.69),
+          r("2026-02-28", 23.86e9, eps=12.2, eps_est=9.16), r("2025-11-30", 13.643e9, eps=4.78, eps_est=3.96)]
+    goog = [r("2026-09-30", rev_est=123.9e9, eps_est=2.9, ann="2026-10-02"), r("2026-06-30", 110.0e9, eps=2.7),
+            r("2026-03-31", 100.0e9, eps=2.5), r("2025-12-31", 96.0e9, eps=2.4)]
+    far = [r("2026-09-30", rev_est=10e9, eps_est=1.0, ann="2026-10-20"), r("2026-06-30", 9e9, eps=0.9), r("2026-03-31", 8e9, eps=0.8)]
+    return {"MU": mu, "GOOG": goog, "AMZN": far}
+
+
+def test_v2_earnings_detail_draws_charts_and_the_week_grid_lists_the_rest():
+    html = briefing_card_html(_v2(data_date="2026-09-28"), "2026-09-28", _earnings_map())
+    earn = html[html.index("<h3>Earnings</h3>"):html.index("<h3>Further out</h3>")]
+    assert earn.count('class="ec"') == 2 and "bf-rbar" not in earn          # revenue + EPS charts, no flat range bars
+    assert "~51.2" in earn                                                  # the coming bar uses the briefing's own consensus
+    assert "company forecast ~1.21×" in earn and "company's own forecast" in earn
+    assert "Reporting in the next 7 days" in earn and "GOOG" in earn         # within 7 days, not written up
+    assert earn.count('class="bf-eg"') == 1 and "AMZN" not in earn          # MU is written up; AMZN is 22 days out
+
+
+def test_v2_earnings_falls_back_to_range_bars_without_history():
+    html = briefing_card_html(_v2(), "2026-09-28")
+    assert "bf-rbar" in html and "Reporting in the next 7 days" not in html

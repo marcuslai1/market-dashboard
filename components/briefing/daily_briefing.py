@@ -41,7 +41,7 @@ def _prose(value) -> str:
     return f'<div class="mr-prose">{_txt(value)}</div>' if value else ""
 
 
-def briefing_card_html(payload: dict, report_date: str | None = None) -> str:
+def briefing_card_html(payload: dict, report_date: str | None = None, earnings: dict | None = None) -> str:
     """Return the card markup, or ``""`` when nothing has been published.
 
     ``report_date`` is the date of the report on screen; a briefing written for an
@@ -50,7 +50,7 @@ def briefing_card_html(payload: dict, report_date: str | None = None) -> str:
     """
     latest = (payload or {}).get("latest") or {}
     if latest.get("schema") == 2:
-        return briefing_v2_html(latest, report_date)
+        return briefing_v2_html(latest, report_date, earnings)
     matters =[m for m in (latest.get("what_matters") or []) if m]
     sections = latest.get("sections") if isinstance(latest.get("sections"), dict) else {}
     if not matters and not sections:

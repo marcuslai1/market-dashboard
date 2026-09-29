@@ -19,7 +19,7 @@ from components.watchlist.grid import (
 )
 from components.watchlist.row import render_ticker_details_html
 from lib.catalog import RETIRED_TICKERS, SIGNAL_SORT_RANK
-from lib.data_loader import load_earnings_history
+from lib.data_loader import load_earnings_map
 
 
 def render_watchlist(
@@ -73,11 +73,7 @@ def render_watchlist(
     # Quarter-on-quarter earnings history (separate CSV export) → per-ticker
     # records, newest quarter first (as exported). groupby(sort=False) preserves
     # that order; missing file → empty map → the drawer stays silent.
-    eh_df = load_earnings_history()
-    eh_map: dict[str, list] = {}
-    if not eh_df.empty and "ticker" in eh_df.columns:
-        for tkey, grp in eh_df.groupby("ticker", sort=False):
-            eh_map[tkey] = grp.to_dict("records")
+    eh_map = load_earnings_map()          # CSV + the sourced revenue backfill (2026-09-29)
 
     # ONE st.markdown for the whole table: a div opened in one st.markdown and
     # closed in another does not wrap sibling Streamlit blocks (the browser

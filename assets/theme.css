@@ -4791,3 +4791,51 @@ a.term-index-item:hover {
   .bf .bf-rchk li { grid-template-columns: 1fr; gap: 2px; }
   .bf .bf-far li { grid-template-columns: 1fr; gap: 2px; }
 }
+
+
+/* ── earnings trajectory charts (components/earnings_chart.py, 2026-09-29) ──────────
+   One hue (earnings violet); beat/miss is the tick's position, never a colour. */
+.ec { font-family: var(--font-body); margin: 4px 0 2px; }
+.ec-h { margin: 14px 0 4px; font-size: 13.5px; color: var(--ink-2); }
+.ec-h b { color: var(--ink); font-weight: 600; }
+.ec-cols { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); padding-top: 20px; }
+.ec-plot { position: relative; height: 150px; }
+.ec-zero { position: absolute; left: 0; right: 0; height: 1px; background: var(--rule-strong); }
+.ec-bar, .ec-est, .ec-band, .ec-tick, .ec-val { position: absolute; left: 50%; transform: translateX(-50%); }
+.ec-bar { width: min(24px, 56%); background: var(--metric-gen); border-radius: 4px 4px 0 0; }
+.ec-bar.ec-neg { border-radius: 0 0 4px 4px; }
+.ec-est { width: min(24px, 56%); box-sizing: border-box; border: 1.5px dashed var(--metric-gen); border-bottom: 0;
+  border-radius: 4px 4px 0 0; background: transparent; }
+.ec-band { width: min(38px, 84%); background: color-mix(in srgb, var(--metric-gen) 24%, transparent); }
+.ec-whisker { position: absolute; left: calc(50% + min(19px, 42%)); width: 1px; background: var(--ink-3); }
+.ec-tick { width: min(36px, 80%); height: 2px; margin-bottom: -1px; background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--paper); }
+.ec-val { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.ec-val-est { color: var(--ink-3); font-style: italic; font-weight: 500; }
+.ec-x { display: block; margin-top: 6px; text-align: center; font-size: 12px; line-height: 1.25; color: var(--ink-3); }
+.ec-x small { display: block; font-size: 12px; }
+.ec-coming .ec-x { font-style: italic; }
+.ec-row { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); margin-top: 8px; }
+.ec-rh { grid-column: 1 / -1; font-size: 12px; letter-spacing: 0.04em; color: var(--ink-3); }
+.ec-rc { text-align: center; font-family: var(--font-display); font-size: 13px; color: var(--ink-2); }
+.ec-miss { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 12px;
+  font-style: italic; line-height: 1.2; color: var(--ink-3); }
+.ec-note { margin: 8px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+.ec-mini .ec-cols { padding-top: 4px; }
+.ec-mini .ec-plot { height: 44px; }
+.ec-mini .ec-bar, .ec-mini .ec-est { width: min(12px, 56%); }
+.ec-mini .ec-note { margin-top: 4px; font-size: 12px; }
+.ec-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.ec-key span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.ec-k-bar::before { width: 10px; height: 10px; background: var(--metric-gen); border-radius: 2px 2px 0 0; }
+.ec-k-tick::before { width: 14px; height: 2px; background: var(--ink); }
+.ec-k-est::before { width: 10px; height: 10px; box-sizing: border-box; border: 1.5px dashed var(--metric-gen); border-bottom: 0; }
+.ec-k-band::before { width: 10px; height: 10px; background: color-mix(in srgb, var(--metric-gen) 24%, transparent); }
+
+/* briefing: "reporting in the next 7 days" grid of small revenue charts (2026-09-29) */
+.bf .bf-eg-t { margin: 16px 0 8px; font-size: 13px; color: var(--ink-3); }
+.bf-egrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.bf-eg { padding: 10px 12px; border: 1px solid var(--rule); border-left: 2px solid var(--metric-gen); }
+.bf-eg-h { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.bf-eg-h b { color: var(--ink); font-weight: 600; }
+.bf-eg-h time { font-family: var(--font-display); font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }

@@ -35,6 +35,7 @@ from lib.data_loader import (
     list_report_dates,
     load_all_reports,
     load_briefings,
+    load_earnings_map,
     load_market_reads,
     load_paper_nav,
     load_report,
@@ -162,7 +163,8 @@ def _page_briefing() -> None:
         # The daily briefing (Claude in the terminal, MarketReport /briefing skill):
         # moves and why, the week ahead, earnings, further-out dates, chart facts.
         _briefing = briefing_card_html(load_briefings(),
-                                       (report.get("meta") or {}).get("report_date"))
+                                       (report.get("meta") or {}).get("report_date"),
+                                       load_earnings_map())
         if _briefing:
             st.markdown(_briefing, unsafe_allow_html=True)
 

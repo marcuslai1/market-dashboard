@@ -30,6 +30,14 @@ import datetime as _dt
 import re
 
 from components.briefing.market_read import _txt
+from components.earnings_chart import (
+    eps_chart_html,
+    eps_currency,
+    key_html,
+    quarter_series,
+    revenue_chart_html,
+    revenue_currency,
+)
 from lib.cards import card_container
 from lib.formatters import _escape_attr
 
@@ -327,10 +335,65 @@ def _figures(rev: dict) -> str:
     return '<dl class="bf-nums">' + "".join(f'<div><dt>{_txt(k)}</dt><dd>{v}</dd></div>' for k, v in cells) + "</dl>"
 
 
-def _earnings(latest: dict, nums: dict, sources: list) -> str:
+def _b(fig: dict, *keys) -> tuple | None:
+    """(low, high) in full units from a record figure given in billions, or None."""
+    vals = [_num(fig.get(k)) for k in keys]
+    return None if None in vals else tuple(v * 1e9 for v in vals)
+
+
+def _detail_charts(key: str, rev: dict, eps: dict, earnings: dict) -> str:
+    """Revenue + EPS charts for a written-up name; "" when the history is not on file.
+    The coming bar uses the briefing's own consensus so the chart and the figures above agree."""
+    s = quarter_series(earnings.get(key) or [])
+    if s.get("coming") and _num(rev.get("consensus")) is not None and revenue_currency(key) == "US$":
+        s["coming"] = dict(s["coming"], rev_est=rev["consensus"] * 1e9)
+    company = _b(rev, "guide_low", "guide_high") if revenue_currency(key) == "US$" else None
+    whisker = _b(rev, "range_low", "range_high") if revenue_currency(key) == "US$" else None
+    eps_co = (_num(eps.get("guide_low")), _num(eps.get("guide_high")))
+    charts = (revenue_chart_html(s, revenue_currency(key), company=company, whisker=whisker)
+              + eps_chart_html(s, eps_currency(key), company=eps_co if None not in eps_co else None))
+    return charts + key_html(company=bool(company)) if charts else ""
+
+
+def _week_grid(latest: dict, nums: dict, earnings: dict, skip: set) -> str:
+    """Small revenue charts for every name reporting in the next 7 days (not already written up)."""
+    try:
+        start = _dt.date.fromisoformat(str(latest.get("data_date"))[:10])
+    except ValueError:
+        return ""
+    names = nums.get("names") or {}
+    rows = []
+    for key, recs in earnings.items():
+        if key in skip:
+            continue
+        nxt = next((r for r in recs if _num(r.get("eps_actual")) is None and r.get("announce_date")
+                    and (_num(r.get("revenue_estimate")) is not None or _num(r.get("eps_estimate")) is not None)), None)
+        if not nxt:
+            continue
+        try:
+            when = _dt.date.fromisoformat(str(nxt["announce_date"])[:10])
+        except ValueError:
+            continue
+        if 0 <= (when - start).days <= 7:
+            rows.append((when, key))
+    cells = ""
+    for when, key in sorted(rows):
+        chart = revenue_chart_html(quarter_series(earnings[key]), revenue_currency(key), mini=True)
+        cells += (f'<div class="bf-eg"><div class="bf-eg-h"><b>{_txt(names.get(key, key))}</b>'
+                  f'<time datetime="{when.isoformat()}">{_txt(_date(when.isoformat()))}</time></div>'
+                  f'{chart or "<p class=ec-note>Not enough reported quarters on file.</p>"}</div>')
+    if not cells:
+        return ""
+    return ('<p class="bf-eg-t">Reporting in the next 7 days · revenue by quarter, own currency · '
+            'full charts on the Watchlist tab</p><div class="bf-egrid">' + cells + '</div>')
+
+
+def _earnings(latest: dict, nums: dict, sources: list, earnings: dict | None = None) -> str:
+    earnings = earnings or {}
     earn = latest.get("earnings") if isinstance(latest.get("earnings"), dict) else {}
     names = nums.get("names") or {}
     body = ""
+    written = set()
     for e in earn.get("coming") or []:
         if not isinstance(e, dict) or not e.get("key"):
             continue
@@ -340,12 +403,16 @@ def _earnings(latest: dict, nums: dict, sources: list) -> str:
         period = f'<span>{_txt(e["key"])} · {_txt(e.get("period"))}</span>' if e.get("period") else ""
         when_note = f'<small>{_txt(e["when_note"])}</small>' if e.get("when_note") else ""
         facts = f'<p class="bf-facts">{_txt(e["facts"])} {_chips(e.get("src"), sources)}</p>' if e.get("facts") else ""
+        written.add(e["key"])
+        charts = _detail_charts(e["key"], rev, eps, earnings)
+        bars = charts or (_range_bar(rev, "Revenue", "US$ billions", 1)
+                          + _range_bar(eps, "Earnings per share", "US$", 2))
         body += (f'<div class="bf-ec"><div class="bf-ec-top"><div class="bf-ec-name">'
                  f'{_txt(names.get(e["key"], e["key"]))}{period}</div>'
                  f'<div class="bf-ec-when"><b><time datetime="{_escape_attr(sgt)}+08:00">'
                  f'{_txt(_date(sgt))} · {_txt(_hm(sgt))} SGT</time></b>{when_note}</div></div>'
-                 f'{_figures(rev)}{_range_bar(rev, "Revenue", "US$ billions", 1)}'
-                 f'{_range_bar(eps, "Earnings per share", "US$", 2)}{facts}</div>')
+                 f'{_figures(rev)}{bars}{facts}</div>')
+    body += _week_grid(latest, nums, earnings, written)
     out = [e for e in earn.get("out") or [] if isinstance(e, dict) and e.get("text")]
     if out:
         body += '<ul class="bf-out">' + "".join(
@@ -490,7 +557,7 @@ def _sources(sources: list) -> str:
             f'<ol>{li}</ol></details></section>')
 
 
-def briefing_v2_html(latest: dict, report_date: str | None = None) -> str:
+def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dict | None = None) -> str:
     sources = latest.get("sources") if isinstance(latest.get("sources"), list) else []
     nums = latest.get("numbers") if isinstance(latest.get("numbers"), dict) else {}
     data_date = str(latest.get("data_date") or "")
@@ -508,7 +575,7 @@ def briefing_v2_html(latest: dict, report_date: str | None = None) -> str:
         + _tape(latest, nums)
         + _movers(latest, nums, sources)
         + _week(latest)
-        + _earnings(latest, nums, sources)
+        + _earnings(latest, nums, sources, earnings or {})
         + _further(nums)
         + _chart(latest, nums)
         + _health(latest, nums)

@@ -226,6 +226,32 @@ def load_earnings_history() -> pd.DataFrame:
     return _load_earnings_history_cached(str(path), _mtime(path))
 
 
+def load_revenue_estimates() -> dict:
+    """Web-sourced past revenue estimates + a few missing actuals (``data/revenue_estimates.json``,
+    hand-curated 2026-09-29, every value with its provider and source). ``{}`` when absent."""
+    path = DATA_DIR / "revenue_estimates.json"
+    if not path.exists():
+        return {}
+    return _load_json_cached(str(path), _mtime(path))
+
+
+def load_earnings_map() -> dict:
+    """``{ticker: records newest-first}`` — the earnings CSV with the revenue backfill folded in
+    (``components.earnings_chart.merge_backfill``). The Watchlist drawer and the briefing read this
+    one map, so both show the same numbers."""
+    from components.earnings_chart import merge_backfill
+
+    df = load_earnings_history()
+    backfill = load_revenue_estimates()
+    out: dict = {}
+    if not df.empty and "ticker" in df.columns:
+        for tkey, grp in df.groupby("ticker", sort=False):
+            out[tkey] = grp.to_dict("records")
+    for tkey in set(out) | {k for k in backfill if not k.startswith("_")}:
+        out[tkey] = merge_backfill(out.get(tkey, []), backfill.get(tkey))
+    return out
+
+
 @st.cache_data(max_entries=4)
 def _load_paper_trades_cached(path_str: str, mtime: float) -> pd.DataFrame:
     return _safe_read_csv(Path(path_str))

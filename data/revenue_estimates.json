@@ -1,0 +1,1347 @@
+{
+ "_meta": {
+  "built": "2026-09-29",
+  "what": "Analysts' consensus revenue estimates for past quarters (as they stood at or just before results) and a few missing reported revenues, found by web search 2026-09-29. Values in full units of the company's reporting currency. The pipeline's own earnings_history figures always win where both exist.",
+  "rules": "An estimate is kept only if status=found and its currency is the reporting currency, and - where both the source and our data state the actual - the two agree within 1% (116 of the 140 kept were checked this way; 24 had no actual on one side). Partial (stale preview), not_found, pre-announcement and restated items are left out and listed under 'excluded' with the reason. Estimates carry provider, source URL and date (provider 'unnamed' where the source names none); a backfilled actual carries its source URL.",
+  "caveats": "Providers differ: LSEG (most US and Korean rows), FactSet, Zacks, Investing.com (Aixtron, Infineon, Nokia, DBS, OCBC) and a few unnamed; three sampled rows differ by >3% between LSEG and Investing.com (SK hynix 2026-03-31, ASML 2025-03-31, MU 2026-02-28), enough to flip a beat into a miss - the provider is on every row. Samsung publishes preliminary results and TSMC monthly revenue before results day, so their consensus already reflects part of the quarter.",
+  "docs_check": "Doc claims checked 2026-09-29 by Opus (fresh context): 9 claims - 2 C / 7 O, all corrected (the counts in 'rules' are that check's).",
+  "verification": "Spot-checked 2026-09-29 by Opus (fresh context): 18 of 140 estimates sampled (12 chosen for weak attribution, 6 random), 18 confirmed on a page read directly; one dead link replaced (NVDA 2025-04-30).",
+  "excluded": [
+   {
+    "ticker": "AXTI",
+    "quarter_end": "2025-03-31",
+    "estimate_b": 0.02385,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "AXTI",
+    "quarter_end": "2025-06-30",
+    "estimate_b": 0.01996,
+    "reason": "Zacks consensus may predate AXT's July 2025 revenue pre-announcement ($17.5-18M)"
+   },
+   {
+    "ticker": "AXTI",
+    "quarter_end": "2025-12-31",
+    "estimate_b": 0.02293,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "AXTI",
+    "quarter_end": "2026-03-31",
+    "estimate_b": 0.02669,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "NBIS",
+    "quarter_end": "2025-03-31",
+    "estimate_b": 0.0577,
+    "reason": "source actual 0.0553 vs stored 0.0509 (>1%: misaligned or restated)"
+   },
+   {
+    "ticker": "NBIS",
+    "quarter_end": "2025-06-30",
+    "estimate_b": 0.09505,
+    "reason": "company release gives $105.1M vs the stored $100.7M (restated); a comparison would be false"
+   },
+   {
+    "ticker": "SNDK",
+    "quarter_end": "2025-03-31",
+    "estimate_b": null,
+    "reason": "not found: Searched CNBC/Reuters(LSEG), Zacks on Yahoo, Investing.com transcript (compares only to company guidance $1.55-1.65B), MarketScreener; no dated source stating a"
+   },
+   {
+    "ticker": "SNDK",
+    "quarter_end": "2025-06-30",
+    "estimate_b": null,
+    "reason": "not found: Searched Reuters/LSEG, CNBC, Zacks on Yahoo, Investing.com transcript (compares only to company guidance $1.75-1.85B); no dated source stating analyst revenue c"
+   },
+   {
+    "ticker": "TSEM",
+    "quarter_end": "2025-03-31",
+    "estimate_b": null,
+    "reason": "not found: Searched Investing.com transcript/results, Yahoo (Simply Wall St says revenue in line, no figure), MarketScreener; no dated source stating a numeric Q1 2025 rev"
+   },
+   {
+    "ticker": "WRD",
+    "quarter_end": "2025-12-31",
+    "estimate_b": null,
+    "reason": "not found: Searched CNBC/Bloomberg/Investing/MarketScreener/Yahoo for a Q4 2025 revenue consensus: results coverage and call highlights state actual only (RMB314.0M); Inve"
+   },
+   {
+    "ticker": "WRD",
+    "quarter_end": "2026-03-31",
+    "estimate_b": null,
+    "reason": "not found: Searched same domains; Benzinga/Yahoo 2026-05-14 and GuruFocus call highlights give actual RMB114.1M only, no consensus; Investing.com earnings table shows no r"
+   },
+   {
+    "ticker": "AIXA_DE",
+    "quarter_end": "2025-09-30",
+    "estimate_b": 0.12733,
+    "reason": "consensus predates Aixtron's 17 Oct 2025 pre-announcement (EUR 119.6m) and guidance cut"
+   },
+   {
+    "ticker": "NOK",
+    "quarter_end": "2025-06-30",
+    "estimate_b": 4.82,
+    "reason": "source actual 4.55 vs stored 4.4430 (>1%: misaligned or restated)"
+   },
+   {
+    "ticker": "D05_SI",
+    "quarter_end": "2025-03-31",
+    "estimate_b": null,
+    "reason": "not found: Investing.com DBS earnings table starts at the Aug 2025 release; no dated total-income consensus found for 1Q25 (web-search budget exhausted; news coverage lead"
+   },
+   {
+    "ticker": "O39_SI",
+    "quarter_end": "2025-12-31",
+    "estimate_b": 3.48,
+    "reason": "source actual 3.62 vs stored 3.5520 (>1%: misaligned or restated)"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2025-03-31",
+    "estimate_b": 3.6,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2025-06-30",
+    "estimate_b": 3.62,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2025-09-30",
+    "estimate_b": 3.48,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2025-12-31",
+    "estimate_b": 3.43,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2026-03-31",
+    "estimate_b": 3.5,
+    "reason": "status partial"
+   },
+   {
+    "ticker": "U11_SI",
+    "quarter_end": "2026-06-30",
+    "estimate_b": null,
+    "reason": "not found: No company/results-article total income found (uobgroup.com dead; Reuters 2026-08-06 article gives NII S$2.30bn and fees S$665m only; Investing transcript artic"
+   }
+  ],
+  "counts": {
+   "estimates": 140,
+   "actuals": 20,
+   "excluded": 21,
+   "records_read": 167
+  }
+ },
+ "MSFT": {
+  "2025-03-31": {
+   "revenue_estimate": 68420000000,
+   "provider": "LSEG",
+   "source_title": "Microsoft shares jump 9% on earnings and revenue beat, uplifting forecast",
+   "source_url": "https://www.cnbc.com/2025/04/30/microsoft-msft-q3-earnings-report-2025.html",
+   "source_date": "2025-04-30"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 73810000000,
+   "provider": "LSEG",
+   "source_title": "Microsoft stock pops 9% on earnings beat as Azure annual revenue tops $75 billion",
+   "source_url": "https://www.cnbc.com/2025/07/30/microsoft-msft-q4-earnings-report-2025.html",
+   "source_date": "2025-07-30"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 75330000000,
+   "provider": "LSEG",
+   "source_title": "Microsoft (MSFT) Q1 2026 earnings report",
+   "source_url": "https://www.cnbc.com/2025/10/29/microsoft-msft-q1-2026-earnings-report.html",
+   "source_date": "2025-10-29"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 80270000000,
+   "provider": "LSEG",
+   "source_title": "Microsoft (MSFT) Q2 earnings report 2026",
+   "source_url": "https://www.cnbc.com/2026/01/28/microsoft-msft-q2-earnings-report-2026.html",
+   "source_date": "2026-01-28"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 81390000000,
+   "provider": "LSEG",
+   "source_title": "Microsoft (MSFT) Q3 earnings report 2026",
+   "source_url": "https://www.cnbc.com/2026/04/29/microsoft-msft-q3-earnings-report-2026.html",
+   "source_date": "2026-04-29"
+  }
+ },
+ "AMD": {
+  "2025-03-31": {
+   "revenue_estimate": 7130000000,
+   "provider": "LSEG",
+   "source_title": "AMD beats on earnings but will take $1.5 billion hit to revenue from chip restrictions to China",
+   "source_url": "https://www.cnbc.com/2025/05/06/amd-earnings-report-q1-2025-.html",
+   "source_date": "2025-05-06"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 7420000000,
+   "provider": "LSEG",
+   "source_title": "AMD reports weaker-than-expected earnings even as revenue tops estimates",
+   "source_url": "https://www.cnbc.com/2025/08/05/amd-earnings-report-2q-2025.html",
+   "source_date": "2025-08-05"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 8740000000,
+   "provider": "LSEG",
+   "source_title": "AMD Q3 earnings report 2025",
+   "source_url": "https://www.cnbc.com/2025/11/04/amd-q3-earnings-report-2025.html",
+   "source_date": "2025-11-04"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 9670000000,
+   "provider": "LSEG",
+   "source_title": "AMD earnings report Q4 2025",
+   "source_url": "https://www.cnbc.com/2026/02/03/amd-earnings-report-q4-2025.html",
+   "source_date": "2026-02-03"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 9890000000,
+   "provider": "LSEG",
+   "source_title": "AMD's stock soars 16% as data center growth pushes revenue and guidance past estimates",
+   "source_url": "https://www.cnbc.com/2026/05/05/amd-q1-2026-earnings-report.html",
+   "source_date": "2026-05-05"
+  }
+ },
+ "GOOG": {
+  "2025-03-31": {
+   "revenue_estimate": 89120000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet shares rise on stronger-than-expected revenue growth",
+   "source_url": "https://www.cnbc.com/2025/04/24/alphabet-googl-q1-earnings-report-2025.html",
+   "source_date": "2025-04-24",
+   "revenue_actual": 90234000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000040/googexhibit991q12025.htm",
+   "note": "Actual from Alphabet Q1 2025 8-K Ex.99.1: total revenues $90,234M."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 94000000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet beats earnings expectations, raises spending forecast",
+   "source_url": "https://www.cnbc.com/2025/07/23/alphabet-google-q2-earnings.html",
+   "source_date": "2025-07-23",
+   "note": "Source states the estimate rounded ('$94 billion expected'); CNBC page 403 to direct fetch, value taken from search-indexed text (two searches agree)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 99890000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet tops $100 billion quarterly revenue for first time, cloud grows 34%",
+   "source_url": "https://www.cnbc.com/2025/10/29/alphabet-google-q3-earnings.html",
+   "source_date": "2025-10-29"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 111430000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet (GOOGL) Q4 2025 earnings",
+   "source_url": "https://www.cnbc.com/2026/02/04/alphabet-googl-q4-2025-earnings.html",
+   "source_date": "2026-02-04"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 107200000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet ups 2026 capex to as much as $190 billion, expects to 'significantly increase' in 2027",
+   "source_url": "https://www.cnbc.com/2026/04/29/alphabet-googl-q1-2026-earnings.html",
+   "source_date": "2026-04-29",
+   "note": "Estimate stated to one decimal in search-indexed text (CNBC 403 on direct fetch). An Investing.com item cites a different consensus of $106.79B (Investing.com's own)."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 116930000000,
+   "provider": "LSEG",
+   "source_title": "Alphabet earnings takeaways: Q2 revenue beats, GOOGL stock sinks on 2026 capex hike",
+   "source_url": "https://www.cnbc.com/2026/07/22/google-earnings-q2-goog-live-updates.html",
+   "source_date": "2026-07-22"
+  }
+ },
+ "AVGO": {
+  "2025-01-31": {
+   "revenue_estimate": 14610000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom Q1 earnings give the battered AI trade a much-needed win",
+   "source_url": "https://www.cnbc.com/2025/03/06/broadcom-q1-earnings-give-the-battered-ai-trade-a-much-needed-win.html",
+   "source_date": "2025-03-06",
+   "revenue_actual": 14916000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1730168/000173016825000009/avgo-02022025x8kxex99.htm",
+   "note": "Actual from Broadcom 8-K Ex.99: net revenue $14,916M for quarter ended Feb 2, 2025."
+  },
+  "2025-04-30": {
+   "revenue_estimate": 14990000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom beats on earnings and revenue",
+   "source_url": "https://www.cnbc.com/2025/06/05/broadcom-avgo-earnings-report-q2-2025.html",
+   "source_date": "2025-06-05"
+  },
+  "2025-07-31": {
+   "revenue_estimate": 15830000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom's stock pops on mystery $10 billion AI customer",
+   "source_url": "https://www.cnbc.com/2025/09/04/broadcom-avgo-q3-2025-earnings-report.html",
+   "source_date": "2025-09-04"
+  },
+  "2025-10-31": {
+   "revenue_estimate": 17490000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom beats on earnings and revenue, says AI chip sales will double in current quarter",
+   "source_url": "https://www.cnbc.com/2025/12/11/broadcom-avgo-q4-earnings-2025.html",
+   "source_date": "2025-12-11"
+  },
+  "2026-01-31": {
+   "revenue_estimate": 19180000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom beats on earnings and guidance as AI revenue doubles",
+   "source_url": "https://www.cnbc.com/2026/03/04/broadcom-avgo-q1-earnings-report-2026.html",
+   "source_date": "2026-03-04"
+  },
+  "2026-04-30": {
+   "revenue_estimate": 22270000000,
+   "provider": "LSEG",
+   "source_title": "Broadcom stock plunges on weak software sales, unchanged AI chip forecast for the year",
+   "source_url": "https://www.cnbc.com/2026/06/03/broadcom-avgo-earnings-report-q2-2026.html",
+   "source_date": "2026-06-03"
+  }
+ },
+ "NVDA": {
+  "2025-01-31": {
+   "revenue_estimate": 38050000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia (NVDA) earnings report Q4 2025",
+   "source_url": "https://www.cnbc.com/2025/02/26/nvidia-nvda-earnings-report-q4-2025.html",
+   "source_date": "2025-02-26",
+   "revenue_actual": 39331000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1045810/000104581025000021/q4fy25pr.htm",
+   "note": "Search-indexed CNBC text: '$39.33 billion versus $38.05 billion estimated'; provider LSEG per CNBC's standard results header (same article cites LSEG for guidance consensus). Actual from NVIDIA 8-K press release: $39,331M."
+  },
+  "2025-04-30": {
+   "revenue_estimate": 43310000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia fiscal Q1 2026 results (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/05/28/nvidia-nvda-earnings-report-q1-2026.html",
+   "source_date": "2025-05-28"
+  },
+  "2025-07-31": {
+   "revenue_estimate": 46060000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia earnings takeaways: A 'full steam' AI spend, but China uncertainty remains",
+   "source_url": "https://www.cnbc.com/2025/08/28/nvidia-stock-ai-spend.html",
+   "source_date": "2025-08-28",
+   "note": "Search result did not pin which of the two CNBC URLs (this one or /2025/08/27/nvidia-nvda-earnings-report-q2-2026.html) carries the sentence; both CNBC, both LSEG."
+  },
+  "2025-10-31": {
+   "revenue_estimate": 54920000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia shares rise on stronger-than-expected revenue, forecast",
+   "source_url": "https://www.cnbc.com/2025/11/19/nvidia-nvda-earnings-report-q3-2026.html",
+   "source_date": "2025-11-19"
+  },
+  "2026-01-31": {
+   "revenue_estimate": 66210000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia keeps the AI party alive with a booming quarter and even better outlook",
+   "source_url": "https://www.cnbc.com/2026/02/25/nvidia-keeps-the-ai-party-alive-with-a-booming-quarter-and-even-better-outlook.html",
+   "source_date": "2026-02-25"
+  },
+  "2026-04-30": {
+   "revenue_estimate": 78860000000,
+   "provider": "LSEG",
+   "source_title": "Nvidia forecasts revenue above estimates, announces $80 billion share buyback (Reuters)",
+   "source_url": "https://finance.yahoo.com/markets/stocks/articles/nvidia-forecasts-quarterly-revenue-above-202423200.html",
+   "source_date": "2026-05-20",
+   "note": "Reuters via Yahoo Finance / Investing.com repost. Do not confuse with $86.84B, which is the LSEG consensus for the NEXT quarter's guidance."
+  }
+ },
+ "MU": {
+  "2025-02-28": {
+   "revenue_estimate": 7890000000,
+   "provider": "LSEG",
+   "source_title": "Micron shares jump on earnings beat, rosy guidance as data center revenue triples",
+   "source_url": "https://www.cnbc.com/2025/03/20/micron-mu-q2-earnings-2025.html",
+   "source_date": "2025-03-20",
+   "revenue_actual": 8053000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000006/a2025q2ex991-pressrelease.htm",
+   "note": "Actual from Micron 8-K Ex.99.1: revenue $8,053M."
+  },
+  "2025-05-31": {
+   "revenue_estimate": 8870000000,
+   "provider": "LSEG",
+   "source_title": "Micron reports earnings, revenue beat and issues strong forecast",
+   "source_url": "https://www.cnbc.com/2025/06/25/micron-mu-q3-2025-earnings-report.html",
+   "source_date": "2025-06-25"
+  },
+  "2025-08-31": {
+   "revenue_estimate": 11220000000,
+   "provider": "LSEG",
+   "source_title": "Micron (MU) Q4 2025 earnings report",
+   "source_url": "https://www.cnbc.com/2025/09/23/micron-mu-q4-2025-earnings-report.html",
+   "source_date": "2025-09-23"
+  },
+  "2025-11-30": {
+   "revenue_estimate": 12840000000,
+   "provider": "LSEG",
+   "source_title": "Micron forecasts surging revenue as computer memory demand for AI remains high",
+   "source_url": "https://www.cnbc.com/2025/12/17/micron-q1-earnings-forecast-memory-demand-ai.html",
+   "source_date": "2025-12-17"
+  },
+  "2026-02-28": {
+   "revenue_estimate": 20070000000,
+   "provider": "LSEG",
+   "source_title": "Micron (MU) Q2 earnings report 2026",
+   "source_url": "https://www.cnbc.com/2026/03/18/micron-mu-q2-earnings-report-2026.html",
+   "source_date": "2026-03-18"
+  },
+  "2026-05-31": {
+   "revenue_estimate": 35840000000,
+   "provider": "LSEG",
+   "source_title": "Micron (MU) earnings report Q3 2026",
+   "source_url": "https://www.cnbc.com/2026/06/24/micron-mu-earnings-report-q3-2026.html",
+   "source_date": "2026-06-24"
+  }
+ },
+ "AMZN": {
+  "2025-03-31": {
+   "revenue_estimate": 155040000000,
+   "provider": "LSEG",
+   "source_title": "Amazon (AMZN) Q1 earnings report 2025",
+   "source_url": "https://www.cnbc.com/2025/05/01/amazon-amzn-q1-earnings-report-2025.html",
+   "source_date": "2025-05-01"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 162090000000,
+   "provider": "LSEG",
+   "source_title": "Amazon's gloomy earnings forecast overshadows better-than-expected results",
+   "source_url": "https://www.cnbc.com/2025/07/31/amazon-amzn-q2-earnings-report-2025.html",
+   "source_date": "2025-07-31"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 177800000000,
+   "provider": "LSEG",
+   "source_title": "Amazon (AMZN) Q3 earnings report 2025",
+   "source_url": "https://www.cnbc.com/2025/10/30/amazon-amzn-q3-earnings-report-2025.html",
+   "source_date": "2025-10-30"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 211330000000,
+   "provider": "LSEG",
+   "source_title": "Amazon stock falls 8% on $200 billion spending forecast, earnings miss",
+   "source_url": "https://www.cnbc.com/2026/02/05/amazon-amzn-q4-earnings-report-2025.html",
+   "source_date": "2026-02-05"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 177300000000,
+   "provider": "LSEG",
+   "source_title": "Amazon earnings beat expectations with strong cloud growth",
+   "source_url": "https://www.cnbc.com/2026/04/29/amazon-amzn-q1-earnings-report-2026.html",
+   "source_date": "2026-04-29"
+  },
+  "2026-06-30": {
+   "revenue_actual": 200606000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/0001018724/000101872426000024/amzn-20260630xex991.htm",
+   "note": "Actual from Amazon 8-K Ex.99.1 (filed 2026-07-30): total net sales $200,606M. Estimate not requested."
+  }
+ },
+ "META": {
+  "2025-03-31": {
+   "revenue_estimate": 41400000000,
+   "provider": "LSEG",
+   "source_title": "Meta shares rise on stronger-than-expected revenue for first quarter",
+   "source_url": "https://www.cnbc.com/2025/04/30/meta-q1-earnings-report-2025.html",
+   "source_date": "2025-04-30"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 44800000000,
+   "provider": "LSEG",
+   "source_title": "Meta (META) Q2 earnings report 2025",
+   "source_url": "https://www.cnbc.com/2025/07/30/meta-q2-earnings-report-2025.html",
+   "source_date": "2025-07-30"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 49410000000,
+   "provider": "LSEG",
+   "source_title": "Meta shares drop 9% despite earnings beat as company takes one-time tax charge",
+   "source_url": "https://www.cnbc.com/2025/10/29/meta-q3-earnings-report-2025.html",
+   "source_date": "2025-10-29"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 58590000000,
+   "provider": "LSEG",
+   "source_title": "Meta shares jump 10% on stronger-than-expected revenue forecast",
+   "source_url": "https://www.cnbc.com/2026/01/28/meta-q4-earnings-report-2025.html",
+   "source_date": "2026-01-28"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 55450000000,
+   "provider": "LSEG",
+   "source_title": "Meta Q1 2026 earnings report",
+   "source_url": "https://www.cnbc.com/2026/04/29/meta-q1-earnings-report-2026.html",
+   "source_date": "2026-04-29",
+   "note": "Second targeted search needed; sentence attributed to CNBC results piece in search-indexed text (CNBC 403 on direct fetch)."
+  }
+ },
+ "INTC": {
+  "2025-03-31": {
+   "revenue_estimate": 12300000000,
+   "provider": "LSEG",
+   "source_title": "Intel issues weak guidance, says it will slash expenses this year",
+   "source_url": "https://www.cnbc.com/2025/04/24/intel-intc-q1-2025-earnings-report.html",
+   "source_date": "2025-04-24",
+   "note": "Estimate stated rounded to one decimal in source text."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 11920000000,
+   "provider": "LSEG",
+   "source_title": "Intel beats on revenue, slashes foundry investments as CEO says 'no more blank checks'",
+   "source_url": "https://www.cnbc.com/2025/07/24/intel-intc-earnings-report-q2-2025.html",
+   "source_date": "2025-07-24"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 13140000000,
+   "provider": "LSEG",
+   "source_title": "Intel (INTC) earnings report Q3 2025",
+   "source_url": "https://www.cnbc.com/2025/10/23/intel-intc-earnings-report-q3-2025-.html",
+   "source_date": "2025-10-23"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 13400000000,
+   "provider": "LSEG",
+   "source_title": "Intel stock plunges 13% on soft guidance, concerns about chip production",
+   "source_url": "https://www.cnbc.com/2026/01/22/intel-intc-earnings-report-q4-2025-.html",
+   "source_date": "2026-01-22",
+   "note": "CNBC states '$13.7 billion vs. $13.4 billion expected' (rounded). Investing.com transcript piece cites $13.41B (Investing.com's own consensus, not LSEG)."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 12420000000,
+   "provider": "LSEG",
+   "source_title": "Intel's stock soars 20% as results top estimates, with chipmaker showing signs of growth",
+   "source_url": "https://www.cnbc.com/2026/04/23/intel-intc-q1-2026-earnings-report.html",
+   "source_date": "2026-04-23"
+  },
+  "2026-06-30": {
+   "revenue_estimate": 14420000000,
+   "provider": "LSEG",
+   "source_title": "Intel rides AI boom to fastest revenue growth in almost 15 years, but shares sink",
+   "source_url": "https://www.cnbc.com/2026/07/23/intel-intc-earnings-report-q2-2026.html",
+   "source_date": "2026-07-23"
+  }
+ },
+ "PLTR": {
+  "2025-03-31": {
+   "revenue_estimate": 863000000,
+   "provider": "LSEG",
+   "source_title": "Palantir (PLTR) Q1 earnings report 2025",
+   "source_url": "https://www.cnbc.com/2025/05/05/palantir-pltr-q1-earnings-report-2025.html",
+   "source_date": "2025-05-05"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 940000000,
+   "provider": "LSEG",
+   "source_title": "Palantir PLTR Q2 earnings 2025",
+   "source_url": "https://www.cnbc.com/2025/08/04/palantir-pltr-q2-earnings-2025.html",
+   "source_date": "2025-08-04",
+   "note": "Source states '$1 billion vs. $940 million expected' (actual rounded)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 1090000000,
+   "provider": "LSEG",
+   "source_title": "Palantir tops estimates, boosts fourth-quarter guidance on AI adoption",
+   "source_url": "https://www.cnbc.com/2025/11/03/palantir-pltr-q3-earnings-2025.html",
+   "source_date": "2025-11-03"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 1330000000,
+   "provider": "LSEG",
+   "source_title": "Palantir beats fourth-quarter estimates on the strength of AI and defense demand",
+   "source_url": "https://www.cnbc.com/2026/02/02/palantir-pltr-q4-2025-earnings.html",
+   "source_date": "2026-02-02",
+   "note": "CNBC text: EPS 'vs 23 cents expected from analysts polled by LSEG'; revenue '$1.41 billion, topping the $1.33 billion consensus estimate' (same passage; may be the follow-up piece cnbc.com/2026/02/03/palantir-stock-earnings.html). Provider LSEG per that passage; moderate confidence on attribution."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 1540000000,
+   "provider": "LSEG",
+   "source_title": "Palantir tops estimates on 85% revenue growth, fastest expansion since market debut in 2020",
+   "source_url": "https://www.cnbc.com/2026/05/04/palantir-pltr-q1-earnings-report-2026.html",
+   "source_date": "2026-05-04"
+  }
+ },
+ "AXTI": {
+  "2025-09-30": {
+   "revenue_estimate": 19840000,
+   "provider": "unnamed",
+   "source_title": "AXT Inc (AXTI) Q3 2025 Earnings Report Preview: What To Expect",
+   "source_url": "https://finance.yahoo.com/news/axt-inc-axti-q3-2025-140020569.html",
+   "source_date": "2025-10-29",
+   "note": "GuruFocus preview: 'The consensus estimate for Q3 2025 revenue is $19.84 million'. Zacks results article (2025-10-31) gives only a surprise % (35.24%) vs its own consensus - not used; Zacks consensus not stated directly. Zacks article actual $27.96M (matches db)."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 34140000,
+   "provider": "Zacks",
+   "source_title": "Should You Buy, Sell or Hold AXTI Stock Ahead of Q2 Earnings?",
+   "source_url": "https://finance.yahoo.com/markets/stocks/articles/buy-sell-hold-axti-stock-135100385.html",
+   "source_date": "2026-07-27",
+   "revenue_actual": 47589000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1051627/000143774926025061/ex_974537.htm",
+   "note": "Actual from AXT 8-K Ex.99 (Q2 2026 results, 2026-07-30): revenue $47,589K. Bonus estimate (not requested): 'The Zacks Consensus Estimate for second-quarter revenues is currently pegged at $34.14 million' (same figure in Zacks preview 2026-07-23)."
+  }
+ },
+ "BE": {
+  "2025-03-31": {
+   "revenue_estimate": 292160000,
+   "provider": "Zacks",
+   "source_title": "Bloom Energy to Report Q1 Earnings: What's in the Cards?",
+   "source_url": "https://finance.yahoo.com/news/bloom-energy-report-q1-earnings-161000232.html",
+   "source_date": "2025-04-30",
+   "note": "Zacks preview on results day: 'The Zacks Consensus Estimate for BE's first-quarter revenues is pegged at $292.16 million'. Same figure in Zacks key-metrics preview 2025-04-28. Companion Zacks results article (2025-05-01, finance.yahoo.com/news/bloom-energy-beats-q1-earnings-214007628.html) states ac"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 381390000,
+   "provider": "Zacks",
+   "source_title": "Bloom Energy to Report Q2 Earnings: What's in Store for the Stock?",
+   "source_url": "https://finance.yahoo.com/news/bloom-energy-report-q2-earnings-132300564.html",
+   "source_date": "2025-07-28",
+   "note": "'The Zacks Consensus Estimate for revenues is pinned at $381.39 million'. Preview does not state actual."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 412400000,
+   "provider": "Zacks",
+   "source_title": "Bloom Energy to Report Q3 Earnings: How to Play the Stock?",
+   "source_url": "https://finance.yahoo.com/news/bloom-energy-report-q3-earnings-154300391.html",
+   "source_date": "2025-10-27",
+   "note": "'The Zacks Consensus Estimate for earnings is currently pegged at 8 cents per share on revenues of $412.4 million'. Preview does not state actual."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 649100000,
+   "provider": "Zacks",
+   "source_title": "Bloom Energy to Report Q4 Earnings: Buy, Hold or Sell the Stock?",
+   "source_url": "https://finance.yahoo.com/news/bloom-energy-report-q4-earnings-130900415.html",
+   "source_date": "2026-02-03",
+   "note": "'...pegged at 25 cents per share on revenues of $649.1 million'. Preview does not state actual."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 498100000,
+   "provider": "Zacks",
+   "source_title": "Should You Buy, Sell or Hold Bloom Energy Ahead of Q1 Earnings?",
+   "source_url": "https://finance.yahoo.com/sectors/energy/articles/buy-sell-hold-bloom-energy-170000837.html",
+   "source_date": "2026-04-28",
+   "note": "Zacks consensus $498.1 million (results day preview). Companion Zacks results article 2026-04-29 (finance.yahoo.com/markets/stocks/articles/bloom-energy-q1-earnings-revenues-230003205.html) states actual $751.05M (matches db)."
+  }
+ },
+ "CBRS": {
+  "2026-03-31": {
+   "revenue_estimate": 180800000,
+   "provider": "unnamed",
+   "source_title": "Cerebras Q1 EPS miss, margin guide sends shares down 14% premarket (Investing.com)",
+   "source_url": "https://www.investing.com/news/earnings/cerebras-q1-eps-miss-sends-shares-down-9-afterhours-4756794",
+   "source_date": "2026-06-23",
+   "note": "Investing.com: 'beat revenue expectations of $180.8 million' (no provider named). Corroborated: Proactive/Yahoo 2026-06-24 'Wall Street anticipated approximately $181 million'. Actual is GAAP revenue $193.4M (core $191.3M)."
+  },
+  "2026-06-30": {
+   "revenue_actual": 180110000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/0002021728/000162828026056186/cbrsannouncesfinancialresu.htm",
+   "note": "8-K exhibit (Aug 12, 2026): GAAP total revenue $180,110K; core revenue $209.9M (non-GAAP, excludes pass-through revenue and customer-warrant amortization). Not requested but seen: CNBC search extract says $180M vs $194M LSEG expected - basis (GAAP vs core) unverified."
+  }
+ },
+ "CRWV": {
+  "2025-03-31": {
+   "revenue_estimate": 853000000,
+   "provider": "LSEG",
+   "source_title": "CoreWeave beats on revenue, reports more than 400% growth in first earnings after IPO",
+   "source_url": "https://www.cnbc.com/2025/05/14/coreweave-crwv-q1-2025-earnings-report.html",
+   "source_date": "2025-05-14",
+   "note": "CNBC page 403 to WebFetch; figures from search-result extract of the CNBC article ($981.6M vs $853M LSEG)."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 1080000000,
+   "provider": "LSEG",
+   "source_title": "CoreWeave shares drop even as revenue and guidance top estimates",
+   "source_url": "https://www.cnbc.com/2025/08/12/coreweave-crwv-q2-earnings-report-2025.html",
+   "source_date": "2025-08-12",
+   "note": "CNBC page 403 to WebFetch; figures from search-result extract ($1.21B vs $1.08B LSEG)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 1290000000,
+   "provider": "LSEG",
+   "source_title": "CoreWeave's stock slides on weak guidance even as revenue more than doubles",
+   "source_url": "https://www.cnbc.com/2025/11/10/coreweave-crwv-q3-earnings-report-2025.html",
+   "source_date": "2025-11-10",
+   "note": "CNBC page 403 to WebFetch; figures from search-result extract ($1.36B vs $1.29B LSEG)."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 1550000000,
+   "provider": "LSEG",
+   "source_title": "CoreWeave stock slides as quarterly revenue guidance disappoints",
+   "source_url": "https://www.cnbc.com/2026/02/26/coreweave-crwv-q4-earnings-report-2025.html",
+   "source_date": "2026-02-26",
+   "note": "CNBC page 403 to WebFetch; figures from search-result extract ($1.57B vs $1.55B LSEG)."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 1970000000,
+   "provider": "LSEG",
+   "source_title": "CoreWeave tops revenue estimates as AI boom supercharges cloud demand (Reuters)",
+   "source_url": "https://www.investing.com/news/stock-market-news/coreweave-tops-revenue-estimates-as-ai-boom-supercharges-cloud-demand-4669786",
+   "source_date": "2026-05-07",
+   "note": "Also CNBC 2026-05-07: $2.08B vs $1.97B LSEG."
+  },
+  "2026-06-30": {
+   "revenue_actual": 2575000000,
+   "actual_source": "https://finance.yahoo.com/technology/ai/articles/coreweave-reports-strong-second-quarter-201000108.html",
+   "note": "Company release (Aug 11, 2026) financial table: revenue $2,575M. Not requested but seen: Reuters (via Quartz/Yahoo 2026-08-12) Wall St expectation $2.56B; CNBC $2.58B vs $2.56B."
+  }
+ },
+ "LITE": {
+  "2025-03-31": {
+   "revenue_estimate": 418150000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Lumentum Q3 2025 beats forecasts, shares jump 8.4% (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-lumentum-q3-2025-beats-forecasts-shares-jump-84-93CH-4026705",
+   "source_date": "2025-05-06",
+   "note": "Verbatim: 'reporting $425.2 million compared to the anticipated $418.15 million.' Investing.com consensus, provider not named."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 467310000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Lumentum Holdings beats Q4 2025 forecasts, stock surges (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-lumentum-holdings-beats-q4-2025-forecasts-stock-surges-93CH-4186913",
+   "source_date": "2025-08-12",
+   "note": "Verbatim: '$480.7 million reported against a forecast of $467.31 million.' Investing.com consensus, provider not named."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 526000000,
+   "provider": "unnamed",
+   "source_title": "Why Lumentum Holdings Stock Skyrocketed by Nearly 24% on Wednesday (The Motley Fool via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/news/why-lumentum-holdings-stock-skyrocketed-002508859.html",
+   "source_date": "2025-11-06",
+   "note": "Consensus analyst estimate '$526 million for revenue'; actual 'just under $534 million'. Article dated 2 days after the 2025-11-04 release (describes pre-release consensus); provider not named."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 646700000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Lumentum's Q2 2026 results beat expectations, stock surges (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-lumentums-q2-2026-results-beat-expectations-stock-surges-93CH-4483409",
+   "source_date": "2026-02-03",
+   "note": "Verbatim: 'coming in at $665.5 million against the expected $646.7 million.' Alternative: Zacks pre-earnings preview put Zacks Consensus at $652.4M."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 804300000,
+   "provider": "unnamed",
+   "source_title": "Lumentum forecasts quarterly revenue above estimates on AI-driven demand (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/markets/stocks/articles/lumentum-forecasts-quarterly-revenue-above-211121969.html",
+   "source_date": "2026-05-05",
+   "note": "Provider in revenue sentence not named; LSEG is named elsewhere in the same article (likely LSEG). Verbatim: 'In the third quarter, revenue rose 90.1% to $808.4 million, beating estimates of $804.3 million.' LSEG named in same article for the Q4 guidance comparison ($908.3M)."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 984570000,
+   "provider": "unnamed",
+   "source_title": "Lumentum beats quarterly forecasts as AI demand drives stronger outlook (Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/technology/ai/articles/lumentum-beats-quarterly-forecasts-ai-095605324.html",
+   "source_date": "2026-08-12",
+   "revenue_actual": 1006300000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/0001633978/000162828026055726/lite_ex991xq4fy26.htm",
+   "note": "Actual: 8-K Ex.99.1 income statement 'Net revenue $1,006.3' (millions, three months ended 2026-06-27). Estimate verbatim: 'Revenue reached $1.01 billion, ahead of the $984.57 million consensus forecast'. Earlier dated LSEG figure for this quarter ($908.3M, Reuters 2026-05-05) is ~3 months stale and "
+  }
+ },
+ "NBIS": {
+  "2025-09-30": {
+   "revenue_estimate": 155100000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NBIS) Nebius Group N.V. Reports Q3 Revenue $146.1M, vs. FactSet Est of $155.1M",
+   "source_url": "https://www.marketscreener.com/news/earnings-flash-nbis-nebius-group-n-v-reports-q3-revenue-146-1m-vs-factset-est-of-155-1m-ce7d5fd9d189f323",
+   "source_date": "2025-11-11",
+   "note": "MT Newswires flash on MarketScreener."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 247300000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NBIS) Nebius Group Posts Q4 Revenue $227.7M, vs. FactSet Est of $247.3M",
+   "source_url": "https://www.marketscreener.com/news/earnings-flash-nbis-nebius-group-posts-q4-revenue-227-7m-vs-factset-est-of-247-3m-ce7e5ad3d98fff2d",
+   "source_date": "2026-02-12",
+   "note": "MT Newswires flash on MarketScreener."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 375100000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NBIS) Nebius Group N.V. Reports Q1 Revenue $399.0M, vs. FactSet Est of $375.1M",
+   "source_url": "https://www.marketscreener.com/news/earnings-flash-nbis-nebius-group-n-v-reports-q1-revenue-399-0m-vs-factset-est-of-375-1m-ce7f5bdcd98af520",
+   "source_date": "2026-05-13",
+   "note": "Other providers for same quarter: Investing.com 2026-05-13 'surpassing the analyst estimate of $388.57 million' (unnamed); Investing.com preview 2026-05-12 'around $375 million' (unnamed)."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 569900000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NBIS) Nebius Group N.V. Reports Q2 Revenue $582.3M, vs. FactSet Est of $569.9M",
+   "source_url": "https://www.marketscreener.com/news/earnings-flash-nbis-nebius-group-n-v-reports-q2-revenue-582-3m-vs-factset-est-of-569-9m-ce7859d8da8ef427",
+   "source_date": "2026-08-12",
+   "revenue_actual": 582300000,
+   "actual_source": "https://finance.yahoo.com/markets/stocks/articles/nebius-reports-second-quarter-2026-114200960.html",
+   "note": "Actual from company press release (Business Wire, 2026-08-12, syndicated on Yahoo): revenue $582.3M, +454% vs $105.1M. Estimate not required for this item; included as extra. Yahoo article also cites LSEG consensus $572.75M."
+  }
+ },
+ "NVTS": {
+  "2025-03-31": {
+   "revenue_estimate": 14000000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NVTS) Navitas Semiconductor Reports Q1 Revenue $14M, vs. FactSet Est of $14.0M",
+   "source_url": "https://www.marketscreener.com/quote/stock/NAVITAS-SEMICONDUCTOR-COR-128455151/news/Earnings-Flash-NVTS-Navitas-Semiconductor-Reports-Q1-Revenue-14M-vs-FactSet-Est-of-14-0M-49830649/",
+   "source_date": "2025-05-05",
+   "note": "MT Newswires flash; estimate stated only to 0.1M precision ($14.0M)."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 14360000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Navitas Semiconductor Q2 2025 results fall short",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-navitas-semiconductor-q2-2025-results-fall-short-93CH-4169048",
+   "source_date": "2025-08-04",
+   "note": "Investing.com: 'Revenue: $14.49 million, slightly above forecast' of $14.36 million; provider not named (Investing.com consensus)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 10000000,
+   "provider": "FactSet",
+   "source_title": "Earnings Flash (NVTS) Navitas Semiconductor Corporation Reports Q3 Revenue $10.1M, vs. FactSet Est of $10.0M",
+   "source_url": "https://www.marketscreener.com/news/earnings-flash-nvts-navitas-semiconductor-corporation-reports-q3-revenue-10-1m-vs-factset-est-o-ce7d5cd9d08ff62d",
+   "source_date": "2025-11-03",
+   "note": "MT Newswires flash; estimate stated to 0.1M precision ($10.0M)."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 6840000,
+   "provider": "Zacks",
+   "source_title": "NVTS to Report Q4 Earnings: Should You Buy, Sell or Hold the Stock?",
+   "source_url": "https://finance.yahoo.com/news/nvts-report-q4-earnings-buy-124300202.html",
+   "source_date": "2026-02-19",
+   "note": "Zacks preview 5 days before the Feb 24 2026 report: 'The Zacks Consensus Estimate for fourth-quarter revenues is pegged at $6.84 million.' Post-results Zacks article ('NVTS Q4 Loss In Line With Estimates') reports $7.3M actual."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 8100000,
+   "provider": "Zacks",
+   "source_title": "Navitas Set to Report Q1 Earnings: What's in Store for the Stock?",
+   "source_url": "https://finance.yahoo.com/markets/stocks/articles/navitas-set-report-q1-earnings-164900624.html",
+   "source_date": "2026-05-05",
+   "note": "Zacks preview on report day: 'The Zacks Consensus Estimate for first-quarter revenues is pegged at $8.1 million.' Post-results Zacks coverage reports $8.6M actual."
+  }
+ },
+ "SITM": {
+  "2025-03-31": {
+   "revenue_estimate": 53450000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Sitime beats Q1 2025 forecasts, stock rises (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-sitime-beats-q1-2025-forecasts-stock-rises-93CH-4030492",
+   "source_date": "2025-05-07",
+   "note": "\"Revenue for the quarter reached $60.3 million, exceeding the $53.45 million forecast.\""
+  },
+  "2025-06-30": {
+   "revenue_estimate": 64650000,
+   "provider": "unnamed",
+   "source_title": "SiTime Corp (SITM) Q2 2025 Earnings Report Preview: What To Look For (GuruFocus via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/news/sitime-corp-sitm-q2-2025-133120821.html",
+   "source_date": "2025-08-05",
+   "note": "\"The consensus estimate for Q2 2025 revenue is $64.65 million\" (preview, day before 2025-08-06 results; same article oddly gives EPS -$0.88, likely GAAP). CAUTION: Investing.com transcript write-up (2025-08-07, https://www.investing.com/news/transcripts/earnings-call-transcript-cytime-beats-q2-2025-"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 78060000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: SiTime Q3 2025 beats expectations with strong growth (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-sitime-q3-2025-beats-expectations-with-strong-growth-93CH-4335915",
+   "source_date": "2025-11-05",
+   "note": "\"Revenue also exceeded projections, reaching $83.6 million against a forecast of $78.06 million\""
+  },
+  "2025-12-31": {
+   "revenue_estimate": 101910000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: SiTime beats Q4 2025 forecasts, stock rises (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-sitime-beats-q4-2025-forecasts-stock-rises-93CH-4486319",
+   "source_date": "2026-02-04",
+   "note": "\"Revenue reached $113.3 million, exceeding projections of $101.91 million.\" (consistent with company Q4 guide $100-103M)"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 103450000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: SiTime Q1 2026 earnings beat estimates, stock rises (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-sitime-q1-2026-earnings-beat-estimates-stock-rises-93CH-4665900",
+   "source_date": "2026-05-06",
+   "note": "\"Revenue reached $113.6 million, exceeding expectations of $103.45 million.\""
+  }
+ },
+ "SNDK": {
+  "2025-09-30": {
+   "revenue_estimate": 2150000000,
+   "provider": "unnamed",
+   "source_title": "Sandisk stock jumps as earnings beat and guidance surge past expectations (Investing.com via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/news/sandisk-soars-earnings-beat-guidance-215633995.html",
+   "source_date": "2025-11-06",
+   "note": "Verbatim: 'revenue reached $2.31 billion, above the consensus estimate of $2.15 billion'. Yahoo shows 2025-11-07 date stamp; earnings released after close 2025-11-06."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 2690000000,
+   "provider": "unnamed",
+   "source_title": "Sandisk stock soars after blowout earnings report reflects AI demand (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/01/30/sandisk-stock-earnings-ai-memory-demand.html",
+   "source_date": "2026-01-30",
+   "note": "Provider in revenue sentence not named; FactSet is named elsewhere in the same article (likely FactSet). Verbatim: 'Revenue totaled $3.03 billion, topping a forecast of $2.69 billion.' FactSet is named in the preceding EPS sentence of the same paragraph; revenue sentence itself names no provider."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 4700000000,
+   "provider": "unnamed",
+   "source_title": "Sandisk joins Western Digital, Seagate in signaling strong AI storage demand (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/sectors/technology/articles/sandisk-joins-western-digital-seagate-222216259.html",
+   "source_date": "2026-04-30",
+   "note": "Provider in revenue sentence not named; LSEG is named elsewhere in the same article (likely LSEG). Verbatim: 'reported a 97% rise in third-quarter revenue to $5.95 billion, beating estimates of $4.70 billion.' LSEG named in the same article for the Q4 guidance comparison. Other dated figures: GuruFo"
+  },
+  "2026-06-30": {
+   "revenue_estimate": 8390000000,
+   "provider": "unnamed",
+   "source_title": "Sandisk forecasts upbeat quarterly revenue on AI-driven demand (Reuters via Investing.com)",
+   "source_url": "https://www.investing.com/news/stock-market-news/sandisk-forecasts-upbeat-quarterly-revenue-on-aidriven-demand-4839416",
+   "source_date": "2026-08-05",
+   "revenue_actual": 8965000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/2023554/000162828026053346/sndkq4-26ex991xpressrelease.htm",
+   "note": "Provider in revenue sentence not named; LSEG is named elsewhere in the same article (likely LSEG). Actual: 8-K Ex.99.1 income statement 'Revenue, net $8,965' (millions, three months ended 2026-07-03). Estimate verbatim: 'reported fourth-quarter revenue of $8.97 billion, beating estimates of $8.39 bi"
+  }
+ },
+ "TSEM": {
+  "2025-06-30": {
+   "revenue_estimate": 371260000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Tower Semiconductor Q2 2025 beats expectations (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-tower-semiconductor-q2-2025-beats-expectations-93CH-4204158",
+   "source_date": "2025-08-21",
+   "note": "\"Revenue reached $372 million, slightly above the expected $371.26 million.\" Page date read as 2025-08-21 (results were 2025-08-04); estimate is the pre-results expectation the article compares against."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 394970000,
+   "provider": "unnamed",
+   "source_title": "Earnings call transcript: Tower Semiconductor Q3 2025 results beat expectations (Investing.com)",
+   "source_url": "https://www.investing.com/news/transcripts/earnings-call-transcript-tower-semiconductor-q3-2025-results-beat-expectations-93CH-4346795",
+   "source_date": "2025-11-10",
+   "note": "\"revenue reached $395.7 million, slightly above the anticipated $394.97 million\" (Investing.com transcript write-up; provider not named, likely Investing.com consensus)"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 434200000,
+   "provider": "unnamed",
+   "source_title": "Tower Semiconductor shares climb 6% as record Q4 revenue tops expectations (Investing.com)",
+   "source_url": "https://www.investing.com/news/earnings/tower-semiconductor-shares-climb-6-as-record-q4-revenue-tops-expectations-93CH-4499749",
+   "source_date": "2026-02-11",
+   "note": "\"posted Q4 revenue of $440.2 million, surpassing the analyst consensus of $434.2 million\""
+  },
+  "2026-03-31": {
+   "revenue_estimate": 408380000,
+   "provider": "unnamed",
+   "source_title": "Tower Semiconductor shares jump after earnings beat and record quarterly outlook (TSEM)",
+   "source_url": "https://finance.yahoo.com/news/tower-semiconductor-shares-jump-earnings-133729590.html",
+   "source_date": "2026-05-13",
+   "note": "Yahoo Finance (Fiona Craig): consensus estimate of $408.38 million; Proactive article same day says ~$408M"
+  }
+ },
+ "WRD": {
+  "2026-06-30": {
+   "revenue_actual": 231717000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1867729/000110465926094571/tm2622690d2_ex99-1.htm",
+   "note": "6-K Ex.99.1 (Aug 12, 2026): total revenue RMB231,717K (US$34,151K) for three months ended June 30, 2026. Investing.com earnings table also shows 231.72M CNY."
+  }
+ },
+ "ASML": {
+  "2025-03-31": {
+   "revenue_estimate": 7800000000,
+   "provider": "LSEG",
+   "source_title": "ASML earnings Q1 2025: Chip equipment giant flags tariff uncertainty (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/04/16/critical-chip-firm-asml-posts-lower-than-expected-net-bookings-in-first-quarter.html",
+   "source_date": "2025-04-16",
+   "revenue_actual": 7742000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/937966/000093796625000014/pressreleasequarterlyresul.htm",
+   "note": "Estimate from search-result text of CNBC article (page blocks fetch). Actual EUR 7,742m from ASML Q1 2025 press release (6-K), fetched. Cross-check: Investing.com earnings table (https://www.investing.com/equities/asml-holding-earnings) shows its own revenue forecast EUR 7.53B for this release."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 7520000000,
+   "provider": "LSEG",
+   "source_title": "ASML Q2 2025 earnings report (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/07/16/asml-q2-2025-earnings-report.html",
+   "source_date": "2025-07-16",
+   "note": "From search-result text of CNBC article (page blocks fetch). Cross-check: Investing.com earnings table (https://www.investing.com/equities/asml-holding-earnings) shows its own revenue forecast EUR 7.55B for this release."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 7790000000,
+   "provider": "LSEG",
+   "source_title": "ASML looks to calm fears over 2026 growth as it warns of China sales decline (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/10/15/asml-q3-earnings-report.html",
+   "source_date": "2025-10-15",
+   "note": "From search-result text of CNBC article (page blocks fetch). Cross-check: Investing.com earnings table (https://www.investing.com/equities/asml-holding-earnings) shows its own revenue forecast EUR 7.74B for this release."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 9600000000,
+   "provider": "LSEG",
+   "source_title": "Chip giant ASML surges 7% as AI boom fuels record orders and upbeat 2026 guidance (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/01/28/asml-q4-2025-earnings-report.html",
+   "source_date": "2026-01-28",
+   "note": "From search-result text of CNBC article (page blocks fetch); results were released 2026-01-28 (worklist announce_date 2026-01-27). Same snippet quoted a bookings expectation that looks odd (6.32bn), so treat with slight caution. Cross-check: Investing.com earnings table (https://www.investing.com/eq"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 8500000000,
+   "provider": "LSEG",
+   "source_title": "ASML stock sinks amid tightening China restrictions despite strong earnings, guidance (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/04/15/asml-q1-2026-earnings-report.html",
+   "source_date": "2026-04-15",
+   "note": "From search-result text of CNBC article (page blocks fetch). Cross-check: Investing.com earnings table (https://www.investing.com/equities/asml-holding-earnings) shows its own revenue forecast EUR 8.63B for this release."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 8800000000,
+   "provider": "LSEG",
+   "source_title": "ASML shares fall after hiking sales forecast for second time this year on strong AI chip demand (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/07/15/asml-2q-earnings-ai-chips-orders.html",
+   "source_date": "2026-07-15",
+   "note": "From search-result text of CNBC article (page blocks fetch); results dated 2026-07-15 (worklist announce_date 2026-07-13). Cross-check: Investing.com earnings table (https://www.investing.com/equities/asml-holding-earnings) shows its own revenue forecast EUR 8.89B for this release."
+  }
+ },
+ "TSM": {
+  "2025-03-31": {
+   "revenue_estimate": 835700000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC's first-quarter revenue surges 42%, slightly ahead of forecasts (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/news/tsmcs-first-quarter-revenue-handily-053632454.html",
+   "source_date": "2025-04-10",
+   "n_analysts": 19,
+   "revenue_actual": 839254000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/1046179/000104617925000035/a1q25e_withguidancexfinal.htm",
+   "note": "Fetched. Pre-results article (after March monthly sales). CNBC results-day article (2025-04-17, https://www.cnbc.com/2025/04/17/tsmc-first-quarter-profit-tops-estimates-rising-60percent-as-trump-trade-policy-threatens-growth-.html) quoted LSEG consensus NT$835.13bn (search snippet only). Actual NT$8"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 931240000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC profit surges 61% to record high fueled by AI chip demand (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/07/17/tsmcs-second-quarter-profit-soars-nearly-61percent-as-ai-chip-demand-stays-strong-.html",
+   "source_date": "2025-07-17",
+   "note": "From search-result text of CNBC article (page blocks fetch)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 977460000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC profit surges 39% to beat estimates and hit yet another record on AI chip demand (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/10/16/tsmc-hits-yet-another-record-as-profit-surges-39percent-beating-estimates-on-ai-chip-demand-surge.html",
+   "source_date": "2025-10-16",
+   "note": "From search-result text of CNBC article (page blocks fetch). Results released 2025-10-16 Taiwan time."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 1035913000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC posts Q4 revenue of T$1,046.08 billion, above forecasts (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/news/tsmc-posts-q4-revenue-1046-054221924.html",
+   "source_date": "2026-01-09",
+   "n_analysts": 20,
+   "note": "Fetched. Pre-results article (after December monthly sales); also stated US$32.73bn estimate equivalent."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 1125000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC's first-quarter revenue surges as AI interest propels sales beyond market forecasts (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/sectors/technology/articles/tsmcs-q1-revenue-jumps-35-053612040.html",
+   "source_date": "2026-04-10",
+   "n_analysts": 20,
+   "note": "Fetched; stated as T$1.125 trillion (rounded). A search snippet also cited NT$1.127 trillion LSEG SmartEstimate (likely CNBC results-day article) - not verified."
+  },
+  "2026-06-30": {
+   "revenue_estimate": 1264000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "TSMC posts record revenue in second quarter on AI demand (Reuters via Yahoo Finance)",
+   "source_url": "https://finance.yahoo.com/technology/articles/tsmc-q2-revenue-jumps-36-053756945.html",
+   "source_date": "2026-07-13",
+   "n_analysts": 20,
+   "note": "Fetched; stated as T$1.264 trillion."
+  }
+ },
+ "000660_KS": {
+  "2025-03-31": {
+   "revenue_estimate": 17260000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Nvidia supplier SK Hynix warns of demand volatility after quarterly profit soars 158% on AI boom (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/04/24/sk-hynix-quarterly-earnings-top-estimates.html",
+   "source_date": "2025-04-24",
+   "note": "KRW 17.26 trillion estimate vs 17.64 trillion actual; from search-result text of CNBC article (page blocks fetch). Reuters/Yahoo article same day gives only an operating-profit SmartEstimate."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 20560000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Nvidia supplier SK Hynix posts record second-quarter profit and revenue on strong AI memory demand (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/07/24/sk-hynix-second-quarter-earnings-record-revenue-profit-jumps.html",
+   "source_date": "2025-07-24",
+   "note": "KRW 20.56 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 24730000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Nvidia-supplier SK Hynix third-quarter profit jumps 62% to a record high (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/10/29/sk-hynix-q3-profit-revenue-record-.html",
+   "source_date": "2025-10-29",
+   "note": "KRW 24.73 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 32132000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "SK Hynix doubles profit in 2025 as memory shortages drive earnings beat (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/01/28/sk-hynix-smashes-earnings-estimates-as-ai-memory-demand-drives-record-profit.html",
+   "source_date": "2026-01-28",
+   "note": "KRW 32.132 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 53550000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "SK Hynix posts record first-quarter profit, in line with estimates as memory prices climb (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/04/23/sk-hynix-earnings-ai-memory-shortage-hbm-demand.html",
+   "source_date": "2026-04-23",
+   "note": "KRW 53.55 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2026-06-30": {
+   "revenue_actual": 79318700000000,
+   "actual_source": "https://finance.yahoo.com/technology/articles/sk-hynix-announces-2q26-financial-225600202.html",
+   "note": "Consolidated K-IFRS revenue KRW 79.3187 trillion (operating profit 60.5426 trillion), fetched from the company press release syndicated on Yahoo."
+  }
+ },
+ "005930_KS": {
+  "2025-03-31": {
+   "revenue_estimate": 78100000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Samsung flags uncertain economic climate after smartphone, chip sales power quarterly results beat (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/04/30/samsungs-first-quarter-earnings-beat-expectations-as-chip-sales-rise.html",
+   "source_date": "2025-04-30",
+   "note": "KRW 78.1 trillion; from search-result text of CNBC article (page blocks fetch). Samsung's own preliminary guidance was ~79 trillion won (not a consensus)."
+  },
+  "2025-06-30": {
+   "revenue_estimate": 74430000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Samsung Q2 profit more than halves on chip slump (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/07/31/samsung-second-quarter-profit-halves-missing-expectations.html",
+   "source_date": "2025-07-31",
+   "note": "KRW 74.43 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2025-09-30": {
+   "revenue_estimate": 85930000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Samsung's third-quarter profit more than doubles, beating estimates on strong demand from AI chips (CNBC)",
+   "source_url": "https://www.cnbc.com/2025/10/30/samsungs-third-quarter-profit-surges-160percent-as-chip-business-bounces-back-from-brutal-slump.html",
+   "source_date": "2025-10-30",
+   "note": "KRW 85.93 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2025-12-31": {
+   "revenue_estimate": 93318000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Samsung's profit triples, beating estimates as AI chip demand fuels memory shortage (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/01/29/samsung-record-q4-2025-profit-ai-hbm-ai-memory-chip-shortage.html",
+   "source_date": "2026-01-29",
+   "note": "KRW 93.318 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2026-03-31": {
+   "revenue_estimate": 132690000000000,
+   "provider": "LSEG SmartEstimate",
+   "source_title": "Samsung profit surges over eightfold to beat estimates as AI boom fuels memory chip crunch (CNBC)",
+   "source_url": "https://www.cnbc.com/2026/04/30/samsung-q1-earnings-ai-memory-chip-demand-profit-record.html",
+   "source_date": "2026-04-30",
+   "note": "KRW 132.69 trillion; from search-result text of CNBC article (page blocks fetch)."
+  },
+  "2026-06-30": {
+   "revenue_actual": 171500000000000,
+   "actual_source": "https://finance.yahoo.com/technology/articles/samsung-q2-2026-earnings-record-115328985.html",
+   "note": "Final consolidated revenue KRW 171.5 trillion as stated in a results-day article (rounded to 0.1 trillion; Samsung newsroom release timed out on fetch). Same article cites a 172.65 trillion won revenue expectation attributed to CNBC (provider behind it not named) - not recorded as an estimate since "
+  }
+ },
+ "AIXA_DE": {
+  "2025-03-31": {
+   "revenue_estimate": 109840000,
+   "provider": "Investing.com",
+   "source_title": "Aixtron (AIXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/aixtron-earnings",
+   "source_date": "2025-05-03",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 128840000,
+   "provider": "Investing.com",
+   "source_title": "Aixtron (AIXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/aixtron-earnings",
+   "source_date": "2025-07-31",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-09-30": {
+   "revenue_actual": 119600000,
+   "actual_source": "https://www.aixtron.com/en/press/press-releases/AIXTRON%20Q3/2025%20with%20strong%20FCF%2C%20volume%20shifts%20and%20FX%20headwinds_n13843",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 171460000,
+   "provider": "Investing.com",
+   "source_title": "Aixtron (AIXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/aixtron-earnings",
+   "source_date": "2026-02-26",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 64350000,
+   "provider": "Investing.com",
+   "source_title": "Aixtron (AIXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/aixtron-earnings",
+   "source_date": "2026-04-30",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  }
+ },
+ "IFX_DE": {
+  "2025-03-31": {
+   "revenue_estimate": 3560000000,
+   "provider": "Investing.com",
+   "source_title": "Infineon (IFXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/infineon-tech-earnings",
+   "source_date": "2025-05-08",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 3720000000,
+   "provider": "Investing.com",
+   "source_title": "Infineon (IFXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/infineon-tech-earnings",
+   "source_date": "2025-08-05",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 3930000000,
+   "provider": "Investing.com",
+   "source_title": "Infineon (IFXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/infineon-tech-earnings",
+   "source_date": "2025-11-12",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 3640000000,
+   "provider": "Investing.com",
+   "source_title": "Infineon (IFXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/infineon-tech-earnings",
+   "source_date": "2026-02-04",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 3830000000,
+   "provider": "Investing.com",
+   "source_title": "Infineon (IFXGn) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/infineon-tech-earnings",
+   "source_date": "2026-05-06",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (underlying contributors/analyst count not stated); figures rounded as displayed. No company-compiled consensus page was rea"
+  }
+ },
+ "NOK": {
+  "2025-03-31": {
+   "revenue_estimate": 4380000000,
+   "provider": "Investing.com",
+   "source_title": "Nokia Oyj (NOKIA) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/nokia-finland-earnings",
+   "source_date": "2025-04-24",
+   "revenue_actual": 4390000000,
+   "actual_source": "https://www.sec.gov/Archives/edgar/data/924613/000110465925038218/tm2513093d1_6k.htm",
+   "note": "Investing.com earnings-history table for Nokia Oyj Helsinki listing (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); figures rounded as displayed. Nokia's IR consensus p"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 4640000000,
+   "provider": "Investing.com",
+   "source_title": "Nokia Oyj (NOKIA) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/nokia-finland-earnings",
+   "source_date": "2025-10-23",
+   "note": "Investing.com earnings-history table for Nokia Oyj Helsinki listing (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); figures rounded as displayed. Nokia's IR consensus p"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 6120000000,
+   "provider": "Investing.com",
+   "source_title": "Nokia Oyj (NOKIA) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/nokia-finland-earnings",
+   "source_date": "2026-01-29",
+   "note": "Investing.com earnings-history table for Nokia Oyj Helsinki listing (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); figures rounded as displayed. Nokia's IR consensus p"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 4570000000,
+   "provider": "Investing.com",
+   "source_title": "Nokia Oyj (NOKIA) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/nokia-finland-earnings",
+   "source_date": "2026-04-23",
+   "note": "Investing.com earnings-history table for Nokia Oyj Helsinki listing (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); figures rounded as displayed. Nokia's IR consensus p"
+  },
+  "2026-06-30": {
+   "revenue_estimate": 4840000000,
+   "provider": "Investing.com",
+   "source_title": "Nokia Oyj (NOKIA) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/nokia-finland-earnings",
+   "source_date": "2026-07-23",
+   "note": "Investing.com earnings-history table for Nokia Oyj Helsinki listing (accessed 2026-09-29) shows the revenue forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); figures rounded as displayed. Nokia's IR consensus p"
+  }
+ },
+ "D05_SI": {
+  "2025-06-30": {
+   "revenue_estimate": 5850000000,
+   "provider": "Investing.com",
+   "source_title": "DBS (DBSM) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/dbs-group-holdings-earnings",
+   "source_date": "2025-08-06",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 5720000000,
+   "provider": "Investing.com",
+   "source_title": "DBS (DBSM) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/dbs-group-holdings-earnings",
+   "source_date": "2025-11-05",
+   "revenue_actual": 5932000000,
+   "actual_source": "https://www.dbs.com/iwov-resources/images/investors/quarterly-financials/2025/3Q25_trading_update.pdf",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2025-12-31": {
+   "revenue_estimate": 5670000000,
+   "provider": "Investing.com",
+   "source_title": "DBS (DBSM) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/dbs-group-holdings-earnings",
+   "source_date": "2026-02-09",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 5880000000,
+   "provider": "Investing.com",
+   "source_title": "DBS (DBSM) Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/dbs-group-holdings-earnings",
+   "source_date": "2026-04-30",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  }
+ },
+ "O39_SI": {
+  "2025-03-31": {
+   "revenue_estimate": 3660000000,
+   "provider": "Investing.com",
+   "source_title": "OCBC Bank Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/oversea-chinese-banking-corp.-earnings",
+   "source_date": "2025-05-08",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2025-06-30": {
+   "revenue_estimate": 3560000000,
+   "provider": "Investing.com",
+   "source_title": "OCBC Bank Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/oversea-chinese-banking-corp.-earnings",
+   "source_date": "2025-08-01",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2025-09-30": {
+   "revenue_estimate": 3500000000,
+   "provider": "Investing.com",
+   "source_title": "OCBC Bank Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/oversea-chinese-banking-corp.-earnings",
+   "source_date": "2025-11-07",
+   "revenue_actual": 3796000000,
+   "actual_source": "https://www.ocbc.com/iwov-resources/sg/ocbc/gbc/pdf/investors/quarterly-results/2025/OCBC%203Q25%20Results%20Press%20Release.pdf",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  },
+  "2026-03-31": {
+   "revenue_estimate": 3750000000,
+   "provider": "Investing.com",
+   "source_title": "OCBC Bank Earnings History - Investing.com",
+   "source_url": "https://www.investing.com/equities/oversea-chinese-banking-corp.-earnings",
+   "source_date": "2026-05-08",
+   "note": "Investing.com earnings-history table (accessed 2026-09-29) shows a 'Revenue' forecast recorded against this release date; provider is Investing.com's own consensus aggregation (contributors/analyst count not stated); rounded as displayed. The table does not label the line 'total income'; its 'Revenu"
+  }
+ }
+}
