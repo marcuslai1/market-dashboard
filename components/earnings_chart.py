@@ -6,12 +6,13 @@ speed-up and the expected slowdown at a glance. Two forms from one series builde
 - ``revenue_chart_html`` — solid bars = reported quarters, a dashed-outline bar = the
   coming quarter (analysts' estimate; the company's own forecast as a band when known),
   a neutral hairline on each past bar = what analysts expected beforehand, with its number
-  beside it, and a "vs previous quarter" multiplier row (1.2×, 1.7×, ~1.2×) so the speed-up is a number.
+  beside it, and a "vs previous quarter" growth row (+22%, +75%, ~+24%; whole-number %, not the
+  first ship's 1.7×) so the speed-up is a number.
   The rows form a table: on a wide chart the title and row labels share a left gutter; on a
   narrow one the labels stack and a "what analysts expected" row carries the estimates. On a
   roomy chart (≥ 860px) the two comparisons move onto the plot and their rows step aside: the
-  result vs analysts beside the analysts' number (12.8 +6%), the multiplier between the two
-  quarter labels it compares (Sep–Nov — 1.7× — Dec–Feb).
+  result vs analysts beside the analysts' number (12.8 +6%), the growth between the two
+  quarter labels it compares (Sep–Nov — +75% — Dec–Feb).
 - ``eps_chart_html`` — same grammar for earnings per share, drawn from a zero line
   because EPS can be negative, with a "vs analysts" row.
 - ``mini=True`` — the thumbnail for the briefing's "reporting this week" grid: bars and
@@ -189,34 +190,25 @@ def _val_label(v: float) -> str:
     return _num_label(v, 2 if abs(v) < 10 else 1)
 
 
-def _mult(cur, prev) -> str:
-    """cur / prev as '1.7×' (with the % drop spelled out below 1×). prev is None when the
-    quarter before is not on file — no multiplier then, never one across a gap."""
-    if cur is None or prev is None or prev <= 0 or cur <= 0:
-        return ""
-    m = cur / prev
-    s = f"{m:.1f}×"
-    return s + (f" ({(m - 1) * 100:+.0f}%)".replace("-", "−") if m < 1 else "")
-
-
 def _pct(cur, ref) -> str:
     if cur is None or ref is None or ref == 0:
         return ""
-    return f"{(cur / ref - 1) * 100:+.0f}%".replace("-", "−")
+    return f"{(cur / ref - 1) * 100:+,.0f}%".replace("-", "−")
 
 
-def _growth(mult: str) -> tuple[str, str]:
-    """A ``_mult`` string split for the plot: ('0.9×', '−15%') stacks the drop under the
-    multiplier; ('1.7×', '') otherwise."""
-    main, _, drop = mult.partition(" (")
-    return main, drop.rstrip(")")
+def _growth(cur, prev) -> str:
+    """cur vs prev as a whole-number % ('+75%', '−15%'; owner 2026-09-29: '1.7×' is not a whole
+    number). prev is None when the quarter before is not on file — no figure then, never one
+    across a gap; none across a zero or negative quarter either."""
+    if cur is None or prev is None or prev <= 0 or cur <= 0:
+        return ""
+    return _pct(cur, prev)
 
 
 def _growth_tip(frm: str, to: str, cur, prev, how: str = "") -> str:
-    """Hover text for a growth label: 'Sep–Nov 2025 → Dec–Feb 2026: 1.75× (+75%)'."""
-    if not _mult(cur, prev):
-        return ""
-    return f"{frm} → {to}{' (' + how + ')' if how else ''}: {cur / prev:.2f}× ({_pct(cur, prev)})"
+    """Hover text for a growth label: 'Sep–Nov 2025 → Dec–Feb 2026: +75%'."""
+    g = _growth(cur, prev)
+    return f"{frm} → {to}{' (' + how + ')' if how else ''}: {g}" if g else ""
 
 
 def _pos(v: float, lo: float, hi: float) -> float:
@@ -226,7 +218,7 @@ def _pos(v: float, lo: float, hi: float) -> float:
 def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, rows_below: list,
            head: str = "") -> str:
     """cols: [{label, year, bar, tick, tip, beat, growth, coming: {est, band, whisker}}]; values
-    already scaled. ``beat`` rides beside the estimate's number and ``growth`` (a ``_mult``
+    already scaled. ``beat`` rides beside the estimate's number and ``growth`` (a ``_growth``
     string, vs the column before) sits between the two quarter labels — both drawn only on a
     roomy chart (theme.css), where the rows marked ``ec-row-onplot`` step aside.
     ``head`` = the title; inside ``.ec`` so a wide chart can set it in the label gutter."""
@@ -266,9 +258,7 @@ def _chart(cols: list[dict], lo: float, hi: float, *, mini: bool, aria: str, row
             inner += '<span class="ec-miss">not on file</span>' if not mini else '<span class="ec-miss">·</span>'
         grow = ""
         if c.get("growth") and not mini:
-            g, drop = _growth(c["growth"])
-            grow = (f'<span class="ec-g" title="{_t(c.get("growth_tip", ""))}">{_t(g)}'
-                    + (f'<small>{_t(drop)}</small>' if drop else "") + "</span>")
+            grow = f'<span class="ec-g" title="{_t(c.get("growth_tip", ""))}">{_t(c["growth"])}</span>'
         lab = "" if mini else f'<span class="ec-x">{grow}{_t(c["label"])}<small>{_t(c["year"])}</small></span>'
         axis = f'<span class="ec-zero" style="bottom:{zero:.2f}%"></span>'
         body += (f'<div class="ec-col{" ec-coming" if cm else ""}" title="{_t(c.get("tip", ""))}">'
@@ -306,13 +296,13 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
     vals += [x for x in (cest, *(company or ()), *(whisker or ())) if x]
     scale, unit = _unit(max(vals))
     hi = max(vals) / scale * 1.12
-    cols, mults, vs_an, ests = [], [], [], []
+    cols, grows, vs_an, ests = [], [], [], []
     prev, prev_lab = None, ""
     for q in past:
         lab, yr = period_label(q["qe"])
         if q.get("missing"):
             cols.append({"label": lab, "year": yr, "missing": True, "tip": f"{lab} {yr}: not on file"})
-            mults.append("")
+            grows.append("")
             vs_an.append("")
             ests.append("")
             prev = None
@@ -321,12 +311,12 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         tip = f"{lab} {yr}: revenue {currency} {q['rev'] / scale:,.2f} {unit}"
         if est:
             tip += f"; analysts expected {est / scale:,.2f} ({q.get('rev_est_src') or 'source not recorded'})"
-        m = _mult(q["rev"], prev)
+        g = _growth(q["rev"], prev)
         cols.append({"label": lab, "year": yr, "bar": q["rev"] / scale, "val": _val_label(q["rev"] / scale),
                      "tick": est / scale if est else None, "tick_val": _val_label(est / scale) if est else "",
-                     "beat": _pct(q["rev"], est), "tip": tip, "growth": m,
+                     "beat": _pct(q["rev"], est), "tip": tip, "growth": g,
                      "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", q["rev"], prev)})
-        mults.append(m)
+        grows.append(g)
         vs_an.append(_pct(q["rev"], est))
         ests.append(_val_label(est / scale) if est else "")
         prev, prev_lab = q["rev"], f"{lab} {yr}"
@@ -338,21 +328,21 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         tip = f"{lab} {yr} (coming): analysts expect {cest / scale:,.2f} {unit}" if cest else f"{lab} {yr} (coming)"
         if company:
             tip += f"; company forecast {company[0] / scale:,.2f}–{company[1] / scale:,.2f}"
-        m_an = _mult(cest, prev)
-        m_co = _mult(sum(company) / 2, prev) if company else ""
-        m = "~" + (m_an or m_co) if (m_an or m_co) else ""
+        g_an = _growth(cest, prev)
+        g_co = _growth(sum(company) / 2, prev) if company else ""
+        g = "~" + (g_an or g_co) if (g_an or g_co) else ""
         cols.append({"label": lab, "year": yr, "coming": {"est": cest / scale if cest else None, "band": band,
                      "whisker": wh, "val": f"~{_val_label(cest / scale)}" if cest else ""}, "tip": tip,
-                     "growth": m, "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", cest or sum(company) / 2, prev,
-                                                             "analysts expect" if m_an else "company forecast")})
-        mults.append(m)
+                     "growth": g, "growth_tip": _growth_tip(prev_lab, f"{lab} {yr}", cest or sum(company) / 2, prev,
+                                                             "analysts expect" if g_an else "company forecast")})
+        grows.append(g)
         vs_an.append("")
         ests.append("")
         parts = []
-        if cest and prev:
-            parts.append(f"analysts ~{cest / prev:.2f}×")
-        if company and prev:
-            parts.append(f"company forecast ~{sum(company) / 2 / prev:.2f}×")
+        if g_an:
+            parts.append(f"analysts ~{g_an}")
+        if g_co:
+            parts.append(f"company forecast ~{g_co}")
         coming_note = ("Coming quarter vs the last: " + " · ".join(parts)) if parts else ""
     on_file = [q for q in past if not q.get("missing")]
     yoy = ""
@@ -360,21 +350,21 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
         last = on_file[-1]
         ago = next((q for q in on_file if _mi(last["qe"]) - _mi(q["qe"]) == 12), None)
         if ago:
-            yoy = _mult(last["rev"], ago["rev"]) or ""
+            yoy = _growth(last["rev"], ago["rev"])
     aria = (f"Revenue by quarter, {currency} {unit}: " + ", ".join(
         f"{c['label']} {c['year']} {c['val']}" for c in cols if c.get("bar") is not None)
         + (f"; coming quarter analysts expect {cest / scale:,.1f}" if cest else ""))
     if mini:
-        last_m = mults[len(past) - 1] if past and not past[-1].get("missing") else ""
-        nxt = mults[-1] if coming and len(mults) > len(past) else ""
-        l1 = " · ".join(x for x in ((f"{last_m} previous" if last_m else ""),
-                                     (f"{yoy} a year ago" if yoy else "")) if x)
+        last_g = grows[len(past) - 1] if past and not past[-1].get("missing") else ""
+        nxt = grows[-1] if coming and len(grows) > len(past) else ""
+        l1 = " · ".join(x for x in ((f"{last_g} vs the one before" if last_g else ""),
+                                     (f"{yoy} vs a year ago" if yoy else "")) if x)
         l1 = f"Last quarter: {l1}" if l1 else ("Last quarter not on file" if past and past[-1].get("missing") else "")
         l2 = f"Next: {nxt} ({'analysts' if cest else 'company'})" if nxt else ""
         lines = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in (l1, l2) if x)
         return _chart(cols, 0.0, hi, mini=True, aria=aria, rows_below=[]) + lines
     head = _head("Revenue", f"{currency} {unit}".strip())
-    rows = [("vs previous quarter", mults, "ec-row-onplot")]             # between the quarter labels when roomy
+    rows = [("vs previous quarter", grows, "ec-row-onplot")]             # between the quarter labels when roomy
     if any(vs_an):
         rows.append(("what analysts expected", ests, "ec-row-narrow"))    # on the chart when it is wide
         rows.append(("vs what analysts expected", vs_an, "ec-row-onplot"))  # beside that number when roomy
@@ -442,7 +432,7 @@ def key_html(company: bool = False, beat: bool = False, growth: bool = False) ->
     if company:
         items.append('<span class="ec-k-band">company\'s own forecast</span>')
     if beat:
-        items.append('<span class="ec-k-beat">result vs what analysts expected</span>')
+        items.append('<span class="ec-k-beat">beside the line: result vs what analysts expected</span>')
     if growth:
-        items.append('<span class="ec-k-g">revenue vs the quarter before</span>')
+        items.append('<span class="ec-k-g">between quarters: revenue vs the quarter before</span>')
     return '<div class="ec-key">' + "".join(items) + "</div>"

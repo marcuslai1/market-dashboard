@@ -4859,7 +4859,7 @@ a.term-index-item:hover {
 }
 /* Roomy chart (owner 2026-09-29): the two comparisons leave the table for the plot — the
    result vs analysts rides beside the analysts' number (12.8 +6%), the growth vs the quarter
-   before sits between the two quarter labels (Sep–Nov 1.7× Dec–Feb). Neutral ink: colour is a
+   before sits between the two quarter labels (Sep–Nov +75% Dec–Feb). Neutral ink: colour is a
    claim. 860px = six columns still clear the next bar (a 12.8 +16% label is ~60px). */
 .ec-tvb, .ec-g { display: none; }
 .ec-x { position: relative; }
@@ -4869,14 +4869,15 @@ a.term-index-item:hover {
   .ec-g { display: block; position: absolute; top: 0; left: 0; transform: translateX(-50%);
     font-family: var(--font-display); font-size: 12.5px; font-weight: 600; font-style: normal;
     line-height: 15px; color: var(--ink); white-space: nowrap; }
-  /* a hairline on each side, so it reads as the step from one quarter to the next; it
-     shortens with the chart so a six-quarter chart at 860px keeps clear of the labels. A border,
-     not a 1px background: borders snap to the pixel grid, a background line at a fractional y
-     smeared to near-invisible */
-  .ec-g::before, .ec-g::after { content: ""; display: inline-block; vertical-align: middle;
-    width: clamp(6px, 0.9cqw, 16px); height: 0; margin: 0 5px; border-top: 1px solid var(--ink-4); }
-  .ec-g small { display: block; font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
   .ec-coming .ec-g { font-style: italic; font-weight: 500; color: var(--ink-3); }
+}
+/* a hairline on each side, so it reads as the step from one quarter to the next — from 1000px,
+   where six columns leave room for a +1,250% between the labels. A border, not a 1px
+   background: borders snap to the pixel grid, a background line at a fractional y smeared to
+   near-invisible */
+@container (min-width: 1000px) {
+  .ec-g::before, .ec-g::after { content: ""; display: inline-block; vertical-align: middle;
+    width: clamp(8px, 0.9cqw, 16px); height: 0; margin: 0 5px; border-top: 1px solid var(--ink-4); }
 }
 .ec-miss { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-size: 12px;
   font-style: italic; line-height: 1.2; color: var(--ink-3); }
@@ -4895,9 +4896,8 @@ a.term-index-item:hover {
 /* the two on-plot numbers get key entries only where the plot carries them (same 860px as .ec) */
 .ec-block { container: ec-block / inline-size; }
 .ec-k-beat, .ec-k-g { display: none; }
-.ec-key .ec-k-beat::before, .ec-key .ec-k-g::before { font-family: var(--font-display); font-weight: 600; color: var(--ink); }
-.ec-key .ec-k-beat::before { content: "+%"; }
-.ec-key .ec-k-g::before { content: "×"; font-size: 15px; line-height: 1; }
+.ec-key .ec-k-beat::before, .ec-key .ec-k-g::before { content: "+%"; font-family: var(--font-display);
+  font-weight: 600; color: var(--ink); }
 @container ec-block (min-width: 860px) { .ec-k-beat, .ec-k-g { display: inline; } }
 
 /* briefing: "reporting in the next 7 days" grid of small revenue charts (2026-09-29) */
