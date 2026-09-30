@@ -1,127 +1,113 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-29T12:01:20+00:00",
- "sessions_read": 17,
- "reads_logged": 20,
+ "generated_utc": "2026-09-30T12:19:07+00:00",
+ "sessions_read": 18,
+ "reads_logged": 21,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260929T120048Z",
-  "ts_utc": "2026-09-29T12:00:48Z",
-  "ts_sgt": "2026-09-29 20:00",
-  "ts_et": "2026-09-29 08:00",
+  "id": "20260930T121813Z",
+  "ts_utc": "2026-09-30T12:18:13Z",
+  "ts_sgt": "2026-09-30 20:18",
+  "ts_et": "2026-09-30 08:18",
   "confidence": "low",
-  "confidence_why": "direction hinges on how the 10Y takes JOLTS at 22:00 SGT, unknowable at 20:00; the neutral calls are coin-flip calls, stated as such",
+  "confidence_why": "event-dominated: PCE at 20:30 SGT decides the 10Y and the read is logged 10 minutes before it; Micron after the close adds pre-positioning noise",
   "tells": [
-   "10Y after JOLTS at 22:00 SGT: above ~5.26% = Monday's pattern repeats (soft); below ~5.20% = relief (firm)",
-   "Whether SOXX holds its pre-market gain through the first hour once real volume shows up",
-   "MU and SanDisk running ahead of Wednesday's print = positioning, supports chips",
-   "Oil below $90 would ease the inflation channel behind the hike pricing"
+   "10Y after PCE: a close above ~5.30% vs back below ~5.20%",
+   "SOXX in the first hour: does the -0.8% gap hold or fill with volume",
+   "Cerebras -5.9% pre with no headline found - if it spreads to AMD/NVDA the semis neutral fails soft",
+   "oil holding above 90 into the close"
   ],
-  "notes": "ai_power_infra deliberately not logged: graded on SOXX, so it would duplicate the semis bet (pre-registered double-count). Its story today (power semis +5.2% median) is in the reply only.",
+  "notes": "Logged ~20:22 SGT, ~8 min before PCE. Sweep was 3 queries under time pressure; no Cerebras-specific headline found for today. ai_power_infra omitted (nothing to add beyond semis; SOXX-benchmarked).",
   "headline_context": [
-   "CNBC live updates - futures flat after soaring yields, AI jitters; Mon S&P -0.8%, Nasdaq -0.9%, 10Y ~5.246% (Sep 29 early ET)",
-   "CNBC - Treasury yields ease as inflation concerns persist; Fed futures price an October hike, four hikes over a year (Sep 29)",
-   "Yahoo Finance - European chip stocks rise as Anthropic spending outlook lifts AI demand hopes ($518B obligations) (Sep 29)",
-   "Yahoo Finance live - futures waver as leaked Anthropic IPO details raise alarm about AI risks (Sep 29)",
-   "Investing.com - Navitas surges 20% after hours on US Army 10kV SiC (ALATTIS) award (Sep 28, search summary; article not opened)"
+   "Bloomberg - Stock Market Today live 2026-09-30: stocks pause with PCE and Micron due; gauge expected to show inflation quickened in August; oil has driven yields to highest in decades",
+   "CNBC 2026-09-30 - Micron earnings after the bell; options imply ~7.75% move by end of week (via Investing.com)",
+   "Reuters via Investing.com 2026-09-30 - US stock futures inch up as yields ease, inflation report looms"
   ],
   "leans": {
    "semis": {
     "lean": "neutral",
     "guidance": "dont_add",
-    "why": "SOXX +1.07% pre (thin, pre-market has no volume), 18/0 names up, on Anthropic's IPO filing ($518B compute/infrastructure obligations). The gap already banks the positive half of a double-edged filing (same document: existential-risk warning, $42B 2025 net loss; futures wavering on it). Nothing added beyond the gap in the US chip names - the intraday extension is in European power semis, a different sub-group. 10Y at a 19-year high (5.24%) with an October hike priced caps multiples; JOLTS 22:00 SGT; MU prints Wed after the close. Stretch +6.9% vs 50d median. Mild."
+    "why": "SOXX -0.8% pre-market on thin no-volume bars, led by Cerebras -5.9% and AMD -1.0% while memory/Hynix held; PCE at 20:30 SGT and Micron after the close dominate - positioning into Micron tends to pin the group; stretched +6.6% vs 20d so no add before Micron"
    },
    "big_tech": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "QQQ +0.38% pre after Nasdaq -0.9% Mon on yields; META +1.2% the only real mover. The most rate-sensitive group; with the 10Y flat at 5.24% and JOLTS the only print, no reason for a trend day either way. Mild."
+    "why": "QQQ -0.27% pre, META -1.3% offset by GOOG +1.0%; no single-name catalyst today; PCE and the 10Y at 5.25% are the only drivers and the fork is two-sided"
    },
    "market": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "SPY +0.22% pre, S&P futures +0.14%. Monday's -0.8% was the 10Y; today the 10Y is flat, oil -1.3%, VIX 15.9 in contango. JOLTS (22:00 SGT) is the only print before PCE Wed; direction hinges on the 10Y after it - a coin flip, logged as one."
+    "why": "S&P futures -0.07%, VIX 16 in contango, HY credit only -0.2%; the day hinges on PCE with the 10Y at 5.25%, oil +1.5% to 90.5 feeding the hot-inflation fear already priced (Bloomberg: expected to quicken)"
    },
    "sg_banks": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "STI -0.40% today but the three banks flat (+0.03% median) on 1.31x volume - they held while the index slipped. Tomorrow's close follows US tonight, which this read calls flat; no bank-specific catalyst (earnings ~36 days out)."
+    "why": "banks -1.0% today on above-average volume (DBS 1.65x) with no bank headline found; next SGX close follows PCE and Micron overnight; higher-for-longer US rates cut both ways for NIM vs risk appetite"
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-29",
-    "target_close_utc": "2026-09-29T20:00:00Z"
+    "target_session": "2026-09-30",
+    "target_close_utc": "2026-09-30T20:00:00Z"
    },
    "big_tech": {
     "benchmark": "QQQ",
-    "target_session": "2026-09-29",
-    "target_close_utc": "2026-09-29T20:00:00Z"
+    "target_session": "2026-09-30",
+    "target_close_utc": "2026-09-30T20:00:00Z"
    },
    "market": {
     "benchmark": "SPY",
-    "target_session": "2026-09-29",
-    "target_close_utc": "2026-09-29T20:00:00Z"
+    "target_session": "2026-09-30",
+    "target_close_utc": "2026-09-30T20:00:00Z"
    },
    "sg_banks": {
     "benchmark": "^STI",
-    "target_session": "2026-09-30",
-    "target_close_utc": "2026-09-30T09:00:00Z"
+    "target_session": "2026-10-01",
+    "target_close_utc": "2026-10-01T09:00:00Z"
    }
   },
   "summary": {
-   "read_id": "20260929T120048Z",
-   "bottom_line": "Hold what you have and don't chase the chip bounce. Tonight is a bond-market day: where the 10-year yield sits after the 22:00 SGT jobs-openings data decides it, and I can't call that.",
-   "where_we_are": "20:00 SGT / 08:00 ET Tuesday. US pre-market, opens 21:30 SGT; Singapore closed. Next: JOLTS job openings 22:00 SGT, PCE inflation Wed 20:30 SGT, Micron results Thu 04:05 SGT, payrolls Fri 20:30 SGT.",
-   "macro_attribution": "The 10-year yield is the mover that matters: it hit a 19-year high near 5.24% on Monday and is flat this morning. Every lean below depends on it holding there. Oil is down about 2% to $91 and would help, but the call doesn't rely on it.",
+   "read_id": "20260930T121813Z",
+   "bottom_line": "Hold what you have, and don't add chip stocks before Micron's results tomorrow morning. Tonight turns on the US inflation figures at 8:30pm, and I expect the main groups to finish close to where they are now.",
+   "where_we_are": "8:18pm SGT (8:18am New York). US pre-market is open and the regular session starts at 9:30pm SGT. Singapore closed at 5pm. Tonight: US PCE inflation for August at 8:30pm SGT. Tomorrow: Micron results at about 4:05am SGT, after the US close.",
+   "macro_attribution": "Oil has moved most since the last US close, up 1.5% to $90.5, with the 10-year Treasury yield at 5.26% (prices). My read depends on oil only through what tonight's inflation figures do to that yield.",
    "what_happened": [
-    "Monday: S&P 500 -0.8%, Nasdaq -0.9% as the 10-year yield hit its highest since 2007 (CNBC, Sep 29). Rate futures price an October Fed hike (CNBC, Sep 29). That is the pressure on everything.",
-    "Anthropic's IPO filing shows $518B of computing and infrastructure commitments. European chip stocks rose on it (Yahoo Finance, Sep 29). The same filing warns of 'existential risks' and a $42B 2025 loss, and US futures are wavering on that (Yahoo Finance, Sep 29). It cuts both ways.",
-    "Chips are +1.1% pre-market, with all 18 names up (tape). Pre-market trades carry no volume, so this is thin until the open confirms it.",
-    "Power chips lead: Navitas +9% after a reported US Army silicon-carbide contract (Investing.com, Sep 28; article not opened); in Europe Infineon +4.7%, Aixtron +5.7% and Soitec +7.2%, still climbing late in their session (tape).",
-    "Asia was weak: Nikkei -1.2%, Taiwan -0.7%, SK Hynix flat (tape)."
+    "Chip stocks are down 0.8% before the US open (prices), and most of that comes from two names: Cerebras (AI inference chips) is down 5.9% and AMD is down 1.0%, while Nvidia and Broadcom are flat. Pre-market trades carry no volume, so the dip is thin until the open confirms it. I found no news explaining Cerebras.",
+    "Asia closed mixed: Nikkei +2.5%, Taiwan +1.0% with TSMC +0.8%, Korea -0.5% (prices). In memory, SK Hynix rose 1.1% and Samsung fell 1.1%.",
+    "All three Singapore banks fell today: UOB -1.3%, DBS -1.0% on 1.65× usual volume, OCBC -0.5% (prices). I found no bank-specific news.",
+    "US futures are nearly flat, S&P -0.1% and Nasdaq -0.3% (prices). The inflation figure is expected to show prices rising faster in August (Bloomberg, 30 Sep, search summary)."
    ],
    "per_group": {
-    "semis": "Chips: flat from here. The pre-market gain already prices the good half of the Anthropic news, and the part still moving is European power chips, not the US chipmakers. With the 10-year at a 19-year high I see no reason for the gain to build or to fade.",
-    "big_tech": "Big tech: flat. This is the group most sensitive to rates, Meta (+1.2%) is the only real mover, and a flat yield gives it no trend.",
-    "sg_banks": "Singapore banks: flat. They held steady while the index fell 0.4% on heavier volume, and tomorrow they will follow a US session I expect to be flat.",
-    "market": "Whole market: flat. Monday's fall came from yields; today yields are still and oil is easing. It turns on the 10-year after JOLTS."
+    "semis": "Flat. The dip is mostly Cerebras and AMD, and traders usually hold positions into Micron's results rather than move the whole group the day before. Chip stocks already sit 6.6% above their 20-day average, so there is no case for adding first.",
+    "big_tech": "Flat. Meta's -1.3% and Alphabet's +1.0% before the open roughly cancel, nothing company-specific is due, and the inflation figures could push either way.",
+    "sg_banks": "Flat at tomorrow's close. Today's 1% fall came with no news I could find, and the US inflation figures and Micron's results both land before Singapore reopens, which gives no clear direction.",
+    "market": "Flat. Futures are barely moving, the VIX (the market's fear gauge) is calm at 16, and a hotter inflation figure is already what analysts expect."
    },
    "change_my_mind": [
-    "The 10-year closes above ~5.26%: Monday repeats, and chips, big tech and the market all go to slightly down.",
-    "The 10-year drops below ~5.20% after JOLTS: relief, all three go to slightly up.",
-    "Chips hold their gain through the first hour on real volume: chips go to slightly up.",
-    "Micron and SanDisk run well ahead of Wednesday's print: memory is being bought, which lifts chips."
+    "If the 10-year yield closes above 5.30% after the inflation figures, I would expect chips and big tech to fall more than 0.5%, and the flat call is wrong on the downside.",
+    "If the 10-year falls back below 5.20%, I would expect chips to recover this morning's dip, and the call should have been up.",
+    "If Cerebras's fall spreads to AMD and Nvidia in the first hour on heavy volume, chips lean down."
    ],
-   "confidence": "low, because the direction depends on how bonds take the 22:00 SGT data, which can't be known at 20:00.",
-   "cant_know": "Which way JOLTS lands, and whether bond buyers step in at 5.25% or the selling resumes.",
-   "the_call": "Flat, and mild: no move bigger than about half a percent. The market ends near where it opens. Chips keep their morning gain but don't add to it. European power chips and Navitas move most; the Singapore banks and big tech move least.",
+   "confidence": "The inflation figures come out 12 minutes after this read and decide the day.",
+   "cant_know": "How hot the August inflation figure is, and whether traders sell chips before Micron's results or buy them.",
+   "the_call": "Flat, and quietly. I expect the S&P 500 to finish within about half a percent of where it is now. Chips move the most because of Cerebras's fall and the positioning before Micron. The whole market moves the least.",
    "sources": [
     {
-     "title": "Stock futures are mixed after higher yields lead to losing session (CNBC live)",
-     "url": "https://www.cnbc.com/2026/09/28/stock-market-today-live-updates.html",
-     "date": "2026-09-29"
+     "title": "Stock Market Today: Dow, S&P Live Updates for September 30 (Bloomberg)",
+     "url": "https://www.bloomberg.com/news/articles/2026-09-29/stock-market-today-dow-s-p-live-updates",
+     "date": "2026-09-30"
     },
     {
-     "title": "Treasury yields ease as inflation concerns persist (CNBC)",
-     "url": "https://www.cnbc.com/2026/09/29/treasury-yields-bonds.html",
-     "date": "2026-09-29"
+     "title": "Micron earnings hit Wall Street after the bell. Here's how traders are positioned into the report (CNBC)",
+     "url": "https://www.cnbc.com/2026/09/30/micron-earnings-hit-wall-street-after-the-bell-heres-how-traders-are-positioned-into-the-report.html",
+     "date": "2026-09-30"
     },
     {
-     "title": "European chip stocks rise as Anthropic spending outlook lifts AI demand hopes (Yahoo Finance)",
-     "url": "https://ca.finance.yahoo.com/news/european-chip-stocks-rise-anthropic-094211091.html",
-     "date": "2026-09-29"
-    },
-    {
-     "title": "Futures waver as leaked Anthropic IPO details raise alarm about AI risks (Yahoo Finance live)",
-     "url": "https://finance.yahoo.com/markets/live/stock-market-today-tuesday-september-29-dow-sp-500-nasdaq-080526442.html",
-     "date": "2026-09-29"
-    },
-    {
-     "title": "Navitas Semiconductor stock surges 20% on U.S. defense contract (Investing.com)",
-     "url": "https://in.investing.com/news/stock-market-news/navitas-semiconductor-stock-surges-20-on-us-defense-contract-5609688",
-     "date": "2026-09-28"
+     "title": "Micron earnings outlook: what to watch ahead of the September 30 report (Investing.com)",
+     "url": "https://www.investing.com/news/stock-market-news/micron-earnings-outlook-what-to-watch-ahead-of-the-september-30-report-93CH-4911385",
+     "date": "2026-09-30"
     }
    ]
   }
