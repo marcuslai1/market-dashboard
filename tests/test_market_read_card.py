@@ -109,9 +109,10 @@ def test_card_carries_no_signal_colour():
         assert banned not in html, banned
 
 
-def test_card_states_its_independence_from_the_report():
+def test_card_states_its_independence_from_the_briefing_and_report():
     html = market_read_card_html(_payload(), _dt.datetime(2026, 9, 9, 18, 0, tzinfo=UTC))
-    assert "independent of the morning report" in html
+    assert "deliberately independent" in html
+    assert "never reads the midday briefing" in html
 
 
 # ── rendering ────────────────────────────────────────────────────────────────
@@ -231,7 +232,7 @@ def _with_summary(**over):
 
 def test_summary_sections_render_in_the_order_of_the_plain_reply():
     html = market_read_card_html(_with_summary(), _NOW)
-    order = ["Bottom line", "Where we are", "What happened", "What I expect, per group",
+    order = ["Bottom line", "Where we are", "Since midday", "What I expect, per group",
              "What would change my mind", "Confidence", "The call", "Sources",
              "Grading notes"]
     idx = [html.index(label) for label in order]

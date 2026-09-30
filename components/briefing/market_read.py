@@ -248,10 +248,10 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
         '</div>'
     )
     blurb = (
-        '<p class="mr-blurb">A same-session view of overnight markets, written '
-        'before the US close and graded against it afterwards. It is deliberately '
-        'independent of the morning report — it does not see the report’s '
-        'signals, and is expected to disagree with them.</p>'
+        '<p class="mr-blurb">An evening read that picks up where the midday briefing '
+        'stops — what has moved since, and what to expect tonight. Written before the '
+        'US close and graded against it afterwards. It is deliberately independent — '
+        'it never reads the midday briefing or the report’s signals.</p>'
     )
 
     if summary:
@@ -266,7 +266,7 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
             where_inner += (f'<div class="mr-prose"><span class="mr-inline-lab">Macro</span>'
                             f'{_txt(summary["macro_attribution"])}</div>')
         where = _section("where", "Where we are", where_inner) if where_inner else ""
-        happened = _list_block("happened", "What happened", summary.get("what_happened"), limit=8)
+        happened = _list_block("happened", "Since midday", summary.get("what_happened"), limit=8)
         groups = _lean_rows_html(leans, summary.get("per_group") or {})
         change = _list_block("tells", "What would change my mind",
                              summary.get("change_my_mind"), limit=6)
