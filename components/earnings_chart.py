@@ -14,7 +14,7 @@ speed-up and the expected slowdown at a glance. Two forms from one series builde
   result vs analysts beside the analysts' number (12.8 +6%), the growth between the two
   quarter labels it compares (Sep–Nov — +74.9% — Dec–Feb).
 - ``eps_chart_html`` — same grammar for earnings per share, drawn from a zero line
-  because EPS can be negative, with a "vs analysts" row.
+  because EPS can be negative, with a "what happened: above (+) or below (−) analysts" row.
 - ``mini=True`` — the thumbnail for the briefing's "reporting this week" grid: bars and
   the outlined estimate only, plus one line of multipliers.
 
@@ -35,6 +35,12 @@ import datetime as _dt
 import html
 
 _MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+# The two analyst rows under the axis. Owner 2026-09-30: "what analysts expected" over "vs what
+# analysts expected" read as analysts against analysts — the second row is the RESULT against
+# them, so it says so. It names analysts itself because a 600–860px chart shows it alone.
+_EST_ROW = "what analysts expected"
+_BEAT_ROW = "what happened: above (+) or below (−) analysts"
 
 
 # Revenue is in the REPORTING currency, which for four US-listed names is not the USD they
@@ -381,8 +387,8 @@ def revenue_chart_html(series: dict, currency: str = "US$", company: tuple | Non
     head = _head("Revenue", f"{currency} {unit}".strip())
     rows = [("vs previous quarter", grows, "ec-row-onplot")]             # between the quarter labels when roomy
     if any(vs_an):
-        rows.append(("what analysts expected", ests, "ec-row-narrow"))    # on the chart when it is wide
-        rows.append(("vs what analysts expected", vs_an, "ec-row-onplot"))  # beside that number when roomy
+        rows.append((_EST_ROW, ests, "ec-row-narrow"))     # on the chart when it is wide
+        rows.append((_BEAT_ROW, vs_an, "ec-row-onplot"))   # beside that number when roomy
     notes = [x for x in ((f"Latest quarter vs a year earlier: {yoy}" if yoy else ""), coming_note) if x]
     note = "".join(f'<p class="ec-note">{_t(x)}</p>' for x in notes)
     return _chart(cols, 0.0, hi, mini=False, aria=aria, rows_below=rows, head=head) + note
@@ -423,8 +429,7 @@ def eps_chart_html(series: dict, currency: str = "US$", company: tuple | None = 
     aria = f"Earnings per share by quarter, {currency}: " + ", ".join(
         f"{c['label']} {c['year']} {c['val']}" for c in cols if c.get("bar") is not None)
     head = _head("Earnings per share", currency)
-    rows = [] if mini else [("what analysts expected", ests, "ec-row-narrow"),
-                            ("vs what analysts expected", vs_an, "ec-row-onplot")]
+    rows = [] if mini else [(_EST_ROW, ests, "ec-row-narrow"), (_BEAT_ROW, vs_an, "ec-row-onplot")]
     return _chart(cols, lo, hi, mini=mini, aria=aria, rows_below=rows, head=head)
 
 
@@ -448,7 +453,7 @@ def key_html(company: bool = False, beat: bool = False, growth: bool = False) ->
     if company:
         items.append('<span class="ec-k-band">company\'s own forecast</span>')
     if beat:
-        items.append('<span class="ec-k-beat">beside the line: result vs what analysts expected</span>')
+        items.append('<span class="ec-k-beat">beside the line: what happened, above (+) or below (−) analysts</span>')
     if growth:
         items.append('<span class="ec-k-g">between quarters: revenue vs the quarter before</span>')
     return '<div class="ec-key">' + "".join(items) + "</div>"

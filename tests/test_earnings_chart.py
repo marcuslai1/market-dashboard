@@ -23,6 +23,9 @@ MU = [_row("2025-05-31", 9.301e9, eps=1.91, eps_est=1.59), _row("2025-08-31", 11
       _row("2026-05-31", 41.456e9, eps=25.11, eps_est=20.69), _row("2026-08-31", rev_est=51.34992584e9, eps_est=31.71)]
 
 
+BEAT = "what happened: above (+) or below (−) analysts"      # the result-vs-analysts % row
+
+
 def _notes(html_):
     return re.findall(r'<p class="ec-note">(.*?)</p>', html_)
 
@@ -93,7 +96,7 @@ def test_eps_chart_draws_from_zero_and_handles_negatives():
             _row("2025-09-30", eps=0.15, eps_est=0.10)]
     html_ = eps_chart_html(quarter_series(rows))
     assert "ec-neg" in html_ and "−0.06" in html_
-    assert _rows(html_)["vs what analysts expected"] == ["", "+400.0%", "+50.0%"]   # no % on a negative base
+    assert _rows(html_)[BEAT] == ["", "+400.0%", "+50.0%"]   # no % on a negative base
 
 
 def test_empty_table_cells_are_dashes_not_holes():
@@ -129,7 +132,7 @@ def test_roomy_chart_puts_both_comparisons_on_the_plot():
     assert 'title="Sep–Nov 2025 → Dec–Feb 2026: +74.9%"' in html_
     assert 'title="Mar–May 2026 → Jun–Aug 2026 (analysts expect): +23.9%"' in html_
     assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs previous quarter' in html_
-    assert 'class="ec-row ec-row-onplot"><span class="ec-rh">vs what analysts expected' in html_
+    assert f'class="ec-row ec-row-onplot"><span class="ec-rh">{BEAT}' in html_
     eps = eps_chart_html(quarter_series(MU))
     assert '9.16<b class="ec-tvb">+33.2%</b>' in eps and "ec-g" not in eps     # EPS has no growth labels
     drop = revenue_chart_html(quarter_series([_row("2025-12-31", 213.39e9), _row("2026-03-31", 181.52e9)]))
@@ -143,10 +146,20 @@ def test_roomy_chart_puts_both_comparisons_on_the_plot():
 
 def test_key_explains_the_on_plot_numbers_only_when_drawn():
     key = block_html(revenue_chart_html(quarter_series(MU)) + eps_chart_html(quarter_series(MU)))
-    assert "beside the line: result vs what analysts expected" in key
+    assert "beside the line: what happened, above (+) or below (−) analysts" in key
     assert "between quarters: revenue vs the quarter before" in key
     bare = block_html(eps_chart_html(quarter_series([_row("2025-03-31", eps=1.0), _row("2025-06-30", eps=1.2)])))
-    assert "result vs what analysts expected" not in bare and "revenue vs the quarter before" not in bare
+    assert "above (+) or below (−) analysts" not in bare and "revenue vs the quarter before" not in bare
+
+
+def test_the_result_row_is_not_worded_as_a_second_analysts_row():
+    """Owner 2026-09-30: 'what analysts expected' over 'vs what analysts expected' read as
+    analysts against analysts. The % row is the result against them and says so, naming
+    analysts itself (a 600–860px chart shows it without the estimate row above it)."""
+    rows = _rows(revenue_chart_html(quarter_series([dict(r, revenue_estimate=r["revenue_actual"])
+                                                    for r in MU])))
+    assert list(rows) == ["vs previous quarter", "what analysts expected", BEAT]
+    assert BEAT.startswith("what happened") and "analysts" in BEAT and "vs what analysts" not in BEAT
 
 
 def test_title_sits_inside_the_chart_so_a_wide_chart_can_gutter_it():
