@@ -1,9 +1,9 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-30T04:13:35+00:00",
+ "generated_utc": "2026-09-30T06:17:33+00:00",
  "latest": {
-  "id": "20260930T041332Z",
-  "ts_sgt": "2026-09-30T12:13:32+08:00",
+  "id": "20260930T061732Z",
+  "ts_sgt": "2026-09-30T14:17:32+08:00",
   "data_date": "2026-09-30",
   "what_matters": [
    {
@@ -72,8 +72,19 @@
     "title": "EDGAR full-text search: S-1 filings mentioning Anthropic, 15–30 Sep (SEC)",
     "url": "https://efts.sec.gov/LATEST/search-index?q=%22Anthropic%22&forms=S-1&dateRange=custom&startdt=2026-09-15&enddt=2026-09-30",
     "date": "2026-09-30"
+   },
+   {
+    "title": "Navitas Semiconductor stock surges 20% on U.S. defense contract (Investing.com)",
+    "url": "https://www.investing.com/news/stock-market-news/navitas-semiconductor-stock-surges-20-on-us-defense-contract-4921138",
+    "date": "2026-09-28"
+   },
+   {
+    "title": "Intraday 1-minute bars, Navitas 28-29 Sep",
+    "url": "file:market_data/intraday_bars.db",
+    "date": "2026-09-30"
    }
   ],
+  "revises": "20260930T061723Z",
   "after_data": [
    {
     "lead": "Not searched.",
@@ -94,8 +105,8 @@
    },
    {
     "label": "News checked",
-    "when": "Wed 30 Sep, 12:20 SGT",
-    "note": "Searches covered Tuesday's session; none for news after the US close"
+    "when": "Wed 30 Sep, 14:15 SGT",
+    "note": "Searches covered Tuesday's session; none for news after the US close. Revised: Navitas"
    }
   ],
   "calendar": [
@@ -131,9 +142,9 @@
     "AVGO",
     "CBRS"
    ],
-   "note": "Soitec and Bloom Energy sit furthest above their 50-day averages, WeRide furthest below. Heaviest volume: Navitas (unreliable, see data notes), then Cerebras. Amazon and Google stay just below their 50-day averages."
+   "note": "Soitec and Bloom Energy sit furthest above their 50-day averages, WeRide furthest below. Heaviest volume: Navitas, then Cerebras. Amazon and Google stay just below their 50-day averages."
   },
-  "data_notes": "Coverage 33/33, no stale bars, no latch. No name moved 2× its usual day. Navitas: two price sources disagree by 11% ($13.18 vs $11.73), so its flat day and heavy volume are not reliable. The oil line is WTI at the US close.",
+  "data_notes": "Coverage 33/33, no stale bars, no latch. No name moved 2× its usual day. Navitas's price-conflict flag compared Monday's after-hours quote ($13.18) with a regular close; its daily figures are correct. The oil line is WTI at the US close.",
   "earnings": {
    "out": [],
    "coming": [
@@ -208,6 +219,15 @@
     "why_state": "found",
     "src": [
      2
+    ]
+   },
+   {
+    "key": "NVTS",
+    "why": "Rose as much as 27% after hours Monday when the US Army picked it for a silicon-carbide power-chip program (value not disclosed), then gave it all back in Tuesday's session: flat on heavy volume.",
+    "why_state": "found",
+    "src": [
+     7,
+     8
     ]
    }
   ],
@@ -408,6 +428,14 @@
      "x_usual": 1.1,
      "vol_ratio": 1.38,
      "stale": false
+    },
+    "NVTS": {
+     "name": "Navitas",
+     "market": "US",
+     "chg_pct": 0.0,
+     "x_usual": 0.0,
+     "vol_ratio": 2.33,
+     "stale": false
     }
    },
    "also_moved": [
@@ -479,6 +507,7 @@
     "ASML": "ASML",
     "IFX_DE": "Infineon",
     "AIXA_DE": "Aixtron",
+    "NVTS": "Navitas",
     "AMD": "AMD",
     "META": "Meta Platforms",
     "AXTI": "AXT",
@@ -760,6 +789,16 @@
  },
  "recent": [
   {
+   "id": "20260930T061732Z",
+   "data_date": "2026-09-30",
+   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT; the call is at 04:30."
+  },
+  {
+   "id": "20260930T061723Z",
+   "data_date": "2026-09-30",
+   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT; the call is at 04:30."
+  },
+  {
    "id": "20260930T041332Z",
    "data_date": "2026-09-30",
    "headline": "Micron reports Thursday 1 Oct, 04:05 SGT; the call is at 04:30."
@@ -772,16 +811,6 @@
   {
    "id": "20260929T041149Z",
    "data_date": "2026-09-29",
-   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT."
-  },
-  {
-   "id": "20260929T041142Z",
-   "data_date": "2026-09-29",
-   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT."
-  },
-  {
-   "id": "20260928T111607Z",
-   "data_date": "2026-09-28",
    "headline": "Micron reports Thursday 1 Oct, 04:05 SGT."
   }
  ]
