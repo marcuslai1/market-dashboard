@@ -62,7 +62,8 @@ def _rr_cell(label: str, adjusted: bool) -> tuple[str, str]:
 
 
 def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
-                               earnings_hist=None, signal_days: int | None = None) -> str:
+                               earnings_hist=None, signal_days: int | None = None,
+                               data_only: bool = False) -> str:
     """Build a complete <details> block: row as summary, writeup+drilldown as body.
 
     ``signal_changed=True`` adds ``data-signal-changed="true"`` to the
@@ -74,6 +75,9 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
 
     ``signal_days`` (optional; ``grid.signal_day_counts``) prints "day N" under
     the pill in metadata grey. It is persistence, not a rating: no colour.
+
+    ``data_only`` (optional) = the report's ``meta.llm_enabled`` is False; passed
+    through to the drill-down's ACCUMULATE-gates line.
     """
     sig = d.get("signal", "HOLD")
     display_tk = _escape_dollars(display_ticker(tk))
@@ -147,7 +151,7 @@ def render_ticker_details_html(tk: str, d: dict, signal_changed: bool = False,
     # whole body carries one signal rail — see components/watchlist/drilldown.py.
     body = (
         '<div class="tk-drilldown">'
-        f'{render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist)}'
+        f'{render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist, data_only=data_only)}'
         '</div>'
     )
 

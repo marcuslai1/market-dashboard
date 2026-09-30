@@ -405,12 +405,16 @@ def _thesis_html(d: dict) -> str:
 
 # ── The card ──────────────────────────────────────────────────────────────────
 
-def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
+def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
+                                 data_only: bool = False) -> str:
     """The whole drill-down body for one ticker, as an HTML string.
 
     ``earnings_hist`` (optional) is the ticker's ``earnings_history`` records,
     newest quarter first; the caller loads and filters the CSV so this module
     stays Streamlit-free. Absent → the Earnings drawer's history half is silent.
+
+    ``data_only`` (optional) = the report's ``meta.llm_enabled`` is False; it
+    only changes the ACCUMULATE-gates summary line (``drilldown_drawers``).
     """
     ccy = d.get("currency", "USD")
     pfx = _ccy_prefix(ccy)
@@ -449,6 +453,6 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None) -> str:
         f'{_verdict_html(wu)}'
         f'{_levels_plate_html(d, ccy)}'
         f'{cols}'
-        f'{render_drawers_html(d, _p, earnings_hist)}'
+        f'{render_drawers_html(d, _p, earnings_hist, data_only=data_only)}'
         f'</div>'
     )

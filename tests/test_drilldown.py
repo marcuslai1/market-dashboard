@@ -451,3 +451,36 @@ def test_invalidation_sub_silent_when_book_stop_equals_or_is_absent():
                                 "differs_from_invalidation": False})
     assert "paper book stops" not in render_drilldown_detail_html("MU", same)
     assert "paper book stops" not in render_drilldown_detail_html("MU", _MU)
+
+
+# ── ACCUMULATE-gates summary line: model era vs data-only (2026-10-01) ──
+# MarketReport went data-only on 2026-09-28 (meta.llm_enabled False): nothing
+# assigns ACCUMULATE any more, so a full gate pass no longer leads to a judgment
+# call (TSEM, 09-28: every gate passed, shipped WATCH). Older reports keep the
+# line they shipped with, which was true for them (CBRS, 09-24: ACCUMULATE).
+_ALL_PASS = dict(_MU, accumulate_gates={"g1_signal_eligible": True,
+                                        "all_mechanical_pass": True})
+
+
+def test_gate_line_model_era_keeps_the_judgment_wording():
+    html = render_drilldown_detail_html("MU", _ALL_PASS)
+    assert "Claude judgment determines ACCUMULATE" in html
+    assert "no longer assigns ACCUMULATE" not in html
+
+
+def test_gate_line_data_only_says_nothing_assigns_accumulate_in_neutral_ink():
+    html = render_drilldown_detail_html("MU", _ALL_PASS, data_only=True)
+    assert "Claude judgment" not in html
+    line = ("All mechanical gates pass — the report no longer assigns ACCUMULATE "
+            "(it is data-only), so the signal shown is the mechanical one")
+    assert line in html
+    # neutral ink, not the green "good" status colour (colour is a claim)
+    div = html[html.rfind("<div", 0, html.index(line)):html.index(line)]
+    assert "color:var(--ink-3)" in div and STATUS_POS not in div
+
+
+def test_gate_line_data_only_leaves_a_failed_gate_line_alone():
+    failed = dict(_MU, accumulate_gates={"g1_signal_eligible": False,
+                                         "all_mechanical_pass": False})
+    assert (render_drilldown_detail_html("MU", failed, data_only=True)
+            == render_drilldown_detail_html("MU", failed))

@@ -185,12 +185,14 @@ def build_grid_html(
     earnings_map: dict,
     row_builder: Callable[..., str],
     day_counts: dict | None = None,
+    data_only: bool = False,
 ) -> str:
     """The whole table as one string: wrapper, column header, groups, rows.
 
     *day_counts* (``signal_day_counts``) is passed to each row as
-    ``signal_days`` only when given, so row builders without the keyword
-    keep working."""
+    ``signal_days`` only when given, and *data_only* (the report's
+    ``meta.llm_enabled`` is False) only when True, so row builders without
+    those keywords keep working."""
     changed = changed_tickers or set()
     parts = [column_header_html()]
     for sig, rows in group_items(items):
@@ -200,6 +202,8 @@ def build_grid_html(
                   "earnings_hist": (earnings_map or {}).get(tk)}
             if day_counts is not None:
                 kw["signal_days"] = day_counts.get(tk)
+            if data_only:
+                kw["data_only"] = True
             parts.append(row_builder(tk, d, **kw))
     return (
         '<div class="tk-scroll" role="table" '

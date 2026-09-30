@@ -212,3 +212,18 @@ def test_grid_passes_day_counts_only_when_given():
 
     build_grid_html(ITEMS, set(), {}, _row, day_counts={"NVDA": 4})
     assert seen["NVDA"] == 4 and seen["MSFT"] is None
+
+
+
+def test_grid_passes_data_only_only_when_true():
+    seen = {}
+
+    def _row(tk, d, signal_changed=False, earnings_hist=None, data_only=False):
+        seen[tk] = data_only
+        return ""
+
+    build_grid_html(ITEMS, set(), {}, _row, data_only=True)
+    assert seen and all(seen.values())
+    seen.clear()
+    # a row builder without the keyword keeps working when the report is not data-only
+    build_grid_html(ITEMS, set(), {}, lambda tk, d, signal_changed=False, earnings_hist=None: "")

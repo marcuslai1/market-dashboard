@@ -24,7 +24,7 @@ from lib.data_loader import load_earnings_map
 
 def render_watchlist(
     watchlist: dict, changed_tickers: set[str] | None = None,
-    day_counts: dict | None = None,
+    day_counts: dict | None = None, data_only: bool = False,
 ) -> None:
     """The whole book: filter chips, the dense grid, the footnotes.
 
@@ -81,7 +81,7 @@ def render_watchlist(
     # fixed-column grid can swipe horizontally on phones.
     st.markdown(
         build_grid_html(shown, changed_set, eh_map, render_ticker_details_html,
-                        day_counts=day_counts),
+                        day_counts=day_counts, data_only=data_only),
         unsafe_allow_html=True,
     )
     st.markdown(method_note_html(), unsafe_allow_html=True)

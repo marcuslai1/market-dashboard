@@ -304,11 +304,17 @@ _RCP_PHASE_COLORS = {
 }
 
 
-def _gates_html(d: dict) -> str:
+def _gates_html(d: dict, data_only: bool = False) -> str:
     """The six mechanical ACCUMULATE gates, pass/fail/unknown.
 
     Always rendered when the report carries them, so a reader can see why a name
     does or doesn't qualify. ✓/✗ glyphs carry the state as well as the colour.
+
+    ``data_only`` = the report's ``meta.llm_enabled`` is False (MarketReport
+    data-only since 2026-09-28): no step assigns ACCUMULATE any more, so a full
+    pass changes nothing. The all-pass line then says so in neutral ink — green
+    would claim an actionable state the report no longer acts on. Older reports
+    keep the line they shipped with, which was true for them.
     """
     gates = d.get("accumulate_gates") or {}
     if not gates:
@@ -331,12 +337,16 @@ def _gates_html(d: dict) -> str:
         )
     all_pass = gates.get("all_mechanical_pass")
     summary_color = (
-        STATUS_POS if all_pass is True
+        "var(--ink-3)" if (all_pass is True and data_only)
+        else STATUS_POS if all_pass is True
         else STRESS if all_pass is False
         else "var(--ink-3)"
     )
     summary_text = (
-        "All mechanical gates pass — Claude judgment determines ACCUMULATE"
+        "All mechanical gates pass — the report no longer assigns ACCUMULATE "
+        "(it is data-only), so the signal shown is the mechanical one"
+        if (all_pass is True and data_only)
+        else "All mechanical gates pass — Claude judgment determines ACCUMULATE"
         if all_pass is True
         else "One or more mechanical gates fail — ACCUMULATE blocked"
         if all_pass is False
@@ -550,9 +560,9 @@ def _earnings_result_html(d: dict) -> str:
     return _drilldown_section_html("Earnings result") + html + '</div>'
 
 
-def _pipeline_body_html(d: dict, price_fn) -> str:
+def _pipeline_body_html(d: dict, price_fn, data_only: bool = False) -> str:
     return "".join((
-        _gates_html(d),
+        _gates_html(d, data_only=data_only),
         _rcp_html(d, price_fn),
         _catalyst_html(d, price_fn),
         _avoid_source_html(d),
@@ -562,14 +572,17 @@ def _pipeline_body_html(d: dict, price_fn) -> str:
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
-def render_drawers_html(d: dict, price_fn, earnings_hist=None) -> str:
+def render_drawers_html(d: dict, price_fn, earnings_hist=None,
+                        data_only: bool = False) -> str:
     """The three drawers, in audit order. Empty ones are omitted entirely.
 
     ``price_fn`` is the caller's currency-aware price formatter, passed in rather
     than rebuilt so KRW names format the same here as in the card above.
+    ``data_only`` (the report's ``meta.llm_enabled`` is False) reaches the
+    ACCUMULATE-gates summary line only.
     """
     return "".join((
         _drawer("Earnings", _earnings_body_html(d, price_fn, earnings_hist)),
         _drawer("Risk &amp; reward detail", _rr_body_html(d, price_fn)),
-        _drawer("Pipeline detail", _pipeline_body_html(d, price_fn)),
+        _drawer("Pipeline detail", _pipeline_body_html(d, price_fn, data_only)),
     ))

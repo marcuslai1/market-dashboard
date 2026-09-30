@@ -250,7 +250,11 @@ def _page_watchlist() -> None:
                     ["date", "ticker", "signal"]].itertuples(index=False, name=None),
                 str(selected_date)[:10],
                 {tk: v.get("signal") for tk, v in watchlist.items()})
-        render_watchlist(watchlist, changed_tickers=changed, day_counts=_day_counts)
+        # Data-only report (meta.llm_enabled False, MarketReport 2026-09-28): no
+        # step assigns ACCUMULATE, so the drill-down's all-gates-pass line says so.
+        _data_only = (report.get("meta") or {}).get("llm_enabled") is False
+        render_watchlist(watchlist, changed_tickers=changed, day_counts=_day_counts,
+                         data_only=_data_only)
 
         # Contrarian candidates moved off the Briefing (overhaul 2026-07):
         # oversold names with a recovery thesis are name-level setups, so they
