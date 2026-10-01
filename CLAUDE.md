@@ -5,8 +5,9 @@
   anaconda3 instead, never mix them).
 - Tests: `.venv\Scripts\python.exe -m pytest tests` — module form is required
   (puts the repo root on `sys.path`). Baseline 2026-10-01: 253 passed, ~6s.
-  `tests/visual` is excluded by `pyproject.toml` and is ON-DEMAND only (weekly
-  CI sweep + `workflow_dispatch`); never regenerate pixel baselines for an
+  `tests/visual` is excluded by `pyproject.toml` and is ON-DEMAND only
+  (`workflow_dispatch`; the weekly sweep was switched off 2026-10-01 — it renders
+  the live `data/`, so it went stale daily); never regenerate pixel baselines for an
   ordinary UI change — eyeball locally, run the unit + AppTest suites, ship.
 - Lint: `.venv\Scripts\python.exe -m ruff check .` — config in `pyproject.toml`,
   must stay clean (`tests/test_lint.py` enforces it).

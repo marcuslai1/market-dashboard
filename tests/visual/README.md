@@ -1,7 +1,11 @@
 # Visual regression tests
 
-> **On-demand since 2026-08-29.** The Visual workflow no longer runs on push —
-> it runs on `workflow_dispatch` and a weekly Monday sweep. UI changes are
+> **On-demand since 2026-08-29; manual only since 2026-10-01.** The Visual
+> workflow no longer runs on push, and the weekly Monday sweep was switched off
+> on 2026-10-01: the harness renders the live `data/` folder, which changes every
+> weekday, so the sweep failed every week. It runs on `workflow_dispatch` only.
+> Since 2026-10-01 the five remaining baselines also predate the info-only
+> Watchlist / Terminology (not regenerated, owner's call). UI changes are
 > verified by eye; the AppTest / DOM suites in `CI` are the gate for crashes.
 > Regenerate baselines only when you want a new answer key (before/after a
 > deliberate redesign), not per change.

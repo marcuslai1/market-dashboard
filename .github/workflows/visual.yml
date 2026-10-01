@@ -7,12 +7,16 @@ on:
   # DOM suites in `CI`. In two months as a gate this job never caught a
   # regression a human had not already seen, cost ~16 min of Docker regen per
   # visible change, and went chronically red once (07-09). Run it by hand
-  # before a big refactor, or let the weekly sweep flag drift; regenerate
-  # baselines (VISUAL_UPDATE=1 in the pinned image) only when you actually
-  # want a new answer key.
+  # before a big refactor; regenerate baselines (VISUAL_UPDATE=1 in the pinned
+  # image) only when you actually want a new answer key.
+  #
+  # MANUAL ONLY since 2026-10-01 (owner): the Monday sweep (cron "0 3 * * 1")
+  # was switched off. The harness renders the live data/ folder, which the
+  # pipeline rewrites every weekday, so the Watchlist / Briefing baselines go
+  # stale within a day of any regen: all 5 scheduled runs (2026-08-31 → 09-28)
+  # failed and none was acted on. Making it meaningful again would need a
+  # frozen data fixture for the harness.
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * 1"   # Mondays 03:00 UTC — weekly drift sweep
 
 jobs:
   visual:
