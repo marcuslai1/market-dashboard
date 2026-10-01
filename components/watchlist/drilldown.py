@@ -9,9 +9,11 @@ the ``<details>`` element rendered by ``components.watchlist.row``.
 1. identity — restated, because an open drill-down can be taller than the
    viewport and lose the row that opened it (no pill);
 2. data-health chips — what to distrust in the numbers below;
-3. the levels ladder, the technicals and the valuation, side by side;
-4. the Earnings drawer (band, charts, history, the result headline);
-5. news & context — the name's recent headlines (``recent_news``, from the
+3. the price chart — the price since the first report and its 50- / 200-day
+   averages, no threshold marks (``components.watchlist.price_chart``);
+4. the levels ladder, the technicals and the valuation, side by side;
+5. the Earnings drawer (band, charts, history, the result headline);
+6. news & context — the name's recent headlines (``recent_news``, from the
    pipeline cutover on), thesis highlights and the catalyst headline.
 
 Gone with the labels: the entry-block card, the writeup verdict / what-to-do,
@@ -31,6 +33,7 @@ from components.watchlist.drilldown_drawers import (
     render_drawers_html,
 )
 from components.watchlist.grid import cluster_of
+from components.watchlist.price_chart import price_chart_html
 from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
@@ -319,12 +322,15 @@ def _news_html(d: dict) -> str:
 # ── The card ──────────────────────────────────────────────────────────────────
 
 def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
-                                 report_date: str | None = None) -> str:
+                                 report_date: str | None = None,
+                                 price_hist=None) -> str:
     """The whole drill-down body for one ticker, as an HTML string.
 
     ``earnings_hist`` (optional) is the ticker's ``earnings_history`` records,
     newest quarter first; the caller loads and filters the CSV so this module
-    stays Streamlit-free. ``report_date`` dates a day-count-only earnings entry.
+    stays Streamlit-free. ``report_date`` dates a day-count-only earnings entry
+    and ends the price chart (``price_hist``, the name's market_data.csv rows) on
+    the report's own day.
     """
     ccy = d.get("currency", "USD")
     pfx = _ccy_prefix(ccy)
@@ -347,6 +353,7 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
         '<div class="dd-card">'
         f'{_header_html(tk, d, price_str)}'
         f'{_health_chips_html(d)}'
+        f'{price_chart_html(tk, price_hist, report_date, _p)}'
         f'{cols_html}'
         f'{render_drawers_html(d, _p, earnings_hist, report_date=report_date)}'
         f'{_news_html(d)}'

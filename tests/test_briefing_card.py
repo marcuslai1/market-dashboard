@@ -6,7 +6,7 @@ sources linked, staleness stated, escaping.
 """
 from __future__ import annotations
 
-from components.briefing.daily_briefing import briefing_card_html
+from components.briefing.daily_briefing import briefing_card_html, briefing_history_html
 
 
 def _payload(**over):
@@ -241,3 +241,47 @@ def test_v2_earnings_detail_draws_charts_and_the_week_grid_lists_the_rest():
 def test_v2_earnings_falls_back_to_range_bars_without_history():
     html = briefing_card_html(_v2(), "2026-09-28")
     assert "bf-rbar" in html and "Reporting in the next 7 days" not in html
+
+
+# ── Earlier briefings (the publish index, ``recent``) ──
+_RECENT = [
+    {"id": "20261001T041312Z", "data_date": "2026-10-01", "headline": "Micron beat."},
+    {"id": "20260930T061732Z", "data_date": "2026-09-30", "headline": "Micron reports Thursday (rev)."},
+    {"id": "20260930T061723Z", "data_date": "2026-09-30", "headline": "Micron reports Thursday."},
+    {"id": "20260930T041332Z", "data_date": "2026-09-30", "headline": "Micron reports Thursday."},
+    {"id": "20260929T043137Z", "data_date": "2026-09-29", "headline": "Micron reports Thu 1 Oct, $ < 5."},
+]
+
+
+def _hist_payload(recent=_RECENT, data_date="2026-10-01"):
+    return {"schema": 1, "latest": {"data_date": data_date}, "recent": recent}
+
+
+def test_history_is_one_line_per_earlier_date_newest_publish_standing():
+    html = briefing_history_html(_hist_payload())
+    assert html.count('class="bh-row"') == 2
+    assert "Micron beat." not in html                 # the card above is that day
+    assert "Micron reports Thursday (rev)." in html   # the newest 09-30 publish stands
+    assert "Micron reports Thursday.<" not in html
+    assert html.index("Wed 30 Sep") < html.index("Tue 29 Sep")
+
+
+def test_history_shows_the_publish_time_in_sgt_and_escapes():
+    html = briefing_history_html(_hist_payload())
+    assert "Wed 30 Sep · 14:17 SGT" in html           # 06:17:32Z + 8h
+    assert "Tue 29 Sep · 12:31 SGT" in html
+    assert "&#36; &lt; 5" in html and "$ <" not in html
+
+
+def test_history_silent_without_earlier_entries():
+    assert briefing_history_html({}) == ""
+    assert briefing_history_html(_hist_payload(recent=[])) == ""
+    assert briefing_history_html(_hist_payload(recent=_RECENT[:1])) == ""
+    assert briefing_history_html(_hist_payload(recent="x")) == ""
+    assert briefing_history_html(_hist_payload(recent=[{"id": "x", "data_date": "2026-09-30"}])) == ""
+
+
+def test_history_with_a_bad_id_drops_only_the_time():
+    html = briefing_history_html(_hist_payload(
+        recent=[{"id": "bad", "data_date": "2026-09-30", "headline": "H"}]))
+    assert '<span class="bh-when">Wed 30 Sep</span>' in html

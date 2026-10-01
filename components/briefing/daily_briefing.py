@@ -19,6 +19,8 @@ Constraints, all upstream decisions:
 """
 from __future__ import annotations
 
+from datetime import date, datetime, timedelta
+
 from components.briefing.daily_briefing_v2 import briefing_v2_html
 from components.briefing.market_read import _bullets, _drawer, _section, _source_links, _txt
 from lib.cards import card_container
@@ -103,4 +105,69 @@ def briefing_card_html(payload: dict, report_date: str | None = None, earnings: 
         headline="",
         body_html=head + body + foot,
         lane="lede",
+    )
+
+
+#: SGT is UTC+8 all year (no daylight saving). The index carries only the log id,
+#: a UTC stamp ``YYYYMMDDTHHMMSSZ``.
+_SGT = timedelta(hours=8)
+
+
+def _published_sgt(entry_id) -> str:
+    """``14:17 SGT`` from a log id like ``20260930T061732Z``, or ``""``."""
+    try:
+        when = datetime.strptime(str(entry_id), "%Y%m%dT%H%M%SZ") + _SGT
+    except ValueError:
+        return ""
+    return f"{when:%H:%M} SGT"
+
+
+def _day_label(data_date) -> str:
+    """``Wed 30 Sep`` from ``YYYY-MM-DD``; anything else verbatim (escaped)."""
+    try:
+        when = date.fromisoformat(str(data_date))
+    except ValueError:
+        return _escape_dollars(str(data_date or "undated"))
+    return f"{when:%a} {when.day} {when:%b}"
+
+
+def briefing_history_html(payload: dict) -> str:
+    """The earlier briefings in the published index, or ``""`` when there are none.
+
+    ``scripts/briefing.py publish`` keeps the last five logged briefings in
+    ``recent`` (newest first) as ``{id, data_date, headline}`` — the headline is
+    each one's first "what matters" point; their full text is not published.
+    One line per data date: the newest entry stands (a same-day republish
+    supersedes the earlier one), and the latest briefing's own date is left out —
+    the card above is that day.
+    """
+    payload = payload or {}
+    recent = payload.get("recent")
+    if not isinstance(recent, list):
+        return ""
+    current = str(((payload.get("latest") or {}).get("data_date")) or "")
+    seen: set[str] = {current} if current else set()
+    rows: list[str] = []
+    for entry in recent:
+        if not isinstance(entry, dict):
+            continue
+        data_date = str(entry.get("data_date") or "")
+        headline = str(entry.get("headline") or "").strip()
+        if not headline or not data_date or data_date in seen:
+            continue
+        seen.add(data_date)
+        published = _published_sgt(entry.get("id"))
+        when = _day_label(data_date) + (f" · {published}" if published else "")
+        rows.append(
+            '<div class="bh-row">'
+            f'<span class="bh-when">{when}</span>'
+            f'<span class="bh-head">{_escape_dollars(headline)}</span>'
+            '</div>'
+        )
+    if not rows:
+        return ""
+    return (
+        '<div class="bh">'
+        '<div class="bh-eyebrow">Earlier briefings · first point of each</div>'
+        f'{"".join(rows)}</div>'
     )

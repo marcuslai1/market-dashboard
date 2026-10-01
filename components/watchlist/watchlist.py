@@ -20,7 +20,7 @@ from components.watchlist.grid import (
     ordered_groups,
 )
 from components.watchlist.row import render_ticker_details_html
-from lib.data_loader import load_earnings_map
+from lib.data_loader import load_earnings_map, load_price_history
 
 
 def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
@@ -43,13 +43,17 @@ def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
     # records, newest quarter first; missing file → the drawer's history half
     # stays silent.
     eh_map = load_earnings_map()          # CSV + the sourced revenue backfill (2026-09-29)
+    # Daily price + 50/200-day averages per name (market_data.csv) → the
+    # drill-down's price chart; missing file → the chart stays silent.
+    price_map = load_price_history()
 
     # ONE st.markdown for the whole table: a div opened in one st.markdown and
     # closed in another does not wrap sibling Streamlit blocks (the browser
     # auto-closes it), and .tk-scroll must genuinely contain the rows so the
     # fixed-column grid can swipe horizontally on phones.
     st.markdown(
-        build_grid_html(groups, eh_map, render_ticker_details_html, report_date=report_date),
+        build_grid_html(groups, eh_map, render_ticker_details_html, report_date=report_date,
+                        price_map=price_map),
         unsafe_allow_html=True,
     )
     st.markdown(method_note_html(), unsafe_allow_html=True)

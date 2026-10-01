@@ -1117,6 +1117,12 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   font-variant-numeric: tabular-nums;
 }
 .tk-group-rule { flex: 1; height: 1px; background: var(--color-divider); }
+/* The cluster's median day / 5 d / 1 mo move, after the hairline. Neutral ink
+   like the rest of the header — the rows carry the up/down colour. */
+.tk-group-move {
+  font-family: var(--mono); font-size: 11px; color: var(--color-text-3);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
 
 /* ── Row cells ────────────────────────────────────────────────────────────── */
 .tk-tick { min-width: 0; }
@@ -2743,7 +2749,8 @@ th .pb-tip-body { right: 0; left: auto; }
      Header row hidden: the labels move into each card so every value stays
      self-describing. */
   .tk-scroll > .tk-row.tk-head { display: none; }
-  .tk-group { padding: 16px 4px 4px; }
+  .tk-group { padding: 16px 4px 4px; flex-wrap: wrap; row-gap: 4px; }
+  .tk-group-move { flex-basis: 100%; }
   details.tk-details > summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px 12px;
@@ -3911,3 +3918,71 @@ a.term-index-item:hover {
 .bf-eg-h { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
 .bf-eg-h b { color: var(--ink); font-weight: 600; }
 .bf-eg-h time { font-family: var(--font-display); font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+
+/* ── Earlier briefings (below the daily briefing card) ───────────────────────
+   The publish index's earlier entries, one line each: date + publish time in
+   mono, the first "what matters" point in body ink. A plain list, not a card —
+   it is a pointer to past days, not a second briefing. */
+.bh { margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--rule); }
+.bh-eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;
+}
+.bh-row {
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px;
+  padding: 6px 0; border-bottom: 1px dashed var(--rule);
+}
+.bh-when {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.bh-head { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+@media (max-width: 719px) {
+  .bh-row { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ── Drill-down price chart (components/watchlist/price_chart.py) ─────────────
+   Numbers only, no threshold marks (MarketReport spec 2026-10-01 O2). The SVG
+   stretches to .pc-plot (preserveAspectRatio="none", non-scaling strokes); every
+   label is HTML so it never scales with the width. Price = the primary series
+   (brass, 2px); the averages recede in ink with a dash pattern each, so identity
+   never rests on colour alone. Gridlines are the faint divider. */
+.tk-drilldown .pc { margin: 4px 0 22px; }
+.tk-drilldown .pc-facts {
+  display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 8px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.tk-drilldown .pc-plot { position: relative; height: 170px; }
+.tk-drilldown .pc-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tk-drilldown .pc-svg polyline { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.tk-drilldown .pc-svg .pc-price { stroke: var(--brass); stroke-width: 2; }
+.tk-drilldown .pc-svg .pc-sma50 { stroke: var(--ink-2); stroke-width: 1.25; stroke-dasharray: 6 4; }
+.tk-drilldown .pc-svg .pc-sma200 { stroke: var(--ink-3); stroke-width: 1.25; stroke-dasharray: 1.5 3.5; }
+.tk-drilldown .pc-svg .pc-grid { stroke: var(--rule); stroke-width: 1; }
+.tk-drilldown .pc-ylab {
+  position: absolute; left: 0; transform: translateY(-100%);
+  font-family: var(--mono); font-size: 10px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; padding: 0 4px 1px 0;
+  pointer-events: none;
+}
+.tk-drilldown .pc-xaxis { position: relative; height: 16px; margin-top: 4px; }
+.tk-drilldown .pc-xlab {
+  position: absolute; top: 0; font-family: var(--mono); font-size: 10px;
+  color: var(--ink-3); letter-spacing: 0.04em;
+}
+.tk-drilldown .pc-key {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
+}
+.tk-drilldown .pc-key-item { display: inline-flex; align-items: center; gap: 6px; }
+.tk-drilldown .pc-swatch { display: inline-block; width: 18px; height: 0; border-top: 2px solid; }
+.tk-drilldown .pc-swatch.pc-price { border-color: var(--brass); }
+.tk-drilldown .pc-swatch.pc-sma50 { border-top: 1.5px dashed var(--ink-2); }
+.tk-drilldown .pc-swatch.pc-sma200 { border-top: 2px dotted var(--ink-3); }
+.tk-drilldown .pc-note {
+  margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--ink-3);
+}
+@media (max-width: 719px) {
+  .tk-drilldown .pc-plot { height: 130px; }
+}

@@ -26,7 +26,7 @@ import streamlit as st
 # removed once the report LLM went off on 09-28; the calendar folded into the
 # briefing card's Week ahead + Upcoming events.
 from components.briefing import render_pulse
-from components.briefing.daily_briefing import briefing_card_html
+from components.briefing.daily_briefing import briefing_card_html, briefing_history_html
 from components.briefing.market_read import market_read_card_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
@@ -135,6 +135,10 @@ def _page_briefing() -> None:
                                        load_earnings_map())
         if _briefing:
             st.markdown(_briefing, unsafe_allow_html=True)
+            # The briefings before it, one line each, from the publish index.
+            _history = briefing_history_html(load_briefings())
+            if _history:
+                st.markdown(_history, unsafe_allow_html=True)
 
         # Experimental market-read card. Sits BELOW the proven briefing blocks
         # (owner decision 2026-09-09): it is a 4-session adviser and must not

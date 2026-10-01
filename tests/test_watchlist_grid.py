@@ -13,6 +13,7 @@ import pytest
 from components.watchlist.grid import (
     OTHER_CLUSTER,
     build_grid_html,
+    cluster_move,
     column_header_html,
     footer_html,
     group_header_html,
@@ -96,6 +97,34 @@ def test_group_header_is_neutral_ink():
     html = group_header_html("Semis", 14)
     assert ">Semis<" in html and ">14<" in html
     assert "style=" not in html and "tk-group-dot" not in html
+
+
+def test_cluster_move_is_the_median_of_the_members():
+    rows = [("A", {"chg_pct": 1.0, "5d_pct": -2.0, "1mo_pct": 10.0}),
+            ("B", {"chg_pct": 3.0, "5d_pct": 4.0, "1mo_pct": None}),
+            ("C", {"chg_pct": -1.0, "5d_pct": float("nan"), "1mo_pct": True})]
+    move = cluster_move(rows)
+    # 1mo: one numeric value only (None, bool and NaN are not moves) -> left out
+    assert move == {"chg_pct": 1.0, "5d_pct": 1.0}
+
+
+def test_cluster_move_matches_the_pipeline_vs_cluster_basis():
+    """A name's vs_cluster_chg_pct is its chg_pct minus this median (MarketReport
+    _inject_cluster_relative_strength); an outlier does not drag it."""
+    rows = [(k, {"chg_pct": v}) for k, v in (("A", 0.5), ("B", 0.7), ("C", 15.0))]
+    assert cluster_move(rows)["chg_pct"] == 0.7
+
+
+def test_group_header_shows_the_move_in_neutral_ink():
+    html = group_header_html("Semis", 11, {"chg_pct": 0.4167, "5d_pct": -1.25, "1mo_pct": 3.0})
+    assert '<span class="tk-group-move">median · day +0.42% · 5 d -1.2% · 1 mo +3.0%</span>' in html
+    assert "style=" not in html and "pos" not in html and "neg" not in html
+    assert html.index("tk-group-rule") < html.index("tk-group-move")
+
+
+def test_group_header_without_a_move_has_no_move_span():
+    for move in (None, {}):
+        assert "tk-group-move" not in group_header_html("Singapore", 1, move)
 
 
 def test_grid_is_one_blob_with_a_header_per_group():

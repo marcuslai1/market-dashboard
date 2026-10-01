@@ -20,10 +20,11 @@ Two constructions here are load-bearing and easy to break:
 """
 from __future__ import annotations
 
+import statistics
 from collections.abc import Callable
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS
-from lib.formatters import _escape_dollars, display_ticker
+from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
 
 #: The group a name with no cluster lands in. Always last, whatever its size.
 OTHER_CLUSTER = "Other"
@@ -92,18 +93,54 @@ def column_header_html() -> str:
     return f'<div class="tk-row tk-head" role="row">{cells}</div>'
 
 
-def group_header_html(cluster: str, count: int) -> str:
-    """Name + count + a hairline that fills the rest of the width.
+#: (report field, label, decimals) for the group header's cluster move — the
+#: same three windows as the row's Δ / 5 d / 1 mo cells.
+_MOVE_FIELDS: list[tuple[str, str, int]] = [
+    ("chg_pct", "day", 2),
+    ("5d_pct", "5 d", 1),
+    ("1mo_pct", "1 mo", 1),
+]
 
-    Neutral ink: a cluster is a grouping, not a rating. 11px uppercase, not a
-    real heading size — these are dividers inside ONE table, not sections of a
-    document.
+
+def cluster_move(rows: list[tuple[str, dict]]) -> dict[str, float]:
+    """``{field: median}`` of the members' day / 5-day / 1-month moves.
+
+    The median, not the mean, and over the same members, because it is the
+    baseline the pipeline's own ``vs_cluster_*`` deltas are measured against
+    (MarketReport ``report_data_narrative._inject_cluster_relative_strength``):
+    a name's "vs cluster · day" in its drill-down is its Δ minus this figure. A
+    window with fewer than two numeric values is left out — a one-name median is
+    the row itself.
     """
+    out: dict[str, float] = {}
+    for field, _, _ in _MOVE_FIELDS:
+        values = [v for v in ((d or {}).get(field) for _, d in rows)
+                  if isinstance(v, (int, float)) and not isinstance(v, bool) and v == v]
+        if len(values) >= 2:
+            out[field] = statistics.median(values)
+    return out
+
+
+def group_header_html(cluster: str, count: int, move: dict | None = None) -> str:
+    """Name + count + a hairline that fills the width + the cluster's move.
+
+    Neutral ink, the move included: a cluster is a grouping, not a rating, and
+    the header is a divider, not a cell — the rows below carry the up/down
+    colour. 11px uppercase, not a real heading size — these are dividers inside
+    ONE table, not sections of a document.
+    """
+    move = move or {}
+    parts = [f'{label} {_sign(move[field])}{_fmt_num(move[field], dec)}%'
+             for field, label, dec in _MOVE_FIELDS if field in move]
+    move_html = (
+        f'<span class="tk-group-move">median · {" · ".join(parts)}</span>' if parts else ""
+    )
     return (
         '<div class="tk-group" role="row">'
         f'<span class="tk-group-name">{_escape_dollars(cluster)}</span>'
         f'<span class="tk-group-count">{count}</span>'
         '<span class="tk-group-rule"></span>'
+        f'{move_html}'
         '</div>'
     )
 
@@ -113,15 +150,20 @@ def build_grid_html(
     earnings_map: dict,
     row_builder: Callable[..., str],
     report_date: str | None = None,
+    price_map: dict | None = None,
 ) -> str:
-    """The whole table as one string: wrapper, column header, groups, rows."""
+    """The whole table as one string: wrapper, column header, groups, rows.
+
+    ``earnings_map`` / ``price_map`` are per-ticker side data (earnings history,
+    price history) handed to each row's drill-down."""
     parts = [column_header_html()]
     for cluster, rows in groups:
-        parts.append(group_header_html(cluster, len(rows)))
+        parts.append(group_header_html(cluster, len(rows), cluster_move(rows)))
         for tk, d in rows:
             parts.append(row_builder(tk, d,
                                      earnings_hist=(earnings_map or {}).get(tk),
-                                     report_date=report_date))
+                                     report_date=report_date,
+                                     price_hist=(price_map or {}).get(tk)))
     return (
         '<div class="tk-scroll" role="table" '
         'aria-label="Watchlist — click a row to expand">'

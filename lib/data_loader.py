@@ -17,6 +17,7 @@ Paths are resolved relative to the project root (parent of ``lib/``).
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -140,6 +141,35 @@ def load_earnings_history() -> pd.DataFrame:
     """
     path = DATA_DIR / "earnings_history.csv"
     return _load_earnings_history_cached(str(path), _mtime(path))
+
+
+@st.cache_data(max_entries=4)
+def _load_price_history_cached(path_str: str, mtime: float) -> dict:
+    df = _safe_read_csv(Path(path_str))
+    need = {"date", "ticker", "last_price"}
+    if df.empty or not need.issubset(df.columns):
+        return {}
+    # The export's ``signal`` column is never read (information only since
+    # 2026-10-01); only the price and its two averages are kept.
+    cols = {"date": "date", "last_price": "price", "sma_50": "sma50", "sma_200": "sma200"}
+    out: dict = {}
+    for ticker, grp in df.groupby("ticker", sort=False):
+        key = re.sub(r"[^0-9A-Za-z]", "_", str(ticker))
+        frame = grp[[c for c in cols if c in grp.columns]].rename(columns=cols)
+        frame = frame.astype(object).where(frame.notna(), None)
+        out[key] = frame.sort_values("date").to_dict("records")
+    return out
+
+
+def load_price_history() -> dict:
+    """``{watchlist key: [{date, price, sma50, sma200}, …] in date order}`` from
+    ``data/market_data.csv`` — the pipeline's daily export, one row per name per
+    report date since 2026-03-12. Raw tickers are keyed the way the report keys
+    its watchlist (``000660.KS`` → ``000660_KS``). Feeds the drill-down's price
+    chart; ``{}`` when the file is missing or malformed (the chart stays silent).
+    """
+    path = DATA_DIR / "market_data.csv"
+    return _load_price_history_cached(str(path), _mtime(path))
 
 
 def load_revenue_estimates() -> dict:
