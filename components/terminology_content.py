@@ -127,7 +127,7 @@ SECTIONS = [
         "title": "Watchlist Order",
         "descriptor": "The same order every day",
         "kw": ("order watchlist grouped group cluster clusters sort sorting alphabetical "
-               "a-z rows layout fixed semis bigtech neocloud"),
+               "a-z rows layout fixed semis bigtech neocloud header median move"),
         "answer": (
             "Names are grouped by cluster — the same cluster printed under each ticker — "
             "and listed in one fixed order. Nothing on the page is ranked."
@@ -142,6 +142,10 @@ SECTIONS = [
                 ("Stability",
                  "The order is a rule, not a list, so it never moves with the day's prices and "
                  "a newly added ticker slots itself in. Retired tickers are left out."),
+                ("Group header",
+                 "The cluster's name, its number of names and the <b>median</b> day, 5-day and "
+                 "1-month change of its names — the same median the drill-down's “vs cluster” "
+                 "figures are measured against. A cluster with fewer than two names has none."),
             ], label_w="124px")
             + _note("Every report date — including reports from before "
                     f"{SITE_FACTS_ONLY_SINCE} — renders in this order with the same columns.")
@@ -155,6 +159,44 @@ SECTIONS = [
         ],
     },
     # 2 ─────────────────────────────────────────────────────────────────────
+    {
+        "id": "price-chart",
+        "title": "Price Chart",
+        "descriptor": "The line at the top of every drill-down",
+        "kw": ("price chart line history close closes averages 50-day 200-day sma trend "
+               "high low first last since march intraday singapore korea"),
+        "answer": (
+            "The name's price at each morning report since its first one, with its 50- and "
+            "200-day averages. Numbers only: no zones, targets or marks of any kind."
+        ),
+        "body": _grid([
+            ("Price",
+             "The price each morning report recorded. For US listings that is the last "
+             "close. Singapore and Korea markets are usually open when the report runs, so "
+             "their points are prices from inside that day's session, not closes — the "
+             "chart says so under those names."),
+            ("50- / 200-day avg",
+             "The same averages as in Price Levels, drawn dashed and dotted."),
+            ("Window",
+             "From the name's first report to the report on screen: a past report shows the "
+             "chart as it stood that day. Names joined the watchlist between March and "
+             "August 2026, so their charts start at different dates."),
+            ("Figures above",
+             "First and last price with the change between them, and the highest and lowest "
+             "price on the chart with their dates. Gridlines carry round price values."),
+            ("Spacing",
+             "One step per report, not per calendar day: weekends, holidays and days with "
+             "no report take no width."),
+        ], label_w="150px"),
+        "drawers": [
+            ("Why the last point can differ from the price in the row",
+             "<p>The chart is drawn from the reports' own prices. On the latest report, with "
+             "live prices on, the row and the drill-down header show the live quote, while "
+             "the chart's last point stays at the report's price.</p>"),
+        ],
+        "history": [],
+    },
+    # 3 ─────────────────────────────────────────────────────────────────────
     {
         "id": "levels",
         "title": "Price Levels",
@@ -194,7 +236,7 @@ SECTIONS = [
         ],
         "history": [],
     },
-    # 3 ─────────────────────────────────────────────────────────────────────
+    # 4 ─────────────────────────────────────────────────────────────────────
     {
         "id": "technicals",
         "title": "Technical Indicators",
@@ -244,7 +286,7 @@ SECTIONS = [
              "definitions above are the pipeline's.</p>"),
         ],
     },
-    # 4 ─────────────────────────────────────────────────────────────────────
+    # 5 ─────────────────────────────────────────────────────────────────────
     {
         "id": "valuation",
         "title": "Valuation Metrics",
@@ -283,7 +325,7 @@ SECTIONS = [
         "drawers": [],
         "history": [],
     },
-    # 5 ─────────────────────────────────────────────────────────────────────
+    # 6 ─────────────────────────────────────────────────────────────────────
     {
         "id": "earnings",
         "title": "Earnings",
@@ -338,18 +380,24 @@ SECTIONS = [
              "a measurement, and left the site with the labels.</p>"),
         ],
     },
-    # 6 ─────────────────────────────────────────────────────────────────────
+    # 7 ─────────────────────────────────────────────────────────────────────
     {
         "id": "news",
         "title": "News & Context",
-        "descriptor": "Thesis highlights and catalysts",
-        "kw": ("news context thesis highlights guardrail catalyst headline source "
-               "contract earnings result"),
+        "descriptor": "Headlines, thesis highlights and catalysts",
+        "kw": ("news context thesis highlights guardrail catalyst headline headlines source "
+               "contract earnings result recent yahoo publisher link"),
         "answer": (
-            "Headlines tied to a name, each with its source: thesis highlights and a catalyst "
-            "line. They inform; nothing on the site changes because of them."
+            "Headlines tied to a name, each with its source: the name's recent headlines, "
+            "thesis highlights and a catalyst line. They inform; nothing on the site changes "
+            "because of them."
         ),
         "body": _grid([
+            ("Recent news",
+             "Up to three recent headlines from Yahoo Finance's news feed for the name, newest "
+             "first, each with its publisher, date and a link when the feed carried one. In "
+             "reports from 2026-10-02 on. A name with no headline that day — most often a "
+             "Singapore, Korea or European listing — shows none, and the list is left out."),
             ("Thesis highlights",
              "Notes from the project's tracked thesis for the name that matched that "
              "day's news."),
@@ -363,16 +411,18 @@ SECTIONS = [
         "drawers": [],
         "history": [],
     },
-    # 7 ─────────────────────────────────────────────────────────────────────
+    # 8 ─────────────────────────────────────────────────────────────────────
     {
         "id": "data-health",
         "title": "Data-Health Flags",
         "descriptor": "When to read a number with care",
         "kw": ("data health flag flags anomaly stale session freshness quote bar conflict "
-               "price sources holiday gap warning"),
+               "price sources holiday gap warning banner coverage degraded missing no news "
+               "zero"),
         "answer": (
-            "Terracotta chips at the top of a drill-down. They describe the data, never the "
-            "stock: read the numbers below them with care."
+            "Terracotta chips at the top of a drill-down, and banners at the top of a page "
+            "for the whole run. They describe the data, never the stock: read the numbers "
+            "below them with care."
         ),
         "body": _grid([
             ("Data anomaly",
@@ -387,11 +437,20 @@ SECTIONS = [
             ("50-day average",
              "The price is far from its 50-day average, so the average is a distant "
              "reference."),
+        ], label_w="150px")
+        + '<div class="term-subhead">Page banners — the whole run</div>'
+        + _grid([
+            ("Coverage degraded",
+             "The pipeline could not fetch data for more than a fifth of the watchlist that "
+             "day; the banner names up to eight of the missing tickers."),
+            ("No news this run",
+             "The news feed returned no headline for any name, so no drill-down carries "
+             "recent news for that report."),
         ], label_w="150px"),
         "drawers": [],
         "history": [],
     },
-    # 8 ─────────────────────────────────────────────────────────────────────
+    # 9 ─────────────────────────────────────────────────────────────────────
     {
         "id": "pulse",
         "title": "Pulse Strip",
@@ -422,7 +481,7 @@ SECTIONS = [
         "drawers": [],
         "history": [],
     },
-    # 9 ─────────────────────────────────────────────────────────────────────
+    # 10 ─────────────────────────────────────────────────────────────────────
     {
         "id": "limitations",
         "title": "Limitations",

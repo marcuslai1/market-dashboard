@@ -297,3 +297,18 @@ def test_watchlist_renders_facts_only_on_any_report_date(app):
                  "dd-verdict", "dd-levels"):
         assert gone not in blob, gone
     assert not at.pills                          # no signal filter chips
+
+
+def test_terminology_defines_the_2026_10_01_surfaces():
+    """The price chart, recent news, the run banners and the cluster-header median
+    each have a definition (the page is the site's single source of them)."""
+    from components.terminology import SECTIONS
+
+    by_id = {s["id"]: s["answer"] + s["body"] for s in SECTIONS}
+    assert "price-chart" in by_id
+    assert "inside that day's session" in by_id["price-chart"]
+    assert "no zones, targets or marks" in by_id["price-chart"]
+    assert "Recent news" in by_id["news"] and "Yahoo Finance" in by_id["news"]
+    assert "Coverage degraded" in by_id["data-health"]
+    assert "No news this run" in by_id["data-health"]
+    assert "median" in by_id["order"] and "vs cluster" in by_id["order"]
