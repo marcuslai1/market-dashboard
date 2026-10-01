@@ -1,5 +1,7 @@
 # Overnight UX & "Does-It-Make-Sense" Review — Plan
 
+> **Status: HISTORICAL (stamped 2026-10-01).** The review completed 2026-07-04 (see PROGRESS.md). The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 > Autonomous session started 2026-07-04. Scope agreed with the user before they
 > went to sleep. This doc is the design/approach; **BACKLOG.md** is the ranked
 > findings; **PROGRESS.md** is the live checkpoint a resumed session reads first.

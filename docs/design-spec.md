@@ -1,5 +1,7 @@
 # Market Report — Design Spec
 
+> **Status: HISTORICAL (stamped 2026-10-01).** Built in the 2026-07-24 Briefing overhaul (merge `c495649`); the posture band, signal changes, Today's Trade, macro note and active risks it specifies were removed 2026-09-29, and its week-ahead calendar folded into the daily briefing card. The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 Handoff for rebuilding the redesigned dashboard in code. Written to drop straight into the repo.
 
 ---

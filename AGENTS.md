@@ -52,16 +52,23 @@ fuller project instructions.
 
 - **Data arrives once per weekday.** `../MarketReport/pipeline/output.py::
   export_to_dashboard` (called from step 10 of the pipeline, ~12:10 SGT)
-  writes: the day's `morning_report_<date>.json` (through a privacy wall),
-  `report_memory.json`, and CSVs re-exported IN FULL from the pipeline's
-  SQLite DB each run — `market_data.csv`, `signal_log.csv` (neither has a
-  reader since 2026-10-01; both exports change at the pipeline's label
-  cutover), `earnings_history.csv` (`pipeline_stats.csv` and
-  `claude_analysis.csv` exports were removed 2026-09-30 / 10-01) — then
-  `git add data/ && git commit && git push origin main`. A skipped slot (US
-  holiday) writes nothing that day. `capex_quarterly.json`, `changelog.json`
-  and `earnings_cascades.json` are hand-curated by the owner;
-  `market_reads.json` is written by a separate owner-run script.
+  writes: the day's `morning_report_<date>.json` (re-serialised as the
+  pipeline wrote it; it has carried no private key since 2026-09-16) and two
+  CSVs re-exported IN FULL from the pipeline's SQLite DB each run —
+  `market_data.csv` (read since 2026-10-01 by the drill-down price chart:
+  `date`, `ticker`, `last_price`, `sma_50`, `sma_200`; its `signal` column,
+  never read, is dropped from the 2026-10-02 run) and `earnings_history.csv` —
+  then `git add data/ && git commit && git push origin main`. A skipped slot (US
+  holiday) writes nothing that day. `briefings.json` and `market_reads.json`
+  are written by separate owner-run scripts (`scripts/briefing.py publish`,
+  `scripts/market_read.py publish`); `revenue_estimates.json` is
+  hand-curated. Exports and files that went: `report_memory.json` (export
+  stopped 2026-09-28), `claude_analysis.csv` / `pipeline_stats.csv` (exports
+  removed 2026-09-30 / 10-01), the paper CSVs (2026-10-01), `signal_log.csv`
+  (export stopped at the pipeline's information-only cutover, MarketReport
+  `6d1e184`; file deleted here 2026-10-01), and the unread
+  hand-curated `capex_quarterly.json`, `changelog.json` and
+  `earnings_cascades.json` (deleted 2026-10-01; git history keeps them).
 - **Every number on a page is either read from a report JSON, read from a
   CSV, or derived in `lib/` / `components/` from those.** **Facts only since
   2026-10-01** (MarketReport spec 2026-10-01-info-only-watchlist; tag

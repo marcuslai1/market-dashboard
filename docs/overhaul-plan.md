@@ -1,5 +1,7 @@
 # Briefing Overhaul — Phase 0 Plan
 
+> **Status: HISTORICAL (stamped 2026-10-01).** "Nothing here is built yet" below is out of date: the overhaul was built and merged 2026-07-24 (`c495649`); most of the blocks it maps were removed 2026-09-29. The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 Maps the current Briefing against `docs/design-spec.md`. Committed alone before
 any code (per `docs/briefing-overhaul-prompt.md`). Nothing here is built yet.
 

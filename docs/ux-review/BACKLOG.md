@@ -1,5 +1,7 @@
 # UX & Display Review — Ranked Backlog
 
+> **Status: HISTORICAL (stamped 2026-10-01).** A review of the 2026-07-04 layout, no longer a living backlog: many surfaces it ranks (Pipeline Stats and the Signal Tracker among them) have since been removed. The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 > Living doc. Findings from the overnight review of the dashboard as a *presentation
 > layer*. Ranked by severity × decision-impact. See `00-plan.md` for scope/method.
 

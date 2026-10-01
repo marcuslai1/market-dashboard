@@ -1,5 +1,7 @@
 # MarketReport Dashboard — Design & Architecture Handoff
 
+> **Status: HISTORICAL (stamped 2026-10-01).** Written for the July 2026 layout; several components it maps (pipeline_stats, report_comparison, paper_book, signal_tracker) no longer exist, and `lib/charts.py` / Plotly went 2026-10-01 — every chart is now inline HTML/SVG. The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 This brief explains how the dashboard is built so that any new design work can be
 written in code that drops straight into the existing project. Read the whole
 thing before writing code — the constraints at the bottom are as important as

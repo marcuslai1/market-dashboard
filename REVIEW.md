@@ -1,5 +1,8 @@
 # Codebase Review Ledger
 
+> **Historical (stamped 2026-10-01):** a review of the July 2026 codebase — several files it cites
+> (`lib/charts.py`, the Signal Tracker and Pipeline Stats modules) have since been removed.
+>
 > **Status: CLOSED (2026-07-01).** 8/8 phases done · tests 13 → 75 · `ruff` clean ·
 > CI green (py3.10/3.12 + lint). All safe/actionable findings fixed and merged.
 > Only **decisions** (P1-2 surface-or-drop; P0-1 local-env upgrade) and explicitly

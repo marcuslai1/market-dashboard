@@ -12,7 +12,10 @@ private repo) pulls prices, fundamentals, earnings dates and news for 33
 tickers, computes the technical indicators and price levels in Python, and
 pushes the day's data files here. The site shows facts only — prices,
 technicals, levels, valuation, earnings and sourced headlines, in one fixed
-order — with no buy / sell ratings (since 2026-10-01). The daily briefing card
+order — with no buy / sell ratings (since 2026-10-01). Each name opens to its
+price since its first report (March to August 2026, depending on when the name
+joined; with its 50- and 200-day averages), its price levels,
+technicals, valuation, earnings history and recent headlines. The daily briefing card
 is written separately and carries its sources.
 
 This repo is the public half: the Streamlit front end, the data it renders,
@@ -22,10 +25,10 @@ and the tests behind it.
 
 - `dashboard.py`: Streamlit entry point, with Briefing, Watchlist and
   Terminology tabs
-- `components/` and `lib/`: Plotly charts and rendering helpers
+- `components/` and `lib/`: page sections, inline-SVG charts and rendering helpers
 - `live_prices.py`: optional live quotes from Yahoo during market hours
 - `data/`: the CSV and JSON files the pipeline publishes each morning
-- `tests/`: 22 test files run through GitHub Actions on every change, plus
+- `tests/`: 24 test files run through GitHub Actions on every change, plus
   an on-demand visual regression harness (`tests/visual/`) that screenshots
   each page and diffs it against committed baselines
 

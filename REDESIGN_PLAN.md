@@ -1,5 +1,7 @@
 # Market Dashboard Redesign Plan
 
+> **Status: HISTORICAL (stamped 2026-10-01).** Executed 2026-05-29 (`c2cb4a9`, dashboard.py split into `components/` + `lib/`). Most page modules it lists (Signal Tracker, Scenario Log, Pipeline Stats, Report Comparison) were later removed. The site has since been cut to three pages — Briefing (pulse strip, daily briefing card, market read), Watchlist (facts only, one fixed order) and Terminology — after the 2026-09-29 Briefing slim-down and the 2026-10-01 removal of signal labels and the paper books. Read the code (and the `streamlit-dashboard` skill in MarketReport) for the current layout; this file is kept as the record.
+
 ## Overview
 
 This plan covers the editorial UI/UX upgrade for the market-dashboard project (`C:\Users\laize\Desktop\market-dashboard`). The production surface is **Streamlit** — `dashboard.py` (~3617 lines), run with `streamlit run dashboard.py`. It renders editorial HTML via `st.markdown(unsafe_allow_html=True)` over Streamlit's native widget primitives and injects its theme from `assets/theme.css` (~604 lines) at startup.

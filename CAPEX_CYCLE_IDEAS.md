@@ -1,7 +1,10 @@
 # AI Capex Cycle Tracking — Ideas & Design Notes
 
-> Status: **brainstorm / living doc.** Not a build plan yet. Captures the thinking
-> from the 2026-06-13 session so we can keep refining before writing code.
+> Status: **HISTORICAL (stamped 2026-10-01).** These notes became the AI Capex Pulse band,
+> built 2026-07-03 (`2814ff2`, `f800c7f`) and removed with the Briefing slim-down on
+> 2026-09-29 (`83d8f6d`); its hand-curated data files `data/capex_quarterly.json` and
+> `data/earnings_cascades.json` were removed 2026-10-01 (no reader). Git history keeps both.
+> Originally: brainstorm / living doc capturing the 2026-06-13 session.
 
 ---
 
