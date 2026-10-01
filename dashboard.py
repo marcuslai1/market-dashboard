@@ -6,12 +6,16 @@ Slim orchestrator — page-level UI lives in ``components/``. This module owns:
 - ``st.set_page_config`` + theme CSS injection
 - the page functions + ``st.navigation`` registry (real URL per page)
 - the masthead/nav call (returns the selected page title)
-- sidebar filter controls (date range, live-prices toggle, refresh)
+- sidebar controls (status block, density, live-prices toggle, refresh)
 - ``_pg.run()`` dispatch at the bottom
+
+Information only since 2026-10-01 (MarketReport spec
+2026-10-01-info-only-watchlist, O6 / O7; tag ``pre-label-removal``): no page
+renders a signal label for any report date. The Tracker and Review pages, the
+sidebar's signal dots, legend and date-range filter went with the labels.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
 from pathlib import Path
 
 import streamlit as st
@@ -20,31 +24,23 @@ import streamlit as st
 # read (2026-09-29). The signal blocks (stance band, changes ribbon, clusters,
 # action card) and the model-written ones (active risks, macro note) were
 # removed once the report LLM went off on 09-28; the calendar folded into the
-# briefing card's Week ahead + Upcoming events. Signals stay on the measurement pages.
+# briefing card's Week ahead + Upcoming events.
 from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html
 from components.briefing.market_read import market_read_card_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
-from components.watchlist.grid import signal_day_counts
 from lib.cards import render_section_head
-from lib.catalog import SIGNAL_ORDER, SIGNAL_VERBS
-from lib.clock import today as clock_today
 from lib.data_loader import (
-    data_fingerprint,
     list_report_dates,
-    load_all_reports,
     load_briefings,
     load_earnings_map,
     load_market_reads,
     load_report,
-    load_signal_log,
-    load_sqlite_prices,
     load_text_asset,
 )
-from lib.filters import filter_prices, filter_reports
-from lib.pills import _render_live_caption, signal_text_color
-from lib.state import init_session_state, is_first_mount, mark_mounted
+from lib.pills import _render_live_caption
+from lib.state import init_session_state, mark_mounted
 from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
@@ -66,26 +62,6 @@ init_session_state()
 _THEME_CSS = load_text_asset(Path(__file__).parent / "assets" / "theme.css")
 st.markdown(f"<style>{_THEME_CSS}</style>", unsafe_allow_html=True)
 
-# ── First-mount one-shot animations ──
-# Inject the animation-applying selectors only on the very first script run of
-# the session. On subsequent reruns the <style> block is absent, so the rules
-# don't exist and the keyframes (registered globally in theme.css) stay dormant.
-# This decouples animation gating from any wrapper-div nesting.
-if is_first_mount():
-    st.markdown(
-        "<style>"
-        ".tk-details[data-signal-changed=\"true\"] > summary {"
-        " animation: tk-signal-flash var(--dur-slow) var(--ease-out) 1; }"
-        ".tk-details[data-signal=\"ACCUMULATE\"][data-signal-changed=\"true\"] > summary {"
-        " animation-name: tk-signal-flash-accumulate; }"
-        ".tk-details[data-signal=\"WATCH\"][data-signal-changed=\"true\"] > summary {"
-        " animation-name: tk-signal-flash-watch; }"
-        ".tk-details[data-signal=\"CAUTION\"][data-signal-changed=\"true\"] > summary {"
-        " animation-name: tk-signal-flash-caution; }"
-        "</style>",
-        unsafe_allow_html=True,
-    )
-
 # ── Density override ──
 # theme.css declares the relaxed defaults in :root. When the user picks Compact
 # in the sidebar, we inject a later-in-document-order :root block that wins via
@@ -101,17 +77,16 @@ if st.session_state.density == "compact":
     )
 
 # ── First-mount flag flip ──
-# Flip immediately after the one-shot animation <style> above has been decided.
-# is_first_mount() is only read there, so flipping now is safe — and doing it
-# here (rather than at the bottom) means an early st.stop() in any page branch
-# can't leave has_mounted False and re-fire the intro animations next run.
+# The Watchlist's first-mount signal flash went with the labels (2026-10-01);
+# nothing reads has_mounted now, but the flag stays flipped early so a future
+# one-shot animation cannot re-fire after an early st.stop() in a page branch.
 mark_mounted()
 
 
 # ════════════════════════════════════════════
 # Page bodies. Each runs via st.navigation → _pg.run() at the bottom of this
-# script, AFTER the sidebar has assigned LIVE_PRICES / DATE_START / DATE_END —
-# the functions read those module globals at call time.
+# script, AFTER the sidebar has assigned LIVE_PRICES — the functions read that
+# module global at call time.
 # ════════════════════════════════════════════
 def _page_briefing() -> None:
     _dates = list_report_dates()
@@ -197,8 +172,6 @@ def _page_watchlist() -> None:
         "Report date", _dates_desc, index=0, key="watchlist_date"
     )
     _is_latest = selected_date == _dates_desc[0]
-    sel_idx = _dates_desc.index(selected_date)
-    _prev_date = _dates_desc[sel_idx + 1] if sel_idx + 1 < len(_dates_desc) else None
 
     # Same treatment the Briefing body got in the perf pass: the Yahoo fetch
     # runs inside a fragment, so a live-quote cache miss can't block the
@@ -215,51 +188,17 @@ def _page_watchlist() -> None:
         watchlist = report.get("watchlist", {})
         benchmarks = report.get("benchmarks", {})
 
-        # Compute the signal-change diff vs the immediately-prior report date.
-        # Tickers that newly appeared / disappeared (signal "—") are excluded so
-        # we don't flash rows whose change is structural rather than analytical.
-        # Only the selected report + its predecessor are parsed, not the whole
-        # corpus.
-        prev_wl = load_report(_prev_date).get("watchlist", {}) if _prev_date else {}
-        changed = {
-            tk for tk in watchlist
-            if prev_wl.get(tk, {}).get("signal", "—") != watchlist.get(tk, {}).get("signal", "—")
-            and prev_wl.get(tk, {}).get("signal", "—") != "—"
-            and watchlist.get(tk, {}).get("signal", "—") != "—"
-        }
-
-        # The name count moved out of the descriptor: the filter chips carry it
-        # now (they double as the book's distribution readout) and the footer
-        # restates it. The descriptor states scope + interaction instead, so
-        # nothing else has to explain that rows expand.
-        sub_label = "The whole book · click any row for the full read"
+        sub_label = "The whole book, facts only · click any row for the detail"
         if not _is_latest:
             sub_label += f" · viewing {selected_date}"
         render_section_head("The Watchlist", sub_label, masthead=True)
         _render_live_caption(_live, LIVE_PRICES and _is_latest)
         render_pulse(benchmarks)
-        # "day N" under each pill: consecutive reports with the same shipped
-        # call, from the signal log (MarketReport clean-sheet §12.12 display).
-        _log = load_signal_log()
-        _day_counts = {}
-        if not _log.empty and {"date", "ticker", "signal"} <= set(_log.columns):
-            _log = _log.dropna(subset=["date", "ticker", "signal"])
-            _day_counts = signal_day_counts(
-                _log.assign(date=_log["date"].dt.strftime("%Y-%m-%d"))[
-                    ["date", "ticker", "signal"]].itertuples(index=False, name=None),
-                str(selected_date)[:10],
-                {tk: v.get("signal") for tk, v in watchlist.items()})
-        # Data-only report (meta.llm_enabled False, MarketReport 2026-09-28): no
-        # step assigns ACCUMULATE, so the drill-down's all-gates-pass line says so.
-        _data_only = (report.get("meta") or {}).get("llm_enabled") is False
-        render_watchlist(watchlist, changed_tickers=changed, day_counts=_day_counts,
-                         data_only=_data_only)
-
-        # Contrarian candidates moved off the Briefing (overhaul 2026-07):
-        # oversold names with a recovery thesis are name-level setups, so they
-        # sit with the names page. Rare — silent on most days.
-        from components.briefing import render_contrarian_candidates
-        render_contrarian_candidates(report.get("contrarian_candidates", []) or [])
+        # Every report date renders the same facts-only grid: a report that
+        # still carries signal labels in its JSON (to the pipeline cutover)
+        # shows exactly what a label-free one does (spec O6).
+        render_watchlist(watchlist,
+                         report_date=(report.get("meta") or {}).get("report_date"))
 
     _render_watchlist_body()
 
@@ -267,45 +206,11 @@ def _page_watchlist() -> None:
 # Tabs removed 2026-09-29: Scenario Log (model-written scenario odds, no new data
 # since the report LLM went off on 09-28), Pipeline Stats (DeepSeek tokens and
 # cost, all zero since 09-28 — restore from git if the LLM flag is turned back
-# on) and Report Comparison (a signal-change view the Watchlist date picker and
-# the Tracker's signal-changes drawer already cover). The Clusters and
+# on) and Report Comparison (a signal-change view). The Clusters and
 # Fundamentals tabs went on 2026-07-24; their Briefing cards on 2026-09-29.
-
-
-def _page_signal_tracker() -> None:
-    from components.briefing import render_calibration
-    from components.signal_tracker import render_signal_tracker_page
-
-    # Signal calibration moved off the Briefing (overhaul 2026-07): "how have
-    # today's signals actually performed" is the Tracker's own subject, so it
-    # leads the page. Anchored to the latest report, not the filtered range.
-    _cal_dates = list_report_dates()
-    if _cal_dates:
-        _cal_latest = load_report(_cal_dates[-1])
-        render_calibration(
-            _cal_latest.get("calibration_insights"),
-            _cal_latest.get("watchlist", {}),
-        )
-    render_signal_tracker_page(
-        filter_reports(load_all_reports(), DATE_START, DATE_END),
-        filter_prices(load_sqlite_prices(), DATE_START, DATE_END),
-        # Cheap corpus signature so the page's derived frames memoize across
-        # filter/toggle reruns instead of recomputing O(reports × tickers).
-        cache_key=(data_fingerprint(), DATE_START, DATE_END),
-        # The raw-direction popover reads the pipeline's exported outcomes
-        # (session basis) for calls dated inside the range — R12 F04.
-        log_df=load_signal_log(),
-        date_range=(DATE_START, DATE_END),
-    )
-
-
-def _page_retrospective() -> None:
-    from components.retrospective import render_retrospective_page
-    # Not sidebar-date-filtered: the page's month picker is its own time
-    # control and the archive should always be complete.
-    _dates = list_report_dates()
-    _latest = load_report(_dates[-1]) if _dates else {}
-    render_retrospective_page(_latest, load_signal_log())
+# The Signal Tracker and Review pages went on 2026-10-01 with the labels
+# (MarketReport spec 2026-10-01-info-only-watchlist, O7; tag pre-label-removal
+# restores them).
 
 
 def _page_terminology() -> None:
@@ -321,8 +226,6 @@ def _page_terminology() -> None:
 _PAGES = {
     "Briefing": st.Page(_page_briefing, title="Briefing", url_path="briefing", default=True),
     "Watchlist": st.Page(_page_watchlist, title="Watchlist", url_path="watchlist"),
-    "Signal Tracker": st.Page(_page_signal_tracker, title="Signal Tracker", url_path="signal-tracker"),
-    "Retrospective": st.Page(_page_retrospective, title="Retrospective", url_path="retrospective"),
     "Terminology": st.Page(_page_terminology, title="Terminology", url_path="terminology"),
 }
 _pg = st.navigation(list(_PAGES.values()), position="hidden")
@@ -335,8 +238,10 @@ if page != _pg.title:
 
 
 # ── Sidebar: status summary ──
-# Only the latest report's snapshot is needed here — load it lazily rather than
-# parsing every report just to read one signal_counts block.
+# Only the latest report is needed here — load it lazily rather than parsing
+# every report. The ticker count is the latest watchlist's own length (it used
+# to be the sum of the signal counts; the signal dots, the signal legend and the
+# date-range filter that fed only the Tracker went on 2026-10-01).
 _report_dates = list_report_dates()
 _latest_date = _report_dates[-1] if _report_dates else "—"
 _latest_rpt = load_report(_latest_date) if _report_dates else {}
@@ -348,75 +253,18 @@ _latest_rpt = load_report(_latest_date) if _report_dates else {}
 # sidebar was unreachable on narrow viewports — no longer holds: theme.css
 # force-pins the sidebar-expand chip visible at every width (see the
 # stExpandSidebarButton block), so the sidebar refresh is always reachable.
-_sig_counts = (_latest_rpt.get("portfolio_snapshot") or {}).get("signal_counts") or {}
 
-_status_html = '<div class="sidebar-status">'
-_status_html += (
+_status_html = (
+    '<div class="sidebar-status">'
     '<div class="status-row">'
     '<span class="status-label">Latest report</span>'
     f'<span class="status-value">{_latest_date}</span></div>'
-)
-_status_html += (
     '<div class="status-row">'
     '<span class="status-label">Tickers</span>'
-    f'<span class="status-value">{sum(_sig_counts.values())}</span></div>'
+    f'<span class="status-value">{len(_latest_rpt.get("watchlist") or {})}</span></div>'
+    '</div>'
 )
-_sig_dots = ""
-for _sig in SIGNAL_ORDER:
-    _cnt = _sig_counts.get(_sig, 0)
-    if _cnt:
-        _sig_dots += (
-            f'<span style="color:{signal_text_color(_sig)};font-weight:700;margin-right:8px;">'
-            f'●{_cnt}</span>'
-        )
-_status_html += (
-    '<div class="status-row" style="margin-top:4px;">'
-    '<span class="status-label">Signals</span>'
-    f'<span>{_sig_dots}</span></div>'
-)
-_status_html += '</div>'
 st.sidebar.markdown(_status_html, unsafe_allow_html=True)
-
-st.sidebar.divider()
-
-
-# ── Sidebar: date range filter ──
-# clock_today() == date.today() in production (TEST_DATE unset); the visual-
-# regression harness sets TEST_DATE to freeze this today-anchored default range,
-# which drives the date-filtered pages' content (keeps pixel baselines stable).
-_default_end = clock_today()
-_default_start = _default_end - timedelta(days=30)
-_range_presets = {"30 days": 30, "7 days": 7, "All": None}
-_preset = st.sidebar.radio("Range", list(_range_presets.keys()), horizontal=True, key="range_preset")
-_preset_days = _range_presets[_preset]
-if _preset_days is not None:
-    _pre_start = _default_end - timedelta(days=_preset_days)
-else:
-    _pre_start = date(2020, 1, 1)  # effectively "all time"
-date_range = st.sidebar.date_input(
-    "Date range", value=(_pre_start, _default_end), key="date_range"
-)
-if isinstance(date_range, tuple) and len(date_range) == 2:
-    DATE_START, DATE_END = date_range
-else:
-    DATE_START, DATE_END = _pre_start, _default_end
-
-
-st.sidebar.divider()
-
-
-# ── Sidebar: signal legend ──
-# Built from the canonical catalog (colors + verbs) so the palette and verbs
-# never drift from lib/catalog.py / assets/catalog.json.
-_legend_rows = "<br>".join(
-    f'<span style="color:{signal_text_color(_s)};font-weight:700;">● {_s}</span>'
-    f' — {SIGNAL_VERBS.get(_s, "")}'
-    for _s in SIGNAL_ORDER
-)
-st.sidebar.markdown(
-    f'<div style="font-size:0.8em;color:#b0b0b0;line-height:1.6;">{_legend_rows}</div>',
-    unsafe_allow_html=True,
-)
 
 st.sidebar.divider()
 

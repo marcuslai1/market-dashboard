@@ -28,9 +28,10 @@ def _section_head_html(title: str, sub: str = "", masthead: bool = False) -> str
     """Editorial section header markup: serif <h2> left, mono sub right.
 
     ``masthead=True`` gives a top-level document surface the heavier 2px
-    full-strength rule — the Signal Tracker's four peer sections (spec
-    2026-07-25 §3.5), the Review head, and the Watchlist head (spec 2026-07-25
-    §3) — without moving every other section head on the site. Pure so it can be
+    full-strength rule — the Watchlist head (spec 2026-07-25 §3) and the
+    Terminology head (the Signal Tracker's sections and the Review head used it
+    too until those pages went on 2026-10-01) — without moving every other
+    section head on the site. Pure so it can be
     tested without a Streamlit run.
     """
     cls = "section-head masthead" if masthead else "section-head"

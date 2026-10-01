@@ -1,8 +1,8 @@
 """Security regression tests for the hand-built HTML sinks.
 
-Push hostile payloads (LLM/web-sourced fields) through the real string builders
-and assert they're neutralized — text nodes escaped, URLs sanitized, no attribute
-breakout. Guards the escaping contract end-to-end, not just the helpers.
+Push hostile payloads (pipeline / web-sourced fields) through the real string
+builders and assert they're neutralized — text nodes escaped, URLs sanitized, no
+attribute breakout. Guards the escaping contract end-to-end, not just the helpers.
 """
 from components.briefing.daily_briefing import briefing_card_html
 from components.watchlist.drilldown import render_drilldown_detail_html
@@ -11,11 +11,10 @@ from components.watchlist.row import render_ticker_details_html
 XSS = "<script>alert(1)</script>"
 
 
-def test_writeup_text_is_escaped_in_row():
-    d = {
-        "signal": "BUY", "currency": "USD", "price": 100.0,
-        "writeup": {"headline": XSS, "what_to_do": "<img src=x onerror=alert(1)>"},
-    }
+def test_report_text_is_escaped_in_row_and_card():
+    d = {"currency": "USD", "price": 100.0, "cluster": XSS,
+         "thesis_highlights": ["<img src=x onerror=alert(1)>"],
+         "data_anomaly": XSS}
     out = render_ticker_details_html("AMD", d)
     assert "<script>" not in out
     assert "<img" not in out
@@ -38,18 +37,13 @@ def test_catalyst_url_attribute_breakout_is_neutralized():
     assert "<script>" not in out
 
 
-def test_support_legs_escaped_in_drilldown():
-    d = {"currency": "USD", "support_legs": ["<img src=x onerror=alert(1)>"]}
-    out = render_drilldown_detail_html("AMD", d)
-    assert "<img" not in out
-
-
-def test_avoid_source_fields_escaped():
+def test_catalyst_and_earnings_result_text_escaped():
     d = {"currency": "USD",
-         "avoid_source": {"publication": "<b>x</b>", "headline_fragment": XSS}}
+         "catalyst": {"catalyst_event": XSS, "catalyst_source": "<b>x</b>"},
+         "earnings_results_in_news": {"headline": XSS, "source": "<b>y</b>"}}
     out = render_drilldown_detail_html("AMD", d)
     assert "<script>" not in out
-    assert "<b>x</b>" not in out
+    assert "<b>x</b>" not in out and "<b>y</b>" not in out
 
 
 def test_further_out_row_escaped():

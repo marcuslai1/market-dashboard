@@ -73,7 +73,7 @@ def grow_viewport_to_content(page) -> None:
     charts included). Width is preserved so the responsive layout is unchanged.
 
     Grow-until-stable: Streamlit lazy-mounts content near the viewport, so a
-    large page (e.g. Signal Tracker) can render MORE once the viewport enlarges
+    large page (e.g. the Watchlist) can render MORE once the viewport enlarges
     and exceed the height measured at 900px — silently truncating its tail,
     identically every run (a coverage gap with no flake to catch it). So after
     each resize we re-measure and grow again until the content fits, capped at

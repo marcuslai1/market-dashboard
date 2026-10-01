@@ -1,159 +1,156 @@
-"""Tests for the watchlist summary-row builder (UX review 2026-07-07).
+"""Tests for the watchlist summary-row builder.
+
+Facts only since 2026-10-01 (MarketReport spec 2026-10-01-info-only-watchlist,
+O6): seven cells — Ticker (+ cluster) · Last · Δ · 5 d · 1 mo · vs 50-day · RSI ·
+Earnings. A report that still carries signal labels renders the same row as one
+that does not.
 
 Missing numerics must render a bare em-dash — `_fmt_num(None)` already yields
-"—", but the row cells append their unit unconditionally, so a None percent
-printed as "—%" (seen live on CBRS's vs-50-day cell).
+"—", but a cell that appends its unit unconditionally prints "—%" (UX review
+2026-07-07, seen live on CBRS's vs-50-day cell).
 """
-from components.watchlist.row import render_ticker_details_html
+import re
+
+from components.watchlist.row import earnings_cell_html, render_ticker_details_html
+
+#: A pre-cutover entry, carrying every label key the row used to render.
+LABELLED = {
+    "signal": "CAUTION", "raw_signal": "CAUTION", "prev_signal": "WATCH",
+    "caution_source": "hard_block",
+    "entry_block": "BLOCKED: +10.8% above 50-day SMA (>5% hard block).",
+    "entry_block_reader": "Entry blocked: price is 10.8% above its 50-day average.",
+    "risk_reward": {"ratio": 2.6, "ratio_label": "2.6:1"},
+    "accumulate_gates": {"all_mechanical_pass": False, "earnings_days_until": 47},
+    "writeup": {"headline": "Extended", "what_to_do": "Wait for a pullback."},
+    "price": 990.0, "currency": "USD", "chg_pct": 1.2, "5d_pct": 3.4,
+    "1mo_pct": 9.0, "vs_sma50_pct": 11.0, "rsi_14": 77,
+}
+#: The same facts in the post-cutover shape: no label keys at all.
+LABEL_FREE = {k: v for k, v in LABELLED.items()
+              if k in {"price", "currency", "chg_pct", "5d_pct", "1mo_pct",
+                       "vs_sma50_pct", "rsi_14"}}
+LABEL_FREE["next_earnings"] = {"date": "2026-11-17", "days_until": 47, "status": "scheduled"}
+
+
+def _summary(html: str) -> str:
+    return html.split("<summary>", 1)[1].split("</summary>", 1)[0]
+
+
+def test_row_has_seven_cells_in_the_spec_order():
+    s = _summary(render_ticker_details_html("MU", LABELLED, report_date="2026-10-01"))
+    classes = re.findall(r'^<div class="([\w-]+)|</div><div class="([\w-]+)', s)
+    top = [a or b for a, b in classes]
+    assert top[:1] == ["tk-tick"]
+    for cls in ("tk-last", "tk-5d", "tk-1mo", "tk-ext", "tk-rsi", "tk-earn"):
+        assert f'class="{cls}' in s, cls
+
+
+def test_a_labelled_report_renders_no_label():
+    html = render_ticker_details_html("MU", LABELLED, report_date="2026-10-01")
+    for gone in ("sig-pill", "data-signal", "CAUTION", "tk-rr", "2.6:1", "tk-changed",
+                 "tk-sig-days", "ENTRY BLOCK", "Entry blocked", "Wait for a pullback"):
+        assert gone not in html, gone
+
+
+def test_both_report_shapes_render_the_same_row():
+    a = _summary(render_ticker_details_html("MU", LABELLED, report_date="2026-10-01"))
+    b = _summary(render_ticker_details_html("MU", LABEL_FREE, report_date="2026-10-01"))
+    assert a == b
 
 
 def test_missing_pct_cells_render_bare_dash():
-    html = render_ticker_details_html("CBRS", {"signal": "CAUTION", "price": 192.01})
+    html = render_ticker_details_html("CBRS", {"price": 192.01})
     assert "—%" not in html
     assert "—" in html                      # the placeholder itself survives
 
 
 def test_present_pct_cells_keep_sign_and_unit():
-    d = {"signal": "WATCH", "price": 195.55, "chg_pct": 0.59,
-         "1mo_pct": -8.9, "vs_sma50_pct": -6.7}
+    d = {"price": 195.55, "chg_pct": 0.59, "5d_pct": 2.31, "1mo_pct": -8.9,
+         "vs_sma50_pct": -6.7}
     html = render_ticker_details_html("NVDA", d)
     assert "+0.59%" in html
+    assert "+2.3%" in html
     assert "-8.9%" in html
     assert "-6.7%" in html
 
 
+def test_returns_keep_the_price_direction_colour():
+    s = _summary(render_ticker_details_html("NVDA", {"5d_pct": 2.0, "1mo_pct": -3.0}))
+    assert 'class="tk-5d up"' in s
+    assert 'class="tk-1mo down"' in s
+
+
+def test_rsi_cell_is_uncoloured_at_any_reading():
+    for rsi in (12, 55, 88):
+        s = _summary(render_ticker_details_html("NVDA", {"rsi_14": rsi}))
+        assert f'<div class="tk-rsi">{rsi}</div>' in s
+        assert "data-zone" not in s
+
+
 def test_missing_price_renders_dash_without_currency_prefix():
-    html = render_ticker_details_html("NVDA", {"signal": "HOLD"})
+    html = render_ticker_details_html("NVDA", {})
     assert "$—" not in html
 
 
 def test_extended_session_row_gets_tag():
-    d = {"signal": "WATCH", "price": 208.0, "chg_pct": -1.4, "live_session": "PRE"}
+    d = {"price": 208.0, "chg_pct": -1.4, "live_session": "PRE"}
     html = render_ticker_details_html("NVDA", d)
     assert 'class="ext-tag"' in html
     assert ">PRE</span>" in html
 
 
 def test_regular_session_row_has_no_tag():
-    d = {"signal": "WATCH", "price": 210.96, "chg_pct": 0.19}
-    html = render_ticker_details_html("NVDA", d)
+    html = render_ticker_details_html("NVDA", {"price": 210.96, "chg_pct": 0.19})
     assert "ext-tag" not in html
 
 
-# ── entry_block_reader preference (F2, 2026-07-18 reader eval) ──
-def test_entry_block_reader_preferred_when_present():
-    d = {
-        "signal": "CAUTION",
-        "entry_block": "BLOCKED: +10.8% above 50-day SMA (>5% hard block).",
-        "entry_block_reader": "Entry blocked: price is 10.8% above its "
-                              "50-day average.",
-        "writeup": {"entry_block": "BLOCKED: +10.8% above 50-day SMA "
-                                   "(>5% hard block)."},
-    }
-    html = render_ticker_details_html("MU", d)
-    assert "price is 10.8% above its 50-day average" in html
-    # Raw string survives as the hover title for grep-ability.
-    assert "BLOCKED: +10.8%" in html
-
-
-def test_entry_block_raw_fallback_for_old_reports():
-    d = {
-        "signal": "CAUTION",
-        "entry_block": "BLOCKED: RSI 72 (>65 hard block).",
-        "writeup": {"entry_block": "BLOCKED: RSI 72 (>65 hard block)."},
-    }
-    html = render_ticker_details_html("MU", d)
-    assert "BLOCKED: RSI 72" in html
-
-
-# ── redesign 2026-07-25: seven cells, two-line ticker, visible R:R qualifier ──
 def test_ticker_cell_carries_the_cluster_as_a_sub_line():
-    # Cluster stopped being a column: it is context you want while looking at a
-    # name, not an axis you scan — and it was eating 100px of a fixed grid.
-    html = render_ticker_details_html("NVDA", {"signal": "WATCH", "price": 210.0})
-    assert "tk-tick-cluster" in html
+    html = render_ticker_details_html("NVDA", {"price": 210.0})
+    assert '<div class="tk-tick-cluster">Semis</div>' in html
 
 
-def test_changed_row_gets_the_steel_dot():
-    html = render_ticker_details_html(
-        "MU", {"signal": "CAUTION", "price": 990.0}, signal_changed=True
-    )
-    assert "tk-changed" in html
-    assert 'data-signal-changed="true"' in html   # the first-mount flash survives
+def test_the_reports_own_cluster_wins_over_the_catalog():
+    html = render_ticker_details_html("NVDA", {"cluster": "Accelerators"})
+    assert '<div class="tk-tick-cluster">Accelerators</div>' in html
 
 
-def test_unchanged_row_has_no_dot():
-    html = render_ticker_details_html("MU", {"signal": "CAUTION", "price": 990.0})
-    assert "tk-changed" not in html
-
-
-def test_row_carries_the_extension_gauge():
-    html = render_ticker_details_html(
-        "MU", {"signal": "CAUTION", "price": 990.0, "vs_sma50_pct": 11.0}
-    )
+def test_row_carries_the_gauge():
+    html = render_ticker_details_html("MU", {"vs_sma50_pct": 11.0})
     assert "tk-ext-track" in html
-    assert 'data-tone="over"' in html
+    assert "data-tone" not in html
 
 
-def test_rsi_is_flagged_hot_at_seventy_and_cold_at_thirty():
-    hot = render_ticker_details_html("D05.SI", {"signal": "CAUTION", "rsi_14": 77})
-    cold = render_ticker_details_html("CRWV", {"signal": "CAUTION", "rsi_14": 28})
-    mid = render_ticker_details_html("NVDA", {"signal": "WATCH", "rsi_14": 55})
-    assert 'data-zone="hot"' in hot
-    assert 'data-zone="cold"' in cold
-    assert 'data-zone=""' in mid
+# ── Earnings cell ──
+def test_earnings_cell_dates_a_day_count_from_the_report_date():
+    html = earnings_cell_html({"accumulate_gates": {"earnings_days_until": 47}}, "2026-10-01")
+    assert '<div class="tk-earn-date">17 Nov</div>' in html
+    assert '<div class="tk-earn-sub">in 47 d</div>' in html
 
 
-def test_missing_rsi_is_not_flagged_cold():
-    # An absent reading is not an oversold one.
-    html = render_ticker_details_html("NVDA", {"signal": "WATCH"})
-    assert 'data-zone=""' in html
+def test_earnings_cell_reads_the_post_cutover_field():
+    d = {"next_earnings": {"date": "2026-11-17", "days_until": 47, "status": "scheduled"}}
+    assert "17 Nov" in earnings_cell_html(d, None)
 
 
-def test_adjusted_rr_qualifier_is_visible_text_not_only_a_title():
-    # Shipped code hid this in a title attribute — invisible on touch, and it is
-    # the difference between a 1.5:1 that clears the gate and one that doesn't.
-    d = {
-        "signal": "CAUTION",
-        "risk_reward": {
-            "ratio": 22.5, "ratio_label": "22.5:1", "rr_distorted": True,
-            "sizing_rr": {"ratio": 1.49, "ratio_label": "1.49:1"},
-        },
-    }
-    html = render_ticker_details_html("MU", d)
-    assert "tight-stop adj." in html
-    assert "1.49:1" in html
-    assert "22.5:1" in html      # raw headline survives on the title
+def test_earnings_cell_says_reported_the_morning_after():
+    d = {"pre_earnings_band": {"earnings_date": "2026-09-30", "days_until": -1,
+                               "temporal_status": "released_overnight"}}
+    html = earnings_cell_html(d, "2026-10-01")
+    assert "30 Sep" in html and "reported" in html
 
 
-def test_unadjusted_rr_has_no_qualifier_line():
-    d = {"signal": "WATCH", "risk_reward": {"ratio": 2.6, "ratio_label": "2.6:1"}}
-    assert "tight-stop adj." not in render_ticker_details_html("NVDA", d)
+def test_earnings_cell_without_a_date_is_a_bare_dash():
+    assert '<div class="tk-earn-date">—</div>' in earnings_cell_html({}, "2026-10-01")
 
 
-# ── A non-ratio R:R label must not break the grid ──
-# The pipeline emits "N/A -- at or below invalidation" when a name sits under its
-# own stop. In a 96px ratio column that sentence wrapped to three lines and made
-# its row visibly taller than every neighbour — which defeats the whole point of a
-# scanning surface, where uniform row height is what lets the eye run a column.
-def test_non_ratio_rr_label_splits_into_value_and_reason():
-    d = {"signal": "HOLD",
-         "risk_reward": {"ratio_label": "N/A -- at or below invalidation"}}
-    html = render_ticker_details_html("META", d)
-    assert '<div class="tk-rr-val">n/a</div>' in html
-    # The reason survives as visible text, not a hover title.
-    assert "at or below invalidation" in html
+def test_earnings_cell_names_an_unreadable_calendar():
+    d = {"accumulate_gates": {"earnings_days_until": None, "abstained": [
+        {"gate": "g5_no_earnings_7d",
+         "reason": "earnings calendar unavailable — proximity unverifiable"}]}}
+    html = earnings_cell_html(d, "2026-10-01")
+    assert "n/a" in html and "no calendar" in html
 
 
-def test_ratio_labels_are_left_alone():
-    d = {"signal": "WATCH", "risk_reward": {"ratio": 2.1, "ratio_label": "2.1:1"}}
-    html = render_ticker_details_html("BE", d)
-    assert '<div class="tk-rr-val">2.1:1</div>' in html
-    assert "n/a" not in html
-
-
-
-def test_row_prints_day_count_in_grey_under_the_pill():
-    html = render_ticker_details_html("CBRS", {"signal": "ACCUMULATE"}, signal_days=1)
-    assert '<div class="tk-sig-days" title="Reports in a row with this call">day 1</div>' in html
-    assert "tk-sig-days" not in render_ticker_details_html("CBRS", {"signal": "ACCUMULATE"})
+def test_earnings_cell_carries_no_colour():
+    html = earnings_cell_html({"accumulate_gates": {"earnings_days_until": 2}}, "2026-10-01")
+    assert "style=" not in html and " up" not in html and " down" not in html

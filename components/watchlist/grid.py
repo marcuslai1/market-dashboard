@@ -1,8 +1,13 @@
 """Watchlist grid builders — pure HTML, no Streamlit.
 
-Everything the dense grid needs except the row itself: the filter chips' option
-set, the filter and grouping logic, the column header, the group headers, the
-single wrapper blob, and the two pieces of footnote copy.
+Everything the dense grid needs except the row itself: the fixed display order
+(cluster groups), the column header, the group headers, the single wrapper blob,
+and the two pieces of footnote copy.
+
+**Information only since 2026-10-01** (MarketReport spec
+2026-10-01-info-only-watchlist, O1 / O6; tag ``pre-label-removal``). The signal
+groups, the signal filter chips, the ● Changed marker and the "day N" count went
+with the labels; every report date — old ones included — renders facts only.
 
 Two constructions here are load-bearing and easy to break:
 
@@ -10,103 +15,67 @@ Two constructions here are load-bearing and easy to break:
    in ONE string, because a ``<div>`` opened in one ``st.markdown`` and closed in
    another does not wrap sibling Streamlit blocks — the browser auto-closes it,
    and ``.tk-scroll`` stops containing the rows.
-2. **Python-side filtering.** Rows are filtered *before* rendering rather than
-   hidden with CSS, so a filtered view never leaves an empty group header behind
-   and every header's count is the honest count within that filter.
+2. **A fixed order.** The rows never re-sort by a daily quantity. The order is a
+   rule (``ordered_groups``), so a new ticker slots itself in with no upkeep.
 """
 from __future__ import annotations
 
 from collections.abc import Callable
 
-from lib.catalog import SIGNAL_COLORS, SIGNAL_SORT_RANK
+from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS
+from lib.formatters import _escape_dollars, display_ticker
 
-FILTER_ALL = "all"
-FILTER_CHANGED = "changed"
+#: The group a name with no cluster lands in. Always last, whatever its size.
+OTHER_CLUSTER = "Other"
 
-#: (label, alignment). Order is the grid's own.
-#: Signal sits second because it is the row's verdict — you should never read
-#: four numbers before learning what the call is. The gauge column centres,
-#: because its bar is centred on zero.
+#: (label, alignment). Order is the grid's own; the phone-width labels in
+#: theme.css (``nth-child`` 2–7) must follow it.
 _COLUMNS: list[tuple[str, str]] = [
     ("Ticker", "left"),
-    ("Signal", "left"),
     ("Last · Δ", "right"),
+    ("5 d", "right"),
     ("1 mo", "right"),
     ("vs 50-day", "center"),
     ("RSI", "right"),
-    ("R:R", "right"),
+    ("Earnings", "right"),
 ]
 
-_RANK_LAST = len(SIGNAL_SORT_RANK)
+
+def cluster_of(tk: str, d: dict) -> str:
+    """The report's own ``cluster`` (post-cutover), else the catalog's."""
+    return (d or {}).get("cluster") or CLUSTER_MAP.get(tk) or OTHER_CLUSTER
 
 
-def _signal_of(d: dict) -> str:
-    return d.get("signal", "HOLD")
+def ordered_groups(watchlist: dict) -> list[tuple[str, list[tuple[str, dict]]]]:
+    """``[(cluster, [(ticker, entry), …]), …]`` in the fixed display order.
 
+    The rule (spec §4, O1): cluster groups, largest first, then by name; names
+    A–Z by display ticker inside a group; retired names excluded.
 
-def _signals_present(items) -> list[str]:
-    """Signals actually in this book, in rank order."""
-    seen = {_signal_of(d) for _, d in items}
-    return sorted(seen, key=lambda s: SIGNAL_SORT_RANK.get(s, _RANK_LAST))
-
-
-def build_filter_options(items, changed_tickers) -> tuple[list[str], dict[str, str]]:
-    """``(keys, labels)`` for the Show chips.
-
-    The counts are themselves information — the bar doubles as the "shape of the
-    book" readout the Briefing's signal-count grid used to provide — so they are
-    derived from the data every run. A day with only CAUTION names shows two
-    chips; a day with nothing changed shows no Changed chip at all rather than a
-    dead ``· 0``.
+    A post-cutover report stamps ``cluster`` on every entry and is already in
+    this order (the pipeline's ``display_order``), so its JSON order is used as
+    is — consecutive names of one cluster form a group. A report without the
+    stamp gets the same rule applied here from ``assets/catalog.json``.
     """
-    # Intersect with the rendered book: a retired name whose signal moved must
-    # not inflate a count for a chip that can never show it.
-    changed = {tk for tk, _ in items if tk in (changed_tickers or set())}
-    keys: list[str] = [FILTER_ALL]
-    labels: dict[str, str] = {FILTER_ALL: f"All · {len(items)}"}
-    if changed:
-        keys.append(FILTER_CHANGED)
-        # The leading ● mirrors the row marker, so the connection needs no legend.
-        labels[FILTER_CHANGED] = f"● Changed · {len(changed)}"
-    for sig in _signals_present(items):
-        n = sum(1 for _, d in items if _signal_of(d) == sig)
-        keys.append(sig)
-        labels[sig] = f"{sig.title()} · {n}"
-    return keys, labels
-
-
-def filter_items(items, changed_tickers, selected):
-    """Apply one chip.
-
-    Anything unrecognised — including the ``None`` a chip clicked off returns —
-    falls back to the whole book.
-
-    A signal is only honoured when it is actually present. Yesterday's selection
-    survives in session state, so a reader who filtered to BUY on a day that had
-    BUY names would otherwise land on an empty page today; the whole book is the
-    better answer than a blank one.
-    """
-    if selected == FILTER_CHANGED:
-        changed = changed_tickers or set()
-        return [(tk, d) for tk, d in items if tk in changed]
-    if selected in _signals_present(items):
-        return [(tk, d) for tk, d in items if _signal_of(d) == selected]
-    return list(items)
-
-
-def group_items(items):
-    """``[(signal, rows), …]`` in rank order, preserving each group's row order.
-
-    A sort is only legible if you already know the rank order. Explicit groups
-    with counts make the ordering self-documenting, let a reader skip 21 CAUTION
-    names outright, and give the eye rest points in a long scroll.
-    """
-    out: list[tuple[str, list]] = []
-    for sig in _signals_present(items):
-        rows = [(tk, d) for tk, d in items if _signal_of(d) == sig]
-        if rows:
-            out.append((sig, rows))
-    return out
+    items = [(tk, d) for tk, d in (watchlist or {}).items() if tk not in RETIRED_TICKERS]
+    if items and all((d or {}).get("cluster") for _, d in items):
+        groups: list[tuple[str, list[tuple[str, dict]]]] = []
+        for tk, d in items:
+            c = d["cluster"]
+            if groups and groups[-1][0] == c:
+                groups[-1][1].append((tk, d))
+            else:
+                groups.append((c, [(tk, d)]))
+        return groups
+    by_cluster: dict[str, list[tuple[str, dict]]] = {}
+    for tk, d in items:
+        by_cluster.setdefault(cluster_of(tk, d), []).append((tk, d))
+    for rows in by_cluster.values():
+        rows.sort(key=lambda row: display_ticker(row[0]).upper())
+    return sorted(
+        by_cluster.items(),
+        key=lambda kv: (kv[0] == OTHER_CLUSTER, -len(kv[1]), kv[0].casefold()),
+    )
 
 
 def column_header_html() -> str:
@@ -123,88 +92,36 @@ def column_header_html() -> str:
     return f'<div class="tk-row tk-head" role="row">{cells}</div>'
 
 
-def group_header_html(signal: str, count: int) -> str:
-    """Dot + name + count + a hairline that fills the rest of the width.
+def group_header_html(cluster: str, count: int) -> str:
+    """Name + count + a hairline that fills the rest of the width.
 
-    11px uppercase, not a real heading size: these are dividers inside ONE table,
-    not sections of a document — sizing them up would fragment the page into
-    three tables. The dot and name take the signal palette because the group *is*
-    a signal; this is the only coloured text at heading scale on the page.
+    Neutral ink: a cluster is a grouping, not a rating. 11px uppercase, not a
+    real heading size — these are dividers inside ONE table, not sections of a
+    document.
     """
-    # An unrecognised signal falls back to metadata grey, not to a borrowed
-    # signal hue — a group whose rating we can't name must not look like one.
-    color = SIGNAL_COLORS.get(signal, "var(--color-text-3)")
     return (
-        f'<div class="tk-group" style="--sig:{color};" role="row">'
-        f'<span class="tk-group-dot"></span>'
-        f'<span class="tk-group-name">{signal}</span>'
+        '<div class="tk-group" role="row">'
+        f'<span class="tk-group-name">{_escape_dollars(cluster)}</span>'
         f'<span class="tk-group-count">{count}</span>'
-        f'<span class="tk-group-rule"></span>'
-        f'</div>'
+        '<span class="tk-group-rule"></span>'
+        '</div>'
     )
 
 
-def signal_day_counts(log_rows, as_of: str, shown: dict) -> dict[str, int]:
-    """How many consecutive reports each name has carried its current call.
-
-    *log_rows* is an iterable of ``(date, ticker, signal)`` from the shipped
-    signal log (``data/signal_log.csv``), with dates as ``YYYY-MM-DD`` strings.
-    *as_of* is the report being viewed. *shown* is ``{ticker: signal}`` as that
-    report displays it. Report dates are the log's own distinct dates up to
-    *as_of*. A report where the name is absent, or carries another call, ends
-    the count.
-
-    A name whose logged call on *as_of* differs from the displayed one gets no
-    count, so the number can never describe a different call from the pill.
-    Neutral by design (MarketReport clean-sheet review §12.12): the record shows
-    no detectable outcome difference between one-day and lasting "add" calls,
-    so the count states persistence and claims nothing about quality."""
-    by_date: dict[str, dict[str, str]] = {}
-    for d, tk, sig in log_rows:
-        if d <= as_of:
-            by_date.setdefault(d, {})[tk] = sig
-    dates = sorted(by_date)
-    if not dates or dates[-1] != as_of:
-        return {}
-    out = {}
-    for tk, sig in (shown or {}).items():
-        if by_date[as_of].get(tk) != sig:
-            continue
-        n = 0
-        for d in reversed(dates):
-            if by_date[d].get(tk) != sig:
-                break
-            n += 1
-        out[tk] = n
-    return out
-
-
 def build_grid_html(
-    items,
-    changed_tickers,
+    groups,
     earnings_map: dict,
     row_builder: Callable[..., str],
-    day_counts: dict | None = None,
-    data_only: bool = False,
+    report_date: str | None = None,
 ) -> str:
-    """The whole table as one string: wrapper, column header, groups, rows.
-
-    *day_counts* (``signal_day_counts``) is passed to each row as
-    ``signal_days`` only when given, and *data_only* (the report's
-    ``meta.llm_enabled`` is False) only when True, so row builders without
-    those keywords keep working."""
-    changed = changed_tickers or set()
+    """The whole table as one string: wrapper, column header, groups, rows."""
     parts = [column_header_html()]
-    for sig, rows in group_items(items):
-        parts.append(group_header_html(sig, len(rows)))
+    for cluster, rows in groups:
+        parts.append(group_header_html(cluster, len(rows)))
         for tk, d in rows:
-            kw = {"signal_changed": tk in changed,
-                  "earnings_hist": (earnings_map or {}).get(tk)}
-            if day_counts is not None:
-                kw["signal_days"] = day_counts.get(tk)
-            if data_only:
-                kw["data_only"] = True
-            parts.append(row_builder(tk, d, **kw))
+            parts.append(row_builder(tk, d,
+                                     earnings_hist=(earnings_map or {}).get(tk),
+                                     report_date=report_date))
     return (
         '<div class="tk-scroll" role="table" '
         'aria-label="Watchlist — click a row to expand">'
@@ -213,29 +130,22 @@ def build_grid_html(
 
 
 def method_note_html() -> str:
-    """The three pieces of encoding a reader cannot infer from looking.
-
-    Bolding is by what breaks comprehension if missed, never by keyword
-    importance — which is exactly why the bold count is three and no more.
-    """
+    """The pieces of encoding a reader cannot infer from looking."""
     return (
         '<div class="tk-method">'
-        'Extension is measured against the 50-day average, and the pipeline '
-        'blocks entries past <b>±10%</b> — the point where the gauge turns '
-        'terracotta. <b>R:R is the tight-stop-corrected ratio</b>, the same '
-        'figure the writeup cites, not the raw headline. RSI turns terracotta '
-        'past <b>70 and 30</b>, the overbought and oversold thresholds.'
+        '<b>vs 50-day</b> is the distance of the last price from its 50-day '
+        'average; the bar is centred on zero and clamps at ±20%, the figure '
+        'beneath is exact. <b>RSI</b> is the 14-session relative strength index. '
+        '<b>Earnings</b> is the next report date and the calendar days to it.'
         '</div>'
     )
 
 
-def footer_html(n_shown: int, n_total: int) -> str:
-    """The page's own legend, placed where a confused reader would look."""
+def footer_html(n_names: int, n_groups: int) -> str:
+    """The page's own count and order statement."""
     return (
         '<div class="tk-foot">'
-        f'Showing {n_shown} of {n_total} names · '
-        '<span class="tk-changed tk-changed-legend"></span> '
-        'a steel dot marks a signal that changed since the prior report; '
-        '"day N" under a signal counts the reports in a row it has held.'
+        f'{n_names} names in {n_groups} groups · facts only, no ratings · '
+        'retired names excluded'
         '</div>'
     )

@@ -4,7 +4,7 @@
   bare `python` resolves to on this machine — the MarketReport pipeline uses
   anaconda3 instead, never mix them).
 - Tests: `.venv\Scripts\python.exe -m pytest tests` — module form is required
-  (puts the repo root on `sys.path`). Baseline 2026-08-31: 656 passed, ~33s.
+  (puts the repo root on `sys.path`). Baseline 2026-10-01: 253 passed, ~6s.
   `tests/visual` is excluded by `pyproject.toml` and is ON-DEMAND only (weekly
   CI sweep + `workflow_dispatch`); never regenerate pixel baselines for an
   ordinary UI change — eyeball locally, run the unit + AppTest suites, ship.
@@ -23,6 +23,8 @@
 ## Working style
 
 Same as MarketReport: proceed on low-risk, reversible UI changes; discuss first
-for anything that changes what a number MEANS (tracker tiles read pipeline
-alpha — never reintroduce a local hit-rate headline), or that touches the
-data contract with the pipeline export.
+for anything that changes what a number MEANS, or that touches the data
+contract with the pipeline export. Since 2026-10-01 the site is information
+only (MarketReport spec 2026-10-01-info-only-watchlist): no signal label,
+rating, ranking or bucket on any page, and never a local hit-rate headline —
+bringing any of them back is a discussion, not a UI change.

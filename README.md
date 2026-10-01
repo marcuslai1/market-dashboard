@@ -6,30 +6,31 @@ If the app has gone to sleep, click "Yes, get this app back up!" and give it a m
 
 ![Morning briefing](assets/readme-briefing.png)
 
-A daily market intelligence dashboard, updated every morning by an automated
+A daily market data dashboard, updated every weekday by an automated
 pipeline that has run unattended since March 2026. The pipeline (a separate,
-private repo) pulls prices and news for 33 tickers, computes the technical
-indicators and risk-reward levels in Python, has an AI model (DeepSeek API)
-write the commentary, validates and repairs the model's JSON output, then
-pushes the day's data files here. Every number shown is computed in code; the
-AI writes words, never figures.
+private repo) pulls prices, fundamentals, earnings dates and news for 33
+tickers, computes the technical indicators and price levels in Python, and
+pushes the day's data files here. The site shows facts only — prices,
+technicals, levels, valuation, earnings and sourced headlines, in one fixed
+order — with no buy / sell ratings (since 2026-10-01). The daily briefing card
+is written separately and carries its sources.
 
 This repo is the public half: the Streamlit front end, the data it renders,
 and the tests behind it.
 
 ## What's inside
 
-- `dashboard.py`: Streamlit entry point, with Briefing, Watchlist, Tracker,
-  Review, Pipeline, Scenarios, Compare and Terminology tabs
+- `dashboard.py`: Streamlit entry point, with Briefing, Watchlist and
+  Terminology tabs
 - `components/` and `lib/`: Plotly charts and rendering helpers
 - `live_prices.py`: optional live quotes from Yahoo during market hours
 - `data/`: the CSV and JSON files the pipeline publishes each morning
-- `tests/`: 31 test files run through GitHub Actions on every change,
-  including a visual regression harness that screenshots each page and diffs
-  it against committed baselines
+- `tests/`: 22 test files run through GitHub Actions on every change, plus
+  an on-demand visual regression harness (`tests/visual/`) that screenshots
+  each page and diffs it against committed baselines
 
 ## Notes
 
-- Signals shown are research output, not financial advice.
+- Information only, not financial advice: the site rates and ranks nothing.
 - The analysis pipeline itself stays private; this repo contains no API keys
   and no pipeline code.

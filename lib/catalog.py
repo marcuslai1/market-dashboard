@@ -1,8 +1,12 @@
-"""Static catalog constants: signal palette, ticker metadata, lookup tables.
+"""Static catalog constants: tone palette, ticker metadata, lookup tables.
 
 Loaded once at import time from ``assets/catalog.json``. Contains only data —
 no Streamlit calls and no functions. Renderers import these names and read
 from them; no module mutates them after load.
+
+The signal palette, verbs and ranks left on 2026-10-01 with the labels
+(MarketReport spec 2026-10-01-info-only-watchlist; tag ``pre-label-removal``).
+The colours themselves stay, renamed to neutral roles (``TONE_COLORS``).
 """
 from __future__ import annotations
 
@@ -17,32 +21,17 @@ _CATALOG = json.loads((ASSETS_DIR / "catalog.json").read_text(encoding="utf-8"))
 # Historical data is preserved in the raw JSONs/SQLite if needed.
 RETIRED_TICKERS = set(_CATALOG["tickers"]["retired"])
 
-SIGNAL_COLORS = _CATALOG["signals"]["colors"]
-
-# Streamlit markdown only supports named colors (:red[text], :green[text], etc.)
-SIGNAL_ST_COLORS = _CATALOG["signals"]["st_colors"]
-
-SIGNAL_VERBS = _CATALOG["signals"]["verbs"]
+# Neutral colour roles (pos / info / warn / muted / neg / neg_deep). The CSS
+# tokens --tone-* in assets/theme.css hand-mirror these values.
+TONE_COLORS = _CATALOG["tones"]["colors"]
+TONE_TINTS = _CATALOG["tones"]["tints"]
 
 # Reverse ticker_to_key: restore dots/hyphens/carets for display
 TICKER_DISPLAY = _CATALOG["tickers"]["display"]
 
+# Report key → cluster name. Mirrors MarketReport ``config.CLUSTER_MAP``; the
+# Watchlist groups and orders by it until reports carry their own ``cluster``.
 CLUSTER_MAP = _CATALOG["tickers"]["cluster"]
-
-SIGNAL_ORDER = _CATALOG["signals"]["order"]
-WRITEUP_SIGNALS = set(_CATALOG["signals"]["writeup"])
-ACTIONABLE_SIGNALS = set(_CATALOG["signals"]["actionable"])
-
-# Single-source signal ranking, derived from SIGNAL_ORDER so nothing hand-maintains
-# a parallel {"BUY": 5, ...} map (they had already drifted on AVOID). SIGNAL_ORDER
-# is best→worst, so:
-#   SIGNAL_SORT_RANK  — 0-based, lower = more bullish (watchlist/list sort order)
-#   SIGNAL_BULLISHNESS — higher = more bullish (upgrade/downgrade direction)
-SIGNAL_SORT_RANK = {sig: i for i, sig in enumerate(SIGNAL_ORDER)}
-SIGNAL_BULLISHNESS = {sig: len(SIGNAL_ORDER) - i for i, sig in enumerate(SIGNAL_ORDER)}
-
-# Signal palette tints (used by sig_pill_html for backgrounds)
-SIGNAL_TINTS = _CATALOG["signals"]["tints"]
 
 # Decision-relevant tape — 5 benchmarks (design-spec §7). WTI / Gold / DXY were
 # dropped from the tape in the 2026-07 overhaul: they are macro context, carried

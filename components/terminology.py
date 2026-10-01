@@ -27,9 +27,9 @@ import re
 
 import streamlit as st
 
-from components.terminology_content import SECTIONS, data_only_section
+from components.terminology_content import SECTIONS, era_line_html
 from lib.cards import _section_head_html, render_section_head
-from lib.data_loader import load_all_reports
+from lib.data_loader import list_report_dates, load_report
 
 _PLACEHOLDER = "Search terms — press Enter"
 
@@ -140,29 +140,54 @@ def page_html(sections, matched_ids) -> str:
             f'<div class="term-body">{body}</div></div>')
 
 
-def mechanical_since(reports: dict) -> str | None:
-    """First report date stamped data-only (meta.llm_enabled False), or None."""
-    dates = [d for d, r in (reports or {}).items()
-             if ((r or {}).get("meta") or {}).get("llm_enabled") is False]
-    return min(dates) if dates else None
+def has_labels(report: dict) -> bool:
+    """True when any watchlist entry in *report* carries a signal label."""
+    return any(isinstance(d, dict) and d.get("signal")
+               for d in ((report or {}).get("watchlist") or {}).values())
 
 
-def sections_for(reports: dict) -> list:
-    """SECTIONS, led by the dated model-off notice once a data-only report exists."""
-    since = mechanical_since(reports)
-    return [data_only_section(since), *SECTIONS] if since else list(SECTIONS)
+def label_era(dates: list[str], labelled) -> tuple[str | None, str | None, str | None]:
+    """``(first_labelled, last_labelled, cutover)`` over sorted report *dates*.
+
+    *labelled* is a ``date -> bool`` predicate. Labels run from the first report
+    to the pipeline cutover and never come back, so the boundary is found by
+    binary search — a handful of report reads, not the corpus. ``cutover`` is the
+    first unlabelled date after the last labelled one, ``None`` while the latest
+    report still carries labels.
+    """
+    if not dates:
+        return None, None, None
+    first = next((d for d in dates[:5] if labelled(d)), None)
+    if first is None:
+        return None, None, None
+    if labelled(dates[-1]):
+        return first, dates[-1], None
+    lo, hi = dates.index(first), len(dates) - 1   # labelled(lo) True, labelled(hi) False
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if labelled(dates[mid]):
+            lo = mid
+        else:
+            hi = mid
+    return first, dates[lo], dates[hi]
+
+
+def era_html() -> str:
+    """The era line for the reports on file."""
+    return era_line_html(*label_era(list_report_dates(), lambda d: has_labels(load_report(d))))
 
 
 def render_terminology_page() -> None:
     """Render the Terminology page."""
     # masthead=True is the shared 30px/2px document head used by every top-level
-    # page surface (Retrospective, Watchlist, the Tracker's peer sections). One
-    # device, one implementation.
+    # page surface (the Watchlist and this page). One device, one implementation.
     render_section_head(
         "Terminology & Method",
         "How every number on this site is computed",
         masthead=True,
     )
+    # The one dated line about the signal labels (spec 2026-10-01 §9, O7).
+    st.markdown(era_html(), unsafe_allow_html=True)
 
     # Nothing else on the site needs search; this page does — it is the only
     # surface a reader arrives at with one specific term already in mind.
@@ -172,7 +197,7 @@ def render_terminology_page() -> None:
         placeholder=_PLACEHOLDER,
         label_visibility="collapsed",
     )
-    sections = sections_for(load_all_reports())
+    sections = SECTIONS
     matched = [s for s in sections if matches(s, query)]
     matched_ids = {s["id"] for s in matched}
 

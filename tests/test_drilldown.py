@@ -1,198 +1,275 @@
-"""Tests for the watchlist drill-down detail builder — the P1-2 final slices.
+"""Tests for the watchlist drill-down card — facts only since 2026-10-01.
 
-Covers the three per-entry report fields surfaced 2026-07-02 (previously
-produced-but-unconsumed): ``vs_cluster_chg_pct`` (Technicals cell),
-``news_sentiment_skew`` (status chip), ``premarket.phrase`` (status chip).
-Each slice must render when present, stay silent when absent, and keep the
-escaping contract for pipeline-authored text.
+MarketReport spec 2026-10-01-info-only-watchlist §8 (O6): header (no pill) →
+data-health chips → levels | technicals | valuation → the Earnings drawer →
+news & context. The entry-block card, the writeup verdict, the caution-source
+chip, the trigger / target / invalidation / R:R plate, the R:R drawer and the
+pipeline-detail drawer are gone for EVERY report date: an old report keeps
+those keys in its JSON and nothing here reads them.
 """
-from components.watchlist.drilldown import render_drilldown_detail_html
-from lib.charts import STATUS_NEG, STATUS_NEUTRAL, STATUS_POS, STATUS_WARN
+from components.watchlist.drilldown import fact_text, render_drilldown_detail_html
+
+#: A pre-cutover MU entry carrying every label surface the card used to render.
+_MU = {
+    "signal": "CAUTION",
+    "caution_source": "hard_block",
+    "momentum_warn": True, "momentum_warn_reasons": ["close < SMA10"],
+    "price": 990.0,
+    "currency": "USD",
+    "chg_pct": 1.25,
+    "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
+    "entry_block_reader": "Entry blocked: up 16.1% in five sessions.",
+    "reentry_zone": {"level": "$952.20", "source": "sma50"},
+    "risk_reward": {
+        "invalidation": 952.2, "upside_target": 1089.12,
+        "ratio": 2.6, "ratio_label": "2.6:1",
+        "upside_pct": 10.0, "downside_pct": 3.8,
+    },
+    "writeup": {
+        "headline": "An 11.3% surge reclaims the 50-day.",
+        "prior_period_delta_narrative": "Rating held from yesterday.",
+        "what_to_do": "Wait for the move to settle.",
+        "thesis_break_condition": "A close back below the 50-day.",
+        "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
+    },
+    "support_legs": ["HBM sold out", "Pricing power", "Capex discipline"],
+    "accumulate_gates": {"g1_signal_eligible": True, "all_mechanical_pass": False,
+                         "earnings_days_until": 47},
+    "rcp_state": {"current_phase": "cooling_off", "sessions_since_gap": 3},
+    "avoid_source": {"publication": "Reuters", "headline_fragment": "x"},
+    "news_sentiment_skew": "bullish",
+    "premarket": {"phrase": "Up 2% pre-market", "pm_chg_pct": 2.0},
+    "pre_earnings_band": {"earnings_date": "2026-08-01", "days_until": 7,
+                          "setup_archetype": "priced_for_perfection",
+                          "setup_rationale": "extended and overbought",
+                          "n_priors": 4, "avg_up_pct": 11.1, "avg_down_pct": -2.8,
+                          "implied_upper": 1100.0, "implied_lower": 962.3},
+    "support_zones": [952.2, 900.0], "resistance_zones": [1089.12, 1150.0],
+    "sma50": 940.0, "sma200": 800.0,
+    "rsi_14": 61.0, "vs_sma50_pct": 5.3,
+}
 
 
-# ── vs cluster (1d) — Technicals cell ──
-def test_vs_cluster_renders_signed_value():
-    html = render_drilldown_detail_html("NVDA", {"vs_cluster_chg_pct": 1.21})
-    assert "vs cluster (1d)" in html
-    assert "+1.21%" in html
+def _html(d=None, **kw):
+    return render_drilldown_detail_html("MU", dict(_MU, **(d or {})), **kw)
 
 
-def test_vs_cluster_negative_value():
-    html = render_drilldown_detail_html("NVDA", {"vs_cluster_chg_pct": -14.55})
-    assert "-14.55%" in html
+# ── No label surface, on any report shape ──
+def test_a_labelled_report_shows_no_label_surface():
+    html = _html()
+    for gone in ("sig-pill", "data-signal", "CAUTION", "ENTRY BLOCK", "Entry blocked",
+                 "dd-verdict", "An 11.3% surge", "Wait for the move", "Rating held",
+                 "Mechanical hard block", "Momentum warning", "dd-levels", "Trigger",
+                 "Invalidation", "Target", "2.6:1", "R:R", "Risk &amp; reward",
+                 "Pipeline detail", "ACCUMULATE", "Regime Change Pending", "Reuters",
+                 "Thesis pillars", "HBM sold out", "Thesis break", "news · bullish",
+                 "Up 2% pre-market", "Priced for perfection", "extended and overbought",
+                 "$952.20"):
+        assert gone not in html, gone
 
 
-def test_vs_cluster_absent_renders_no_cell():
-    html = render_drilldown_detail_html("NVDA", {})
-    assert "vs cluster" not in html
+def test_header_is_identity_price_and_change_without_a_pill():
+    html = _html()
+    head = html.split('<div class="dd-head">', 1)[1].split('<div class="dd-cols', 1)[0]
+    assert ">MU<" in head and ">Semis<" in head
+    assert "&#36;990.00" in head and "+1.25%" in head
 
 
-# ── news sentiment — status chip ──
-def test_sentiment_chip_bullish_uses_pos_color():
-    html = render_drilldown_detail_html("NVDA", {"news_sentiment_skew": "bullish"})
-    assert "news · bullish" in html
-    assert STATUS_POS in html
+def test_card_order_is_levels_technicals_valuation_drawer_news():
+    html = _html({"thesis_highlights": ["HBM is sold out through 2027"],
+                  "valuation": {"forward_pe": 12.0}})
+    order = [html.index(x) for x in ('>Levels<', '>Technicals<', '>Valuation<',
+                                      'class="dd-drawer"', '>News &amp; context<')]
+    assert order == sorted(order)
 
 
-def test_sentiment_chip_bearish_uses_neg_color():
-    html = render_drilldown_detail_html("NVDA", {"news_sentiment_skew": "bearish"})
-    assert "news · bearish" in html
-    assert STATUS_NEG in html
+def test_card_has_one_neutral_rail_and_one_drawer():
+    html = _html()
+    assert html.startswith('<div class="dd-card">')
+    assert html.count('<details class="dd-drawer">') == 1
+    assert "<summary>Earnings</summary>" in html
 
 
-def test_sentiment_chip_mixed_and_neutral_colors():
-    mixed = render_drilldown_detail_html("NVDA", {"news_sentiment_skew": "mixed"})
-    assert "news · mixed" in mixed and STATUS_WARN in mixed
-    neutral = render_drilldown_detail_html("NVDA", {"news_sentiment_skew": "neutral"})
-    assert "news · neutral" in neutral and STATUS_NEUTRAL in neutral
+# ── Levels ladder ──
+def test_ladder_lists_levels_high_to_low_with_the_last_price():
+    html = _html()
+    ladder = html.split('class="dd-ladder"', 1)[1].split("</div></div><div class", 1)[0]
+    labels = [s.split("</span>")[0] for s in ladder.split('class="dd-rung-lbl">')[1:]]
+    # 1150 · 1089.12 · last 990 · 952.20 · SMA50 940 · 900 · SMA200 800
+    assert labels == ["Resistance", "Resistance", "Last", "Support", "50-day avg",
+                      "Support", "200-day avg"]
+    assert "+10.0%" in ladder           # 1,089.12 is 10.0% above 990
+    assert "-3.8%" in ladder            # 952.20 is 3.8% below
 
 
-def test_sentiment_absent_renders_no_chip():
-    html = render_drilldown_detail_html("NVDA", {})
-    assert "news ·" not in html
+def test_ladder_drops_synthetic_fallback_levels():
+    # AMD 10-01: two "resistances" at exactly price x 1.05 / x 1.15.
+    d = {"price": 611.76, "resistance_zones": [642.35, 703.52],
+         "support_zones": [496.75, 461.71], "sma50": 560.0, "sma200": 400.0}
+    html = render_drilldown_detail_html("AMD", d)
+    assert "Resistance" not in html
+    assert "642.35" not in html and "703.52" not in html
+    assert "496.75" in html
 
 
-# ── premarket — status chip from the pipeline-authored phrase ──
-def test_premarket_chip_renders_phrase_colored_by_sign():
-    d = {"premarket": {"phrase": "premarket -0.9% vs prior close", "pm_chg_pct": -0.86}}
+def test_ladder_is_uncoloured():
+    ladder = _html().split('class="dd-ladder"', 1)[1].split('class="dd-eyebrow">Technicals', 1)[0]
+    assert "style=" not in ladder and " up" not in ladder and " down" not in ladder
+
+
+def test_no_levels_no_ladder():
+    assert ">Levels<" not in render_drilldown_detail_html("MU", {"price": 1.0})
+
+
+# ── Technicals ──
+def test_technicals_print_numbers_without_zone_words():
+    d = {"rsi_14": 77, "rsi_zone": "overbought", "vol_ratio": 1.42,
+         "volume_signal": "confirmed", "sma50_rising": True, "days_above_sma50": 12}
     html = render_drilldown_detail_html("NVDA", d)
-    assert "premarket -0.9% vs prior close" in html
-    assert STATUS_NEG in html
+    assert "RSI (14-session)" in html and ">77<" in html
+    assert "1.42× 10-session avg" in html
+    assert ">rising<" in html and ">12<" in html
+    assert "overbought" not in html and "confirmed" not in html
 
 
-# ── UX review 2026-07-07: plain-English chips, honest R:R stat ──
-def test_momentum_chip_uses_plain_label_not_raw_identifier():
-    d = {"momentum_warn": True, "momentum_warn_reasons": ["vol_ratio 0.67 (<0.7)"]}
+def test_sma50_not_rising_is_not_called_declining():
+    html = render_drilldown_detail_html("NVDA", {"sma50_rising": False})
+    assert ">not rising<" in html and "declining" not in html
+
+
+def test_vs_cluster_rows_render_signed_values():
+    d = {"vs_cluster_chg_pct": 1.21, "vs_cluster_5d_pct": -14.55, "vs_cluster_1mo_pct": 3.0}
     html = render_drilldown_detail_html("NVDA", d)
-    assert "Momentum warning" in html
-    assert "momentum_warn" not in html          # raw field name no longer leaks
-    # the pipeline-authored reason stays verbatim (escaped) — data, not chrome
-    assert "vol_ratio 0.67 (&lt;0.7)" in html
+    assert "vs cluster · day" in html and "+1.21%" in html
+    assert "-14.6%" in html and "+3.0%" in html
 
 
-def test_caution_chip_drops_redundant_raw_id_when_mapped():
-    html = render_drilldown_detail_html("NVDA", {"caution_source": "hard_block"})
-    assert "Mechanical hard block" in html
-    assert "hard_block" not in html
-    # unmapped ids still surface raw — the id is the only label available
-    html2 = render_drilldown_detail_html("NVDA", {"caution_source": "mystery_gate"})
-    assert "mystery_gate" in html2
+def test_vs_cluster_absent_renders_no_row():
+    assert "vs cluster" not in render_drilldown_detail_html("NVDA", {})
 
 
-def test_analyst_consensus_humanized():
+# ── Valuation ──
+def test_consensus_is_labelled_as_the_sourced_third_party_figure():
     d = {"valuation": {"forward_pe": 15.3,
                        "analyst_consensus": {"recommendation": "strong_buy",
                                              "num_analysts": 58}}}
     html = render_drilldown_detail_html("NVDA", d)
+    assert "Sell-side consensus (Yahoo)" in html
     assert "Strong buy · 58 analysts" in html
     assert "strong_buy" not in html
 
 
-def test_analyst_consensus_none_renders_no_cell():
-    # yfinance's literal "none" sentinel maps to "—", which the metrics grid
-    # drops entirely — same treatment as any other absent metric.
+def test_consensus_none_renders_no_row():
     d = {"valuation": {"forward_pe": 15.3,
-                       "analyst_consensus": {"recommendation": "none",
-                                             "num_analysts": 4}}}
+                       "analyst_consensus": {"recommendation": "none", "num_analysts": 4}}}
     html = render_drilldown_detail_html("NVDA", d)
-    assert "Analyst consensus" not in html
-    assert "none" not in html
+    assert "Sell-side consensus" not in html
 
 
-def test_headline_rr_flags_tight_stop_distortion():
-    d = {"risk_reward": {"ratio": 22.5, "ratio_label": "22.5:1",
-                         "rr_quality": "observed", "rr_distorted": True,
-                         "invalidation": 194.74,
-                         "sizing_rr": {"ratio": 3.9}}}
-    html = render_drilldown_detail_html("NVDA", d)
-    assert "tight-stop distorted" in html
+def test_cluster_median_pe_without_a_delta_drops_the_parenthetical():
+    html = render_drilldown_detail_html("CRWV", {"valuation": {"cluster_median_pe": 25.6}})
+    assert "25.6x" in html
+    assert "—%" not in html
+    assert "(" not in html.split("25.6x")[1][:6]
 
 
-def test_headline_rr_clean_when_not_distorted():
-    d = {"risk_reward": {"ratio": 2.4, "ratio_label": "2.4:1",
-                         "rr_quality": "observed", "invalidation": 100.0}}
-    html = render_drilldown_detail_html("NVDA", d)
-    assert "distorted" not in html
-    assert "2.4:1 (observed)" in html
-
-    d_up = {"premarket": {"phrase": "premarket +0.5% vs prior close", "pm_chg_pct": 0.53}}
-    html_up = render_drilldown_detail_html("NVDA", d_up)
-    assert STATUS_POS in html_up
+def test_cluster_median_pe_with_a_delta_keeps_it():
+    d = {"valuation": {"cluster_median_pe": 25.6, "pe_vs_cluster_pct": -37.0}}
+    assert "25.6x (-37%)" in render_drilldown_detail_html("CRWV", d)
 
 
-def test_premarket_without_phrase_renders_no_chip():
-    html = render_drilldown_detail_html("NVDA", {"premarket": {"pm_chg_pct": -1.0}})
-    assert "premarket" not in html
+# ── Data-health chips ──
+def test_clean_name_has_no_chips():
+    assert "dd-chips" not in render_drilldown_detail_html("NVDA", {"price": 1.0})
 
 
-def test_premarket_phrase_is_escaped():
-    d = {"premarket": {"phrase": '<script>alert(1)</script>', "pm_chg_pct": 1.0}}
-    html = render_drilldown_detail_html("NVDA", d)
-    assert "<script>" not in html
-    assert "&lt;script&gt;" in html
+def test_data_anomaly_keeps_the_fact_and_drops_the_label_sentence():
+    d = {"data_anomaly": "price_source_conflict: fast_info prev_close $13.18 vs history "
+                         "$11.73 diverge by 11.0%. Signal suppressed. | insufficient_history=40",
+         "price_source_conflict": True}
+    html = render_drilldown_detail_html("NVTS", d)
+    assert "diverge by 11.0%." in html
+    assert "insufficient history = 40" in html
+    assert "Signal suppressed" not in html
+    assert html.count('class="dd-chip"') == 1        # the conflict is not chipped twice
 
 
-# ── Wide-stop R:R falls back to sizing_rr (UX-BR-2 / WL-1 / TM-1) ──
-# Tight-invalidation names carry the corrective deeper-stop ratio under
-# `sizing_rr`, not `wide_stop_rr`; the "Wide-stop R:R" row must surface it
-# rather than render "—" (Terminology promises both R:R numbers in the drilldown).
-def test_wide_stop_rr_falls_back_to_sizing_rr():
-    d = {"risk_reward": {
-        "ratio_label": "46.5:1", "rr_quality": "observed", "rr_distorted": True,
-        "structural_support": 190.82, "structural_support_pct": 2.1,
-        "sizing_rr": {"ratio": 4.4, "ratio_label": "4.4:1"},
-    }}
-    html = render_drilldown_detail_html("NVDA", d)
-    assert "Wide-stop R:R" in html
-    assert "4.4" in html            # sizing_rr.ratio surfaced (was "—")
+def test_sma50_warning_loses_its_entry_advice():
+    d = {"sma50_warning": "SMA50 is 28% below price — pullback to SMA50 would require a "
+                          "crash-level move. Use shorter-term support levels for entry "
+                          "guidance instead."}
+    html = render_drilldown_detail_html("AXTI", d)
+    assert "SMA50 is 28% below price" in html
+    assert "entry" not in html.lower().split("dd-chips", 1)[1]
 
 
-def test_wide_stop_rr_prefers_explicit_field_over_sizing():
-    d = {"risk_reward": {
-        "ratio_label": "3.0:1", "wide_stop_rr": 2.5,
-        "sizing_rr": {"ratio": 4.4},
-        "structural_support": 100.0, "structural_support_pct": 5.0,
-    }}
-    html = render_drilldown_detail_html("NVDA", d)
-    assert "2.5" in html
-    assert "4.4" not in html        # explicit wide_stop_rr wins over the fallback
+def test_stale_and_freshness_notes_render_as_chips():
+    d = {"stale_session": True, "stale_session_note": "No new session since 2026-09-23.",
+         "data_freshness_note": "technicals through 2026-09-29: behind"}
+    html = render_drilldown_detail_html("000660_KS", d)
+    assert "No new session" in html and "Data freshness" in html
 
 
-# ── Thesis highlights — news-matched guardrail bullets (surfacing gap closed 2026-07-04) ──
-# The pipeline emits thesis_highlights on ~5/29 names/day (thesis guardrails that fired
-# on the day's news, e.g. MSFT's OpenAI-RPO caveat); previously rendered nowhere. Surface
-# them as an amber-bordered list above the Technicals section when present.
+def test_fact_text_keeps_ordinary_words_that_contain_label_letters():
+    assert fact_text("Market closed: holiday/weekend.") == "Market closed: holiday/weekend."
+    assert fact_text("Signal suppressed.") == ""
+
+
+# ── Earnings drawer ──
+def test_earnings_drawer_states_the_next_report_date():
+    d = {"accumulate_gates": {"earnings_days_until": 47}}
+    html = render_drilldown_detail_html("NVDA", d, report_date="2026-10-01")
+    assert "Next report." in html and "17 Nov 2026 · in 47 d" in html
+
+
+def test_band_renders_reactions_without_the_archetype():
+    html = _html()
+    assert "Past earnings reactions" in html
+    assert "Average up move." in html and "Average down move." in html
+    assert "Bull case" not in html and "Bear case" not in html
+
+
+def test_earnings_result_headline_lives_in_the_drawer():
+    html = _html({"earnings_results_in_news": {"headline": "beat", "source": "Wire"}})
+    drawer = html.split('<details class="dd-drawer">', 1)[1].split("</details>", 1)[0]
+    assert '"beat"' in drawer
+
+
+# ── News & context ──
 def test_thesis_highlights_render_each_bullet():
-    d = {"thesis_highlights": [
-        "SK Hynix dominates HBM3E with >50% share",
-        "ADR/China delisting risk is a standing consideration",
-    ]}
+    d = {"thesis_highlights": ["SK Hynix dominates HBM3E with >50% share",
+                               "ADR/China delisting risk is a standing consideration"]}
     html = render_drilldown_detail_html("000660_KS", d)
     assert "Thesis highlights" in html
-    assert "SK Hynix dominates HBM3E with &gt;50% share" in html   # > HTML-escaped
+    assert "SK Hynix dominates HBM3E with &gt;50% share" in html
     assert "ADR/China delisting risk is a standing consideration" in html
-
-
-def test_thesis_highlights_absent_renders_no_section():
-    html = render_drilldown_detail_html("NVDA", {})
-    assert "Thesis highlights" not in html
 
 
 def test_thesis_highlights_empty_or_blank_items_stay_silent():
     html = render_drilldown_detail_html("NVDA", {"thesis_highlights": ["", "  "]})
-    assert "Thesis highlights" not in html
+    assert "Thesis highlights" not in html and "News &amp; context" not in html
 
 
-def test_thesis_highlights_escapes_dollars_and_markup():
+def test_thesis_highlights_escape_dollars_and_markup():
     d = {"thesis_highlights": ["~45% of MSFT $625B RPO is OpenAI-linked <risk>"]}
     html = render_drilldown_detail_html("MSFT", d)
-    assert "&#36;625B" in html        # $ neutralized so Streamlit won't render LaTeX math
-    assert "<risk>" not in html        # raw markup escaped, not injected
-    assert "&lt;risk&gt;" in html
+    assert "&#36;625B" in html
+    assert "<risk>" not in html and "&lt;risk&gt;" in html
+
+
+def test_catalyst_renders_facts_only():
+    d = {"catalyst": {"catalyst_type": "contract_win", "catalyst_event": "HBM contract",
+                      "catalyst_source": "Reuters", "catalyst_date": "2026-09-25",
+                      "narrative_only": True,
+                      "catalyst_rr": {"ratio": 3.0}, "catalyst_position_tier": {"tier": "T1"}}}
+    html = render_drilldown_detail_html("MU", d)
+    assert "Contract win." in html and "HBM contract" in html
+    assert "Reuters" in html and "2026-09-25" in html
+    for gone in ("Catalyst R:R", "Position tier", "Signal impact", "does not change the signal"):
+        assert gone not in html
 
 
 # ── Earnings history — quarter-on-quarter expected vs actual (2026-07-24) ──
-
 def _eh_rows():
     """Newest-first records like the CSV export; NaN mimics empty CSV cells."""
     nan = float("nan")
@@ -216,251 +293,26 @@ def test_earnings_history_renders_section_and_table():
     html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
     assert "Earnings history" in html
     assert "2026-Q2" in html and "1.87" in html
-    assert "81.61B" in html                       # revenue T/B/M formatting
+    assert "81.61B" in html
 
 
 def test_earnings_history_absent_is_silent():
     assert "Earnings history" not in render_drilldown_detail_html("NVDA", {})
-    assert "Earnings history" not in render_drilldown_detail_html(
-        "NVDA", {}, earnings_hist=[])
+    assert "Earnings history" not in render_drilldown_detail_html("NVDA", {}, earnings_hist=[])
 
 
 def test_earnings_history_beat_and_miss_encoding():
     html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
-    assert 'class="eps-beat">▲ +5.6%' in html     # beat: up arrow + green class
-    assert 'class="eps-miss">▼ -3.1%' in html      # miss: down arrow + red class
+    assert 'class="eps-beat">▲ +5.6%' in html
+    assert 'class="eps-miss">▼ -3.1%' in html
 
 
 def test_earnings_history_coming_quarter_snapshot():
     html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
-    assert "upcoming" in html                      # coming-quarter pill
-    assert "91.82B" in html and ">est<" in html    # forward revenue estimate marked
+    assert "upcoming" in html
+    assert "91.82B" in html and ">est<" in html
 
 
 def test_earnings_history_missing_margins_render_dash():
-    # 2026-Q1 has null margins → cells must be em-dash, not crash.
     html = render_drilldown_detail_html("NVDA", {}, earnings_hist=_eh_rows())
-    assert "74.9%" in html                          # a present margin still shows
-
-
-# ── Redesign 2026-07-25: verdict-first card, levels plate, three drawers ──
-# The shipped drill-down stacked fifteen undifferentiated sections, so "the trade
-# is blocked" could sit below four paragraphs of analysis. These tests pin the
-# reading order, not just the presence of the blocks.
-_MU = {
-    "signal": "CAUTION",
-    "price": 990.0,
-    "currency": "USD",
-    "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
-    "entry_block_reader": "Entry blocked: up 16.1% in five sessions.",
-    "reentry_zone": {"level": "$952.20", "source": "sma50"},
-    "risk_reward": {
-        "invalidation": 952.2, "upside_target": 1089.12,
-        "ratio": 2.6, "ratio_label": "2.6:1",
-        "upside_pct": 10.0, "downside_pct": 3.8,
-    },
-    "writeup": {
-        "headline": "An 11.3% surge reclaims the 50-day.",
-        "prior_period_delta_narrative": "Rating held from yesterday.",
-        "what_to_do": "Wait for the move to settle.",
-        "thesis_break_condition": "A close back below the 50-day.",
-        "entry_block": "BLOCKED: 5-day change +16.1% (>10% momentum chase block).",
-    },
-    "support_legs": ["HBM sold out", "Pricing power", "Capex discipline"],
-}
-
-
-def test_card_carries_the_rows_signal_rail():
-    html = render_drilldown_detail_html("MU", _MU)
-    assert 'class="dd-card"' in html
-    assert 'data-signal="CAUTION"' in html
-
-
-def test_entry_block_precedes_the_verdict_headline():
-    # The trade is blocked: the most consequential fact goes before the analysis,
-    # not mid-list.
-    html = render_drilldown_detail_html("MU", _MU)
-    assert html.index("dd-entry-block") < html.index("dd-verdict")
-
-
-def test_verdict_precedes_what_changed_which_precedes_what_to_do():
-    html = render_drilldown_detail_html("MU", _MU)
-    assert html.index("dd-verdict") < html.index("dd-delta") < html.index("dd-whatdo")
-
-
-def test_identity_header_leads_the_card():
-    html = render_drilldown_detail_html("MU", _MU)
-    assert html.index("dd-head-tk") < html.index("dd-entry-block")
-    # _ccy_prefix already yields the HTML entity, so Streamlit never reads a
-    # price pair as LaTeX math.
-    assert "&#36;990.00" in html
-
-
-def test_levels_plate_has_four_cells_in_role_colours():
-    html = render_drilldown_detail_html("MU", _MU)
-    assert html.count("dd-lv-val") == 4
-    assert "952.20" in html                      # trigger
-    assert "var(--up)" in html                   # target: a price you hope for
-    assert "var(--down)" in html                 # invalidation: one you fear
-    assert "var(--brass)" in html                # R:R: a measurement, not a price
-
-
-def test_levels_plate_drops_to_three_cells_without_an_rr_ratio():
-    d = dict(_MU, risk_reward={"invalidation": 952.2, "upside_target": 1089.12})
-    assert render_drilldown_detail_html("MU", d).count("dd-lv-val") == 3
-
-
-def test_levels_plate_absent_when_the_report_has_no_levels():
-    d = {"signal": "HOLD", "price": 100.0}
-    assert "dd-lv-val" not in render_drilldown_detail_html("MSFT", d)
-
-
-def test_pillars_are_numbered_and_the_falsifier_is_last():
-    html = render_drilldown_detail_html("MU", _MU)
-    assert ">01<" in html and ">03<" in html
-    assert html.index("dd-pillar") < html.index("dd-break")
-
-
-def test_technicals_and_valuation_share_the_left_column():
-    html = render_drilldown_detail_html("MU", dict(_MU, vs_sma50_pct=3.9))
-    assert "dd-col-left" in html and "dd-col-right" in html
-    assert html.index("dd-col-left") < html.index("dd-col-right")
-
-
-def test_valuation_no_longer_repeats_the_cluster():
-    # Stated in the card header and the grid row already; a third printing is
-    # noise in a column of measurements.
-    html = render_drilldown_detail_html("MU", dict(_MU, valuation={"forward_pe": 15.3}))
-    assert "dd-pair-lbl\">Cluster<" not in html
-
-
-def test_three_drawers_are_collapsed_details_not_st_expanders():
-    # They live inside a markdown-injected <details>, where st.expander cannot.
-    d = dict(
-        _MU,
-        pre_earnings_band={"earnings_date": "2026-08-01", "days_until": 7},
-        accumulate_gates={"g1_signal_eligible": True},
-    )
-    html = render_drilldown_detail_html("MU", d)
-    assert html.count('<details class="dd-drawer">') == 3
-    assert "<details class=\"dd-drawer\" open" not in html   # collapsed by default
-
-
-def test_a_drawer_with_no_populated_block_does_not_render():
-    html = render_drilldown_detail_html("MU", _MU)   # no band, no gates, no RCP
-    assert "Pipeline detail" not in html
-
-
-def test_every_relocated_block_still_renders_somewhere():
-    d = dict(
-        _MU,
-        pre_earnings_band={"earnings_date": "2026-08-01", "days_until": 7,
-                           "setup_archetype": "neutral"},
-        accumulate_gates={"g1_signal_eligible": True, "all_mechanical_pass": False},
-        rcp_state={"current_phase": "cooling_off", "sessions_since_gap": 3},
-        support_zones=[900.0], resistance_zones=[1100.0],
-        avoid_source={"publication": "Reuters", "headline_fragment": "x"},
-        earnings_results_in_news={"headline": "beat"},
-        catalyst={"catalyst_event": "HBM contract", "narrative_only": True},
-        thesis_highlights=["HBM is sold out through 2027"],
-    )
-    html = render_drilldown_detail_html("MU", d)
-    for needle in ("Earnings setup", "Risk &amp; reward detail", "Pipeline detail",
-                   "Signal eligible", "Regime Change Pending", "Support",
-                   "Resistance", "Reuters", "beat", "HBM contract",
-                   "Thesis highlights", "Headline R:R"):
-        assert needle in html, needle
-    # "Wide-stop R:R" is absent here on purpose: this fixture carries neither
-    # wide_stop_rr nor sizing_rr, and an absent metric drops out rather than
-    # printing a gap (see test_wide_stop_rr_falls_back_to_sizing_rr).
-    assert "Wide-stop R:R" not in html
-
-
-def test_data_quality_warnings_do_not_borrow_the_watch_hue():
-    # Amber is WATCH. A momentum divergence is a data condition, not a rating —
-    # and the pill is three inches away, so a second verdict colour would read as
-    # a second verdict.
-    from lib.charts import STATUS_WARN_SOFT
-    html = render_drilldown_detail_html(
-        "MU", dict(_MU, momentum_warn=True, momentum_warn_reasons=["vol thin"])
-    )
-    assert STATUS_WARN_SOFT not in html
-    assert "var(--stress)" in html
-
-
-def test_both_halves_of_the_left_column_are_labelled():
-    # Without eyebrows the tape readings and the multiples run together into one
-    # undifferentiated list, and the right column already labels its parts.
-    html = render_drilldown_detail_html(
-        "MU", dict(_MU, vs_sma50_pct=3.9, valuation={"forward_pe": 15.3})
-    )
-    assert 'class="dd-eyebrow">Technicals<' in html
-    assert 'class="dd-eyebrow">Valuation<' in html
-    assert html.index("Technicals") < html.index("Valuation")
-
-
-def test_an_absent_half_takes_its_eyebrow_with_it():
-    html = render_drilldown_detail_html("MSFT", {"signal": "HOLD"})
-    assert "dd-eyebrow\">Valuation<" not in html
-
-
-# ── Composite pair values must not print an em-dash inside their own units ──
-# Caught by a sweep of all 102 reports: a present cluster-median P/E with an
-# absent cluster delta rendered "25.6x (—%)" — the same absent-value bug the row
-# cells were fixed for in the 2026-07-07 UX review, inherited by the pair list.
-def test_cluster_median_pe_without_a_delta_drops_the_parenthetical():
-    d = {"valuation": {"cluster_median_pe": 25.6}}      # no pe_vs_cluster_pct
-    html = render_drilldown_detail_html("CRWV", d)
-    assert "25.6x" in html
-    assert "—%" not in html
-    assert "(" not in html.split("25.6x")[1][:6]
-
-
-def test_cluster_median_pe_with_a_delta_keeps_it():
-    d = {"valuation": {"cluster_median_pe": 25.6, "pe_vs_cluster_pct": -37.0}}
-    html = render_drilldown_detail_html("CRWV", d)
-    assert "25.6x (-37%)" in html
-
-
-def test_sma50_without_a_direction_drops_the_parenthetical():
-    html = render_drilldown_detail_html("NVDA", {"sma50": 209.38})
-    assert "209.38" in html
-    assert "(—)" not in html
-
-
-def test_rsi_without_a_zone_has_no_trailing_space():
-    html = render_drilldown_detail_html("NVDA", {"rsi_14": 53})
-    assert ">53</span>" in html
-
-
-# ── ACCUMULATE-gates summary line: model era vs data-only (2026-10-01) ──
-# MarketReport went data-only on 2026-09-28 (meta.llm_enabled False): nothing
-# assigns ACCUMULATE any more, so a full gate pass no longer leads to a judgment
-# call (TSEM, 09-28: every gate passed, shipped WATCH). Older reports keep the
-# line they shipped with, which was true for them (CBRS, 09-24: ACCUMULATE).
-_ALL_PASS = dict(_MU, accumulate_gates={"g1_signal_eligible": True,
-                                        "all_mechanical_pass": True})
-
-
-def test_gate_line_model_era_keeps_the_judgment_wording():
-    html = render_drilldown_detail_html("MU", _ALL_PASS)
-    assert "Claude judgment determines ACCUMULATE" in html
-    assert "no longer assigns ACCUMULATE" not in html
-
-
-def test_gate_line_data_only_says_nothing_assigns_accumulate_in_neutral_ink():
-    html = render_drilldown_detail_html("MU", _ALL_PASS, data_only=True)
-    assert "Claude judgment" not in html
-    line = ("All mechanical gates pass — the report no longer assigns ACCUMULATE "
-            "(it is data-only), so the signal shown is the mechanical one")
-    assert line in html
-    # neutral ink, not the green "good" status colour (colour is a claim)
-    div = html[html.rfind("<div", 0, html.index(line)):html.index(line)]
-    assert "color:var(--ink-3)" in div and STATUS_POS not in div
-
-
-def test_gate_line_data_only_leaves_a_failed_gate_line_alone():
-    failed = dict(_MU, accumulate_gates={"g1_signal_eligible": False,
-                                         "all_mechanical_pass": False})
-    assert (render_drilldown_detail_html("MU", failed, data_only=True)
-            == render_drilldown_detail_html("MU", failed))
+    assert "74.9%" in html

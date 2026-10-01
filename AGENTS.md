@@ -42,7 +42,7 @@ fuller project instructions.
   with `requirements.lock` installed; the task brief names the one to use.
 - Tests: `<py310> -m pytest tests -q` — module form is required (puts the
   repo root on `sys.path`). `tests/visual` is excluded by `pyproject.toml`.
-  Baseline 2026-09-15 (post-R12 batch): **718 passed / 1 skipped** on Python 3.10.
+  Baseline 2026-10-01 (info-only S1; Tracker / Review tests went with the pages): **253 passed** on Python 3.10.
 - Lint: `<py310> -m ruff check .` — config in `pyproject.toml`
   (line-length 100, `E501` ignored); `tests/test_lint.py` enforces it.
 - `tests/test_schema.py` reads the newest `data/morning_report_*.json` and
@@ -54,29 +54,34 @@ fuller project instructions.
   export_to_dashboard` (called from step 10 of the pipeline, ~12:10 SGT)
   writes: the day's `morning_report_<date>.json` (through a privacy wall),
   `report_memory.json`, and CSVs re-exported IN FULL from the pipeline's
-  SQLite DB each run — `market_data.csv`, `pipeline_stats.csv`,
-  `claude_analysis.csv`, `signal_log.csv`, `earnings_history.csv` — then
+  SQLite DB each run — `market_data.csv`, `signal_log.csv` (neither has a
+  reader since 2026-10-01; both exports change at the pipeline's label
+  cutover), `earnings_history.csv` (`pipeline_stats.csv` and
+  `claude_analysis.csv` exports were removed 2026-09-30 / 10-01) — then
   `git add data/ && git commit && git push origin main`. A skipped slot (US
   holiday) writes nothing that day. `capex_quarterly.json`, `changelog.json`
   and `earnings_cascades.json` are hand-curated by the owner;
   `market_reads.json` is written by a separate owner-run script.
 - **Every number on a page is either read from a report JSON, read from a
-  CSV, or derived in `lib/` / `components/` from those.** The pipeline's
-  `calibration_insights` block inside each report JSON (since 2026-07-02)
-  carries the pipeline's own signal-accuracy figures; since 2026-08-27 the
-  Tracker tiles show THOSE (benchmark-relative `alpha_10d`), and locally
-  computed price-direction rates are a demoted popover only.
+  CSV, or derived in `lib/` / `components/` from those.** **Facts only since
+  2026-10-01** (MarketReport spec 2026-10-01-info-only-watchlist; tag
+  `pre-label-removal`): no page renders a signal label, rating, ranking,
+  bucket, gate, R:R or entry verdict, for any report date. Reports up to the
+  pipeline cutover still carry those keys (and `calibration_insights`) in
+  their JSON; nothing reads them. The Signal Tracker and Review pages went
+  with the labels.
 - **Rendering path:** `dashboard.py` registers pages with `st.navigation`;
   the Briefing and Watchlist wrap their bodies in `st.fragment(run_every=60)`
   when live prices are on and overlay Yahoo quotes onto the LATEST report
   only (`live_prices.overlay_live` replaces `price` / `chg_pct`, nothing
-  else). The sidebar date range filters the Tracker / Compare corpora;
-  Briefing / Watchlist / Review are not range-filtered.
+  else). No page is date-range filtered (the sidebar range fed only the
+  Tracker and went with it); the Watchlist has its own report-date picker.
 - **Caches:** every loader in `lib/data_loader.py` is `st.cache_data`
   keyed on `(path, mtime)`; a rewritten file busts its entry on the next
   rerun. `fetch_live_quotes` is `ttl=60`.
 - **Clock:** `lib/clock.today()` honours `TEST_DATE=YYYY-MM-DD`; production
-  never sets it. `LIVE_QUOTES_DISABLED=1` skips the Yahoo batch.
+  never sets it, and since 2026-10-01 no page reads it (inert test seam).
+  `LIVE_QUOTES_DISABLED=1` skips the Yahoo batch.
 - **Ticker keys:** report JSONs and `signal_log.csv` use
   sanitized keys (`000660_KS`, `SOI_PA`); `market_data.csv` uses the
   provider's dotted symbols (`000660.KS`, `SOI.PA`); `assets/catalog.json`
@@ -116,9 +121,15 @@ fuller project instructions.
 
 ## Things that are CLOSED — do not reopen or "improve"
 
-- **Tracker tiles read the pipeline's `alpha_10d`** (owner decision
-  2026-08-27, "option C"). Do not reintroduce a locally computed hit-rate
-  headline; the local 5/20-session direction view lives in the popover only.
+- **Information only — no labels on any page** (owner decision 2026-10-01,
+  MarketReport spec 2026-10-01-info-only-watchlist O1–O8): no signal, rating,
+  ranking, bucket, gate, R:R or entry instruction; the Watchlist keeps ONE fixed
+  cluster order; the Tracker and Review pages are removed (tag
+  `pre-label-removal` restores them). Signal accuracy is neither shown nor
+  refuted — never describe the change as "signals proven inaccurate".
+  Re-introducing a label or ranking is the pipeline's Measurement Gate's call.
+  (It superseded the 2026-08-27 "Tracker tiles read `alpha_10d`" rule along
+  with the tiles; a local hit-rate headline stays banned.)
 - **Colour is a claim** (owner decision 2026-09-01): green/red only where a
   significance / qualification test passes (it was written for the paper
   scorecard — deflated-Sharpe ≥ 95 %, R-multiple n ≥ 5 — removed 2026-10-01);
@@ -133,8 +144,8 @@ fuller project instructions.
   `book_stop` line and the `paper_*.csv` exports are gone (pipeline stops
   writing them from the 2026-10-02 run). The record stays in the pipeline's
   SQLite and in git (tag `pre-paper-freeze`).
-- The Review page keeps RETIRED tickers in its call ledger on purpose
-  (survivorship); the Watchlist / price frames drop them on purpose.
+- The Watchlist drops RETIRED tickers on purpose (the Review page, which
+  kept them for survivorship, went 2026-10-01).
 
 ## How to work here
 

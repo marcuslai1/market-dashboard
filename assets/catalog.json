@@ -1,40 +1,22 @@
 {
-  "_comment": "Single source of truth for signal palette + ticker metadata; consumed by lib/catalog.py (Python side). The CSS palette in assets/theme.css (:root --buy … --caution) hand-mirrors the `signals.colors`/`signals.tints` values here; tests/test_design_tokens.py fails if they drift.",
-  "signals": {
-    "order": ["BUY", "ACCUMULATE", "WATCH", "HOLD", "CAUTION", "AVOID"],
-    "writeup": ["BUY", "ACCUMULATE", "WATCH", "CAUTION", "AVOID"],
-    "actionable": ["BUY", "ACCUMULATE", "WATCH"],
+  "_comment": "Single source of truth for the tone palette + ticker metadata; consumed by lib/catalog.py (Python side). The CSS palette in assets/theme.css (:root --tone-pos … --tone-neg-deep) hand-mirrors the `tones.colors`/`tones.tints` values here; tests/test_design_tokens.py fails if they drift.",
+  "tones": {
+    "_comment": "Neutral colour roles. These hex values were the signal palette (BUY / ACCUMULATE / WATCH / HOLD / CAUTION / AVOID) until the labels left the dashboard on 2026-10-01 (MarketReport spec 2026-10-01-info-only-watchlist, tag pre-label-removal); the non-signal surfaces that reused them (earnings beat / miss, coverage banner, live-quote dot) keep the same colours under role names.",
     "colors": {
-      "BUY":        "#22c55e",
-      "ACCUMULATE": "#3498db",
-      "WATCH":      "#f59e0b",
-      "HOLD":       "#6b7280",
-      "CAUTION":    "#ef4444",
-      "AVOID":      "#b91c1c"
+      "pos":      "#22c55e",
+      "info":     "#3498db",
+      "warn":     "#f59e0b",
+      "muted":    "#6b7280",
+      "neg":      "#ef4444",
+      "neg_deep": "#b91c1c"
     },
     "tints": {
-      "BUY":        "rgba(34,197,94,0.16)",
-      "ACCUMULATE": "rgba(52,152,219,0.18)",
-      "WATCH":      "rgba(245,158,11,0.18)",
-      "HOLD":       "rgba(160,160,160,0.14)",
-      "CAUTION":    "rgba(239,68,68,0.16)",
-      "AVOID":      "rgba(185,28,28,0.20)"
-    },
-    "st_colors": {
-      "BUY": "green",
-      "ACCUMULATE": "blue",
-      "WATCH": "orange",
-      "HOLD": "gray",
-      "CAUTION": "red",
-      "AVOID": "red"
-    },
-    "verbs": {
-      "BUY":        "Enter now",
-      "ACCUMULATE": "Add on strength",
-      "WATCH":      "Wait for trigger",
-      "HOLD":       "Maintain",
-      "CAUTION":    "Trim / avoid",
-      "AVOID":      "Exit / stay out"
+      "pos":      "rgba(34,197,94,0.16)",
+      "info":     "rgba(52,152,219,0.18)",
+      "warn":     "rgba(245,158,11,0.18)",
+      "muted":    "rgba(160,160,160,0.14)",
+      "neg":      "rgba(239,68,68,0.16)",
+      "neg_deep": "rgba(185,28,28,0.20)"
     }
   },
   "tickers": {

@@ -52,16 +52,12 @@ def test_text_is_escaped():
     assert "<script>" not in html
 
 
-def test_terminology_leads_with_the_model_off_notice_only_after_a_data_only_report():
-    from components.terminology import mechanical_since, page_html, sections_for
-    model = {"2026-09-25": {"meta": {"llm_enabled": True}}, "2026-09-24": {"meta": {}}}
-    assert mechanical_since(model) is None and sections_for(model)[0]["id"] != "report-model-off"
-    both = dict(model, **{"2026-09-30": {"meta": {"llm_enabled": False}},
-                          "2026-10-01": {"meta": {"llm_enabled": False}}})
-    secs = sections_for(both)
-    assert mechanical_since(both) == "2026-09-30" and secs[0]["id"] == "report-model-off"
-    html = page_html(secs, {s["id"] for s in secs})
-    assert "Report model switched off" in html and "From 2026-09-30" in html
+def test_terminology_model_off_notice_gave_way_to_the_era_line():
+    # The 09-28 "Report model switched off" section explained which labels and
+    # writeups were mechanical; neither renders since 2026-10-01, so the dated
+    # era line (components.terminology_content.era_line_html) replaced it.
+    from components.terminology import SECTIONS
+    assert "report-model-off" not in {s["id"] for s in SECTIONS}
 
 
 # ── record v2 (MarketReport spec 2026-09-28-briefing-card-v2.md) ─────────────

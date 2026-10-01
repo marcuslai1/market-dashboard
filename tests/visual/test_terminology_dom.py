@@ -22,7 +22,7 @@ import pytest
 
 from tests.visual.harness import SETTLE_TIMEOUT_MS
 
-EXPECTED_SECTIONS = 11
+EXPECTED_SECTIONS = 9   # facts-only page since 2026-10-01
 
 
 def _settle(page, url: str) -> None:
@@ -53,16 +53,16 @@ def test_section_ids_and_index_anchors_survive_sanitization(streamlit_server, vp
 
 @pytest.mark.visual
 def test_inline_label_width_custom_property_reaches_the_grid(streamlit_server, vpage):
-    """R:R's term list asks for a 172px label column; if the sanitizer dropped
-    the inline custom property every grid would silently fall back to 132px."""
+    """Price Levels' term list asks for a 150px label column; if the sanitizer
+    dropped the inline custom property every grid would silently fall back to 132px."""
     _settle(vpage, f"{streamlit_server}/terminology")
 
     cols = vpage.evaluate("""() => {
-      const row = document.querySelector('#rr .term-grid[style*="172px"] .term-row');
+      const row = document.querySelector('#levels .term-grid[style*="150px"] .term-row');
       return row ? getComputedStyle(row).gridTemplateColumns : null;
     }""")
-    assert cols, "no 172px grid found in the R:R section — inline style stripped?"
-    assert cols.split()[0].startswith("172"), f"label column resolved to {cols}"
+    assert cols, "no 150px grid found in the Price Levels section — inline style stripped?"
+    assert cols.split()[0].startswith("150"), f"label column resolved to {cols}"
 
 
 @pytest.mark.visual
@@ -112,7 +112,7 @@ def test_formula_plates_render_as_blocks(streamlit_server, vpage):
     _settle(vpage, f"{streamlit_server}/terminology")
 
     got = vpage.evaluate("""() => {
-      const p = document.querySelector('#rr .term-plate');
+      const p = document.querySelector('#earnings .term-plate');
       if (!p) return null;
       const cs = getComputedStyle(p);
       const v = p.querySelector('var');
@@ -126,11 +126,11 @@ def test_formula_plates_render_as_blocks(streamlit_server, vpage):
         varStyle: vs && vs.fontStyle,
       };
     }""")
-    assert got, "no .term-plate in the R:R section — the class was stripped"
-    assert got["count"] == 5, f"expected 5 plates page-wide, saw {got['count']}"
+    assert got, "no .term-plate in the Earnings section — the class was stripped"
+    assert got["count"] == 2, f"expected 2 plates page-wide, saw {got['count']}"
     assert got["whiteSpace"].startswith("pre"), got["whiteSpace"]
     assert "mono" in got["font"] or "consolas" in got["font"], got["font"]
-    # Two formula lines plus padding: a collapsed plate is one line tall.
+    # A multi-line formula plus padding: a collapsed plate is one line tall.
     assert got["height"] > got["lineHeight"] * 1.8, (
         f"plate is {got['height']}px — its newline collapsed"
     )

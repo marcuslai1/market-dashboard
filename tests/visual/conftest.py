@@ -32,9 +32,10 @@ def _free_port() -> int:
 # renders its static snapshot data").
 _DETERMINISTIC_ENV = {
     **os.environ,
-    # Freeze lib.clock.today() so the today-anchored date filter (dashboard.py's
-    # default range → Signal Tracker / Pipeline / Scenario Log / Report Comparison)
-    # renders a fixed window; otherwise those baselines rot as the wall clock moves.
+    # Freeze lib.clock.today() so a today-anchored date filter renders a fixed
+    # window. Inert since 2026-10-01: the last date-filtered page (Signal Tracker,
+    # via the sidebar range) went with the labels; Pipeline / Scenario Log /
+    # Report Comparison went 2026-09-29. Kept so a dated page cannot rot silently.
     # 2026-07-22 = latest report date at the 2026-07-22 baseline regen (bare-string
     # scenario parse fix; data drift since 07-21 folded in — incl. the string-shaped
     # 07-22 scenarios the Scenario Log now renders instead of crashing on).

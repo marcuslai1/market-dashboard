@@ -5,14 +5,16 @@ These lock two things the design layer relied on but never enforced:
 1. ``_escape_dollars`` must neutralize HTML metacharacters, not just ``$``.
    Report prose is injected through ``unsafe_allow_html``; a stray ``<`` or
    ``&`` in LLM copy (``"P/E < 15"``, ``"R&D"``) used to break the markup.
-2. The signal palette in ``assets/theme.css`` (``--buy`` … ``--caution``) is a
-   hand-mirror of the canonical values in ``assets/catalog.json``. This test
+2. The tone palette in ``assets/theme.css`` (``--tone-pos`` … ``--tone-neg-deep``)
+   is a hand-mirror of the canonical values in ``assets/catalog.json``. This test
    fails the moment the two drift, since there is no build step to sync them.
+   (The tones were the signal palette until the labels left on 2026-10-01; the
+   colours stayed under neutral role names.)
 """
 import re
 from pathlib import Path
 
-from lib.catalog import SIGNAL_COLORS, SIGNAL_TINTS
+from lib.catalog import TONE_COLORS, TONE_TINTS
 from lib.formatters import _escape_dollars
 
 _THEME_CSS = (Path(__file__).resolve().parent.parent / "assets" / "theme.css").read_text(
@@ -52,31 +54,36 @@ def _theme_token(name: str) -> str:
     return m.group(1).strip()
 
 
-def test_theme_signal_colors_match_catalog():
-    for sig, var in [
-        ("BUY", "--buy"),
-        ("ACCUMULATE", "--accumulate"),
-        ("WATCH", "--watch"),
-        ("HOLD", "--hold"),
-        ("CAUTION", "--caution"),
-        ("AVOID", "--avoid"),
-    ]:
-        assert _theme_token(var).lower() == SIGNAL_COLORS[sig].lower(), (
-            f"{var} in theme.css drifted from catalog.json {sig}"
+_TONE_VARS = {
+    "pos": "--tone-pos", "info": "--tone-info", "warn": "--tone-warn",
+    "muted": "--tone-muted", "neg": "--tone-neg", "neg_deep": "--tone-neg-deep",
+}
+
+
+def test_theme_tone_colors_match_catalog():
+    for tone, var in _TONE_VARS.items():
+        assert _theme_token(var).lower() == TONE_COLORS[tone].lower(), (
+            f"{var} in theme.css drifted from catalog.json tones.{tone}"
         )
 
 
-def test_theme_signal_tints_match_catalog():
-    for sig, var in [
-        ("BUY", "--buy-tint"),
-        ("ACCUMULATE", "--accumulate-tint"),
-        ("WATCH", "--watch-tint"),
-        ("HOLD", "--hold-tint"),
-        ("CAUTION", "--caution-tint"),
-    ]:
-        want = SIGNAL_TINTS[sig].replace(" ", "")
-        got = _theme_token(var).replace(" ", "")
-        assert got == want, f"{var} in theme.css drifted from catalog.json {sig} tint"
+def test_theme_tone_tints_match_catalog():
+    # neg_deep is excluded on purpose: its CSS tint (0.16) and catalog tint (0.20)
+    # already differed when it was the AVOID tint, and nothing paints with it.
+    for tone in ("pos", "info", "warn", "muted", "neg"):
+        want = TONE_TINTS[tone].replace(" ", "")
+        got = _theme_token(f"{_TONE_VARS[tone]}-tint").replace(" ", "")
+        assert got == want, f"{_TONE_VARS[tone]}-tint drifted from catalog.json"
+
+
+def test_no_signal_named_token_or_selector_survives():
+    """The labels left the site on 2026-10-01: no CSS token is named after a
+    signal and no rule keys on a row's signal."""
+    import re as _re
+
+    assert not _re.search(r"--(buy|accumulate|watch|hold|caution|avoid)(?![a-z])", _THEME_CSS)
+    assert "data-signal" not in _THEME_CSS
+    assert "sig-pill" not in _THEME_CSS
 
 
 # ── P6-1: components must not carry raw hex literals ──
@@ -93,7 +100,7 @@ _HEX_RE = re.compile(r"#[0-9a-fA-F]{6}\b")
 def _sanctioned_palette() -> set:
     import lib.charts as charts
 
-    sanctioned = {v.lower() for v in SIGNAL_COLORS.values()}
+    sanctioned = {v.lower() for v in TONE_COLORS.values()}
     sanctioned |= {
         v.lower()
         for name in dir(charts)
@@ -134,64 +141,22 @@ def test_metric_palette_avoids_the_reserved_hues():
     those, that argument collapses."""
     from lib.charts import METRIC_COLORS, STATUS_NEG, STATUS_POS, STATUS_WARN
 
-    reserved = {c.lower() for c in SIGNAL_COLORS.values()}
+    reserved = {c.lower() for c in TONE_COLORS.values()}
     reserved |= {STATUS_POS.lower(), STATUS_NEG.lower(), STATUS_WARN.lower()}
     clash = {k: v for k, v in METRIC_COLORS.items() if v.lower() in reserved}
     assert not clash, f"metric hues collide with a reserved palette: {clash}"
 
 
-def test_terminology_pills_come_from_the_canonical_helper():
-    """The reference page renders the six signals with the same pill every other
-    surface uses, so the page that DEFINES a signal cannot show it in a colour
-    the rest of the site doesn't. Previously it hand-rolled tinted spans from
-    inline hexes and had to be drift-checked; now it can't drift."""
-    from components.terminology_content import SECTIONS
-    from lib.catalog import SIGNAL_COLORS
-    from lib.pills import _signal_pill_html
-
-    signals_body = next(s for s in SECTIONS if s["id"] == "signals")["body"]
-    for sig in SIGNAL_COLORS:
-        assert _signal_pill_html(sig) in signals_body, f"{sig} pill is not the shared one"
-
-
-# ── Signal Tracker redesign (spec 2026-07-25): shared devices ──
+# ── Shared devices ──
 
 def test_hairline_grid_device_is_single_sourced():
-    """The FRED prints grid and the tracker's grids must be the same device, so
-    'a grid of cells' always means 'peer measurements, compare across'."""
+    """The FRED prints grid declares the shared hairline-grid device (the
+    Tracker's tiles used it too until 2026-10-01), so 'a grid of cells' always
+    means 'peer measurements, compare across'."""
     assert ".hair-grid, .fp-grid" in _THEME_CSS
     assert ".hair-grid > *, .fp-cell" in _THEME_CSS
-
-
-def test_stat_tick_is_two_px_steel_not_a_signal_rail():
-    """2px --accent, deliberately not the 3px rail signal rows use: the tick
-    says 'this is one discrete figure', never 'this is a rating'."""
-    # Anchored to the line-start selector: consumers add their own
-    # ".<scope> .stat-tick" padding rules that would otherwise match first.
-    block = _THEME_CSS.split("\n.stat-tick {", 1)[1].split("}", 1)[0]
-    assert "border-left: 2px solid var(--accent)" in block
-
-
-def test_thin_sample_warning_is_terracotta_never_watch_amber():
-    """Amber is WATCH. A data-quality warning is not a signal, so it takes the
-    data palette's stress colour."""
-    block = _THEME_CSS.split(".warn-thin {", 1)[1].split("}", 1)[0]
-    assert "var(--stress)" in block
-    assert "#f59e0b" not in block
 
 
 def test_masthead_section_head_is_the_two_px_rule():
     block = _THEME_CSS.split(".section-head.masthead {", 1)[1].split("}", 1)[0]
     assert "border-bottom: 2px solid var(--color-text)" in block
-
-
-def test_tile_bar_fills_the_cell_so_lengths_compare():
-    """47% vs 100% must read as a shape difference before either number is
-    read, which a capped bar width prevents."""
-    block = _THEME_CSS.split(".calib-cell .cbar {", 1)[1].split("}", 1)[0]
-    assert "max-width" not in block
-
-
-def test_tile_meaning_line_holds_a_shared_baseline():
-    block = _THEME_CSS.split(".calib-cell .sc-verb {", 1)[1].split("}", 1)[0]
-    assert "min-height: 24px" in block

@@ -2,8 +2,8 @@
 
 Centralizes default values for cross-page state so individual components
 don't reach into st.session_state directly. The has_mounted flag gates
-first-mount-only animations (signal-flash, severity-pulse) so they don't
-replay on every Streamlit script rerun.
+first-mount-only animations so they don't replay on every Streamlit script
+rerun (the Watchlist's signal flash, its last user, went 2026-10-01).
 """
 from __future__ import annotations
 

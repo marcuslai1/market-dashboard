@@ -16,22 +16,16 @@ from lib.formatters import _escape_dollars
 _NAV_PAGES = [
     "Briefing",
     "Watchlist",
-    "Signal Tracker",
-    "Retrospective",
     "Terminology",
 ]
 
 # Shorter labels shown in the top-nav strip. The st.radio *options* stay the full
-# page titles (routing + st.switch_page key on those), but the full labels don't
-# all fit on one line at desktop width with the sidebar open — they overflowed by
-# ~180px and clipped "Report Comparison" behind a scrollbar. format_func only
-# changes the displayed text node, so routing and the folio numerals are untouched.
-# "Terminology" is left in full because the Briefing footer cross-references it by
-# name ("see the Terminology tab").
-_NAV_LABELS = {
-    "Signal Tracker": "Tracker",
-    "Retrospective": "Review",
-}
+# page titles (routing + st.switch_page key on those); format_func only changes
+# the displayed text node. Empty since 2026-10-01: the two abbreviated pages
+# (Signal Tracker → "Tracker", Retrospective → "Review") went with the labels.
+# "Terminology" is left in full because the Briefing footer cross-references it
+# by name ("see the Terminology tab").
+_NAV_LABELS: dict[str, str] = {}
 
 
 def render_masthead_and_nav(current: str) -> str:
@@ -67,7 +61,7 @@ def render_masthead_and_nav(current: str) -> str:
         # for the page's one <h1>.
         f'<div class="masthead-brand">'
         f'<span class="title">The Market Report</span>'
-        f'<span class="kicker">Morning Briefing · Signal Intelligence Daily</span>'
+        f'<span class="kicker">Morning Briefing · Market Data Daily</span>'
         f'</div>'
         f'<div class="right">'
         f'<div class="date">{long_date}</div>'

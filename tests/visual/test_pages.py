@@ -7,9 +7,9 @@ from tests.visual.harness import assert_snapshot, goto_and_settle
 PAGES = [
     ("briefing", "/"),
     ("watchlist", "/watchlist"),
-    ("signal-tracker", "/signal-tracker"),
-    ("retrospective", "/retrospective"),
     ("terminology", "/terminology"),
+    # signal-tracker / retrospective went 2026-10-01 with the signal labels
+    # (MarketReport spec 2026-10-01-info-only-watchlist O7).
 ]
 
 # ── Masks: hide ONLY genuinely wall-clock-derived regions ──
@@ -30,7 +30,9 @@ PAGES = [
 # report-JSON value, not wall-clock — verified by tracing each to its source —
 # so it stays UNMASKED to keep real regressions visible.
 
-# The sidebar renders on every page, so its today-anchored date_input is global.
+# The sidebar's today-anchored date_input (clock source 1 above) went with the
+# Signal Tracker on 2026-10-01; the mask stays as a no-op guard in case a dated
+# control returns.
 GLOBAL_MASKS = ['[data-testid="stDateInput"]']
 
 PAGE_MASKS = {
@@ -40,8 +42,7 @@ PAGE_MASKS = {
     "watchlist": [
         "text=/LIVE ·|FETCH FAILED/",  # live-price caption (watchlist body)
     ],
-    # signal-tracker / retrospective / terminology carry no body-level clock
-    # text — only the global date_input.
+    # terminology carries no body-level clock text.
 }
 
 

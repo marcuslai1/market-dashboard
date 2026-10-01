@@ -22,9 +22,10 @@ _MONO = "JetBrains Mono, ui-monospace, monospace"
 PLOTLY_CONFIG = {"displayModeBar": False, "responsive": True, "doubleClick": False}
 
 # ── Editorial chart palette ──────────────────────────────────────────────────
-# Deliberately distinct from the signal tokens (--buy #22c55e / --caution
-# #ef4444 / --watch #f59e0b / --accumulate #3498db) so a chart series never
-# reads as a signal, and free of the off-brand magenta/indigo (#ec4899 /#6366f1)
+# Deliberately distinct from the tone tokens (--tone-pos #22c55e / --tone-neg
+# #ef4444 / --tone-warn #f59e0b / --tone-info #3498db — the signal palette until
+# 2026-10-01) so a chart series never reads as a status colour, and free of the
+# off-brand magenta/indigo (#ec4899 /#6366f1)
 # the Plotly defaults introduced. Muted, mid-luminance tones that sit on --paper.
 CHART_ACCENT = "#C9A66B"   # warm brass — primary single-series bars/lines
 CHART_ACCENT_SOFT = "#9C8355"  # dimmed brass — hypothetical replays of a brass subject
@@ -39,19 +40,19 @@ CHART_PALETTE = [
 ]
 
 # Semantic status trio (good / bad / caution) reused by analytics helpers. Kept
-# separate from SIGNAL_COLORS on purpose: these express an *outcome* (win/loss/
-# warning), not a signal identity. Single-sourced here so the many former inline
+# separate from the tone palette on purpose: these express an *outcome*
+# (win/loss/warning), not a status role. Single-sourced here so the many former inline
 # hex literals don't drift.
 STATUS_POS = "#22c55e"   # win / positive return / ✓
 STATUS_NEG = "#ef4444"   # loss / negative return / ✗
 STATUS_WARN = "#f59e0b"  # caution / missed / ⚠
-STATUS_INFO = "#3498db"       # informational / judgment-override blue (= --accumulate)
+STATUS_INFO = "#3498db"       # informational blue (= --tone-info)
 STATUS_NEUTRAL = "#9ca3af"    # unknown / not-applicable / neutral-archetype gray
 STATUS_MUTED = "#6b7280"      # terminal / disabled / no-change gray
 STATUS_WARN_SOFT = "#fbb454"  # soft-warning amber (momentum chips, entry-block text)
 ACCENT_LINK = "#3b82f6"       # progress blue (graduation watch, scenario Base)
 ACCENT_WILDCARD = "#a855f7"   # scenario Wildcard violet
-INK_FALLBACK = "#9F988B"      # ink-3 equivalent for SIGNAL_COLORS.get(...) fallbacks
+INK_FALLBACK = "#9F988B"      # ink-3 equivalent for colour-map .get(...) fallbacks
 SURFACE_2_FALLBACK = "#1e1e2e"  # var(--surface-2, …) fallback in inline HTML
 
 # ── Metric-family palette — Pipeline health page ONLY ────────────────────────

@@ -11,7 +11,6 @@ from lib.formatters import (
     _price_str,
     _safe_href,
     display_ticker,
-    rr_display,
 )
 
 
@@ -115,34 +114,3 @@ def test_display_ticker_plain_ticker_unchanged():
 
 
 # ── Risk:reward display — distorted-headline correction (UX-BR-2) ──
-def test_rr_display_prefers_sizing_rr_when_distorted():
-    rr = {"ratio_label": "46.5:1", "ratio": 46.5, "rr_distorted": True,
-          "sizing_rr": {"ratio": 4.4, "ratio_label": "4.4:1"}}
-    label, ratio, adjusted = rr_display(rr)
-    assert label == "4.4:1"
-    assert ratio == 4.4
-    assert adjusted is True
-
-
-def test_rr_display_passes_through_normal_rr():
-    label, ratio, adjusted = rr_display({"ratio_label": "2.4:1", "ratio": 2.4})
-    assert (label, ratio, adjusted) == ("2.4:1", 2.4, False)
-
-
-def test_rr_display_distorted_without_sizing_prints_no_ratio():
-    # Flagged distorted with no sizing_rr: the producer says "Risk-reward math
-    # is not meaningful here" and never quotes the raw ratio (R12 F10) — the
-    # old pin kept the 9.0:1 headline beside that sentence.
-    label, ratio, adjusted = rr_display({"ratio_label": "9.0:1", "ratio": 9.0,
-                                         "rr_distorted": True})
-    assert (label, ratio, adjusted) == ("n/a", 0.0, False)
-
-
-def test_rr_display_synthesizes_label_when_missing():
-    # ratio present but no ratio_label → synthesize, don't return blank.
-    assert rr_display({"ratio": 2.4}) == ("2.4:1", 2.4, False)
-
-
-def test_rr_display_empty_is_safe():
-    assert rr_display(None) == ("", 0.0, False)
-    assert rr_display({}) == ("", 0.0, False)

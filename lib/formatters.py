@@ -25,34 +25,6 @@ def display_ticker(tk: str) -> str:
     return TICKER_DISPLAY.get(tk) or str(tk).replace("_", ".")
 
 
-def rr_display(rr_obj: dict | None) -> tuple[str, float, bool]:
-    """Risk:reward for display + ranking, correcting a distorted headline.
-
-    When the report flags the headline R:R as ``rr_distorted`` (a too-tight
-    invalidation inflates it — e.g. a 0.2% stop yielding 46.5:1), prefer the
-    deeper-stop ``sizing_rr`` — the ratio the writeup itself cites (4.4:1) — and
-    report it as adjusted. Falls back to the plain headline otherwise.
-
-    Returns ``(label, ratio, adjusted)`` so callers can render the label *and*
-    rank by a ratio that isn't inflated by a tight stop.
-    """
-    rr_obj = rr_obj or {}
-    if rr_obj.get("rr_distorted"):
-        sz = rr_obj.get("sizing_rr") or {}
-        ratio = sz.get("ratio")
-        if ratio is not None:
-            label = sz.get("ratio_label") or f"{ratio:.1f}:1"
-            return label, float(ratio), True
-        # Distorted with NO sizing fallback: the producer's own sentence says
-        # "Risk-reward math is not meaningful here" and never quotes the raw
-        # ratio, so neither do we (external review R12 F10, 2026-09-15 —
-        # CBRS printed 6.0:1 beside that sentence). Ranks last.
-        return "n/a", 0.0, False
-    ratio = rr_obj.get("ratio")
-    label = rr_obj.get("ratio_label") or (f"{ratio:.1f}:1" if ratio is not None else "")
-    return label, float(ratio or 0), False
-
-
 def _escape_attr(text) -> str:
     """Escape a value destined for an HTML *attribute* value.
 
@@ -100,25 +72,6 @@ _CCY_PREFIX = {
 
 # Zero-decimal currencies: prices carry no minor unit, so ``,.2f`` invents cents.
 _CCY_ZERO_DECIMAL = {"KRW", "JPY"}
-
-
-# Exchange-suffix → native currency, for ledgers that carry a report key but
-# no currency column (``signal_log.csv``). The report entry wins when present.
-_SUFFIX_CCY = {"_SI": "SGD", "_KS": "KRW", "_TW": "TWD", "_DE": "EUR",
-               "_PA": "EUR", "_L": "GBP", "_HK": "HKD", "_T": "JPY"}
-
-
-def currency_for_key(key: str, watchlist: dict | None = None) -> str:
-    """Native currency for a report key: the latest report's entry if it has
-    one, else by exchange suffix, else USD. The Review page printed ``$`` on
-    65 SGD / KRW / EUR / TWD call entries (external review R12 F09)."""
-    entry = (watchlist or {}).get(key) or {}
-    if entry.get("currency"):
-        return str(entry["currency"])
-    for suffix, ccy in _SUFFIX_CCY.items():
-        if key.endswith(suffix):
-            return ccy
-    return "USD"
 
 
 def _ccy_prefix(currency) -> str:
@@ -224,62 +177,3 @@ def _sign(n) -> str:
     if n is None or (isinstance(n, float) and pd.isna(n)):
         return ""
     return "+" if n > 0 else ""
-
-
-def _writeup_for_render(d: dict) -> dict:
-    """Return {headline, prior_period_delta_narrative, what_to_do, entry_block} from
-    new schema, or shim from legacy.
-
-    For old reports that only have signal_rationale: headline = first sentence,
-    what_to_do = remaining sentences (or None for HOLD / CAUTION-technical), and
-    entry_block reads the top-level mechanical entry_block field.
-    """
-    wu = d.get("writeup")
-    if isinstance(wu, dict):
-        return {
-            "headline": wu.get("headline") or "",
-            "prior_period_delta_narrative": wu.get("prior_period_delta_narrative"),
-            "what_to_do": wu.get("what_to_do"),
-            "entry_block": wu.get("entry_block") or d.get("entry_block"),
-        }
-    rat = (d.get("signal_rationale") or "").strip()
-    if not rat:
-        return {"headline": "", "prior_period_delta_narrative": None, "what_to_do": None, "entry_block": d.get("entry_block")}
-    # Split first sentence as headline, rest as what_to_do.
-    headline = rat
-    rest = ""
-    for i, ch in enumerate(rat):
-        if ch == "." and i + 1 < len(rat) and rat[i + 1] == " ":
-            headline = rat[: i + 1]
-            rest = rat[i + 2 :].strip()
-            break
-    # Suppress what_to_do for signals where new schema mandates null.
-    sig = d.get("signal", "")
-    cs = d.get("caution_source", "")
-    if sig == "HOLD":
-        rest = ""
-    elif sig == "CAUTION" and cs == "hard_block":
-        # Mechanical block, treat as technical_only — entry_block carries the gate.
-        rest = ""
-    return {
-        "headline": headline,
-        "prior_period_delta_narrative": None,
-        "what_to_do": rest or None,
-        "entry_block": d.get("entry_block"),
-    }
-
-
-def _legacy_rationale_from(d: dict) -> str:
-    """Flatten the writeup into one string for legacy views (Historical
-    Writeup Viewer, Compare-dates Rationale column). Concatenates
-    headline + prior_period_delta_narrative + what_to_do for the new schema;
-    falls back to signal_rationale for old reports.
-    """
-    wu = d.get("writeup")
-    if isinstance(wu, dict):
-        h = (wu.get("headline") or "").strip()
-        delta = (wu.get("prior_period_delta_narrative") or "").strip()
-        wt = (wu.get("what_to_do") or "").strip()
-        pieces = [p for p in (h, delta, wt) if p]
-        return " ".join(pieces)
-    return d.get("signal_rationale", "") or ""

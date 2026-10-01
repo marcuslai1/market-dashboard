@@ -9,12 +9,15 @@ import json
 
 import pytest
 
-_REQUIRED_TOP = {
-    "meta", "benchmarks", "watchlist", "geopolitical",
-    "events_this_week", "portfolio_snapshot",
-}
+# Only keys a page still renders from (2026-10-01). Dropped: `geopolitical` (left
+# the report in MarketReport cleanup item 5, §112), `events_this_week` and
+# `portfolio_snapshot` (no reader since the 2026-09-29 Briefing slimming and the
+# sidebar's switch to len(watchlist)), and the entry's `signal` (no reader since
+# the info-only Watchlist; leaves the report at the pipeline cutover, spec
+# 2026-10-01-info-only-watchlist S2).
+_REQUIRED_TOP = {"meta", "benchmarks", "watchlist"}
 _REQUIRED_META = {"report_date", "market_date"}
-_REQUIRED_ENTRY = {"price", "currency", "signal"}
+_REQUIRED_ENTRY = {"price", "currency"}
 
 
 def _latest_report():

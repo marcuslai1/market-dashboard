@@ -22,8 +22,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from lib.symbols import RETIRED_ANY_SPELLING
-
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = _PROJECT_ROOT / "data"
 
@@ -69,7 +67,7 @@ def _safe_read_csv(csv_path: Path) -> pd.DataFrame:
     """Read a CSV, returning an empty frame (not raising) on any read failure.
 
     A truncated, locked, or malformed export used to crash the whole page; this
-    fails soft the same way ``load_all_reports`` does for bad JSON.
+    fails soft the same way ``load_report`` does for bad JSON.
     """
     if not csv_path.exists():
         return pd.DataFrame()
@@ -79,50 +77,6 @@ def _safe_read_csv(csv_path: Path) -> pd.DataFrame:
             pd.errors.EmptyDataError):
         st.sidebar.warning(f"Skipped unreadable data file: {csv_path.name}")
         return pd.DataFrame()
-
-
-@st.cache_data(max_entries=2)
-def _load_all_reports_cached(fingerprint: tuple) -> dict[str, dict]:
-    """Parse every report path in *fingerprint* — ((path, mtime), …).
-
-    The fingerprint is both the cache key and the file list: any added,
-    removed, or rewritten report file produces a different tuple and re-parses
-    the corpus. ``max_entries=2`` because each entry holds ~9MB of parsed JSON.
-    """
-    reports = {}
-    for path_str, _unused_mtime in fingerprint:
-        f = Path(path_str)
-        date_str = f.stem.replace("morning_report_", "")
-        try:
-            reports[date_str] = json.loads(f.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as e:
-            st.sidebar.warning(f"Skipped malformed report: {f.name} — {e}")
-        except OSError:
-            continue
-    return reports
-
-
-def load_all_reports() -> dict[str, dict]:
-    """Load all morning_report JSON files, keyed by date string."""
-    fingerprint = tuple(
-        (str(f), _mtime(f)) for f in sorted(DATA_DIR.glob("morning_report_*.json"))
-    )
-    return _load_all_reports_cached(fingerprint)
-
-
-def data_fingerprint() -> tuple:
-    """Cheap ``(path, mtime)`` fingerprint of the report corpus + price CSV.
-
-    Changes whenever any report file or ``market_data.csv`` is added, removed,
-    or rewritten. Pages use it as the ``st.cache_data`` key for expensive
-    derived frames (Signal Tracker episodes/accuracy — review P7-2) so the
-    heavy inputs themselves never need hashing.
-    """
-    prices_csv = DATA_DIR / "market_data.csv"
-    return (
-        *((str(f), _mtime(f)) for f in sorted(DATA_DIR.glob("morning_report_*.json"))),
-        (str(prices_csv), _mtime(prices_csv)),
-    )
 
 
 @st.cache_data(max_entries=8)
@@ -157,9 +111,9 @@ def _load_json_cached(path_str: str, mtime: float) -> dict:
 def load_report(date_str: str) -> dict:
     """Load a single morning_report JSON by date. ``{}`` if missing/malformed.
 
-    Cached per (date, mtime), so pages needing only the latest one or two
-    reports don't pay to parse the whole corpus the way ``load_all_reports``
-    does — and a regenerated file is picked up on the next rerun. Fails soft
+    Cached per (date, mtime), so a page never parses more reports than it
+    reads (the whole-corpus ``load_all_reports`` went with the Tracker on
+    2026-10-01) — and a regenerated file is picked up on the next rerun. Fails soft
     (returns ``{}``) exactly like the other loaders so a truncated file degrades
     to an empty view rather than crashing the page.
     """
@@ -167,26 +121,6 @@ def load_report(date_str: str) -> dict:
     if not path.exists():
         return {}
     return _load_json_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
-def _load_sqlite_prices_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    df = _safe_read_csv(Path(path_str))
-    if not df.empty and "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"])
-        if "ticker" in df.columns:
-            # Provider symbols are dotted (2308.TW); the catalog's retired
-            # list is sanitized (2308_TW). Filter on both spellings — the
-            # sanitized-only test dropped COHR/XLE and leaked four foreign
-            # retired names (R12 F11, 2026-09-15).
-            df = df[~df["ticker"].isin(RETIRED_ANY_SPELLING)]
-    return df
-
-
-def load_sqlite_prices() -> pd.DataFrame:
-    """Load price history from CSV export."""
-    path = DATA_DIR / "market_data.csv"
-    return _load_sqlite_prices_cached(str(path), _mtime(path))
 
 
 @st.cache_data(max_entries=4)
@@ -232,40 +166,6 @@ def load_earnings_map() -> dict:
     for tkey in set(out) | {k for k in backfill if not k.startswith("_")}:
         out[tkey] = merge_backfill(out.get(tkey, []), backfill.get(tkey))
     return out
-
-
-@st.cache_data(max_entries=4)
-def _load_signal_log_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    df = _safe_read_csv(Path(path_str))
-    if df.empty or "date" not in df.columns:
-        return df
-    df["date"] = pd.to_datetime(df["date"])
-    for col in ["price_after_5d", "price_after_10d", "price_after_20d",
-                "entry_price", "invalidation", "upside_target", "rr_ratio"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-    for horizon in ["5d", "10d", "20d"]:
-        pa = f"price_after_{horizon}"
-        if pa in df.columns:
-            df[f"return_{horizon}"] = (df[pa] - df["entry_price"]) / df["entry_price"] * 100
-    return df
-
-
-def load_signal_log() -> pd.DataFrame:
-    """Load signal_evaluation_log export (the pipeline's call ledger: signals and their matured outcomes)."""
-    path = DATA_DIR / "signal_log.csv"
-    return _load_signal_log_cached(str(path), _mtime(path))
-
-
-def load_changelog() -> list:
-    """Hand-maintained methodology change log for the Signal Tracker's
-    'what we've changed' strip. ``[]`` when missing/malformed (section is
-    simply skipped)."""
-    path = DATA_DIR / "changelog.json"
-    if not path.exists():
-        return []
-    data = _load_json_cached(str(path), _mtime(path))
-    return data if isinstance(data, list) else []
 
 
 def load_market_reads() -> dict:

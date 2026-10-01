@@ -6,7 +6,7 @@
 > Regenerate baselines only when you want a new answer key (before/after a
 > deliberate redesign), not per change.
 
-Full-page screenshots of every dashboard page (and four key interactive states),
+Full-page screenshots of every dashboard page (and two key interactive states),
 pixel-diffed against committed baselines. Everything runs inside the pinned
 Playwright image `mcr.microsoft.com/playwright/python:v1.60.0-jammy` so rendering
 is identical in CI and locally — fonts, anti-aliasing, chromium version, and
@@ -16,11 +16,9 @@ Plotly canvas output all come from that image.
 
 | Baseline | Source test | Notes |
 |---|---|---|
-| `briefing`, `watchlist`, `signal-tracker`, `retrospective`, `terminology` | `test_pages.py` | the 5 pages, each captured full-page (Pipeline Stats, Scenario Log and Report Comparison were removed 2026-09-29) |
+| `briefing`, `watchlist`, `terminology` | `test_pages.py` | the 3 pages, each captured full-page (Pipeline Stats, Scenario Log and Report Comparison were removed 2026-09-29; Signal Tracker and Retrospective 2026-10-01 with the signal labels) |
 | `watchlist-nvda-drilldown` | `test_states.py` | NVDA row `<details>` expanded |
 | `watchlist-nvda-earnings-drawer` | `test_states.py` | NVDA row **and** its nested `Earnings` drawer expanded — the only capture of the quarter-on-quarter earnings-history table + reported-EPS sparkline, which sit two `<details>` deep and are invisible in the state above |
-| `signal-tracker-ledger` | `test_states.py` | first by-name episode ledger row expanded |
-| `retrospective-resolved-month` | `test_states.py` | second month segment selected — the only capture of a hit rate, a green/red composition bar and ✓/✗ rails, since the default month is always still open |
 
 `test_harness_unit.py` unit-tests the pure comparator (no browser); `test_smoke.py`
 asserts the app boots. Comparison is anti-aliasing-aware (`pixelmatch
@@ -104,8 +102,9 @@ layers because the fetch happens in two different processes:
 
 ### 2. `TEST_DATE` clock freeze (current value: see conftest.py)
 
-**Signal-tracker** (and, until 2026-09-29, pipeline-stats, scenario-log and report-comparison)
-filters its content to a **today-anchored 30-day window** (`dashboard.py`:
+**Inert since 2026-10-01** — no page is date-filtered any more. Until then the
+Signal Tracker (and, until 2026-09-29, pipeline-stats, scenario-log and report-comparison)
+filtered its content to a **today-anchored 30-day window** (`dashboard.py`:
 `_default_end = clock_today(); _default_start = _default_end - timedelta(days=30)`,
 feeding the sidebar `st.date_input`). If "today" moved with the wall clock, which
 reports fall inside that window would change and these baselines would rot day by

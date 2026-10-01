@@ -1,7 +1,10 @@
 /* MarketReport Streamlit theme — editorial dark.
    Injected once at startup by dashboard.py (reads this file, wraps in <style>).
-   The signal palette below (:root --buy … --caution) mirrors
-   assets/catalog.json; tests/test_design_tokens.py fails if they drift.
+   The tone palette below (:root --tone-pos … --tone-neg-deep) mirrors
+   assets/catalog.json; tests/test_design_tokens.py fails if they drift. The
+   tones were the signal palette (BUY … AVOID) until the labels left the site
+   on 2026-10-01; the non-signal surfaces that reused them keep the colours
+   under neutral role names.
 */
 /* Type — Industry design system (design-spec §5): Barlow Condensed for
    headings/labels/numbers, Barlow for body. CDN @import (same channel as the
@@ -130,12 +133,12 @@
   --metric-articles-light:#4d6b38;  --metric-articles-dark:#a6ca86;  /* moss */
 
   /* —— §3a signal PILL TEXT (per theme; rails shared, defined at §Signal tokens) —— */
-  --buy-text-light:#15803d;       --buy-text-dark:#4ade80;
-  --accumulate-text-light:#1f6ea8; --accumulate-text-dark:#5dade2;
-  --watch-text-light:#8a5a00;     --watch-text-dark:#f5b942;
-  --hold-text-light:#4b5563;      --hold-text-dark:#9ca3af;
-  --caution-text-light:#b91c1c;   --caution-text-dark:#f87171;
-  --avoid-text-light:#991b1b;     --avoid-text-dark:#e0a3a3;
+  --tone-pos-text-light:#15803d;       --tone-pos-text-dark:#4ade80;
+  --tone-info-text-light:#1f6ea8; --tone-info-text-dark:#5dade2;
+  --tone-warn-text-light:#8a5a00;     --tone-warn-text-dark:#f5b942;
+  --tone-muted-text-light:#4b5563;      --tone-muted-text-dark:#9ca3af;
+  --tone-neg-text-light:#b91c1c;   --tone-neg-text-dark:#f87171;
+  --tone-neg-deep-text-light:#991b1b;     --tone-neg-deep-text-dark:#e0a3a3;
 
   /* —— ACTIVE map (default = dark). Light swap injected from dashboard.py. —— */
   --color-bg:var(--bg-dark);
@@ -161,12 +164,12 @@
   --metric-input:var(--metric-input-dark);
   --metric-gen:var(--metric-gen-dark);
   --metric-articles:var(--metric-articles-dark);
-  --buy-text:var(--buy-text-dark);
-  --accumulate-text:var(--accumulate-text-dark);
-  --watch-text:var(--watch-text-dark);
-  --hold-text:var(--hold-text-dark);
-  --caution-text:var(--caution-text-dark);
-  --avoid-text:var(--avoid-text-dark);
+  --tone-pos-text:var(--tone-pos-text-dark);
+  --tone-info-text:var(--tone-info-text-dark);
+  --tone-warn-text:var(--tone-warn-text-dark);
+  --tone-muted-text:var(--tone-muted-text-dark);
+  --tone-neg-text:var(--tone-neg-text-dark);
+  --tone-neg-deep-text:var(--tone-neg-deep-text-dark);
 
   /* —— Spacing scale (§5 asks for whitespace hierarchy; steps proposed in
      docs/overhaul-plan.md §3). 4px base. —— */
@@ -944,8 +947,8 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 }
 
 /* ── Horizontal-scroll wrapper for the wide fixed-column ledgers ──────────────
-   The Watchlist (.tk-row / .tk-details) and Signal-Tracker (.led-*) rows use
-   fixed px column tracks that sum to ~680–720px. On desktop .tk-scroll is
+   The Watchlist rows (.tk-row / .tk-details) use fixed px column tracks that
+   sum to ~716px. On desktop .tk-scroll is
    inert (everything fits). On phones the grid ledgers now REFLOW into stacked
    cards (below) instead of swiping — the swipe canvas survives only for the
    few compact scorecard tables that opt out of stacking (eps/cal scorecards,
@@ -1045,21 +1048,20 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    Seven ALL-FIXED tracks, no 1fr. Every cell is a number or a short token, and
    the whole point of the page is that values line up down the column for
    comparison; a flexible track would let content reflow the grid and break
-   vertical alignment across the signal groups.
+   vertical alignment across the cluster groups.
 
-   Cluster left the column set (it is a sub-line in the ticker cell now) and its
-   ~100px went to the extension gauge — a deliberate trade, because the gauge is
-   the criterion that GATES ENTRY while the cluster label is context you read
-   once you are already looking at a name. Signal sits second because it is the
-   row's verdict: you should never read four numbers before learning the call.
+   Facts only since 2026-10-01: Ticker (+ cluster) · Last · Δ · 5 d · 1 mo ·
+   vs 50-day · RSI · Earnings. The Signal and R:R tracks went with the labels;
+   5 d and Earnings took their places, so the track count — and the phone
+   reflow's nth-child map at the bottom of this file — kept its shape.
 
-   Tracks sum to 742px + six 12px gaps = 814px, which fits the ~1060px content
+   Tracks sum to 716px + six 12px gaps = 788px, which fits the ~1060px content
    width at the 1100px viewport where the sticky-header rule below releases
    .tk-scroll's overflow. Narrower viewports keep the swipe; below 720px the
    whole grid reflows to stacked cards. */
 .tk-row {
   display: grid;
-  grid-template-columns: 132px 108px 112px 74px 168px 52px 96px;
+  grid-template-columns: 132px 112px 74px 74px 168px 52px 104px;
   gap: 12px; padding: 12px;
   border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
@@ -1095,26 +1097,20 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   }
 }
 
-/* ── Group headers — a labelled divider per signal ─────────────────────────────
-   Dot + name + count + a hairline that fills the remaining width. The dot and
-   name take the signal palette, which is legitimate because the group IS a
-   signal; this is the only coloured text at heading scale on the page.
+/* ── Group headers — a labelled divider per cluster ─────────────────────────────
+   Name + count + a hairline that fills the remaining width. Neutral ink: a
+   cluster is a grouping, not a rating (the signal-coloured dot and name went
+   with the labels on 2026-10-01).
 
    11px uppercase, deliberately NOT a real heading size: these are dividers
    inside ONE table, not sections of a document, and sizing them up would
-   fragment the page into three tables. The trailing flex:1 hairline binds the
+   fragment the page into many tables. The trailing flex:1 hairline binds the
    label to the rows beneath it and gives each group a clean top edge without
-   introducing a second border weight.
-
-   Why group at all when the rows are already sorted by rank: a sort is only
-   legible if you already know the rank order. Explicit groups with counts make
-   the ordering self-documenting, let a reader skip 21 CAUTION names outright,
-   and give the eye rest points in a long scroll. */
+   introducing a second border weight. */
 .tk-group { display: flex; align-items: center; gap: 8px; padding: 20px 12px 6px; }
-.tk-group-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sig); }
 .tk-group-name {
   font-family: var(--font-display); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--sig);
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-2);
 }
 .tk-group-count {
   font-size: 11px; color: var(--color-text-4);
@@ -1135,48 +1131,26 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   color: var(--color-text-3); opacity: 0.45; margin-top: 2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* Steel, NOT a signal colour: "something changed today" is a structural fact
-   about the row, not a rating — and if it were amber or red it would compete
-   with the pill sitting 100px to its right. Same steel as the ● Changed chip,
-   so the connection needs no legend. */
-.tk-changed {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); flex: 0 0 auto;
-}
-/* "day N" under the pill: how many reports in a row the call has held.
-   Metadata grey, never a signal colour — persistence is a fact about the call,
-   not a rating (MarketReport clean-sheet §12.12: one-day and lasting "add"
-   calls show no detectable outcome difference). */
-.tk-sig-days {
-  margin-top: 2px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  color: var(--ink-3);
-}
 .tk-last { text-align: right; }
 .tk-last-px { font-size: 13.5px; font-variant-numeric: tabular-nums; }
 .tk-last-chg { font-size: 11px; }
-.tk-1mo { text-align: right; font-variant-numeric: tabular-nums; }
+.tk-5d, .tk-1mo { text-align: right; font-variant-numeric: tabular-nums; }
+/* Uncoloured since 2026-10-01: the hot / cold terracotta past 70 and 30 was a
+   zone reading, and the site prints the number only. */
 .tk-rsi { text-align: right; font-variant-numeric: tabular-nums; }
-/* The threshold is what matters, not the value, so the colour does the
-   interpreting. Terracotta rather than red because an overbought reading is a
-   DATA CONDITION: 77 on a name that happens to carry CAUTION is not a rating. */
-.tk-rsi[data-zone="hot"], .tk-rsi[data-zone="cold"] { color: var(--stress); }
-.tk-rr { text-align: right; }
-.tk-rr-val { font-size: 13px; font-variant-numeric: tabular-nums; }
-/* Always visible on the few rows it applies to. It used to hide in a title
-   attribute — invisible on touch — and it is the difference between a 1.5:1
-   that clears the gate and one that doesn't. */
-.tk-rr-sub { font-size: 8.5px; opacity: 0.42; letter-spacing: 0.04em; }
+/* Next earnings: date over the distance to it. Neutral at every distance — a
+   report date is a fact, not a warning. */
+.tk-earn { text-align: right; }
+.tk-earn-date { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tk-earn-sub { font-size: 10px; color: var(--color-text-3); margin-top: 1px; }
 
-/* ── The extension gauge — the page's one visual ───────────────────────────────
-   vs 50-day is the mechanical block criterion: every other column is an input to
-   judgment, this one is a rule. A signed number makes the reader compare +14.3%
-   against a threshold they have to remember; a centred bar makes "too far right"
-   a shape. Centred (not left-anchored) because the quantity is signed and zero
-   is meaningful — the 50-day IS the reference, and below it is the interesting
-   other direction, not the "small" end of a magnitude scale. */
+/* ── The vs 50-day gauge — the page's one visual ───────────────────────────────
+   The distance from the 50-day average as a bar centred on zero, the exact
+   figure beneath. Centred (not left-anchored) because the quantity is signed and
+   zero is meaningful — the 50-day IS the reference, and below it is the
+   interesting other direction, not the "small" end of a magnitude scale. One
+   neutral fill and an uncoloured number since 2026-10-01: the terracotta past
+   ±10% marked the pipeline's entry block and went with the labels. */
 .tk-ext { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .tk-ext-track {
   position: relative; width: 100%; height: 9px;
@@ -1189,59 +1163,14 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   width: 1px; background: var(--accent);
   z-index: 1;                  /* paints OVER a bar that crosses it */
 }
-.tk-ext-fill { position: absolute; top: 0; bottom: 0; }
-/* Brass is the data axis; terracotta marks the threshold crossing. NEVER
-   green/red — that would read as "good/bad", which is wrong in both directions:
-   −17.5% is not "bad", it is "not extended, but broken". Neither hue is a signal
-   colour, which matters because the gauge sits three columns from the pill. */
-.tk-ext-fill[data-tone="under"] { background: var(--brass); }
-.tk-ext-fill[data-tone="over"] { background: var(--stress); }
+/* Brass is the data axis. Never green/red — that would read as "good/bad". */
+.tk-ext-fill { position: absolute; top: 0; bottom: 0; background: var(--brass); }
 .tk-ext-num { font-size: 10.5px; font-variant-numeric: tabular-nums; }
 .tk-ext-empty { text-align: center; }
 
-/* ── Filter chips, sort line, method note, footer ──────────────────────────────
-   Steel, because filtering is NAVIGATION, never a rating. The 14% wash is the
-   one background on the page, justified because a selected chip among adjacent
-   chips reads too weakly on a border change alone.
-
-   Scoped through .st-key-wl_filter — the container class Streamlit stamps for a
-   keyed widget — rather than a data-testid chain: testids on button internals
-   have moved between the local 1.50 / CI 1.58 / cloud-latest versions this app
-   spans, and the key class has not. Both aria-pressed and aria-checked are
-   listed for the same reason. */
-.st-key-wl_filter button {
-  border: 1px solid var(--color-divider) !important;
-  border-radius: 3px !important;
-  background: transparent !important;
-  color: var(--color-text-3) !important;
-  font-family: var(--font-display) !important;
-  font-size: 10.5px !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-  padding: 4px 10px !important;
-}
-/* Streamlit renders the selected pill as a distinct button KIND
-   (BaseButtonKind.PILLS_ACTIVE → data-testid="stBaseButton-pillsActive"), not as
-   an aria state on the same button. The aria selectors ride along in case a
-   future version moves to them — this app spans local 1.50 / CI 1.58 /
-   cloud-latest, and losing the active state silently would be invisible in
-   tests. */
-.st-key-wl_filter button[data-testid="stBaseButton-pillsActive"],
-.st-key-wl_filter button[aria-pressed="true"],
-.st-key-wl_filter button[aria-checked="true"] {
-  border-color: var(--accent) !important;
-  background: color-mix(in srgb, var(--accent) 14%, transparent) !important;
-  color: var(--color-text) !important;
-}
-/* 8px, not the Review's joined gap:0 segments — these are independent options
-   rather than one exclusive time axis. Spacing says "separate options"; joining
-   says "one control, one value". */
-.st-key-wl_filter [role="group"], .st-key-wl_filter [data-testid="stButtonGroup"] {
-  gap: 8px !important;
-}
-/* The page's only statement of its own ordering AND its survivorship-bias
-   exclusion. Small, but on a dense table a reader otherwise cannot tell whether
-   row order means anything. */
+/* ── Sort line, method note, footer ───────────────────────────────────────────
+   The sort line is the page's only statement of its own ordering. Small, but on
+   a dense table a reader otherwise cannot tell whether row order means anything. */
 .tk-sortline {
   font-size: 9.5px; opacity: 0.45; letter-spacing: 0.04em; margin: 2px 0 10px;
 }
@@ -1257,17 +1186,6 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--color-text-3); margin: 10px 0 0;
 }
-.tk-changed-legend { display: inline-block; vertical-align: 1px; }
-.sig-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 10px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 3px 8px; border-radius: 3px;
-}
-.sig-pill::before {
-  content: ""; width: 6px; height: 6px;
-  border-radius: 50%; background: currentColor;
-}
 
 /* Native <details> drill-down — entire ticker row is the click target */
 details.tk-details { margin: 0; padding: 0; border: 0; background: transparent; }
@@ -1278,7 +1196,7 @@ details.tk-details > summary {
   list-style: none;
   cursor: pointer;
   display: grid;
-  grid-template-columns: 132px 108px 112px 74px 168px 52px 96px;
+  grid-template-columns: 132px 112px 74px 74px 168px 52px 104px;
   gap: 12px; padding: 12px;
   border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
@@ -1293,8 +1211,8 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   padding: var(--card-pad-y) var(--card-pad-x);   /* density-aware (was 18px 22px 22px) */
   border-bottom: 1px solid var(--rule);
 }
-/* Drilldown section headers (Thesis break condition, Regime Change Pending,
-   Risk & Reward, Technicals, Key Levels, Valuation, …) take the SAME kicker
+/* Drilldown section headers (Past earnings reactions, Earnings result, Earnings
+   history, …) take the SAME kicker
    treatment as every card eyebrow: deep-steel --eyebrow, 11px, 0.14em, over a
    hairline. One label colour across the whole app, and more legible than the
    old 10px muted grey. */
@@ -1329,21 +1247,14 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   font-family: var(--mono); font-size: 13px;
   margin-top: 2px; color: var(--ink);
 }
-/* ── The drill-down card (redesign 2026-07-25) ─────────────────────────────────
-   The shipped body stacked fifteen undifferentiated dd-sections, so "this trade
-   is blocked" could sit below four paragraphs of analysis. Reading order is now
-   the argument: identity → flags → entry block → verdict → what changed → what
-   to do → the levels you act on → evidence in two columns → three drawers.
+/* ── The drill-down card (redesign 2026-07-25; facts only since 2026-10-01) ──────
+   Reading order: identity → data-health chips → levels | technicals | valuation
+   → the Earnings drawer → news & context. The entry block, the verdict, the
+   trade-levels plate and the R:R / pipeline drawers went with the labels.
 
-   The card carries the row's own signal rail on its left edge, so the expanded
-   body is visibly the same object as the row that opened it. */
+   The left edge is a neutral divider rail (it carried the row's signal colour
+   until 2026-10-01), so the expanded body still reads as one object. */
 .tk-drilldown .dd-card { border-left: 3px solid var(--color-divider); padding-left: 18px; }
-.tk-drilldown .dd-card[data-signal="BUY"]        { border-left-color: var(--buy); }
-.tk-drilldown .dd-card[data-signal="ACCUMULATE"] { border-left-color: var(--accumulate); }
-.tk-drilldown .dd-card[data-signal="WATCH"]      { border-left-color: var(--watch); }
-.tk-drilldown .dd-card[data-signal="HOLD"]       { border-left-color: var(--ink-3); }
-.tk-drilldown .dd-card[data-signal="CAUTION"]    { border-left-color: var(--caution); }
-.tk-drilldown .dd-card[data-signal="AVOID"]      { border-left-color: var(--avoid); }
 
 /* Restates identity, because an open drill-down can be taller than the viewport
    and a reader who has scrolled into the evidence needs to know whose it is. */
@@ -1361,66 +1272,58 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 }
 .tk-drilldown .dd-head-right { text-align: right; flex: 0 0 auto; }
 .tk-drilldown .dd-head-px {
-  font-size: 16px; font-variant-numeric: tabular-nums; margin-bottom: 5px;
+  font-size: 16px; font-variant-numeric: tabular-nums; margin-bottom: 3px;
+}
+.tk-drilldown .dd-head-chg { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Data-health chips — terracotta (--stress) is the site's DATA-CONDITION colour:
+   "read the numbers below with care", never a statement about the stock. */
+.tk-drilldown .dd-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.tk-drilldown .dd-chip {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em;
+  background: rgba(224, 138, 128, 0.14); padding: 3px 8px; border-radius: 3px;
+  line-height: 1.5;
 }
 
-/* Terracotta because it is a GATE CONDITION, not a rating — and first, because
-   "the trade is blocked" outranks every piece of analysis below it. A hairline
-   box rather than the old amber fill: amber is WATCH's hue. */
-.tk-drilldown .dd-entry-block {
-  border: 1px solid var(--color-divider);
-  border-left: 3px solid var(--stress);
-  background: transparent;
-  color: var(--color-text-2);
-  padding: 10px 14px; margin: 0 0 16px;
-  font-size: 12.5px; line-height: 1.5;
-}
-/* Verdict-first: the largest text in the block. */
-.tk-drilldown .dd-verdict {
-  font-family: var(--font-display); font-size: 21px; font-weight: 500;
-  color: var(--color-text); line-height: 1.25; margin: 0 0 8px;
-}
-/* The ONLY italic in the block, which is why it reads as a parenthetical update
-   rather than part of the thesis. */
-.tk-drilldown .dd-delta {
-  font-style: italic; opacity: 0.78; font-size: 13px;
-  line-height: 1.55; margin: 0 0 10px; max-width: 72ch;
-}
-/* Larger and darker than any other prose here, because it is the actionable
-   instruction. Everything below it is evidence. */
-.tk-drilldown .dd-whatdo {
-  font-family: var(--sans); font-size: 14px; line-height: 1.6;
-  color: var(--color-text); max-width: 66ch; margin: 0 0 18px;
-}
-
-/* ── The levels plate ─────────────────────────────────────────────────────────
-   Promoted out of the section stack into a grid because PRICE LEVELS ARE WHAT
-   YOU ACT ON — they should be findable without reading. Four colours, each by
-   role: the two prices you are hoping for and fearing take market direction, the
-   trigger stays neutral, and the ratio is brass because it is a measurement
-   rather than a level you could put an order at. */
-.tk-drilldown .dd-levels {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px; background: var(--color-divider);
-  border: 1px solid var(--color-divider); margin: 0 0 20px;
-}
-.tk-drilldown .dd-lv { background: var(--color-bg); padding: 12px 14px; min-width: 0; }
-.tk-drilldown .dd-lv-lbl {
-  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--eyebrow); font-weight: 600;
-}
-.tk-drilldown .dd-lv-val {
-  font-family: var(--font-display); font-size: 20px; font-weight: 600;
-  font-variant-numeric: tabular-nums; margin-top: 4px; line-height: 1.15;
-}
-.tk-drilldown .dd-lv-sub {
-  font-size: 10px; color: var(--color-text-4); margin-top: 3px; line-height: 1.4;
-}
-
-/* ── The evidence: measurements left, the argument right ───────────────────── */
+/* ── The evidence: levels | technicals | valuation ──────────────────────────── */
 .tk-drilldown .dd-cols {
   display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
 }
+.tk-drilldown .dd-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-bottom: 18px; }
+.tk-drilldown .dd-col { min-width: 0; }
+/* Below desktop width three columns are too narrow for the valuation labels, so
+   valuation wraps under the ladder; phones stack all three (bottom of file). */
+@media (max-width: 1099px) {
+  .tk-drilldown .dd-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* The levels ladder — every stated level, high → low, the last price as its own
+   rung. Neutral ink throughout: a level above the price is not "upside" and one
+   below is not "risk". The right column is the move from the last price. */
+.tk-drilldown .dd-ladder { font-size: 12.5px; }
+.tk-drilldown .dd-rung {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto 64px; gap: 10px;
+  padding: 6px 0; border-bottom: 1px dashed var(--color-divider);
+  align-items: baseline;
+}
+.tk-drilldown .dd-rung-head {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--color-text-4); padding-top: 0;
+}
+.tk-drilldown .dd-rung-head span:nth-child(n + 2),
+.tk-drilldown .dd-rung-px, .tk-drilldown .dd-rung-pct {
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.tk-drilldown .dd-rung-lbl { color: var(--color-text-3); }
+.tk-drilldown .dd-rung-pct { color: var(--color-text-3); }
+/* The last price is the reference every other rung is measured from, so it is
+   set apart by weight and solid rules — not by colour. */
+.tk-drilldown .dd-rung[data-kind="last"] {
+  border-top: 1px solid var(--color-text-3); border-bottom: 1px solid var(--color-text-3);
+  font-weight: 700;
+}
+.tk-drilldown .dd-rung[data-kind="last"] .dd-rung-lbl { color: var(--color-text); }
+
 /* DASHED, not solid, to distinguish "reference rows inside a card" from the
    solid row dividers of the table above. */
 .tk-drilldown .dd-pair {
@@ -1440,26 +1343,16 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   border-bottom: 1px solid var(--color-divider);
 }
 .tk-drilldown .dd-cols .dd-eyebrow:not(:first-child) { margin-top: 20px; }
-/* Numbering makes the pillars a FINITE ARGUMENT rather than a bullet dump —
-   "these three things, and here is what would break them". */
-.tk-drilldown .dd-pillar {
-  display: flex; gap: 10px; align-items: baseline;
-  margin-bottom: 8px; font-size: 13px; line-height: 1.5;
-  color: var(--color-text-2);
-}
-.tk-drilldown .dd-pillar-n {
-  font-variant-numeric: tabular-nums; color: var(--color-text-4);
-  font-size: 11px; flex: 0 0 auto;
+/* News & context — after the Earnings drawer, full width for prose. */
+.tk-drilldown .dd-news { margin-top: 20px; }
+.tk-drilldown .dd-sub {
+  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--color-text-4); margin: 10px 0 6px;
 }
 .tk-drilldown .dd-highlight {
   border-left: 2px solid var(--brass); padding-left: 10px;
   margin: 0 0 6px; font-size: 12.5px; line-height: 1.5;
   color: var(--color-text-2);
-}
-/* Deliberately LAST and terracotta: it is the falsifier. */
-.tk-drilldown .dd-break {
-  border-left: 2px solid var(--stress); padding-left: 10px;
-  font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
 }
 
 /* ── Drawers — the material only an auditor wants ─────────────────────────────
@@ -2206,54 +2099,30 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   .briefing-grid > .bg-col { gap: var(--space-4, 24px); }
 }
 
-/* ── Signal color tokens (mirrored from assets/catalog.json) ──── */
+/* ── Tone tokens (mirrored from assets/catalog.json; the signal palette until 2026-10-01) ── */
 :root {
-  --buy:        #22c55e;
-  --accumulate: #3498db;
-  --watch:      #f59e0b;
-  --hold:       #6b7280;
-  --caution:    #ef4444;
-  --avoid:      #b91c1c;
-  --buy-tint:        rgba(34, 197, 94, 0.16);
-  --accumulate-tint: rgba(52, 152, 219, 0.18);
-  --watch-tint:      rgba(245, 158, 11, 0.18);
-  --hold-tint:       rgba(160, 160, 160, 0.14);
-  --caution-tint:    rgba(239, 68, 68, 0.16);
-  --avoid-tint:      rgba(185, 28, 28, 0.16);
+  --tone-pos:        #22c55e;
+  --tone-info: #3498db;
+  --tone-warn:      #f59e0b;
+  --tone-muted:       #6b7280;
+  --tone-neg:    #ef4444;
+  --tone-neg-deep:      #b91c1c;
+  --tone-pos-tint:        rgba(34, 197, 94, 0.16);
+  --tone-info-tint: rgba(52, 152, 219, 0.18);
+  --tone-warn-tint:      rgba(245, 158, 11, 0.18);
+  --tone-muted-tint:       rgba(160, 160, 160, 0.14);
+  --tone-neg-tint:    rgba(239, 68, 68, 0.16);
+  --tone-neg-deep-tint:      rgba(185, 28, 28, 0.16);
 }
 
 /* ── Watchlist row interactive states (§2.4) ─────────────────── */
+/* No left rail since 2026-10-01: the 3px rail carried the row's signal colour
+   and went with the labels, so the row now lines up with the column header.
+   Hover / open wash: details.tk-details > summary:hover / [open] above. */
 .tk-details > summary {
   cursor: pointer;
-  border-left: 3px solid transparent;
-  transition:
-    background-color var(--dur-fast, 120ms) var(--ease-out, ease-out),
-    border-left-color var(--dur-fast, 120ms) var(--ease-out, ease-out);
+  transition: background-color var(--dur-fast, 120ms) var(--ease-out, ease-out);
 }
-
-/* Per-signal left rail color (tint applied on hover/open) */
-.tk-details[data-signal="BUY"]        > summary { border-left-color: var(--buy); }
-.tk-details[data-signal="ACCUMULATE"] > summary { border-left-color: var(--accumulate); }
-.tk-details[data-signal="WATCH"]      > summary { border-left-color: var(--watch); }
-.tk-details[data-signal="HOLD"]       > summary { border-left-color: var(--ink-3); }
-.tk-details[data-signal="CAUTION"]    > summary { border-left-color: var(--caution); }
-.tk-details[data-signal="AVOID"]      > summary { border-left-color: var(--avoid); }
-
-/* Hover wash */
-.tk-details[data-signal="BUY"]:hover        > summary { background: var(--buy-tint); }
-.tk-details[data-signal="ACCUMULATE"]:hover > summary { background: var(--accumulate-tint); }
-.tk-details[data-signal="WATCH"]:hover      > summary { background: var(--watch-tint); }
-.tk-details[data-signal="HOLD"]:hover       > summary { background: var(--hold-tint); }
-.tk-details[data-signal="CAUTION"]:hover    > summary { background: var(--caution-tint); }
-.tk-details[data-signal="AVOID"]:hover      > summary { background: var(--avoid-tint); }
-
-/* Expanded state — same wash holds */
-.tk-details[open][data-signal="BUY"]        > summary { background: var(--buy-tint); }
-.tk-details[open][data-signal="ACCUMULATE"] > summary { background: var(--accumulate-tint); }
-.tk-details[open][data-signal="WATCH"]      > summary { background: var(--watch-tint); }
-.tk-details[open][data-signal="HOLD"]       > summary { background: var(--hold-tint); }
-.tk-details[open][data-signal="CAUTION"]    > summary { background: var(--caution-tint); }
-.tk-details[open][data-signal="AVOID"]      > summary { background: var(--avoid-tint); }
 
 /* Focus-visible — don't remove browser default, just enhance */
 .tk-details > summary:focus-visible {
@@ -2264,17 +2133,15 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 /* Expand affordance — a small caret prefixing the ticker in each clickable row,
    rotating from ▸ to ▾ on open. Previously discoverability rested entirely on
    hover + the "click any row to expand" caption. Scoped to the <summary>'s
-   first cell (the ticker) so the static `.tk-row.tk-head` / `.led-head` rows —
-   which are plain divs, not <details> — never get a caret. Placed inside the
-   ticker cell (not as an absolute overlay) so it can't collide with the
-   right-aligned R:R / Worst values.
+   first cell (the ticker) so the static `.tk-row.tk-head` row — a plain div,
+   not <details> — never gets a caret. Placed inside the ticker cell (not as an
+   absolute overlay) so it can't collide with the right-aligned values.
 
    The Watchlist's ticker cell became a two-line container in the 2026-07-25
-   redesign (ticker + changed-dot above, cluster below), so its caret anchors on
-   the INNER .tk-tick-id flex row. Anchoring it on the cell itself would put the
-   caret on a line of its own above the ticker. */
-details.tk-details > summary > .tk-tick .tk-tick-id::before,
-details.led-details > summary > div:first-child::before {
+   redesign (ticker above, cluster below), so its caret anchors on the INNER
+   .tk-tick-id flex row. Anchoring it on the cell itself would put the caret on
+   a line of its own above the ticker. */
+details.tk-details > summary > .tk-tick .tk-tick-id::before {
   content: "\25B8";                /* ▸ */
   color: var(--ink-3);
   font-size: 8.5px;
@@ -2283,8 +2150,7 @@ details.led-details > summary > div:first-child::before {
   flex: 0 0 auto;
   transition: transform var(--dur-fast, 120ms) var(--ease-out, ease-out);
 }
-details.tk-details[open] > summary > .tk-tick .tk-tick-id::before,
-details.led-details[open] > summary > div:first-child::before {
+details.tk-details[open] > summary > .tk-tick .tk-tick-id::before {
   transform: rotate(90deg);
 }
 
@@ -2297,36 +2163,12 @@ details.led-details[open] > summary > div:first-child::before {
   animation: tk-slide-down var(--dur-base, 200ms) var(--ease-out, ease-out);
 }
 
-/* Signal-flash keyframes: registered here so they're available the moment
-   Python decides to bind them. Animation-applying selectors are injected
-   from dashboard.py via a conditional <style> block, gated on
-   is_first_mount(). The diff itself is computed in dashboard.py (Watchlist
-   tab) and propagated through render_watchlist → render_ticker_details_html
-   as data-signal-changed="true" on <details class="tk-details">. */
-@keyframes tk-signal-flash {
-  0%   { background-color: transparent; }
-  35%  { background-color: var(--buy-tint); }
-  100% { background-color: transparent; }
-}
-@keyframes tk-signal-flash-accumulate {
-  0%, 100% { background-color: transparent; }
-  35%      { background-color: var(--accumulate-tint); }
-}
-@keyframes tk-signal-flash-watch {
-  0%, 100% { background-color: transparent; }
-  35%      { background-color: var(--watch-tint); }
-}
-@keyframes tk-signal-flash-caution {
-  0%, 100% { background-color: transparent; }
-  35%      { background-color: var(--caution-tint); }
-}
-
 /* ── Risk severity rail + tag colour (§2.5) ──────────────────── */
-.risk-card[data-severity="HIGH"] { border-left-color: var(--caution); }
-.risk-card[data-severity="MED"]  { border-left-color: var(--watch); }
+.risk-card[data-severity="HIGH"] { border-left-color: var(--tone-neg); }
+.risk-card[data-severity="MED"]  { border-left-color: var(--tone-warn); }
 .risk-card[data-severity="LOW"]  { border-left-color: var(--ink-4); }
-.risk-card[data-severity="HIGH"] .tag { color: var(--caution); }
-.risk-card[data-severity="MED"]  .tag { color: var(--watch); }
+.risk-card[data-severity="HIGH"] .tag { color: var(--tone-neg); }
+.risk-card[data-severity="MED"]  .tag { color: var(--tone-warn); }
 .risk-card[data-severity="LOW"]  .tag { color: var(--ink-3); }
 
 /* Severity-pulse keyframes: registered here so they're available the moment
@@ -2334,7 +2176,7 @@ details.led-details[open] > summary > div:first-child::before {
    from dashboard.py via a conditional <style> block, gated on is_first_mount(). */
 @keyframes risk-severity-pulse {
   0%, 100% { box-shadow: none; }
-  40%      { box-shadow: 0 0 0 4px var(--caution-tint); }
+  40%      { box-shadow: 0 0 0 4px var(--tone-neg-tint); }
 }
 
 /* ── Scenario odds segment hover (§2.5) ──────────────────────── */
@@ -2432,112 +2274,6 @@ details.led-details[open] > summary > div:first-child::before {
   .scn-desc { font-size: 14.5px; max-width: none; }
 }
 
-/* ════════════════════════════════════════════════════════════
-   Signal Tracker · Performance Ledger
-   ════════════════════════════════════════════════════════════ */
-
-/* 1 ── Calibration hero band (one cell per signal type) */
-/* ── Hit-rate tiles: five peer measurements, read left to right ──
-   Order inside a tile is fixed: identity → plain English → the number → its
-   shape → its arithmetic → whether to trust it. Grid construction comes from
-   .hair-grid; only the column count is local. */
-.calib-grid { grid-template-columns: repeat(5, 1fr); margin: 14px 0 6px; }
-.calib-cell { padding: 14px 16px 16px; }
-.calib-cell .clabel {
-  font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  display: flex; align-items: center; gap: 7px;
-}
-.calib-cell .cdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-/* Verdict-first: the tile says what the signal tells you to do before it
-   reports how often it was right. min-height keeps one- and two-line meanings
-   from pushing the five percentages onto different baselines — the whole point
-   of a 5-across grid is that the numbers align. */
-.calib-cell .sc-verb {
-  font-size: 9.5px; line-height: 1.3; color: var(--color-text-3);
-  min-height: 24px; margin-top: 6px;
-}
-.calib-cell .cval {
-  font-family: var(--font-display); font-size: 38px; font-weight: 600;
-  letter-spacing: -0.02em; line-height: 1; margin-top: 4px;
-  color: var(--color-text); font-variant-numeric: tabular-nums;
-}
-.calib-cell .cval.muted { font-size: 18px; color: var(--color-text-4); }
-/* Brass: calibration data, not a rating. Full cell width so bar lengths are
-   directly comparable across the five cells — 47% vs 100% should read as a
-   shape difference before either number is read. */
-.calib-cell .cbar { height: 4px; background: var(--color-divider); margin-top: 10px; }
-.calib-cell .cbar > i { display: block; height: 100%; background: var(--brass); }
-.calib-cell .csub {
-  font-size: 11px; color: var(--color-text-2); margin-top: 8px;
-  font-variant-numeric: tabular-nums;
-}
-.calib-cell .sc-flag {
-  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--color-text-3); margin-top: 5px;
-}
-/* Sample adequacy by opacity, never colour: any colour-coding would fight the
-   number's own prominence, so the untrustworthy figures physically recede
-   instead. With .warn-thin and the ⚠ glyph that is three redundant cues. */
-.calib-cell.thin .cval, .calib-cell.thin .cbar { opacity: 0.42; }
-.calib-cell .sc-gate {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em;
-  color: var(--color-text-3); margin-top: 6px; line-height: 1.35;
-}
-.calib-cell .clabel .pb-tip { margin-left: 6px; }
-/* Stated as a footnote, deliberately not a sixth tile: HOLD makes no
-   directional claim, and an empty percentage would imply a missing measurement
-   rather than an inapplicable one. */
-.sc-hold {
-  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--color-text-3); margin: 10px 0 0;
-}
-
-/* 2 ── By-name ledger: header + click-to-expand rows */
-.led-head,
-details.led-details > summary {
-  display: grid;
-  /* 92px ticker column: 76px wrapped "000660.KS" onto a second line. */
-  grid-template-columns: 92px 1fr 92px 92px 152px 72px 70px 70px;
-  gap: 12px; align-items: center;
-  font-family: var(--mono); font-size: 12.5px;
-}
-.led-head {
-  border-bottom: 1.5px solid var(--ink);
-  font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-3); padding: 8px 12px;
-}
-details.led-details { margin: 0; padding: 0; border: 0; background: transparent; }
-details.led-details > summary {
-  list-style: none; cursor: pointer; padding: 13px 12px;
-  border-bottom: 1px solid var(--rule); transition: background 0.12s;
-}
-details.led-details > summary::-webkit-details-marker { display: none; }
-details.led-details > summary::marker { content: ""; }
-details.led-details > summary:hover { background: var(--paper-2); }
-details.led-details[open] > summary {
-  background: var(--paper-2); border-bottom-color: var(--rule-strong);
-}
-.led-tk { font-weight: 600; color: var(--ink); white-space: nowrap; }
-.led-name {
-  font-family: var(--sans); color: var(--ink-3); font-size: 12px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.led-num { text-align: right; }
-.led-open { color: var(--ink-3); }    /* was --ink-4 (fails AA) */
-.led-empty { color: var(--ink-3); }   /* was --ink-4 (fails AA) */
-
-.winbar-wrap { display: flex; align-items: center; gap: 9px; }
-.winbar {
-  position: relative; flex: 1; height: 5px;
-  background: var(--paper-3); border-radius: 3px; overflow: hidden;
-}
-.winbar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
-.winbar-pct {
-  font-family: var(--mono); font-size: 11.5px;
-  width: 32px; text-align: right; flex: none;
-}
-
 /* 3 ── Episode drill-down table (inside .tk-drilldown) */
 .ep-table {
   width: 100%; border-collapse: collapse;
@@ -2576,51 +2312,13 @@ details.led-details[open] > summary {
   font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
   background: var(--paper-3); padding: 1px 6px; border-radius: 3px;
 }
-.cl-ext[data-warn="1"] { color: var(--caution); }
+.cl-ext[data-warn="1"] { color: var(--tone-neg); }
 .cl-dev { color: var(--ink-2); font-size: 12.5px; line-height: 1.5; }
 .cl-body { padding: 8px 2px 2px; }
 .cl-thesis { color: var(--ink-3); font-size: 12px; font-style: italic; margin: 0 0 6px; }
 .cl-sum { color: var(--ink-2); font-size: 13px; line-height: 1.55; margin: 0 0 8px; }
 .cl-anchors { margin-top: 4px; }
 .cl-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
-
-/* ── Briefing · Signal-calibration band (review P1-2: surface `calibration_insights`) ── */
-.cal-band { margin: 6px 0 2px; }
-.cal-details { padding: 4px 0 2px; }
-.cal-summary {
-  cursor: pointer; list-style: none;
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
-}
-.cal-summary::-webkit-details-marker { display: none; }
-.cal-headline { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
-.cal-head-txt { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
-/* Parenthetical detail — recedes without needing a line of its own. */
-.cal-count { color: var(--color-text-4); }
-/* Measurement, not a rating: the loudest thing on the row after the pill,
-   because it is the actual content. */
-.cal-alpha { color: var(--brass); font-weight: 600; font-variant-numeric: tabular-nums; }
-/* Structural qualifier — how much to trust the number — so it takes the
-   structural colour. Outlined rather than filled keeps it quiet: it qualifies
-   the figure, it isn't the headline. */
-.cal-conf {
-  display: inline-block; border: 1px solid var(--accent); color: var(--accent);
-  background: transparent; border-radius: var(--radius-pill);
-  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
-  text-transform: uppercase; padding: 1px 6px;
-}
-.cal-body { padding: 8px 2px 2px; }
-.cal-scorecard { margin-top: 4px; }
-.cal-scorecard td.alpha { color: var(--brass); font-weight: 600; }
-/* Opacity, not tint: the brass α cells must recede with the row, and a colour
-   swap alone would leave them at full strength. */
-.cal-scorecard tr[data-lowconf="1"] { opacity: 0.62; }
-.cal-fullcorpus { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
-.cal-taxonomy { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 4px; }
-/* Not italic: it was set against the paper book's italic single-regime
-   disclaimer (removed 2026-10-01); kept upright as it was. */
-.cal-caveat { color: var(--color-text-3); font-size: 11.5px; line-height: 1.5; margin: 4px 0 0; }
-.cal-colkey { color: var(--ink-3); font-family: var(--mono); font-size: 11px; line-height: 1.6; margin: 2px 0 6px; }
-.cal-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
 
 /* ── Briefing · Earnings-scorecard band (review P1-2: surface per-ticker `eps_trajectory`) ── */
 .eps-band { margin: 6px 0 2px; }
@@ -2633,9 +2331,9 @@ details.led-details[open] > summary {
 .eps-body { padding: 8px 2px 2px; }
 .eps-scorecard { margin-top: 4px; }
 .eps-trend { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
-.eps-beat { color: var(--buy); }
-.eps-miss { color: var(--avoid); }
-.eps-accel { color: var(--buy); font-weight: 600; }
+.eps-beat { color: var(--tone-pos); }
+.eps-miss { color: var(--tone-neg-deep); }
+.eps-accel { color: var(--tone-pos); font-weight: 600; }
 .eps-flat { color: var(--ink-3); }
 .eps-reason { color: var(--ink-2); font-size: 11.5px; line-height: 1.5; margin: 6px 0 0; }
 .eps-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
@@ -2659,8 +2357,8 @@ details.led-details[open] > summary {
   font-family: var(--mono); font-size: 10.5px; color: var(--ink-3);
   background: var(--paper-3); padding: 1px 6px; border-radius: 3px;
 }
-.tm-chip.tm-bull { color: var(--buy); }
-.tm-chip.tm-bear { color: var(--caution); }
+.tm-chip.tm-bull { color: var(--tone-pos); }
+.tm-chip.tm-bear { color: var(--tone-neg); }
 .tm-body { padding: 10px 2px 2px; }
 .tm-paths { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 719px) {
@@ -2701,7 +2399,7 @@ details.led-details[open] > summary {
 .briefing-banner[data-tone="warn"] {
   background: rgba(239, 68, 68, 0.10);
   border-color: rgba(239, 68, 68, 0.40);
-  border-left-color: var(--caution);
+  border-left-color: var(--tone-neg);
 }
 .briefing-banner[data-tone="crisis"] {
   margin-bottom: 16px;
@@ -2711,7 +2409,7 @@ details.led-details[open] > summary {
   border-left-width: 1px;   /* uniform border — no accent rail */
   font-size: 12px;
   letter-spacing: 0.07em;
-  color: var(--caution);
+  color: var(--tone-neg);
 }
 
 /* ── Phone-width reflow for the editorial grids ─────────────────────────────
@@ -2736,55 +2434,16 @@ details.led-details[open] > summary {
   .cal-event { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; }
   .cal-text { min-width: 0; }
 
-  /* Hit-rate tiles: five across overflows a phone (each needs ~100px of ~87
-     available). The hairlines are the grid's own gaps, so nothing to re-draw. */
-  .calib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .calib-cell { padding: 12px 14px 14px; }
 }
 
-/* ── Signal Tracker: what-we've-changed strip ──
-   (The scorecard tile rules live with the .calib-* block above.) */
-/* Layout comes from .spine (112px | 1fr). Hairlines between entries only — no
-   cards: a changelog is a list of records, and framing each one would make five
-   paragraphs look like five products. */
-.chg-log { margin-top: 4px; }
-/* The tick is --color-divider, not accent: every entry is a peer, so the ticks
-   give the column rhythm without implying hierarchy. */
-.chg-date {
-  font-family: var(--font-display); font-size: 11px; letter-spacing: 0.06em;
-  color: var(--color-text-3); border-left: 2px solid var(--color-divider);
-  padding-left: 10px; font-variant-numeric: tabular-nums;
-}
-.chg-body { min-width: 0; }
-.chg-title {
-  display: block; font-family: var(--font-display); font-size: 15px;
-  font-weight: 600; color: var(--color-text); margin-bottom: 4px;
-}
 /* The only long-form prose on the site — a tighter measure and generous leading,
    set for genuine paragraph reading. */
-.chg-note {
-  display: block; font-size: 13px; line-height: 1.6;
-  color: var(--color-text-2); opacity: 0.7; max-width: 96ch;
-}
+
 @media (max-width: 720px) {
   .spine > * { grid-template-columns: 1fr; gap: 6px; }
-  .chg-date { border-left: 0; padding-left: 0; }
+  
 }
 
-/* Readiness ("trust") meter above the scorecard */
-.rd-grid { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 0 26px; align-items: start; }
-/* A hairline marks "different kind of content" (prose vs figures) inside one
-   card, without splitting one reading into two cards. */
-.rd-verdict {
-  border-left: 1px solid var(--color-divider); padding-left: 24px;
-  color: var(--color-text-2); font-size: 13px; line-height: 1.6;
-  opacity: 0.78; margin: 0;
-}
-@media (max-width: 900px) {
-  .rd-grid { grid-template-columns: repeat(2, auto); gap: 18px; }
-  .rd-verdict { grid-column: 1 / -1; border-left: 0; padding-left: 0;
-                border-top: 1px solid var(--color-divider); padding-top: 14px; }
-}
 /* Set for genuine paragraph reading, and capped so the measure stays readable.
    Only three phrases are bolded — the ones that break comprehension if missed. */
 .method {
@@ -2831,62 +2490,6 @@ th .pb-tip-body { right: 0; left: auto; }
     text-align: left; min-width: 0;
     border-top: 1px solid var(--rule); padding-top: 10px;
   }
-}
-
-/* ── Retrospective page (spec 2026-07-25-review-retrospective-redesign) ──
-   Page order is caveat → time control → verdict → evidence → method: the
-   honesty banner sits above every number so no figure is read unqualified.
-
-   Mostly page-scoped. The head is the SHARED .section-head.masthead variant
-   (2px full-strength rule + 30px/600) — this page carried its own .retro-head
-   copy of that treatment until the shared variant arrived with the Signal
-   Tracker redesign; one device should not be spelled two ways. The banner does
-   NOT reuse .briefing-banner (filled, rounded, --caution-railed: the three
-   things §4 of the spec rules out).
-
-   The one hard rule this page exists to prove: signal colour and outcome colour
-   appear on the SAME row and mean different things. The pill carries the rating
-   (signal palette); the rail and glyph carry what the market did (--up/--down).
-   A CAUTION call that worked is an amber pill on a green rail — that is the
-   honest encoding, and merging the two palettes would make the row unreadable.
-
-   Ink levels: the spec's opacity percentages are expressed through the measured
-   ink ramp rather than color-mix (unused elsewhere in this file) — 78% → --ink-2
-   (9.75:1), 62%/60%/48% → --ink-3 (5.03:1). --ink-4 measures 2.51:1 and is not
-   used for text, so the quietest row text (dates, levels) lands on --ink-3 and
-   gets its recessive weight from size and letterspacing instead. */
-
-/* §3 Page head: render_section_head(..., masthead=True). The 2px full-strength
-   rule says "top-level document surface, not a section inside one", and the
-   right-aligned sub carries the page's premise so the title can stay one word.
-   No rules here — the shared variant already is this treatment. */
-
-/* §4 Honesty banner. Terracotta (--stress), never a signal colour: this is a
-   trust limitation about the verdicts, not a rating on any stock — so it can
-   read as a warning at a glance without ever being mistaken for CAUTION.
-   Hairline box + one coloured edge, no fill: the marker grammar every other row
-   on the site uses. The glyph is its own flex cell aligned flex-start so a
-   wrapping sentence stays in the text column instead of tucking under it. */
-.retro-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  border: 1px solid var(--color-divider);
-  border-left: 3px solid var(--stress);
-  padding: 11px 14px;
-  margin: 0 0 var(--space-4);
-}
-.retro-banner .retro-warn {
-  flex: 0 0 auto;
-  color: var(--stress);
-  font-size: 13px;
-  line-height: 1.5;
-}
-.retro-banner p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-2);
 }
 
 /* §5 Month picker. st.radio styled as a joined segmented control, scoped by the
@@ -2974,271 +2577,6 @@ th .pb-tip-body { right: 0; left: auto; }
 .st-key-retro_month [role="radiogroup"] > label:has(input:focus-visible) {
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
-}
-/* The in-progress note rides beside the control, not below it: it qualifies the
-   act of selecting the newest month, and as a caption underneath it would read
-   as a statement about the whole page. */
-.retro-inprogress {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-3);
-  padding-bottom: 6px;
-}
-
-/* §6 Month scoreboard. Two panels in ONE blueprint frame because these are
-   two readings of the same month — the verdict and its composition. Separate
-   cards would imply separate subjects. (The third, paper-book panel was removed
-   2026-10-01 when the paper books were frozen.) Corner marks come from the
-   shared .blueprint > .corner rules. */
-.retro-board {
-  position: relative;
-  display: grid;
-  grid-template-columns: 190px 1fr;
-  border: 1px solid var(--color-divider);
-  background: transparent;
-  margin: var(--space-3) 0 var(--space-5);
-}
-.rb-panel { padding: 22px 28px; }
-/* Hairlines between panels mark a boundary without fragmenting the frame. */
-.rb-comp { border-left: 1px solid var(--color-divider); }
-.rb-eyebrow {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--eyebrow);          /* steel: structure, never a rating */
-  margin: 0 0 10px;
-}
-/* The hit rate is the largest element on the page: a percentage IS the answer to
-   the question the page asks, where "9 resolved · 6 went our way" made the
-   reader do the division. Brass, not green — a hit rate is an instrument
-   reading of calibration, and colouring it green would editorialise (is 67%
-   good?) and collide with the outcome greens a few hundred pixels below. */
-.rb-hit {
-  font-family: var(--font-display);
-  font-size: 48px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--brass);
-}
-/* Nothing to measure yet. Brass at 48px is reserved for readings that exist, and
-   a dash in the figure slot reads as a stray rule rather than a missing value —
-   so the empty state states itself in words, in the muted ramp, at a size that
-   still holds the panel's top line. */
-.rb-hit[data-empty="1"] {
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--color-text-3);
-}
-/* The arithmetic is ALWAYS shown, so the percentage is never a bare assertion —
-   and it names the denominator (resolved, not all calls), the one thing a hit
-   rate can quietly lie about. */
-.rb-arith {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--color-text-3);
-  margin: 8px 0 0;
-  max-width: 22ch;
-}
-/* The bar carries what the hit rate structurally cannot: the unresolved slice.
-   The hit rate excludes open calls by design, so without this the reader can't
-   see that 67% rests on a partial month. Green/red here are OUTCOMES (the
-   up/down delta system, not the signal palette); the third segment must stay
-   neutral because a pending call is the ABSENCE of a verdict and any colour
-   would imply one. */
-.rb-bar {
-  display: flex;
-  height: 14px;
-  border: 1px solid var(--color-divider);
-  overflow: hidden;
-}
-.rb-seg { display: block; height: 100%; }
-.rb-seg[data-seg="worked"] { background: var(--up); }
-.rb-seg[data-seg="failed"] { background: var(--down); }
-/* --muted-fill is the data palette's neutral/secondary series and is theme-aware,
-   where a flat rgba(255,255,255,.22) would vanish on a light base. */
-.rb-seg[data-seg="open"]   { background: var(--muted-fill); }
-.rb-counts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
-}
-/* Counts are inputs, so they stay neutral — colouring one would imply that 5
-   open calls is good or bad. Value-over-label matches every other stat block on
-   the site, so the pattern is learnable. */
-.rb-count b {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--color-text);
-}
-.rb-count span {
-  display: block;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-3);
-  margin-top: 4px;
-}
-
-/* §7 Verdict groups. 19px over a 1px rule is a deliberate step DOWN from the
-   30px/2px page head, so the hierarchy reads month → outcome bucket rather than
-   three more top-level sections. These are the only tinted headings on the
-   site: the three groups are otherwise structurally identical, so the colour is
-   what lets you jump to the bucket you want without reading — and it pre-loads
-   the rail colour about to repeat down the rows. */
-.retro-group { margin: 0 0 var(--space-4); }
-.retro-group-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  border-bottom: 1px solid var(--color-text);
-  padding-bottom: 6px;
-  margin: 0 0 4px;
-}
-.retro-group-head h2 {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: var(--font-display);
-  font-size: 19px !important;
-  font-weight: 600;
-  line-height: 1.2;
-}
-.retro-group[data-bucket="worked"] .retro-group-head h2 { color: var(--up); }
-.retro-group[data-bucket="failed"] .retro-group-head h2 { color: var(--down); }
-.retro-group[data-bucket="pending"] .retro-group-head h2 { color: var(--color-text-3); }
-.retro-group-n {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--color-text-3);
-}
-
-/* Call row. Fixed outer columns are the point: with a fixed pill column every
-   ticker starts at the same x down the whole list, so the names form a
-   scannable vertical edge — impossible if the pill sized to its label (CAUTION
-   and BUY differ in width). Baseline alignment makes the row read as one line
-   of type rather than three stacked objects. */
-.retro-item {
-  display: grid;
-  grid-template-columns: 22px 96px 1fr 66px;
-  gap: 10px;
-  align-items: baseline;
-  border-left: 3px solid var(--color-text-4);
-  padding: 7px 0 7px 11px;
-}
-/* The rail states the OUTCOME. Same "coloured left edge = state" grammar as
-   watchlist rows and clusters. */
-.retro-item[data-bucket="worked"] { border-left-color: var(--up); }
-.retro-item[data-bucket="failed"] { border-left-color: var(--down); }
-/* Pending is faint neutral: no verdict yet, so nothing to state. */
-.retro-item[data-bucket="pending"] { border-left-color: var(--color-divider-strong); }
-/* The glyph repeats the rail on purpose — two encodings of one fact, so the row
-   survives a reader who can't distinguish the greens, and the marks give the
-   list a scannable left margin. */
-.retro-icon { font-size: 12px; line-height: 1.5; text-align: center; }
-.retro-item[data-bucket="worked"] .retro-icon { color: var(--up); }
-.retro-item[data-bucket="failed"] .retro-icon { color: var(--down); }
-/* ⏳ has emoji presentation, so it ignores `color` and renders in its own hue —
-   which would make a pending call the most colourful thing in the list, exactly
-   backwards from "pending is the ABSENCE of a verdict". Desaturating it is what
-   keeps the rule intact while keeping the glyph the Tracker also uses. ✓ and ✗
-   are plain text glyphs and take `color` normally. */
-.retro-item[data-bucket="pending"] .retro-icon {
-  color: var(--color-text-3);
-  filter: grayscale(1);
-  opacity: 0.7;
-}
-/* The pill keeps the FULL signal treatment (tint, rail text, dot): the rating
-   was CAUTION even where the outcome was good. */
-.retro-pill { display: block; }
-.retro-line { font-size: 13px; line-height: 1.5; color: var(--color-text-2); }
-.retro-line b {
-  color: var(--color-text);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.retro-entry { color: var(--color-text-3); }
-/* The outcome is the darkest text after the ticker because it is what you came
-   for. */
-.retro-outcome { color: var(--color-text-2); }
-/* Levels were inline in parentheses and interrupted the outcome sentence
-   mid-read. Demoted to a quiet second line the sentence flows, and they are
-   still there for anyone auditing the call. */
-.retro-levels {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-3);
-  margin-top: 3px;
-}
-/* The quietest thing in the row — within a month the exact day rarely changes a
-   judgment — and right-aligned so the dates form their own column at the far
-   edge. */
-.retro-date {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-align: right;
-  color: var(--color-text-3);
-}
-.retro-empty {
-  font-size: 13px;
-  color: var(--color-text-3);
-  padding: 6px 0;
-}
-
-/* §8 Method note + footer legend. Exactly two phrases are bolded to full
-   strength — "raw price direction" and "retired names stay on the record" —
-   because those are the two facts that change how every row above is read.
-   Bolding by what breaks comprehension if missed, never by keyword. */
-.retro-method {
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--color-text-3);
-  max-width: 104ch;
-  margin: var(--space-4) 0 0;
-}
-.retro-method b { color: var(--color-text); font-weight: 600; }
-/* The page's own legend, placed where a reader confused by an amber-pill-on-
-   green-rail row would go looking for it. */
-.retro-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  border-top: 1px solid var(--color-divider);
-  margin-top: var(--space-4);
-  padding-top: 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-3);
-}
-
-/* Narrow viewports: the board stacks and its panel hairlines move from the left
-   edge to the top, so the divider always separates panels along the axis they
-   are actually stacked on. */
-@media (max-width: 719px) {
-  .retro-board { grid-template-columns: 1fr; }
-  .rb-panel { padding: 18px 20px; }
-  .rb-comp {
-    border-left: none;
-    border-top: 1px solid var(--color-divider);
-  }
-  .retro-item { grid-template-columns: 18px 84px 1fr; }
-  /* The date drops out of the row grid and trails the sentence instead of
-     forcing a fourth column into ~320px. */
-  .retro-date { grid-column: 3; text-align: left; }
 }
 
 /* ── AI Capex Pulse datasheet (spec 2026-07-22 §6) ──────────────
@@ -3384,11 +2722,13 @@ th .pb-tip-body { right: 0; left: auto; }
    makes it win (same convention as the action-card phone block). */
 @media (max-width: 719px) {
   /* ── Watchlist ledger → stacked cards ──
-     Summary cell order is fixed by row.py and is SEVEN cells since the 2026-07-25
-     redesign: 1 ticker(+cluster) · 2 signal · 3 last+Δ · 4 1mo · 5 vs50 gauge ·
-     6 RSI · 7 R:R. Cluster is no longer its own cell — it rides inside the
-     ticker cell, so the old div.name rule is gone. Header row hidden: the labels
-     move into each card so every value stays self-describing. */
+     Summary cell order is fixed by row.py and is SEVEN cells: 1 ticker(+cluster)
+     · 2 last+Δ · 3 5d · 4 1mo · 5 vs50 gauge · 6 RSI · 7 earnings (facts only
+     since 2026-10-01 — cell 2 was the signal pill, cell 7 the R:R). Cluster
+     rides inside the ticker cell. Cell 2 sits top-right beside the ticker, like
+     a quote header, so it needs no label; cells 3–7 carry small-caps labels.
+     Header row hidden: the labels move into each card so every value stays
+     self-describing. */
   .tk-scroll > .tk-row.tk-head { display: none; }
   .tk-group { padding: 16px 4px 4px; }
   details.tk-details > summary {
@@ -3405,45 +2745,20 @@ th .pb-tip-body { right: 0; left: auto; }
     display: block; font-size: 8.5px; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
-  details.tk-details > summary > div:nth-child(3)::before { content: "Last · Δ"; }
-  details.tk-details > summary > div:nth-child(4)::before { content: "1mo"; }
+  details.tk-details > summary > div:nth-child(2) { text-align: right; }
+  details.tk-details > summary > div:nth-child(3)::before { content: "5 d"; }
+  details.tk-details > summary > div:nth-child(4)::before { content: "1 mo"; }
   details.tk-details > summary > div:nth-child(5)::before { content: "vs 50-day"; }
   details.tk-details > summary > div:nth-child(6)::before { content: "RSI"; }
-  details.tk-details > summary > div:nth-child(7)::before { content: "R:R"; }
+  details.tk-details > summary > div:nth-child(7)::before { content: "Earnings"; }
   /* A 168px centred bar cannot survive a stacked card, so the track drops and
      the signed figure — the same information — stays. */
   .tk-ext-track { display: none; }
   .tk-ext { align-items: flex-start; }
-  /* The card's two-column evidence and four-cell plate stack on a phone. */
-  .tk-drilldown .dd-cols { grid-template-columns: 1fr; gap: 20px; }
-  .tk-drilldown .dd-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* The card's three evidence columns stack on a phone. */
+  .tk-drilldown .dd-cols,
+  .tk-drilldown .dd-cols-3 { grid-template-columns: 1fr; gap: 20px; }
   .tk-drilldown .dd-card { padding-left: 12px; }
-
-  /* ── By-name ledger (tracker) → stacked cards ──
-     Cell order from signal_tracker.py: 1 name · 2 cluster · 3 signal ·
-     4 episodes · 5 winbar · 6 avg · 7 best · 8 worst. */
-  .tk-scroll > .led-head { display: none; }
-  details.led-details > summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px 12px;
-    padding: 13px 4px;
-  }
-  details.led-details > summary > .led-tk { grid-area: 1 / 1 / 2 / 3; }
-  details.led-details > summary > div:nth-child(3) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
-  details.led-details > summary > .led-name { grid-area: 2 / 1 / 3 / 4; margin-top: -6px; }
-  details.led-details > summary > .winbar-wrap { grid-column: span 2; flex-wrap: wrap; }
-  details.led-details > summary > .led-num { text-align: left; }
-  details.led-details > summary > div:nth-child(n + 4)::before {
-    font-size: 8.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
-  }
-  details.led-details > summary > div:nth-child(n + 4):not(.winbar-wrap)::before { display: block; }
-  details.led-details > summary > .winbar-wrap::before { flex-basis: 100%; }
-  details.led-details > summary > div:nth-child(4)::before { content: "Episodes"; }
-  details.led-details > summary > div:nth-child(5)::before { content: "Trades won"; }
-  details.led-details > summary > div:nth-child(6)::before { content: "Avg"; }
-  details.led-details > summary > div:nth-child(7)::before { content: "Best"; }
-  details.led-details > summary > div:nth-child(8)::before { content: "Worst"; }
 
   /* ── Stacked table (.stack-m) ──
      Wide ep-tables (compare diffs, episode drill-downs) opt in via class="ep-table stack-m" + data-l="label" on
@@ -3477,32 +2792,6 @@ th .pb-tip-body { right: 0; left: auto; }
     text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
   }
 }
-
-/* ══════════════════════════════════════════════════════════════════════
-   SIGNAL TRACKER REDESIGN (spec 2026-07-25) — shared devices
-   The page teaches a grammar by repetition. Each device is declared once here
-   and consumed by several sections; the colour roles never overlap.
-   ══════════════════════════════════════════════════════════════════════ */
-
-/* A discrete figure: value over label (the site-wide order), with a 2px steel
-   tick. Deliberately 2px — the 3px rail is signal language on watchlist rows
-   and clusters, and must not be confused with "this is a number". */
-.stat-tick { border-left: 2px solid var(--accent); padding-left: 12px; }
-.stat-tick b {
-  display: block; font-family: var(--font-display); font-size: 26px;
-  font-weight: 600; line-height: 1.1; color: var(--color-text);
-  font-variant-numeric: tabular-nums;
-}
-.stat-tick span {
-  display: block; font-family: var(--font-display); font-size: 9.5px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--color-text-3); margin-top: 4px;
-}
-
-/* Trust limitation, never a rating. Terracotta because amber is WATCH: a
-   data-quality warning is not a signal, so it takes the data palette's stress
-   colour. This keeps the rule intact even where a warning "wants" to be amber. */
-.warn-thin { color: var(--stress); }
 
 /* Date-spine ledger (consumed by "What we've changed"). The fixed date column
    makes a continuous vertical spine: you scan chronology first, then read
@@ -3569,6 +2858,13 @@ th .pb-tip-body { right: 0; left: auto; }
   font-family: var(--font-display); font-size: 10.5px; font-weight: 600;
   letter-spacing: 0.09em; text-transform: uppercase;
   color: var(--color-text-3); margin: 8px 0 28px;
+}
+/* The one dated line about the signal labels (2026-10-01). Hairline box, no
+   colour: it records when something ran and makes no claim about it. */
+.term-era {
+  font-size: 13px; line-height: 1.55; color: var(--color-text-2);
+  border: 1px solid var(--color-divider); padding: 10px 14px;
+  margin: 4px 0 18px; max-width: 96ch;
 }
 
 /* ── Layout ──
@@ -3691,32 +2987,18 @@ a.term-index-item:hover {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px; color: var(--brass); font-style: normal;
 }
-/* The condition under a definition — quieter, because it answers "when", and
-   the reader is here for "what". */
-.term-trigger {
-  margin-top: 6px; font-size: 12px; line-height: 1.55;
-  color: var(--color-text-3);
-}
 
 /* Favourable → mixed → unfavourable. NOT the signal palette: an R:R band and
    an earnings archetype are readings, not ratings, and amber here would read
    as WATCH. Up-green / brass / terracotta is the site's good–bad axis outside
    the six signals. */
-.term-grid-axis .term-row {
-  padding-left: 12px; border-left: 3px solid transparent;
-}
+
 .term-row[data-axis="good"]  { border-left-color: var(--up); }
 .term-row[data-axis="mixed"] { border-left-color: var(--brass); }
 .term-row[data-axis="poor"]  { border-left-color: var(--stress); }
 
 /* A cutoff is a measurement, so band chips sit on the data axis. */
-.term-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.term-chip {
-  font-family: var(--font-display); font-size: 9.5px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--brass); border: 1px solid var(--color-divider);
-  padding: 2px 7px;
-}
+
 .term-tag {
   font-family: var(--font-display); font-size: 8.5px; font-weight: 600;
   letter-spacing: 0.1em; text-transform: uppercase;
@@ -3729,29 +3011,6 @@ a.term-index-item:hover {
   font-family: var(--font-body); font-size: 13px; line-height: 1.65;
   color: var(--color-text-2); max-width: 76ch; margin: 10px 0 18px;
 }
-
-/* ── The wait gradient ──
-   Four sentences describing a scale become the scale. Signal-palette colour is
-   legitimate: these ARE the signals. The bar carries the horizon that the
-   words "days / weeks / quarters" can only assert. */
-.term-gradient { margin: 8px 0 18px; }
-.tg-row {
-  display: grid; grid-template-columns: 84px 76px 1fr;
-  gap: 14px; align-items: center; padding: 9px 0;
-  border-bottom: 1px solid var(--color-divider);
-}
-.tg-row[data-signal="HOLD"]    { --sig: var(--hold);    --sig-text: var(--hold-text); }
-.tg-row[data-signal="CAUTION"] { --sig: var(--caution); --sig-text: var(--caution-text); }
-.tg-row[data-signal="AVOID"]   { --sig: var(--avoid);   --sig-text: var(--avoid-text); }
-.tg-name {
-  font-family: var(--font-display); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.1em; color: var(--sig-text);
-}
-.tg-horizon {
-  font-family: var(--font-body); font-size: 12px; color: var(--color-text-3);
-}
-.tg-track { display: block; }
-.tg-bar { display: block; height: 8px; background: var(--sig); }
 
 /* ── Layer 3 — doors ──
    Raw <details> because st.expander cannot live inside markdown-injected HTML,
@@ -4530,7 +3789,6 @@ a.term-index-item:hover {
   .bf .bf-rchk li { grid-template-columns: 1fr; gap: 2px; }
   .bf .bf-far li { grid-template-columns: 1fr; gap: 2px; }
 }
-
 
 /* ── earnings trajectory charts (components/earnings_chart.py, 2026-09-29) ──────────
    One hue (earnings violet); beat/miss is the tick's position, never a colour. */

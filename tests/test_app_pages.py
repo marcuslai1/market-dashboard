@@ -3,10 +3,12 @@
 The review verified rerun determinism with an ad-hoc AppTest drive that was
 never committed — so CI could not catch a crash in the render-only components
 (terminology, masthead, watchlist drilldown). This walk boots the real
-dashboard.py and visits all 5 nav targets (three tabs removed 2026-09-29).
-Live quotes are stubbed: no network in CI.
+dashboard.py and visits all 3 nav targets (three tabs removed 2026-09-29; the
+Signal Tracker and Review pages 2026-10-01 with the signal labels, MarketReport
+spec 2026-10-01-info-only-watchlist O7). Live quotes are stubbed: no network in CI.
 """
 import glob
+import re
 
 import pytest
 from streamlit.testing.v1 import AppTest
@@ -16,8 +18,6 @@ import live_prices
 PAGES = [
     "Briefing",
     "Watchlist",
-    "Signal Tracker",
-    "Retrospective",
     "Terminology",
 ]
 
@@ -47,6 +47,26 @@ def test_page_renders_without_exception(page):
     assert len(at.markdown) > 0  # something actually rendered
 
 
+def test_nav_is_exactly_the_three_pages():
+    at = _boot()
+    assert list(at.radio(key="page_nav").options) == PAGES
+
+
+def test_sidebar_counts_tickers_from_the_watchlist_and_shows_no_signals():
+    at = _boot()
+    side = " ".join(str(m.value) for m in at.sidebar.markdown)
+    assert re.search(r'Tickers</span><span class="status-value">\d+<', side)
+    assert "Signals" not in side and "●" not in side
+    assert not at.sidebar.date_input           # the Tracker-only range filter is gone
+
+
+def test_masthead_kicker_drops_signal_intelligence():
+    at = _boot()
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert "Signal Intelligence" not in page
+    assert "Market Data Daily" in page
+
+
 # ── Nav round-trip through st.navigation ──
 # The masthead radio mirrors st.navigation and issues st.switch_page; deep
 # links / back-forward are Streamlit-native URL paths (verified live — AppTest
@@ -64,65 +84,23 @@ def test_nav_radio_round_trip_switches_pages():
     assert at.radio(key="page_nav").value == "Briefing"
 
 
-def _tracker_page_app():
-    """Boot ONLY the Signal Tracker page. Widget interactions on a non-default
+def _terminology_page_app():
+    """Boot ONLY the Terminology page. Widget interactions on a non-default
     page can't be driven through dashboard.py under AppTest: st.navigation
     resets to the default page on every rerun (an AppTest artifact - real
     sessions persist it), so the masthead resyncs any interaction back to
-    Briefing. cache_key=None takes the uncached path.
+    Briefing.
 
     NOTE: keep this function's source ASCII-only. AppTest.from_function
     re-writes the extracted source to a temp script with the LOCALE encoding
     on older Streamlit (cp1252 on Windows) and reads it back as UTF-8, so any
     non-ASCII char here breaks script compilation on Windows."""
-    from components.signal_tracker import render_signal_tracker_page
-    from lib.data_loader import load_all_reports, load_sqlite_prices
-
-    render_signal_tracker_page(load_all_reports(), load_sqlite_prices())
-
-
-def test_tracker_scorecard_survives_empty_name_filter():
-    """The scorecard is corpus-wide calibration; the name filter scopes only the
-    by-name drawers. Emptying the filter must not blank the scorecard.
-
-    Asserts on 'class="hair-grid calib-grid"' (the emitted HTML) — bare
-    'calib-grid' would also match the injected theme.css on any page."""
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_function(_tracker_page_app, default_timeout=30)
-    at.run()
-    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    assert 'class="hair-grid calib-grid"' in " ".join(str(m.value) for m in at.markdown)
-
-    at.multiselect[0].set_value([]).run()
-    assert not at.exception, f"empty filter: {[e.value for e in at.exception]}"
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert 'class="hair-grid calib-grid"' in page, \
-        "scorecard vanished when the name filter was emptied"
-
-
-def _terminology_page_app():
-    """Boot ONLY the Terminology page (see _tracker_page_app for why non-default
-    pages can't be driven through dashboard.py). ASCII-only source, same reason."""
     from components.terminology import render_terminology_page
 
     render_terminology_page()
 
 
-def test_terminology_defines_decay_half_life_and_shrinkage():
-    """Methodology-copy rule: the calibration band's decayed/shrunk figures must
-    have matching Terminology definitions (decay half-life, shrinkage)."""
-    at = AppTest.from_function(_terminology_page_app, default_timeout=30)
-    at.run()
-    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    page = " ".join(str(m.value) for m in at.markdown)
-    assert "half-life" in page
-    assert "Shrinkage" in page
-    assert "90" in page                # the pipeline's half-life knob, in days
-    assert "50%" in page               # the skeptical hit-rate prior
-
-
-# ── Terminology redesign (spec 2026-07-25) ──
+# ── Terminology (redesign spec 2026-07-25; facts only since 2026-10-01) ──
 # The page is built for finding, so the tests are about finding: the index can
 # never drift from the sections, and search must actually remove sections rather
 # than merely highlight them. page_html/section_html are pure, so most of this
@@ -130,8 +108,7 @@ def test_terminology_defines_decay_half_life_and_shrinkage():
 
 
 def test_terminology_index_and_sections_cannot_drift():
-    """One array drives the rail and the body — the rule that keeps a
-    eleven-section reference page honest as sections are added."""
+    """One array drives the rail and the body."""
     from components.terminology import SECTIONS, page_html
 
     ids = [s["id"] for s in SECTIONS]
@@ -154,11 +131,22 @@ def test_terminology_every_section_has_a_plain_answer_and_keywords():
         assert len(sec["kw"].split()) >= 4, f"{sec['id']}: keyword list too thin"
 
 
+def test_terminology_defines_no_signal_label():
+    """The sections that defined the labels went with them (spec O7)."""
+    from components.terminology import SECTIONS
+
+    ids = {s["id"] for s in SECTIONS}
+    assert not ids & {"signals", "rr", "episodes", "calibration", "macro", "entry-block"}
+    assert {"order", "levels", "technicals", "valuation", "earnings", "pulse",
+            "limitations"} <= ids
+    body = " ".join(s["answer"] + s["body"] for s in SECTIONS)
+    for gone in ("ACCUMULATE", "CAUTION", "R:R", "entry block", "blocked"):
+        assert gone not in body, gone
+
+
 def test_terminology_history_doors_are_dated():
     """Method history is shelved separately from definition, and the date rides
     in the summary so a reader can judge relevance without opening it."""
-    import re
-
     from components.terminology import SECTIONS, section_html
 
     dated = 0
@@ -168,13 +156,13 @@ def test_terminology_history_doors_are_dated():
             assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", date), f"{sec['id']}: {date!r}"
             assert f"Method history · {label} · {date}" in html
             dated += 1
-    assert dated >= 4, "expected the 07-18/05-30 method notes to survive as history"
+    assert dated >= 3
 
 
 def test_terminology_search_removes_non_matching_sections():
-    """Section-level and decisive. A glossary lookup is 'which part of the page
-    covers this', not 'highlight every occurrence' — hiding answers that
-    question; highlighting leaves you still scrolling."""
+    """Section-level and decisive."""
+    from components.terminology import SECTIONS
+
     at = AppTest.from_function(_terminology_page_app, default_timeout=30)
     at.run()
     assert not at.exception, f"boot: {[e.value for e in at.exception]}"
@@ -183,23 +171,69 @@ def test_terminology_search_removes_non_matching_sections():
     assert not at.exception, f"search: {[e.value for e in at.exception]}"
     page = " ".join(str(m.value) for m in at.markdown)
     assert 'id="valuation"' in page, "the matching section was dropped"
-    assert 'id="rr"' not in page, "a non-matching section still rendered"
-    assert "1 of 11 sections matches" in page
-    # The rail still lists everything: it is how a reader learns what exists —
-    # incl. the dated model-off notice once a data-only report exists (2026-09-28).
-    from components.terminology import sections_for
-    from lib.data_loader import load_all_reports
-    assert page.count("term-index-item") == len(sections_for(load_all_reports()))
+    assert 'id="levels"' not in page, "a non-matching section still rendered"
+    assert f"1 of {len(SECTIONS)} sections matches" in page
+    # The rail still lists everything: it is how a reader learns what exists.
+    assert page.count("term-index-item") == len(SECTIONS)
 
 
 def test_terminology_no_match_says_so():
+    from components.terminology import SECTIONS
+
     at = AppTest.from_function(_terminology_page_app, default_timeout=30)
     at.run()
     at.text_input(key="term_search").set_value("zzzz").run()
     assert not at.exception, f"no-match: {[e.value for e in at.exception]}"
     page = " ".join(str(m.value) for m in at.markdown)
     assert "No section matches that term" in page
-    assert "0 of 11 sections match" in page
+    assert f"0 of {len(SECTIONS)} sections match" in page
+
+
+def test_terminology_carries_the_dated_era_line():
+    if not glob.glob("data/morning_report_*.json"):
+        pytest.skip("no report data checked out")
+    at = AppTest.from_function(_terminology_page_app, default_timeout=30)
+    at.run()
+    assert not at.exception
+    page = " ".join(str(m.value) for m in at.markdown)
+    assert 'class="term-era"' in page
+    assert "this site shows facts only" in page
+    for claim in ("inaccurate", "proven", "accurate", "failed", "did not work"):
+        assert claim not in page.split('class="term-era"', 1)[1].split("</div>", 1)[0], claim
+
+
+def test_label_era_finds_the_cutover_by_binary_search():
+    from components.terminology import label_era
+
+    dates = [f"2026-0{m}-01" for m in range(1, 10)]
+    labelled = {d: d <= "2026-06-01" for d in dates}
+    calls = []
+
+    def probe(d):
+        calls.append(d)
+        return labelled[d]
+
+    assert label_era(dates, probe) == ("2026-01-01", "2026-06-01", "2026-07-01")
+    assert len(calls) <= 6                       # not one read per report
+
+
+def test_label_era_before_the_cutover_has_no_end():
+    from components.terminology import label_era
+
+    dates = ["2026-03-12", "2026-10-01"]
+    assert label_era(dates, lambda d: True) == ("2026-03-12", "2026-10-01", None)
+    assert label_era([], lambda d: True) == (None, None, None)
+
+
+def test_era_line_states_both_dates_and_makes_no_claim():
+    from components.terminology_content import era_line_html
+
+    before = era_line_html("2026-03-12", "2026-10-01", None)
+    after = era_line_html("2026-03-12", "2026-10-02", "2026-10-05")
+    assert "since 2026-03-12" in before and "2026-04-01" in before
+    assert "from 2026-03-12 to 2026-10-02" in after and "from 2026-10-05" in after
+    for line in (before, after):
+        assert "not a finding about the labels" in line
 
 
 def test_briefing_is_pulse_briefing_and_market_read_only():
@@ -215,12 +249,8 @@ def test_briefing_is_pulse_briefing_and_market_read_only():
     assert "DAILY BRIEFING" in page
 
 
-def _watchlist_page_app():
-    """Boot ONLY the Watchlist grid (see _tracker_page_app for why a non-default
-    page can't be driven through dashboard.py). ASCII-only source, same reason.
-
-    MU is fed in as a changed ticker so the Changed chip and the row's steel dot
-    both have something to show regardless of which report is checked out."""
+def _watchlist_latest_app():
+    """Boot ONLY the Watchlist grid on the newest report. ASCII-only source."""
     import glob
     import json
 
@@ -229,49 +259,41 @@ def _watchlist_page_app():
     files = sorted(glob.glob("data/morning_report_*.json"))
     with open(files[-1], encoding="utf-8") as fh:
         report = json.load(fh)
-    render_watchlist(report.get("watchlist", {}), changed_tickers={"MU"})
+    render_watchlist(report.get("watchlist", {}),
+                     report_date=(report.get("meta") or {}).get("report_date"))
 
 
-def test_watchlist_renders_chips_groups_gauge_and_footer():
-    """The redesigned grid's four structural pieces (spec 2026-07-25)."""
+def _watchlist_oldest_app():
+    """Boot ONLY the Watchlist grid on the oldest report. ASCII-only source."""
+    import glob
+    import json
+
+    from components.watchlist import render_watchlist
+
+    files = sorted(glob.glob("data/morning_report_*.json"))
+    with open(files[0], encoding="utf-8") as fh:
+        report = json.load(fh)
+    render_watchlist(report.get("watchlist", {}),
+                     report_date=(report.get("meta") or {}).get("report_date"))
+
+
+@pytest.mark.parametrize("app", [_watchlist_latest_app, _watchlist_oldest_app],
+                         ids=["latest", "oldest"])
+def test_watchlist_renders_facts_only_on_any_report_date(app):
+    """Every report date renders the same facts-only grid (spec O6): cluster
+    groups, the gauge, the footer and the sort line — and no rating anywhere."""
     if not glob.glob("data/morning_report_*.json"):
         pytest.skip("no report data checked out")
-    at = AppTest.from_function(_watchlist_page_app, default_timeout=60)
+    at = AppTest.from_function(app, default_timeout=60)
     at.run()
     assert not at.exception, f"boot: {[e.value for e in at.exception]}"
     blob = " ".join(str(m.value) for m in at.markdown)
-    assert 'class="tk-group"' in blob        # explicit signal groups
-    assert 'class="tk-ext-track"' in blob    # the extension gauge
-    assert 'class="tk-foot"' in blob         # the legend footer
-    assert 'class="tk-sortline"' in blob     # the page states its own ordering
-    # A real widget, so the filter survives the 60s live-price fragment rerun
-    # instead of resetting to All once a minute.
-    assert at.pills[0].label == "Show"
-
-
-def test_watchlist_chip_actually_filters_the_book():
-    """Filtering is Python-side: picking a signal must shrink the rendered rows
-    AND leave exactly one group header, never an empty one."""
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_function(_watchlist_page_app, default_timeout=60)
-    at.run()
-    before = " ".join(str(m.value) for m in at.markdown)
-    n_groups_before = before.count('class="tk-group"')
-    assert n_groups_before > 1, "fixture report has only one signal group"
-
-    at.pills[0].set_value("HOLD").run()
-    assert not at.exception, f"filtered: {[e.value for e in at.exception]}"
-    after = " ".join(str(m.value) for m in at.markdown)
-    assert after.count('class="tk-group"') == 1
-    assert after.count('<details class="tk-details"') < \
-        before.count('<details class="tk-details"')
-def test_tracker_page_emits_the_scope_marker():
-    """The page's drawer grammar is scoped with .stApp:has(.tracker-page); if
-    the marker stops rendering, every drawer quietly reverts."""
-    if not glob.glob("data/morning_report_*.json"):
-        pytest.skip("no report data checked out")
-    at = AppTest.from_function(_tracker_page_app, default_timeout=30)
-    at.run()
-    assert not at.exception, f"boot: {[e.value for e in at.exception]}"
-    assert 'class="tracker-page"' in " ".join(str(m.value) for m in at.markdown)
+    assert 'class="tk-group"' in blob
+    assert 'class="tk-ext-track"' in blob
+    assert 'class="tk-foot"' in blob
+    assert 'class="tk-sortline"' in blob
+    assert 'class="tk-earn"' in blob
+    for gone in ("sig-pill", "data-signal", "tk-changed", "tk-rr", "dd-entry-block",
+                 "dd-verdict", "dd-levels"):
+        assert gone not in blob, gone
+    assert not at.pills                          # no signal filter chips
