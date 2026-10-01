@@ -222,14 +222,3 @@ def load_briefings() -> dict:
         return {}
     data = _load_json_cached(str(path), _mtime(path))
     return data if isinstance(data, dict) else {}
-
-
-def load_report_memory() -> dict:
-    """Load report_memory.json for narrative tracking."""
-    mem_path = DATA_DIR / "report_memory.json"
-    # Also check legacy path for local development
-    if not mem_path.exists():
-        mem_path = _PROJECT_ROOT / "market_data" / "report_memory.json"
-    if not mem_path.exists():
-        return {}
-    return _load_json_cached(str(mem_path), _mtime(mem_path))

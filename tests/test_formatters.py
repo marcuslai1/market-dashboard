@@ -8,7 +8,6 @@ from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
     _escape_attr,
-    _price_str,
     _safe_href,
     display_ticker,
 )
@@ -79,20 +78,6 @@ def test_ccy_decimals_default_two():
     assert _ccy_decimals("USD") == 2
     assert _ccy_decimals("SGD") == 2
     assert _ccy_decimals("EUR") == 2
-
-
-# ── Full price string ──
-def test_price_str_krw_no_decimals_correct_symbol():
-    out = _price_str(2_560_000, "KRW")
-    assert out == "₩2,560,000"
-
-
-def test_price_str_sgd_two_decimals():
-    assert _price_str(2300.5, "SGD") == "S&#36;2,300.50"
-
-
-def test_price_str_none_is_dash():
-    assert _price_str(None, "USD") == "—"
 
 
 # ── Ticker display form ──

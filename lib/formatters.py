@@ -108,56 +108,6 @@ def _escape_dollars(text: str) -> str:
     return html.escape(str(text), quote=False).replace("$", "&#36;")
 
 
-def _price_str(price, currency: str = "USD") -> str:
-    """Format a price with currency-aware prefix + decimals, HTML-safe.
-
-    Uses the currency map so KRW renders ``₩2,560,000`` (right symbol, no bogus
-    cents) and EUR/TWD get their own symbols rather than a hard-coded ``$``.
-    """
-    if price is None or (isinstance(price, float) and pd.isna(price)):
-        return "—"
-    return f"{_ccy_prefix(currency)}{price:,.{_ccy_decimals(currency)}f}"
-
-
-# ── Metric color helpers ──
-def _metric_bg(value: float | None, thresholds: list[tuple[object, str]],
-               default: str = "transparent") -> str:
-    """Return a muted background color for a metric value.
-
-    *thresholds* is a list of (test, color) pairs evaluated in order.
-    Each *test* is a callable ``(value) -> bool``.
-    """
-    if value is None:
-        return default
-    for test, color in thresholds:
-        if test(value):
-            return color
-    return default
-
-
-_GREEN_BG = "#1a3a2a"
-_ORANGE_BG = "#3a2a1a"
-_RED_BG = "#3a1a1a"
-
-_RSI_THRESHOLDS: list[tuple[object, str]] = [
-    (lambda v: v < 40, _GREEN_BG),
-    (lambda v: v > 70, _RED_BG),
-]
-
-_VS_SMA50_THRESHOLDS: list[tuple[object, str]] = [
-    (lambda v: v > 5, _RED_BG),
-    (lambda v: 2 < v <= 5, _ORANGE_BG),
-    (lambda v: -2 <= v <= 2, _GREEN_BG),
-    (lambda v: v < -2, _GREEN_BG),
-]
-
-_RR_THRESHOLDS: list[tuple[object, str]] = [
-    (lambda v: v >= 2.0, _GREEN_BG),
-    (lambda v: 1.0 <= v < 2.0, _ORANGE_BG),
-    (lambda v: v < 1.0, _RED_BG),
-]
-
-
 def _delta_class(chg, inverse=False) -> str:
     if chg is None or (isinstance(chg, float) and pd.isna(chg)) or chg == 0:
         return "flat"

@@ -40,7 +40,7 @@ from lib.data_loader import (
     load_text_asset,
 )
 from lib.pills import _render_live_caption
-from lib.state import init_session_state, mark_mounted
+from lib.state import init_session_state
 from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
@@ -50,8 +50,7 @@ ASSETS_DIR = Path(__file__).parent / "assets"
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
 
 # ── Session state bootstrap ──
-# Must run BEFORE any component reads st.session_state.has_mounted / density.
-# mark_mounted() flips has_mounted below so subsequent reruns are quiet.
+# Must run BEFORE any component reads st.session_state.density.
 init_session_state()
 
 # ── Theme CSS: dark editorial (Newsreader serif + JetBrains Mono + Inter Tight) ──
@@ -75,12 +74,6 @@ if st.session_state.density == "compact":
         "}</style>",
         unsafe_allow_html=True,
     )
-
-# ── First-mount flag flip ──
-# The Watchlist's first-mount signal flash went with the labels (2026-10-01);
-# nothing reads has_mounted now, but the flag stays flipped early so a future
-# one-shot animation cannot re-fire after an early st.stop() in a page branch.
-mark_mounted()
 
 
 # ════════════════════════════════════════════

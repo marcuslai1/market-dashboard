@@ -87,26 +87,14 @@ def test_no_signal_named_token_or_selector_survives():
 
 
 # ── P6-1: components must not carry raw hex literals ──
-# The palette pass routed every inline hex through lib/charts constants (or
-# SIGNAL_COLORS). terminology.py used to be the one sanctioned exception — its
-# colors sat inside a large static HTML/CSS block where f-string conversion
-# would have fought the CSS braces. The 2026-07-25 redesign moved that block's
-# CSS into theme.css and its pills onto _signal_pill_html, so the exemption is
-# gone and the rule is now universal.
+# Colour lives in theme.css tokens (and the catalog's tone roles). terminology.py
+# used to be the one sanctioned exception — its colors sat inside a large static
+# HTML/CSS block where f-string conversion would have fought the CSS braces. The
+# 2026-07-25 redesign moved that block's CSS into theme.css, so the exemption is
+# gone and the rule is universal. (lib/charts.py, the Plotly palette, went
+# 2026-10-01: no page draws a Plotly figure any more.)
 _COMPONENTS_DIR = Path(__file__).resolve().parent.parent / "components"
 _HEX_RE = re.compile(r"#[0-9a-fA-F]{6}\b")
-
-
-def _sanctioned_palette() -> set:
-    import lib.charts as charts
-
-    sanctioned = {v.lower() for v in TONE_COLORS.values()}
-    sanctioned |= {
-        v.lower()
-        for name in dir(charts)
-        if isinstance((v := getattr(charts, name)), str) and _HEX_RE.fullmatch(v)
-    }
-    return sanctioned
 
 
 def test_no_raw_hex_literals_in_components():
@@ -118,44 +106,21 @@ def test_no_raw_hex_literals_in_components():
     assert not offenders, "raw hex literals crept back in:\n" + "\n".join(offenders)
 
 
-def test_metric_family_tokens_match_the_chart_map():
-    """The Pipeline page paints its five hues from CSS (cells, rails, swatches)
-    and from Plotly (the cost bars). Two sources for one palette is a drift
-    risk, so they are asserted equal — the CSS dark value is the canonical one
-    because that is the theme the app actually ships."""
-    from lib.charts import METRIC_COLORS
-
-    for key, want in METRIC_COLORS.items():
-        got = _theme_token(f"--metric-{key}-dark")
-        assert got.lower() == want.lower(), (
-            f"--metric-{key}-dark is {got} but lib.charts says {want}"
-        )
-    # Every hue also needs a light sibling, like every other token in the file.
-    for key in METRIC_COLORS:
-        assert _theme_token(f"--metric-{key}-light")
-
-
 def test_metric_palette_avoids_the_reserved_hues():
     """The metric palette is only legal because it cannot be mistaken for a
     signal rating or a price move. If a metric hue ever collides with one of
     those, that argument collapses."""
-    from lib.charts import METRIC_COLORS, STATUS_NEG, STATUS_POS, STATUS_WARN
-
+    metric = {
+        m.group(1): m.group(2).lower()
+        for m in re.finditer(r"--metric-([a-z]+-(?:dark|light)):\s*(#[0-9a-fA-F]{6})", _THEME_CSS)
+    }
+    assert metric, "no --metric-* tokens found in theme.css"
     reserved = {c.lower() for c in TONE_COLORS.values()}
-    reserved |= {STATUS_POS.lower(), STATUS_NEG.lower(), STATUS_WARN.lower()}
-    clash = {k: v for k, v in METRIC_COLORS.items() if v.lower() in reserved}
+    clash = {k: v for k, v in metric.items() if v in reserved}
     assert not clash, f"metric hues collide with a reserved palette: {clash}"
 
 
 # ── Shared devices ──
-
-def test_hairline_grid_device_is_single_sourced():
-    """The FRED prints grid declares the shared hairline-grid device (the
-    Tracker's tiles used it too until 2026-10-01), so 'a grid of cells' always
-    means 'peer measurements, compare across'."""
-    assert ".hair-grid, .fp-grid" in _THEME_CSS
-    assert ".hair-grid > *, .fp-cell" in _THEME_CSS
-
 
 def test_masthead_section_head_is_the_two_px_rule():
     block = _THEME_CSS.split(".section-head.masthead {", 1)[1].split("}", 1)[0]

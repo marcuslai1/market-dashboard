@@ -23,19 +23,16 @@ select = [
 ]
 ignore = [
     "E501",    # line length (handled by formatter)
-    "E731",    # lambda assignment (used heavily for threshold tables)
     "SIM108",  # ternary vs if/else — readability call
     "B008",    # function call in default arg — common Streamlit pattern
     "RUF001",  # ambiguous unicode — editorial copy uses em-dash and minus sign
     "RUF002",  # ambiguous unicode in docstrings — same
     "RUF003",  # ambiguous unicode in comments — arrow glyphs (▲ ＋ −) mirror the UI
-    "C408",    # unnecessary dict() call — plotly layout uses dict(l=0, r=0, ...)
     "RUF007",  # zip(x, x[1:]) successive-pairs idiom is deliberate (explicit strict=False)
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "dashboard.py" = ["E402"]  # top-level st.set_page_config must precede imports of theme
-"tests/test_capex.py" = ["E402"]  # deliberate sectioned imports — each test group imports what it needs just before it
 
 [tool.ruff.format]
 quote-style = "double"

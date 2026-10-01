@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Visual-regression harness — canonical Unix/CI entrypoint.
 #
-# Rendering (fonts, anti-aliasing, Plotly canvases) must be BYTE-STABLE across
+# Rendering (fonts, anti-aliasing, inline SVG) must be BYTE-STABLE across
 # machines, so both `visual` and `visual-update` run inside the pinned Playwright
 # image whose bundled chromium matches the pip-pinned playwright==1.60.0.
 # Committing a baseline generated anywhere else (a Windows/mac host, a different
@@ -18,7 +18,7 @@ PW_IMAGE ?= mcr.microsoft.com/playwright/python:v1.60.0-jammy
 
 DOCKER_RUN = docker run --rm -v "$(PWD)":/work -w /work $(PW_IMAGE) bash -lc
 
-# requirements.lock = the app runtime (streamlit, pandas, plotly …) the harness
+# requirements.lock = the app runtime (streamlit, pandas, yfinance …) the harness
 # boots as a subprocess. playwright is PINNED to 1.60.0 so the pip package can
 # never drift away from the image's bundled chromium; pytest-playwright /
 # pixelmatch / pillow are the harness's own deps.
