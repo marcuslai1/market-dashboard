@@ -56,9 +56,10 @@ _EPS_CCY = {"TSM": "US$ per ADR", "ASML": "EUR", "NOK": "US$ per ADR",
 
 
 def reports_in_foreign_currency(key: str) -> bool:
-    """A US listing whose company reports in another currency. Yahoo divides its
-    US-dollar price by home-currency book value and cash flow, so P/B and FCF yield
-    are mixed-currency for these names on every report date."""
+    """A US listing whose company reports in another currency. Yahoo can divide its
+    US-dollar price by home-currency book value and cash flow and does not say which
+    basis it used (it did for ASML, TSM and SKHY P/B; NOK's and WRD's matched their home
+    listings on 2026-10-02), so P/B and FCF yield are not shown for these names."""
     return key in _REVENUE_CCY
 
 

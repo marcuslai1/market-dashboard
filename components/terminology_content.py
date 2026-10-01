@@ -318,10 +318,11 @@ SECTIONS = [
              "Price divided by book value per share."),
             ("Foreign reporters",
              "ASML, TSMC, SK hynix, Nokia and WeRide trade in US dollars but report in euros, "
-             "Taiwan dollars, won and renminbi. Yahoo divides the dollar price by home-currency "
-             "book value and cash flow, so P/B and FCF yield are not shown for them on any "
-             "date (ASML's read 1,558x on 1 October 2026; 28x on its Amsterdam listing). Their "
-             "P/E figures are on one currency and stay."),
+             "Taiwan dollars, won and renminbi. Yahoo can divide the dollar price by "
+             "home-currency book value and cash flow without saying so (ASML's P/B read 1,558x "
+             "on 1 October 2026; 28x on its Amsterdam listing), so P/B and FCF yield are not "
+             "shown for any of the five on any date. Their P/E figures are on one currency and "
+             "stay."),
             ("Revenue growth",
              "The latest reported quarter's revenue against the same quarter a year earlier."),
             ("Est. EPS growth, next FY",

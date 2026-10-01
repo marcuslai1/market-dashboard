@@ -221,8 +221,8 @@ def _valuation_html(d: dict, tk: str = "") -> str:
     Yahoo's sell-side consensus — and is labelled as such.
 
     P/B and FCF yield drop for a US listing of a foreign reporter on every date:
-    Yahoo divides the dollar price by home-currency book value and cash flow
-    (ASML P/B 1,557.8 on 2026-10-01). The pipeline withholds both from 2026-10-02;
+    Yahoo can divide the dollar price by home-currency book value and cash flow
+    (ASML P/B 1,557.8 on 2026-10-01) and does not say which basis it used. The pipeline withholds both from 2026-10-02;
     this covers the reports before that."""
     val = d.get("valuation") or {}
     consensus = val.get("analyst_consensus") or {}
