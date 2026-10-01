@@ -6,7 +6,7 @@ the selected page name so callers can drive their page-routing chain.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 import streamlit as st
 
@@ -27,6 +27,21 @@ _NAV_PAGES = [
 # by name ("see the Terminology tab").
 _NAV_LABELS: dict[str, str] = {}
 
+#: The pipeline's scheduled weekday run (MarketReport task scheduler), used only
+#: when a report carries no ``meta.generated_at``.
+SCHEDULED_RUN_SGT = "12:05"
+
+
+def run_time_sgt(meta: dict | None) -> str:
+    """``HH:MM`` the report was generated (``meta.generated_at``, local SGT), else
+    the scheduled run time. Was a hard-coded "11:30" until 2026-10-01 — the run
+    moved to 12:05 and the masthead kept the old slot."""
+    raw = str((meta or {}).get("generated_at") or "")
+    try:
+        return datetime.fromisoformat(raw).strftime("%H:%M")
+    except ValueError:
+        return SCHEDULED_RUN_SGT
+
 
 def render_masthead_and_nav(current: str) -> str:
     """Render the masthead + top-nav radio. Returns the selected page title.
@@ -40,10 +55,11 @@ def render_masthead_and_nav(current: str) -> str:
     # cheaply and loads just the one report, never the whole corpus.
     dates = list_report_dates()
     latest = dates[-1] if dates else "—"
-    _market_raw = load_report(latest).get("meta", {}).get("market_date", "")
+    _meta = load_report(latest).get("meta") or {}
+    _market_raw = _meta.get("market_date", "")
 
     # Compact date grammar (header spec): "Fri 24 Jul 2026" over
-    # "LAST CLOSE · THU 23 JUL · 11:30 SGT" — actionable date big, provenance small.
+    # "LAST CLOSE · THU 23 JUL · 12:05 SGT" — actionable date big, provenance small.
     try:
         long_date = date.fromisoformat(latest).strftime("%a %d %b %Y")
     except ValueError:
@@ -65,7 +81,7 @@ def render_masthead_and_nav(current: str) -> str:
         f'</div>'
         f'<div class="right">'
         f'<div class="date">{long_date}</div>'
-        f'<div class="date-sub">Last close · {close_str} · 11:30 SGT</div>'
+        f'<div class="date-sub">Last close · {close_str} · {run_time_sgt(_meta)} SGT</div>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True,
