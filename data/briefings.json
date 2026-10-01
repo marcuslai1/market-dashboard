@@ -1,9 +1,9 @@
 {
  "schema": 1,
- "generated_utc": "2026-10-01T04:13:15+00:00",
+ "generated_utc": "2026-10-01T10:48:08+00:00",
  "latest": {
-  "id": "20261001T041312Z",
-  "ts_sgt": "2026-10-01T12:13:12+08:00",
+  "id": "20261001T104805Z",
+  "ts_sgt": "2026-10-01T18:48:05+08:00",
   "data_date": "2026-10-01",
   "what_matters": [
    {
@@ -21,7 +21,7 @@
     "kind": "move",
     "tag_note": "1.4× usual",
     "head": "Cerebras fell 8.9% on twice its usual volume after a report that OpenAI's newest fast tier runs on Nvidia GPUs.",
-    "detail": "SemiAnalysis said on X that GPT-6.1 Sol Ultrafast, unveiled at OpenAI's DevDay on 29 Sep, runs on Nvidia GPUs; the earlier Ultrafast tier ran on Cerebras chips. Cerebras's OpenAI agreement is worth more than $20B over three years.",
+    "detail": "SemiAnalysis said on X that GPT-6.1 Sol Ultrafast, unveiled at OpenAI's DevDay on 29 Sep, runs on Nvidia GPUs; the earlier Ultrafast tier ran on Cerebras chips. Cerebras had not commented in the articles found.",
     "src": [
      4,
      5,
@@ -72,16 +72,35 @@
    {
     "title": "South Korea September exports rise 83.5% y/y to monthly record (Reuters via Investing.com)",
     "url": "https://www.investing.com/news/economic-indicators/south-korea-september-exports-rise-835-yy-to-monthly-record-4926130",
+    "date": "2026-10-01"
+   },
+   {
+    "title": "South Korean shares end nearly 2% higher on record chip exports (Reuters via Investing.com)",
+    "url": "https://www.investing.com/news/economy-news/south-korean-shares-end-nearly-2-higher-on-record-chip-exports-4926420",
+    "date": "2026-10-01"
+   },
+   {
+    "title": "Foreign exchange intervention operations, 27 Aug – 28 Sep 2026 (Japan Ministry of Finance)",
+    "url": "https://www.mof.go.jp/english/policy/international_policy/reference/feio/monthly/20260930e.html",
     "date": "2026-09-30"
    }
   ],
+  "revises": "20261001T041312Z",
   "after_data": [
    {
-    "lead": "Korea's exports",
-    "text": "September exports rose 83.5% from a year earlier to a monthly record, above the 62% expected; chip shipments also set a record. Released Thursday morning Seoul time: not in Wednesday's US prices, but inside the KRX part-day to 12:05 SGT, where SK Hynix and Samsung were up about 1.5–1.7%.",
+    "lead": "Korea",
+    "text": "September exports rose 83.5% from a year earlier to a record $120.9B, above the 62% expected. The KOSPI then closed 1.95% higher, with SK Hynix up 3.21% and Samsung up 2.79% at the close, about double their 12:05 SGT part-day gains. Not in Wednesday's US prices.",
     "src": [
      6,
+     7,
      0
+    ]
+   },
+   {
+    "lead": "Yen check",
+    "text": "Japan's finance ministry reported no yen intervention from 27 Aug to 28 Sep (released 30 Sep in Tokyo, before Wednesday's US close).",
+    "src": [
+     8
     ]
    },
    {
@@ -112,8 +131,8 @@
    },
    {
     "label": "News checked",
-    "when": "Thu 1 Oct, 12:20 SGT",
-    "note": "Searches covered Wednesday's session, Micron's results and Korea's export data this morning"
+    "when": "Thu 1 Oct, 18:50 SGT",
+    "note": "Re-checked after the Asian close: Micron's filing, Cerebras, Korea's full-day close, Japan's yen-intervention release"
    }
   ],
   "calendar": [
@@ -139,7 +158,7 @@
    ],
    "note": "Soitec sits furthest above its 50-day average, then Intel and AMD at about 20% each; Cerebras sits furthest below. Heaviest volume: Cerebras, then Aixtron. Amazon and Google stay below their 50-day averages."
   },
-  "data_notes": "Coverage 33/33, no stale bars, no latch. No name moved 2× its usual day. Micron's chart facts use the regular close ($1,065.11), not the after-hours quote.",
+  "data_notes": "Coverage 33/33, no stale bars, no latch. No name moved 2× its usual day. Micron's chart facts use the regular close ($1,065.11), not the after-hours quote. This revision adds Korea's full-day close and Japan's yen release; the morning version's facts are unchanged.",
   "earnings": {
    "out": [
     {
@@ -157,7 +176,7 @@
      "key": "ASML",
      "period": "Q3",
      "when_sgt": "2026-10-14T13:00",
-     "when_note": "07:00 Amsterdam time; call 21:00 SGT",
+     "when_note": "07:00 Amsterdam time",
      "facts": "The company's forecast: revenue €11.0–12.0B at a 55–57% gross margin. Options trading implies a move of about ±8.3% either way by 16 Oct (as of the 30 Sep close); its last four results averaged +2.19% / -1.22% (the report's historical band). Analysts' figures are in euros and are not quoted.",
      "src": [
       1,
@@ -174,7 +193,7 @@
   "movers": [
    {
     "key": "CBRS",
-    "why": "Wednesday was also the first of its staged lock-up releases: 8.9% of insiders' shares on each of 30 Sep, 14 Oct and 28 Oct, the rest by 9 Nov at the latest. The two articles found cite only the OpenAI report.",
+    "why": "Wednesday was also the first of its staged lock-up releases: 8.9% of insiders' shares on each of 30 Sep, 14 Oct and 28 Oct, the rest by 9 Nov at the latest (earlier if Q3 results come first). The articles found cite only the OpenAI report.",
     "why_state": "found",
     "src": [
      1,
@@ -201,11 +220,11 @@
      },
      {
       "name": "Navitas",
-      "q": "Reply on the transfer motion filed? Answer to Wolfspeed's amended complaint (due ~2 Oct)?"
+      "q": "Reply on the transfer motion filed? Answer to the amended complaint (due ~2 Oct)?"
      },
      {
       "name": "Macro",
-      "q": "Payrolls; did Japan's monthly release show a September yen intervention?"
+      "q": "What did September payrolls show?"
      }
     ]
    },
@@ -708,6 +727,11 @@
  },
  "recent": [
   {
+   "id": "20261001T104805Z",
+   "data_date": "2026-10-01",
+   "headline": "Micron beat its own forecast on every line and put this quarter's revenue at $61.5B, above the $57.0B analysts expected."
+  },
+  {
    "id": "20261001T041312Z",
    "data_date": "2026-10-01",
    "headline": "Micron beat its own forecast on every line and put this quarter's revenue at $61.5B, above the $57.0B analysts expected."
@@ -726,11 +750,6 @@
    "id": "20260930T041332Z",
    "data_date": "2026-09-30",
    "headline": "Micron reports Thursday 1 Oct, 04:05 SGT; the call is at 04:30."
-  },
-  {
-   "id": "20260929T043137Z",
-   "data_date": "2026-09-29",
-   "headline": "Micron reports Thursday 1 Oct, 04:05 SGT."
   }
  ]
 }
