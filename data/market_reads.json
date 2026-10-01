@@ -1,113 +1,127 @@
 {
  "schema": 1,
- "generated_utc": "2026-09-30T12:19:07+00:00",
- "sessions_read": 18,
- "reads_logged": 21,
+ "generated_utc": "2026-10-01T11:14:20+00:00",
+ "sessions_read": 19,
+ "reads_logged": 22,
  "exit_review_at": 20,
  "scored": false,
  "latest": {
-  "id": "20260930T121813Z",
-  "ts_utc": "2026-09-30T12:18:13Z",
-  "ts_sgt": "2026-09-30 20:18",
-  "ts_et": "2026-09-30 08:18",
+  "id": "20261001T111327Z",
+  "ts_utc": "2026-10-01T11:13:27Z",
+  "ts_sgt": "2026-10-01 19:13",
+  "ts_et": "2026-10-01 07:13",
   "confidence": "low",
-  "confidence_why": "event-dominated: PCE at 20:30 SGT decides the 10Y and the read is logged 10 minutes before it; Micron after the close adds pre-positioning noise",
+  "confidence_why": "the one real piece of news (Micron) is already in the pre-market price; the rest hangs on a global bond selloff that kept running through softer PCE figures yesterday, so tonight's data may not be what moves yields",
   "tells": [
-   "10Y after PCE: a close above ~5.30% vs back below ~5.20%",
-   "SOXX in the first hour: does the -0.8% gap hold or fill with volume",
-   "Cerebras -5.9% pre with no headline found - if it spreads to AMD/NVDA the semis neutral fails soft",
-   "oil holding above 90 into the close"
+   "10Y after ISM manufacturing 22:00 SGT: through 5.35% flips semis and big_tech soft; back under 5.25% flips semis firm",
+   "Micron turning green in the first hour with memory names extending flips semis firm (the beat is not fully priced)",
+   "Nasdaq gain fading by 23:00 SGT while the Dow keeps falling flips market soft",
+   "Weekly jobless claims 20:30 SGT well under 201K adds to the hike-and-yields story; well over it eases yields"
   ],
-  "notes": "Logged ~20:22 SGT, ~8 min before PCE. Sweep was 3 queries under time pressure; no Cerebras-specific headline found for today. ai_power_infra omitted (nothing to add beyond semis; SOXX-benchmarked).",
+  "notes": "Session 19. Logged at ~19:20 SGT, before the 20:30 SGT claims release. ai_power_infra omitted (double-counts SOXX; no separate argument). Payrolls Fri 20:30 SGT fall after both target closes.",
   "headline_context": [
-   "Bloomberg - Stock Market Today live 2026-09-30: stocks pause with PCE and Micron due; gauge expected to show inflation quickened in August; oil has driven yields to highest in decades",
-   "CNBC 2026-09-30 - Micron earnings after the bell; options imply ~7.75% move by end of week (via Investing.com)",
-   "Reuters via Investing.com 2026-09-30 - US stock futures inch up as yields ease, inflation report looms"
+   "Reuters via Investing.com - Dow futures hit three-month low as yields surge, Micron earnings offer support (Oct 1 2026, 05:18 ET): 10Y 5.32%, 30Y 5.66%, highest since 2002; Treasuries worst quarter since 1994; MU dipped ~1% pre",
+   "CNBC - Micron beats on earnings and issues strong guidance as data center revenue jumps 11-fold (Sep 30 2026): FQ1 guide ~$61.5B revenue",
+   "Investing.com - Asia stocks rise on chipmaker gains, soft U.S. inflation; Nikkei outperforms (Oct 1 2026): Nikkei +3.3%, KOSPI +1.6%, Samsung +2.5%, Hynix +3%",
+   "Investing.com - Jobless claims, manufacturing PMI, and ISM data due Thursday (Oct 1 2026): claims expected 201K (prior 197K), ISM manufacturing 54.8 (prior 54.6)",
+   "CNBC - 10-year Treasury yield hits highest level since 2002 as global bond rout gathers pace (Oct 1 2026, headline only; page not openable)"
   ],
   "leans": {
    "semis": {
     "lean": "neutral",
     "guidance": "dont_add",
-    "why": "SOXX -0.8% pre-market on thin no-volume bars, led by Cerebras -5.9% and AMD -1.0% while memory/Hynix held; PCE at 20:30 SGT and Micron after the close dominate - positioning into Micron tends to pin the group; stretched +6.6% vs 20d so no add before Micron"
+    "why": "SOXX +1.1% pre (17/18 up, no volume) is the Micron read-through, already banked: MU itself -0.3% pre on a beat-and-raise, memory ex-MU (Hynix +3.1%, Samsung +2.6% regular-session Asia closes, SNDK +1.3%) and TSEM +4.4% lead. Gap takes SOXX to the top of its two-week range, +8.1% median vs 50d, with the 10Y at a 24-year high; Asia confirmation argues against a full fade. Expect the gap to hold, not build. Diverges from the gap sign on purpose (spec 13)"
    },
    "big_tech": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "QQQ -0.27% pre, META -1.3% offset by GOOG +1.0%; no single-name catalyst today; PCE and the 10Y at 5.25% are the only drivers and the fork is two-sided"
+    "why": "QQQ +0.66% pre led by GOOG +1.9%; the most 10Y-sensitive group with the 10Y ~5.32% overnight (24-year high); held up all week (5d -0.19%) through a +18bp yield climb; claims 20:30 / ISM 22:00 SGT decide whether yields push higher"
    },
    "market": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "S&P futures -0.07%, VIX 16 in contango, HY credit only -0.2%; the day hinges on PCE with the 10Y at 5.25%, oil +1.5% to 90.5 feeding the hot-inflation fear already priced (Bloomberg: expected to quicken)"
+    "why": "S&P futures +0.31% = Nasdaq +0.80% offset by a weak Dow (3-month low early on yields, Reuters via Investing 05:18 ET); SPY 5d -0.67%, below its 20d; VIX 16.2 in contango, HY credit -0.2%; two halves cancel"
    },
    "sg_banks": {
     "lean": "neutral",
     "guidance": "hold",
-    "why": "banks -1.0% today on above-average volume (DBS 1.65x) with no bank headline found; next SGX close follows PCE and Micron overnight; higher-for-longer US rates cut both ways for NIM vs risk appetite"
+    "why": "coin flip, stated: STI -0.22% today, banks split (OCBC -1.3%, UOB +0.8%, DBS flat) on ~1.4x volume with no bank headline found; higher US yields help margins but hurt risk appetite; Friday SGX closes before US payrolls 20:30 SGT"
    }
   },
   "targets": {
    "semis": {
     "benchmark": "SOXX",
-    "target_session": "2026-09-30",
-    "target_close_utc": "2026-09-30T20:00:00Z"
+    "target_session": "2026-10-01",
+    "target_close_utc": "2026-10-01T20:00:00Z"
    },
    "big_tech": {
     "benchmark": "QQQ",
-    "target_session": "2026-09-30",
-    "target_close_utc": "2026-09-30T20:00:00Z"
+    "target_session": "2026-10-01",
+    "target_close_utc": "2026-10-01T20:00:00Z"
    },
    "market": {
     "benchmark": "SPY",
-    "target_session": "2026-09-30",
-    "target_close_utc": "2026-09-30T20:00:00Z"
+    "target_session": "2026-10-01",
+    "target_close_utc": "2026-10-01T20:00:00Z"
    },
    "sg_banks": {
     "benchmark": "^STI",
-    "target_session": "2026-10-01",
-    "target_close_utc": "2026-10-01T09:00:00Z"
+    "target_session": "2026-10-02",
+    "target_close_utc": "2026-10-02T09:00:00Z"
    }
   },
   "summary": {
-   "read_id": "20260930T121813Z",
-   "bottom_line": "Hold what you have, and don't add chip stocks before Micron's results tomorrow morning. Tonight turns on the US inflation figures at 8:30pm, and I expect the main groups to finish close to where they are now.",
-   "where_we_are": "8:18pm SGT (8:18am New York). US pre-market is open and the regular session starts at 9:30pm SGT. Singapore closed at 5pm. Tonight: US PCE inflation for August at 8:30pm SGT. Tomorrow: Micron results at about 4:05am SGT, after the US close.",
-   "macro_attribution": "Oil has moved most since the last US close, up 1.5% to $90.5, with the 10-year Treasury yield at 5.26% (prices). My read depends on oil only through what tonight's inflation figures do to that yield.",
+   "read_id": "20261001T111327Z",
+   "bottom_line": "Hold what you have and don't add chip stocks today. Micron's strong results are already in tonight's pre-market prices, and I expect the main groups to finish close to where they are now unless the 10-year yield breaks higher after the 10pm US factory survey.",
+   "where_we_are": "7:13pm SGT (7:13am New York). US pre-market is open and the regular session starts at 9:30pm SGT. Singapore closed at 5pm. Tonight: US weekly jobless claims at 8:30pm SGT (analysts expect 201,000, last week 197,000) and the ISM manufacturing survey at 10pm SGT (analysts expect 54.8, last month 54.6) (Investing.com, 1 Oct). Tomorrow: the US September jobs figures come at 8:30pm SGT, after both closes this read covers.",
+   "macro_attribution": "The 10-year Treasury yield has moved most: 5.29% at Wednesday's close, up from 5.11% five sessions earlier (prices), and about 5.32% overnight, the highest since 2002 (Reuters via Investing.com, 1 Oct). Oil ($91.7, +1.2%), the dollar (+0.3%) and the VIX (16.3) barely moved. Every lean below depends on that yield.",
    "what_happened": [
-    "Chip stocks are down 0.8% before the US open (prices), and most of that comes from two names: Cerebras (AI inference chips) is down 5.9% and AMD is down 1.0%, while Nvidia and Broadcom are flat. Pre-market trades carry no volume, so the dip is thin until the open confirms it. I found no news explaining Cerebras.",
-    "Asia closed mixed: Nikkei +2.5%, Taiwan +1.0% with TSMC +0.8%, Korea -0.5% (prices). In memory, SK Hynix rose 1.1% and Samsung fell 1.1%.",
-    "All three Singapore banks fell today: UOB -1.3%, DBS -1.0% on 1.65× usual volume, OCBC -0.5% (prices). I found no bank-specific news.",
-    "US futures are nearly flat, S&P -0.1% and Nasdaq -0.3% (prices). The inflation figure is expected to show prices rising faster in August (Bloomberg, 30 Sep, search summary)."
+    "Asia closed strong on Micron's results: Nikkei +3.2%, Korea +2.0%, Taiwan +0.2% (prices). Memory makers led on real trading: SK Hynix +3.1%, Samsung +2.6% (prices; Investing.com, 1 Oct).",
+    "Micron itself is down 0.3% before the US open (prices), after dipping about 1% earlier (Reuters via Investing.com, 1 Oct), despite beating forecasts and forecasting next quarter's revenue at about $61.5 billion (CNBC, 30 Sep). The stock has more than tripled this year, so the buying has moved to its peers instead.",
+    "Chip stocks are +1.1% before the US open, 17 of 18 names up, led by Tower Semiconductor (a contract chipmaker) +4.4% (prices). Pre-market trades carry no volume, so this is thin until the open confirms it.",
+    "Bond selling deepened overnight: the 10-year touched 5.32% and the 30-year 5.66%, after Treasuries' worst quarter since 1994, with Japanese and European bonds also under pressure. Dow futures hit a three-month low early on (Reuters via Investing.com, 1 Oct); Nasdaq futures have since improved to +0.7% and S&P futures to +0.3% (prices).",
+    "Singapore slipped: the STI closed -0.2%, OCBC -1.3%, UOB +0.8%, DBS flat, all on about 1.3-1.4x usual volume (prices). I found no bank-specific news."
    ],
    "per_group": {
-    "semis": "Flat. The dip is mostly Cerebras and AMD, and traders usually hold positions into Micron's results rather than move the whole group the day before. Chip stocks already sit 6.6% above their 20-day average, so there is no case for adding first.",
-    "big_tech": "Flat. Meta's -1.3% and Alphabet's +1.0% before the open roughly cancel, nothing company-specific is due, and the inflation figures could push either way.",
-    "sg_banks": "Flat at tomorrow's close. Today's 1% fall came with no news I could find, and the US inflation figures and Micron's results both land before Singapore reopens, which gives no clear direction.",
-    "market": "Flat. Futures are barely moving, the VIX (the market's fear gauge) is calm at 16, and a hotter inflation figure is already what analysts expect."
+    "semis": "Flat. Micron's results are already in the +1.1% pre-market move, and Micron itself being red says the good news is priced. The move takes chip stocks to the top of their two-week range, about 8% above their 50-day average, with yields at a 24-year high. But memory makers rose in Asia on real trading, so I expect the move to hold, not build or fully reverse. Memory makers other than Micron, and Tower, should do best; Micron should lag.",
+    "big_tech": "Flat. Alphabet +1.9% leads a +0.6% pre-market move, but these are the stocks most sensitive to the 10-year yield. They held up all week while it rose about 0.18 points, and tonight's figures decide whether it rises further.",
+    "sg_banks": "Flat at tomorrow's close, and this one is a coin flip. The banks split today on heavier trading with no news I could find, higher US yields help their lending margins but hurt appetite for stocks, and Friday's session ends before the US jobs figures.",
+    "market": "Flat. S&P futures +0.3% are the Nasdaq's gain offset by weakness elsewhere, with Dow futures at a three-month low earlier on the yield jump. I expect the two to roughly cancel. The VIX (the market's fear gauge) is calm at 16."
    },
    "change_my_mind": [
-    "If the 10-year yield closes above 5.30% after the inflation figures, I would expect chips and big tech to fall more than 0.5%, and the flat call is wrong on the downside.",
-    "If the 10-year falls back below 5.20%, I would expect chips to recover this morning's dip, and the call should have been up.",
-    "If Cerebras's fall spreads to AMD and Nvidia in the first hour on heavy volume, chips lean down."
+    "If the 10-year yield moves through 5.35% after the 10pm factory survey, chip stocks and big tech give back the pre-market gain (both lower).",
+    "If the 10-year falls back under 5.25%, the Micron rally extends and chips close higher.",
+    "If Micron turns green in the first hour and the other memory names keep rising, the good news wasn't fully priced (chips higher).",
+    "If the Nasdaq's gain fades by 11pm SGT while the Dow keeps falling, the whole market closes lower."
    ],
-   "confidence": "The inflation figures come out 12 minutes after this read and decide the day.",
-   "cant_know": "How hot the August inflation figure is, and whether traders sell chips before Micron's results or buy them.",
-   "the_call": "Flat, and quietly. I expect the S&P 500 to finish within about half a percent of where it is now. Chips move the most because of Cerebras's fall and the positioning before Micron. The whole market moves the least.",
+   "confidence": "the one real piece of news, Micron, is already in the pre-market price, and the rest hangs on a bond selloff that kept going yesterday even though US inflation figures came in softer than expected.",
+   "cant_know": "Whether the global bond selloff keeps running tonight regardless of the figures; it ignored softer inflation yesterday. The 2-year and 30-year yields are not in my price feed, only in headlines.",
+   "the_call": "Flat, and mild for the market as a whole. Chips move most in either direction, with memory makers other than Micron and Tower leading and Micron itself lagging. The broad market moves least, as the tech gains and the Dow's weakness cancel out.",
    "sources": [
     {
-     "title": "Stock Market Today: Dow, S&P Live Updates for September 30 (Bloomberg)",
-     "url": "https://www.bloomberg.com/news/articles/2026-09-29/stock-market-today-dow-s-p-live-updates",
+     "title": "Dow futures hit three-month low as yields surge, Micron earnings offer support (Reuters via Investing.com)",
+     "url": "https://www.investing.com/news/economy-news/dow-futures-hit-threemonth-low-as-yields-surge-micron-earnings-offer-support-4926657",
+     "date": "2026-10-01"
+    },
+    {
+     "title": "Asia stocks rise on chipmaker gains, soft U.S. inflation; Nikkei outperforms (Investing.com)",
+     "url": "https://www.investing.com/news/stock-market-news/asia-stocks-rise-on-chipmaker-gains-soft-us-inflation-nikkei-outperforms-4926231",
+     "date": "2026-10-01"
+    },
+    {
+     "title": "Jobless claims, manufacturing PMI, and ISM data due Thursday (Investing.com)",
+     "url": "https://www.investing.com/news/stock-market-news/jobless-claims-manufacturing-pmi-and-ism-data-due-thursday-93CH-4925705",
+     "date": "2026-10-01"
+    },
+    {
+     "title": "Micron beats on earnings and issues strong guidance as data center revenue jumps 11-fold (CNBC)",
+     "url": "https://www.cnbc.com/2026/09/30/micron-mu-q4-earnings-report-2026.html",
      "date": "2026-09-30"
     },
     {
-     "title": "Micron earnings hit Wall Street after the bell. Here's how traders are positioned into the report (CNBC)",
-     "url": "https://www.cnbc.com/2026/09/30/micron-earnings-hit-wall-street-after-the-bell-heres-how-traders-are-positioned-into-the-report.html",
-     "date": "2026-09-30"
-    },
-    {
-     "title": "Micron earnings outlook: what to watch ahead of the September 30 report (Investing.com)",
-     "url": "https://www.investing.com/news/stock-market-news/micron-earnings-outlook-what-to-watch-ahead-of-the-september-30-report-93CH-4911385",
-     "date": "2026-09-30"
+     "title": "10-year Treasury yield hits highest level since 2002 as global bond rout gathers pace (CNBC, headline only)",
+     "url": "https://www.cnbc.com/2026/10/01/us-treasury-bond-yield.html",
+     "date": "2026-10-01"
     }
    ]
   }
