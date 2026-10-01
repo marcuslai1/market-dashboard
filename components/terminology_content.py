@@ -300,7 +300,12 @@ SECTIONS = [
         ),
         "body": _grid([
             ("Forward P/E",
-             "Price divided by the analyst-consensus next-twelve-month earnings per share."),
+             "Price divided by analysts' consensus earnings per share for the company's next "
+             "full fiscal year (Yahoo Finance's convention, not a twelve-month blend). Fiscal "
+             "years end in different months — NVIDIA's in January, Microsoft's in June, "
+             "Micron's in August — so two names' figures can cover windows months apart; from "
+             "2 October 2026 the drill-down names the year (“FY to Jan 2028”) when Yahoo's "
+             "figures confirm it, and leaves it off when they do not."),
             ("Cluster median",
              "Median forward P/E across the cluster's names that have one, with this name's "
              "percent premium or discount. Clusters with fewer than two priced names have no "
@@ -311,10 +316,21 @@ SECTIONS = [
              "Trailing free cash flow divided by market capitalisation."),
             ("P/B",
              "Price divided by book value per share."),
+            ("Foreign reporters",
+             "ASML, TSMC, SK hynix, Nokia and WeRide trade in US dollars but report in euros, "
+             "Taiwan dollars, won and renminbi. Yahoo divides the dollar price by home-currency "
+             "book value and cash flow, so P/B and FCF yield are not shown for them on any "
+             "date (ASML's read 1,558x on 1 October 2026; 28x on its Amsterdam listing). Their "
+             "P/E figures are on one currency and stay."),
             ("Revenue growth",
              "The latest reported quarter's revenue against the same quarter a year earlier."),
-            ("EPS growth estimate",
-             "Analyst consensus for next-fiscal-year EPS growth."),
+            ("Est. EPS growth, next FY",
+             "Analysts' consensus EPS for the next fiscal year against the current one (from "
+             "2 October 2026; not shown when the current year is a loss)."),
+            ("EPS growth, last quarter y/y",
+             "The last reported quarter's EPS against the same quarter a year earlier — a "
+             "result, not an estimate. One-off gains swing it (it was labelled an estimate "
+             "here until 2 October 2026)."),
             ("Dividend yield",
              "Trailing twelve-month dividends divided by the current price."),
             ("Sell-side consensus",

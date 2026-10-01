@@ -27,6 +27,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
+from components.earnings_chart import reports_in_foreign_currency
 from components.watchlist.drilldown_drawers import (
     STRESS,
     catalyst_html,
@@ -206,18 +207,35 @@ def _technicals_html(d: dict) -> str:
     return f'<div class="dd-eyebrow">Technicals</div>{pairs}' if pairs else ""
 
 
-def _valuation_html(d: dict) -> str:
+def _fy_label(iso) -> str:
+    """'2028-01-31' → ' · FY to Jan 2028'; '' when absent or malformed."""
+    try:
+        d = date.fromisoformat(str(iso)[:10])
+    except (TypeError, ValueError):
+        return ""
+    return f" · FY to {d.strftime('%b')} {d.year}"
+
+
+def _valuation_html(d: dict, tk: str = "") -> str:
     """The valuation pairs. The analyst rating is a sourced third-party fact —
-    Yahoo's sell-side consensus — and is labelled as such."""
+    Yahoo's sell-side consensus — and is labelled as such.
+
+    P/B and FCF yield drop for a US listing of a foreign reporter on every date:
+    Yahoo divides the dollar price by home-currency book value and cash flow
+    (ASML P/B 1,557.8 on 2026-10-01). The pipeline withholds both from 2026-10-02;
+    this covers the reports before that."""
     val = d.get("valuation") or {}
     consensus = val.get("analyst_consensus") or {}
     fpe = val.get("forward_pe")
     cluster_med_pe = val.get("cluster_median_pe")
     pe_vs_cluster = val.get("pe_vs_cluster_pct")
     div_y = val.get("dividend_yield_pct")
-    pb = val.get("price_to_book")
+    foreign = reports_in_foreign_currency(tk)
+    pb = None if foreign else val.get("price_to_book")
+    fcf = None if foreign else val.get("fcf_yield_pct")
     pairs = _pairs_html([
-        ("Forward P/E", f"{_fmt_num(fpe, 1)}x" if fpe else "—"),
+        ("Forward P/E",
+         f"{_fmt_num(fpe, 1)}x{_fy_label(val.get('forward_pe_fy_end'))}" if fpe else "—"),
         # The vs-cluster delta is often absent while the median is present; when
         # it is, the parenthetical drops rather than printing "(—%)".
         ("Cluster median P/E",
@@ -227,12 +245,16 @@ def _valuation_html(d: dict) -> str:
          if cluster_med_pe else "—"),
         ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
         ("Revenue growth", _pct(val.get("revenue_growth_pct"))),
-        ("FCF yield", _pct(val.get("fcf_yield_pct"), 2)),
+        ("FCF yield", _pct(fcf, 2)),
         ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
         ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),
         ("Sell-side consensus (Yahoo)",
          _consensus_str(consensus.get("recommendation"), consensus.get("num_analysts"))),
-        ("Est. EPS growth", _pct(consensus.get("earnings_growth_pct"))),
+        # Analysts' next-fiscal-year growth (pipeline 2026-10-02). The older field is
+        # the last REPORTED quarter against a year earlier — it was labelled an
+        # estimate here until 2026-10-02 (NVDA 127.8 % vs the analysts' 68.5 %).
+        ("Est. EPS growth, next FY", _pct(val.get("eps_growth_next_fy_pct"))),
+        ("EPS growth, last quarter y/y", _pct(consensus.get("earnings_growth_pct"))),
     ])
     return f'<div class="dd-eyebrow">Valuation</div>{pairs}' if pairs else ""
 
@@ -342,7 +364,7 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
 
     price = d.get("price")
     price_str = _p(price) if price is not None else "—"
-    cols = [c for c in (_ladder_html(d, _p), _technicals_html(d), _valuation_html(d)) if c]
+    cols = [c for c in (_ladder_html(d, _p), _technicals_html(d), _valuation_html(d, tk)) if c]
     cols_html = (
         '<div class="dd-cols dd-cols-3">'
         + "".join(f'<div class="dd-col">{c}</div>' for c in cols)

@@ -178,6 +178,44 @@ def test_cluster_median_pe_with_a_delta_keeps_it():
     assert "25.6x (-37%)" in render_drilldown_detail_html("CRWV", d)
 
 
+def test_forward_pe_names_its_fiscal_year_when_the_report_carries_one():
+    d = {"valuation": {"forward_pe": 14.7, "forward_pe_fy_end": "2028-01-31"}}
+    assert "14.7x · FY to Jan 2028" in render_drilldown_detail_html("NVDA", d)
+
+
+def test_forward_pe_without_a_fiscal_year_is_unchanged():
+    html = render_drilldown_detail_html("MU", {"valuation": {"forward_pe": 5.3}})
+    assert "5.3x" in html and "FY to" not in html
+
+
+def test_foreign_reporter_hides_mixed_currency_pb_and_fcf_on_old_reports():
+    # 2026-10-01 shape: Yahoo's P/B divides a USD price by EUR book value.
+    d = {"valuation": {"forward_pe": 30.8, "price_to_book": 1557.82, "fcf_yield_pct": 1.2}}
+    html = render_drilldown_detail_html("ASML", d)
+    assert "1557" not in html and "Price / Book" not in html and "FCF yield" not in html
+    assert "30.8x" in html
+
+
+def test_home_currency_name_keeps_pb_and_fcf():
+    d = {"valuation": {"price_to_book": 24.08, "fcf_yield_pct": 0.76}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "24.08x" in html and "+0.76%" in html
+
+
+def test_eps_growth_rows_say_which_is_the_estimate():
+    d = {"valuation": {"eps_growth_next_fy_pct": 68.5,
+                       "analyst_consensus": {"earnings_growth_pct": 127.8}}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "Est. EPS growth, next FY" in html and "+68.5%" in html
+    assert "EPS growth, last quarter y/y" in html and "+127.8%" in html
+
+
+def test_old_report_without_the_next_fy_figure_shows_no_estimate_row():
+    d = {"valuation": {"analyst_consensus": {"earnings_growth_pct": 127.8}}}
+    html = render_drilldown_detail_html("NVDA", d)
+    assert "Est. EPS growth" not in html and "last quarter y/y" in html
+
+
 # ── Data-health chips ──
 def test_clean_name_has_no_chips():
     assert "dd-chips" not in render_drilldown_detail_html("NVDA", {"price": 1.0})

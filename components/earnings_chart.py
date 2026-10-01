@@ -43,14 +43,23 @@ _EST_ROW = "what analysts expected"
 _BEAT_ROW = "what happened: above (+) or below (−) analysts"
 
 
-# Revenue is in the REPORTING currency, which for four US-listed names is not the USD they
-# trade in (TSMC reports TWD, ASML and Nokia EUR, WeRide RMB). EPS for TSM is Yahoo's
-# per-ADR figure in USD; for the other ADRs the currency is not confirmed, so the chart
-# says whose units they are instead of guessing.
+# Revenue is in the REPORTING currency, which for five US-listed names is not the USD they
+# trade in (TSMC reports TWD, ASML and Nokia EUR, WeRide RMB, SK hynix KRW). EPS for TSM,
+# SK hynix and Nokia is Yahoo's per-ADR figure in USD and ASML's is EUR (checked 2026-10-02
+# against the home listings: TSM 4.31 = 2330.TW 27.25 TWD x 5 / FX; SKHY 9.06 = 000660.KS
+# 131,478 KRW / 10 / FX; NOK 0.08 vs NOKIA.HE EUR 0.07; ASML = ASML.AS). WeRide's actuals and
+# estimates do not reconcile to one unit, so its chart says whose units they are instead.
 _SUFFIX_REPORTING = {"_KS": "KRW", "_SI": "SGD", "_DE": "EUR", "_PA": "EUR"}
 _REVENUE_CCY = {"TSM": "TWD", "ASML": "EUR", "NOK": "EUR", "WRD": "RMB", "SKHY": "KRW"}
-_EPS_CCY = {"TSM": "US$ per ADR", "ASML": "Yahoo Finance units", "NOK": "Yahoo Finance units",
-            "WRD": "Yahoo Finance units", "SKHY": "Yahoo Finance units"}
+_EPS_CCY = {"TSM": "US$ per ADR", "ASML": "EUR", "NOK": "US$ per ADR",
+            "WRD": "Yahoo Finance units", "SKHY": "US$ per ADR"}
+
+
+def reports_in_foreign_currency(key: str) -> bool:
+    """A US listing whose company reports in another currency. Yahoo divides its
+    US-dollar price by home-currency book value and cash flow, so P/B and FCF yield
+    are mixed-currency for these names on every report date."""
+    return key in _REVENUE_CCY
 
 
 def revenue_currency(key: str) -> str:
