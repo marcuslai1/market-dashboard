@@ -25,6 +25,7 @@
 Same as MarketReport: proceed on low-risk, reversible UI changes; discuss first
 for anything that changes what a number MEANS, or that touches the data
 contract with the pipeline export. Since 2026-10-01 the site is information
-only (MarketReport spec 2026-10-01-info-only-watchlist): no signal label,
-rating, ranking or bucket on any page, and never a local hit-rate headline —
+only (MarketReport spec 2026-10-01-info-only-watchlist): no pipeline signal
+label, rating, ranking or bucket on any page (Yahoo's sell-side consensus is a
+quoted third-party figure), and never a local hit-rate headline —
 bringing any of them back is a discussion, not a UI change.

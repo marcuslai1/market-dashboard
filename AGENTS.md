@@ -65,8 +65,9 @@ fuller project instructions.
 - **Every number on a page is either read from a report JSON, read from a
   CSV, or derived in `lib/` / `components/` from those.** **Facts only since
   2026-10-01** (MarketReport spec 2026-10-01-info-only-watchlist; tag
-  `pre-label-removal`): no page renders a signal label, rating, ranking,
-  bucket, gate, R:R or entry verdict, for any report date. Reports up to the
+  `pre-label-removal`): no page renders a pipeline signal label, rating,
+  ranking, bucket, gate, R:R or entry verdict, for any report date (Yahoo's
+  sell-side consensus is shown as a sourced third-party figure). Reports up to the
   pipeline cutover still carry those keys (and `calibration_insights`) in
   their JSON; nothing reads them. The Signal Tracker and Review pages went
   with the labels.
@@ -122,8 +123,9 @@ fuller project instructions.
 ## Things that are CLOSED — do not reopen or "improve"
 
 - **Information only — no labels on any page** (owner decision 2026-10-01,
-  MarketReport spec 2026-10-01-info-only-watchlist O1–O8): no signal, rating,
-  ranking, bucket, gate, R:R or entry instruction; the Watchlist keeps ONE fixed
+  MarketReport spec 2026-10-01-info-only-watchlist O1–O8): no pipeline signal,
+  rating, ranking, bucket, gate, R:R or entry instruction (the sourced Yahoo
+  sell-side consensus stays); the Watchlist keeps ONE fixed
   cluster order; the Tracker and Review pages are removed (tag
   `pre-label-removal` restores them). Signal accuracy is neither shown nor
   refuted — never describe the change as "signals proven inaccurate".
