@@ -134,12 +134,13 @@ def _day_label(data_date) -> str:
 def briefing_history_html(payload: dict) -> str:
     """The earlier briefings in the published index, or ``""`` when there are none.
 
-    ``scripts/briefing.py publish`` keeps the last five logged briefings in
-    ``recent`` (newest first) as ``{id, data_date, headline}`` — the headline is
-    each one's first "what matters" point; their full text is not published.
-    One line per data date: the newest entry stands (a same-day republish
-    supersedes the earlier one), and the latest briefing's own date is left out —
-    the card above is that day.
+    ``scripts/briefing.py publish`` keeps the last five briefing days in
+    ``recent`` (newest first, the newest version of each day since 2026-10-01) as
+    ``{id, data_date, headline}`` — the headline is each one's first "what
+    matters" point; their full text is not published. One line per data date:
+    the newest entry stands (older payloads can still carry a same-day
+    republish), and the latest briefing's own date is left out — the card above
+    is that day.
     """
     payload = payload or {}
     recent = payload.get("recent")
