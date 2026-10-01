@@ -30,7 +30,7 @@ from components.briefing.daily_briefing import briefing_card_html
 from components.briefing.market_read import market_read_card_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
-from lib.cards import render_section_head
+from lib.cards import data_health_banners_html, render_section_head
 from lib.data_loader import (
     list_report_dates,
     load_briefings,
@@ -119,17 +119,11 @@ def _page_briefing() -> None:
         report = overlay_live(_base_report, _live) if _live else _base_report
         benchmarks = report.get("benchmarks") or {}
 
-        # Data-coverage banner — only when the report ran on incomplete data, so
-        # the page carries a visible trust caveat. Silent on clean days.
-        _dc = (report.get("meta") or {}).get("data_coverage") or {}
-        if _dc.get("coverage_degraded"):
-            _skipped = _dc.get("skipped") or []
-            _skip_note = f" Missing: {', '.join(_skipped[:8])}." if _skipped else ""
-            st.markdown(
-                '<div class="briefing-banner" data-tone="warn">⚠ Data coverage degraded — '
-                f'{_dc.get("fetched")}/{_dc.get("expected")} names fetched.{_skip_note}</div>',
-                unsafe_allow_html=True,
-            )
+        # Data-health banners — degraded coverage, a zero-news run — so the page
+        # carries a visible trust caveat. Silent on clean days.
+        _banners = data_health_banners_html(report.get("meta"))
+        if _banners:
+            st.markdown(_banners, unsafe_allow_html=True)
 
         _render_live_caption(_live, LIVE_PRICES)
         render_pulse(benchmarks)
@@ -192,6 +186,9 @@ def _page_watchlist() -> None:
         if not _is_latest:
             sub_label += f" · viewing {selected_date}"
         render_section_head("The Watchlist", sub_label, masthead=True)
+        _banners = data_health_banners_html(report.get("meta"))
+        if _banners:
+            st.markdown(_banners, unsafe_allow_html=True)
         _render_live_caption(_live, LIVE_PRICES and _is_latest)
         render_pulse(benchmarks)
         # Every report date renders the same facts-only grid: a report that

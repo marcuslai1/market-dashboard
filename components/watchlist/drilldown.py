@@ -11,7 +11,8 @@ the ``<details>`` element rendered by ``components.watchlist.row``.
 2. data-health chips — what to distrust in the numbers below;
 3. the levels ladder, the technicals and the valuation, side by side;
 4. the Earnings drawer (band, charts, history, the result headline);
-5. news & context — thesis highlights and the catalyst headline.
+5. news & context — the name's recent headlines (``recent_news``, from the
+   pipeline cutover on), thesis highlights and the catalyst headline.
 
 Gone with the labels: the entry-block card, the writeup verdict / what-to-do,
 the caution-source and momentum chips, the trigger / target / invalidation / R:R
@@ -22,6 +23,7 @@ their JSON; nothing here reads them.
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from components.watchlist.drilldown_drawers import (
     STRESS,
@@ -35,6 +37,7 @@ from lib.formatters import (
     _delta_class,
     _escape_dollars,
     _fmt_num,
+    _safe_href,
     _sign,
     display_ticker,
 )
@@ -233,10 +236,70 @@ def _valuation_html(d: dict) -> str:
 
 # ── 5. News & context ─────────────────────────────────────────────────────────
 
+#: The pipeline ships at most 3 per name (the harvest's cap); a longer list is
+#: still cut here so a contract change cannot turn the card into a feed.
+_MAX_NEWS = 5
+
+
+def _news_date(value) -> str:
+    """``30 Sep`` from ``YYYY-MM-DD`` (or an ISO datetime); anything else verbatim."""
+    raw = str(value or "").strip()
+    try:
+        when = date.fromisoformat(raw[:10])
+    except ValueError:
+        return _escape_dollars(raw)
+    return f"{when.day} {when:%b}"
+
+
+def _recent_news_html(d: dict) -> str:
+    """The name's recent headlines — title (linked when the link is http/https),
+    then publisher · date. Report contract (spec S2): ``recent_news`` is a list of
+    ``{title, publisher, date, link}``, newest first; absent or ``[]`` renders
+    nothing — no "no news" line, because an empty list is the normal state for
+    most non-US names. No summary, no sentiment: a headline is a fact, its tone
+    is not."""
+    items = d.get("recent_news")
+    if not isinstance(items, list):
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        href = _safe_href(item.get("link"))
+        title_html = (
+            f'<a class="dd-news-title" href="{href}" target="_blank" '
+            f'rel="noopener noreferrer">{_escape_dollars(title)}</a>'
+            if href else
+            f'<span class="dd-news-title">{_escape_dollars(title)}</span>'
+        )
+        meta = " · ".join(
+            m for m in (_escape_dollars(str(item.get("publisher") or "").strip()),
+                        _news_date(item.get("date")))
+            if m
+        )
+        rows.append(
+            f'<div class="dd-news-item">{title_html}'
+            + (f'<div class="dd-news-meta">{meta}</div>' if meta else "")
+            + '</div>'
+        )
+        if len(rows) == _MAX_NEWS:
+            break
+    if not rows:
+        return ""
+    return '<div class="dd-sub">Recent news</div>' + "".join(rows)
+
+
 def _news_html(d: dict) -> str:
-    """Thesis highlights (the pipeline's guardrail bullets that matched the
-    day's news) and the catalyst headline. Silent when both are absent."""
+    """Recent headlines, thesis highlights (the pipeline's guardrail bullets that
+    matched the day's news) and the catalyst headline. Silent when all three are
+    absent."""
     parts: list[str] = []
+    news = _recent_news_html(d)
+    if news:
+        parts.append(news)
     highlights = [
         str(b).strip() for b in (d.get("thesis_highlights") or []) if b and str(b).strip()
     ]

@@ -5,6 +5,7 @@ used by almost every editorial section. Other card primitives
 (``card_container``, density helpers) land here during Part 2. ``help_tip``
 (the click-to-open "?" popover) moved here from ``components/paper_book.py``
 when the paper books were frozen and that module removed (2026-10-01).
+``data_health_banners_html`` is the run-level trust caveat both pages show.
 """
 from __future__ import annotations
 
@@ -64,3 +65,33 @@ def card_container(*, eyebrow: str, headline: str = "", body_html: str, lane: st
         f'<div class="card-body">{body_html}</div>'
         f'</div>'
     )
+
+
+def data_health_banners_html(meta: dict | None) -> str:
+    """Run-level data-health banners for one report, or ``""`` on a clean run.
+
+    Two facts about the RUN, never about a stock: the coverage banner (names the
+    pipeline could not fetch, ``meta.data_coverage``) and the zero-news banner
+    (``meta.news_coverage.zero_news``, from the pipeline cutover on — the whole
+    run harvested no articles, so no drill-down carries headlines). Terracotta
+    ``warn`` tone: "read what follows with care".
+    """
+    meta = meta or {}
+    out: list[str] = []
+    dc = meta.get("data_coverage") or {}
+    if isinstance(dc, dict) and dc.get("coverage_degraded"):
+        skipped = [str(s) for s in (dc.get("skipped") or [])]
+        skip_note = f" Missing: {_escape_dollars(', '.join(skipped[:8]))}." if skipped else ""
+        out.append(
+            '<div class="briefing-banner" data-tone="warn">⚠ Data coverage degraded — '
+            f'{_escape_dollars(str(dc.get("fetched")))}/{_escape_dollars(str(dc.get("expected")))} '
+            f'names fetched.{skip_note}</div>'
+        )
+    nc = meta.get("news_coverage") or {}
+    if isinstance(nc, dict) and nc.get("zero_news") is True:
+        out.append(
+            '<div class="briefing-banner" data-tone="warn">⚠ No news this run — the news '
+            'feed returned no articles for any name, so no drill-down carries headlines '
+            'for this report.</div>'
+        )
+    return "".join(out)

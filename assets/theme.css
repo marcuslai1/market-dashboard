@@ -1354,6 +1354,19 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   margin: 0 0 6px; font-size: 12.5px; line-height: 1.5;
   color: var(--color-text-2);
 }
+/* Recent news (spec S2 ``recent_news``): headline in body ink, linked when the
+   report carries a URL; publisher · date beneath in mono. No tone colour — a
+   headline is a fact, never a verdict. */
+.tk-drilldown .dd-news-item { margin: 0 0 9px; line-height: 1.45; }
+.tk-drilldown .dd-news-title { font-size: 13px; color: var(--color-text-2); }
+.tk-drilldown a.dd-news-title {
+  color: var(--ink); text-decoration: underline;
+  text-decoration-color: var(--rule-strong); text-underline-offset: 3px;
+}
+.tk-drilldown a.dd-news-title:hover { text-decoration-color: var(--ink-3); }
+.tk-drilldown .dd-news-meta {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-top: 2px;
+}
 
 /* ── Drawers — the material only an auditor wants ─────────────────────────────
    Collapsed by default so the drill-down has a floor. Raw <details> because

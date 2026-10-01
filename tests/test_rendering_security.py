@@ -56,3 +56,15 @@ def test_further_out_row_escaped():
                                "read_across": ["<b>NVDA</b>"]}]}}}
     out = briefing_card_html(payload, "2026-09-29")
     assert "<script>" not in out and "<b>NVDA</b>" not in out
+
+
+def test_recent_news_is_escaped_and_javascript_links_dropped():
+    d = {"currency": "USD", "recent_news": [
+        {"title": XSS, "publisher": "<b>x</b>", "date": "<i>", "link": "javascript:alert(1)"},
+        {"title": "T $5B", "link": 'https://evil.com/"><script>alert(1)</script>'},
+    ]}
+    out = render_drilldown_detail_html("AMD", d)
+    assert "<script>" not in out and "<b>x" not in out and "<i>" not in out
+    assert "javascript:" not in out
+    assert '"><script>' not in out
+    assert "&#36;5B" in out

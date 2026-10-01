@@ -257,6 +257,60 @@ def test_thesis_highlights_escape_dollars_and_markup():
     assert "<risk>" not in html and "&lt;risk&gt;" in html
 
 
+# ── Recent news (spec S2: watchlist[<key>].recent_news) ──
+_NEWS = [
+    {"title": "Micron beats on HBM", "publisher": "Reuters", "date": "2026-10-01",
+     "link": "https://example.com/mu-beat"},
+    {"title": "Memory prices firm", "publisher": "Bloomberg", "date": "2026-09-30",
+     "link": None},
+]
+
+
+def test_recent_news_renders_title_link_publisher_and_date_in_order():
+    html = render_drilldown_detail_html("MU", {"recent_news": _NEWS})
+    assert ">Recent news<" in html and "News &amp; context" in html
+    assert ('<a class="dd-news-title" href="https://example.com/mu-beat" target="_blank" '
+            'rel="noopener noreferrer">Micron beats on HBM</a>') in html
+    assert "Reuters · 1 Oct" in html and "Bloomberg · 30 Sep" in html
+    assert html.index("Micron beats") < html.index("Memory prices firm")
+
+
+def test_recent_news_without_a_link_is_plain_text():
+    html = render_drilldown_detail_html("MU", {"recent_news": [_NEWS[1]]})
+    assert '<span class="dd-news-title">Memory prices firm</span>' in html
+    assert "<a " not in html.split(">Recent news<", 1)[1]
+
+
+def test_recent_news_absent_or_empty_renders_nothing():
+    for value in (None, [], "", {"title": "x"}, [{"title": ""}, {"publisher": "Reuters"}, "x"]):
+        html = render_drilldown_detail_html("D05_SI", {"recent_news": value})
+        assert "Recent news" not in html and "News &amp; context" not in html, value
+
+
+def test_recent_news_comes_first_in_news_and_context():
+    html = render_drilldown_detail_html("MU", {
+        "recent_news": _NEWS,
+        "thesis_highlights": ["HBM is sold out through 2027"],
+        "catalyst": {"catalyst_event": "HBM contract"},
+    })
+    order = [html.index(x) for x in (">Recent news<", ">Thesis highlights<", ">Catalyst<")]
+    assert order == sorted(order)
+
+
+def test_recent_news_is_capped():
+    many = [{"title": f"Headline {i}", "publisher": "P", "date": "2026-09-30"} for i in range(9)]
+    html = render_drilldown_detail_html("MU", {"recent_news": many})
+    assert html.count('class="dd-news-item"') == 5
+
+
+def test_recent_news_odd_date_renders_verbatim_and_missing_meta_drops():
+    html = render_drilldown_detail_html("MU", {"recent_news": [
+        {"title": "A", "publisher": "", "date": "yesterday"},
+        {"title": "B"},
+    ]})
+    assert '<div class="dd-news-meta">yesterday</div>' in html
+    assert html.count('class="dd-news-meta"') == 1
+
 def test_catalyst_renders_facts_only():
     d = {"catalyst": {"catalyst_type": "contract_win", "catalyst_event": "HBM contract",
                       "catalyst_source": "Reuters", "catalyst_date": "2026-09-25",
