@@ -1,4 +1,4 @@
-"""Signal Tracker page: episode history, aggregate calibration, paper-trade outcomes.
+"""Signal Tracker page: episode history and aggregate calibration.
 
 Also home to the signal-history helpers (`extract_signal_history`,
 `build_signal_episodes`, `_classify_episode_verdict`) and the accuracy helper
@@ -9,19 +9,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.paper_book import render_paper_book
-from components.trim_experiment import render_trim_experiment
 from lib.calls import first_of_run
-from lib.cards import card_container, render_section_head
+from lib.cards import card_container, help_tip, render_section_head
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS, SIGNAL_COLORS
 from lib.charts import INK_FALLBACK, STATUS_NEG, STATUS_POS, STATUS_WARN
-from lib.data_loader import (
-    load_changelog,
-    load_paper_nav,
-    load_paper_positions,
-    load_paper_trades,
-    load_sqlite_prices,
-)
+from lib.data_loader import load_changelog
 from lib.formatters import (
     _escape_attr,
     _escape_dollars,
@@ -454,7 +446,6 @@ def _alpha_scorecard_html(perf: dict, decayed: dict, acc_df: pd.DataFrame,
     that is stated on the tile, because a gate reads backwards otherwise.
     Raw direction survives only in the ? popover, at 5 and 20 sessions with
     base rates."""
-    from components.paper_book import help_tip
     cells = ""
     for sig, mode, verb in _SCORECARD_SPECS:
         cell = perf.get(sig) or {}
@@ -692,10 +683,9 @@ def _method_html(calibration_insights=None) -> str:
     With calibration_insights (option C, 2026-08-27): the tiles are the
     pipeline's benchmark-relative alpha over its rolling window — the number
     the Measurement Gate uses — and the line says so, names the window, and
-    states that CAUTION / AVOID are gates whose exit value lives in the paper
-    book. Without it: the legacy 5-session direction caption.
+    states that CAUTION / AVOID are gates whose exit value is the tile's own
+    alpha, read the other way round. Without it: the legacy 5-session direction caption.
     """
-    from components.paper_book import help_tip
     ci = calibration_insights or {}
     if ci.get("signal_performance"):
         win = ci.get("data_window") or {}
@@ -716,26 +706,26 @@ def _method_html(calibration_insights=None) -> str:
             f"over the pipeline's calibration window{span}"
             f"{help_tip(tip, 'What the tiles measure')}</p>"
             '<p class="sc-hold">CAUTION and AVOID are gates, not forecasts — '
-            "their value as exits is measured in the paper book below, not "
-            "in these tiles.</p>"
+            "their exit value is their own tile read the other way round: "
+            "negative alpha means the names they fenced off went on to lag "
+            "their benchmark.</p>"
         )
     # Owner call 2026-08-27: the CAUTION cell was being read as "CAUTION is a
     # bad sell signal". It is an ENTRY gate scored here as a direction call,
-    # at a horizon where nothing has an edge; the paper book exits on two of
-    # its sub-buckets for a different reason. Say so at the point of use.
+    # at a horizon where nothing has an edge; its value as an exit is a
+    # benchmark-relative alpha read, not this direction test. Say so at the
+    # point of use.
     tip = ("BUY / ACCUMULATE / WATCH count a rise as right; CAUTION / AVOID "
            "count a drop as right. Read the CAUTION cell with care: CAUTION "
            "means 'don't add here', not 'sell', and over any 5 sessions about "
            "half of all names fall anyway, so a rate near 50% is the market, "
-           "not the signal. The paper book does exit on two CAUTION "
-           "sub-buckets (extension, thesis) because over ~20 sessions those "
-           "names lag the names it keeps — see the paper band below. Raw "
-           "price direction — the benchmark-relative view (alpha vs the "
-           "market) is the Signal calibration row at the top of this page.")
-    from components.paper_book import help_tip
+           "not the signal. Raw price direction — the benchmark-relative view "
+           "(alpha vs the market), which is where CAUTION and AVOID are read "
+           "as exits and negative is good, is the Signal calibration row at "
+           "the top of this page.")
     return (
         '<p class="method">How often each signal went the right way, 5 sessions '
-        "later — a direction test, not what the paper book trades on"
+        "later — a direction test, not the benchmark-relative alpha"
         f"{help_tip(tip, 'What counts as right')}</p>"
     )
 
@@ -919,8 +909,8 @@ def render_signal_tracker_page(
          how has each signal actually done? Corpus-wide by design: per-signal
          calibration is a property of the system, so the name filter
          deliberately does not touch it.
-      1c. Paper book — the pipeline's mechanical paper portfolio (NAV vs
-         SPY/SOXX), rendered from exports only; also corpus-wide.
+      (The 1c paper-book band and the trim experiment were removed 2026-10-01
+      when the paper books were frozen — MarketReport PIPELINE_FEATURES §116.)
       2. What we've changed — the dated methodology spine.
       3. Detail drawers (collapsed) — by-name ledger + signal changes; the
          name filter lives here and scopes only these.
@@ -978,17 +968,8 @@ def render_signal_tracker_page(
         if note:
             st.markdown(note, unsafe_allow_html=True)
 
-    # ── 1c. Paper book — the pipeline's mechanical NAV lane. Corpus-scoped:
-    # the name filter below deliberately does not touch it (page contract,
-    # spec 2026-07-05-paper-book-band-design). Skips itself until the
-    # pipeline's paper_portfolio block / paper_nav.csv export first lands.
-    _pnav = load_paper_nav()
-    render_paper_book(latest_report, _pnav, load_paper_trades(),
-                      load_paper_positions(), load_sqlite_prices())
-    # ── 1d. Caution-trim experiment — 25 output-only variant books (MarketReport
-    # spec 2026-07-09). Collapsed + banner-capped: single-regime hypothesis-grade,
-    # not a verdict. Silent until the trim books land in paper_nav.csv.
-    render_trim_experiment(_pnav)
+    # The paper-book band and trim experiment were removed 2026-10-01 when the
+    # paper books were frozen (MarketReport PIPELINE_FEATURES §116).
 
     # ── 2. What we've changed — recent methodology updates ──
     changelog = load_changelog()
@@ -1066,7 +1047,6 @@ def render_signal_tracker_page(
 # The paper-trade-outcomes block (a second scoring system: entry types, hit-
 # invalidation, realised return by signal x entry type) was CUT 2026-07-04 —
 # it duplicated the scorecard's job and was the densest thing on the page.
-# Its pipeline-log data (signal_log.csv) is still exported. The paper-book
-# band (tier 1c) is NOT that table returning: it renders the pipeline's own
-# paper_portfolio lane — one engine, exported numbers, zero dashboard math
-# (spec 2026-07-05-paper-book-band-design).
+# Its pipeline-log data (signal_log.csv) is still exported. (The later
+# paper-book band and trim experiment were removed 2026-10-01 when the paper
+# books were frozen — MarketReport PIPELINE_FEATURES §116.)

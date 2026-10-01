@@ -35,9 +35,9 @@ fuller project instructions.
 ## Environment
 
 - Interpreter: the repo's own `.venv` and the machine's default `python`
-  are **Python 3.9** — `lib/paper_metrics.py` uses `zip(strict=)` (3.10+),
-  so ~20 paper tests fail there with "zip() takes no keyword arguments".
-  That is environment noise, NOT a regression. The gate that matches CI
+  may not match CI. (Until 2026-10-01 a 3.9 interpreter failed ~20
+  `lib/paper_metrics.py` tests on `zip(strict=)`; that module was removed
+  with the paper book.) The gate that matches CI
   (3.10 / 3.12, `.github/workflows/ci.yml`) is a Python 3.10 interpreter
   with `requirements.lock` installed; the task brief names the one to use.
 - Tests: `<py310> -m pytest tests -q` — module form is required (puts the
@@ -55,8 +55,7 @@ fuller project instructions.
   writes: the day's `morning_report_<date>.json` (through a privacy wall),
   `report_memory.json`, and CSVs re-exported IN FULL from the pipeline's
   SQLite DB each run — `market_data.csv`, `pipeline_stats.csv`,
-  `claude_analysis.csv`, `signal_log.csv`, `paper_nav.csv`,
-  `paper_trades.csv`, `paper_positions.csv`, `earnings_history.csv` — then
+  `claude_analysis.csv`, `signal_log.csv`, `earnings_history.csv` — then
   `git add data/ && git commit && git push origin main`. A skipped slot (US
   holiday) writes nothing that day. `capex_quarterly.json`, `changelog.json`
   and `earnings_cascades.json` are hand-curated by the owner;
@@ -78,7 +77,7 @@ fuller project instructions.
   rerun. `fetch_live_quotes` is `ttl=60`.
 - **Clock:** `lib/clock.today()` honours `TEST_DATE=YYYY-MM-DD`; production
   never sets it. `LIVE_QUOTES_DISABLED=1` skips the Yahoo batch.
-- **Ticker keys:** report JSONs and `signal_log.csv` / `paper_*.csv` use
+- **Ticker keys:** report JSONs and `signal_log.csv` use
   sanitized keys (`000660_KS`, `SOI_PA`); `market_data.csv` uses the
   provider's dotted symbols (`000660.KS`, `SOI.PA`); `assets/catalog.json`
   maps report keys → Yahoo symbols / display names / clusters and lists
@@ -120,17 +119,20 @@ fuller project instructions.
 - **Tracker tiles read the pipeline's `alpha_10d`** (owner decision
   2026-08-27, "option C"). Do not reintroduce a locally computed hit-rate
   headline; the local 5/20-session direction view lives in the popover only.
-- **Colour is a claim** (owner decision 2026-09-01): green/red on the paper
-  scorecard only where a significance / qualification test passes (deflated-
-  Sharpe ≥ 95 %, R-multiple n ≥ 5, Default book + Twins only); neutral is
-  the default. Do not relax a gate because a number "looks strong".
+- **Colour is a claim** (owner decision 2026-09-01): green/red only where a
+  significance / qualification test passes (it was written for the paper
+  scorecard — deflated-Sharpe ≥ 95 %, R-multiple n ≥ 5 — removed 2026-10-01);
+  neutral is the default. Do not relax a gate because a number "looks strong".
 - **Visual pixel-diff is on-demand** (2026-08-29); AppTest + DOM suites are
   the gate.
 - **1200 px measure, plain-language labels, drawers ordered by importance**
   (2026-09-01) — layout decisions, not review targets.
-- **Paper-book parameters, lane sets and the headline lane
-  (`v2_starter_b15_tb_fees`) are the pipeline's**; the dashboard names them
-  in `components/paper_book.py` but does not define them.
+- **Paper books FROZEN, dashboard paper surfaces REMOVED** (owner decision
+  2026-10-01, MarketReport PIPELINE_FEATURES §116): the Tracker's paper band,
+  the trim experiment, the Review page's paper panel, the drill-down's
+  `book_stop` line and the `paper_*.csv` exports are gone (pipeline stops
+  writing them from the 2026-10-02 run). The record stays in the pipeline's
+  SQLite and in git (tag `pre-paper-freeze`).
 - The Review page keeps RETIRED tickers in its call ledger on purpose
   (survivorship); the Watchlist / price frames drop them on purpose.
 

@@ -83,7 +83,7 @@ def _door_html(summary: str, body: str) -> str:
 def index_html(sections, matched_ids) -> str:
     """The sticky rail.
 
-    Always lists all twelve, even while filtering: the index is how a reader
+    Always lists all of them, even while filtering: the index is how a reader
     learns what the page contains, and hiding entries would make a search look
     like the page shrank. Matching entries keep their anchor and take an accent
     tick; non-matching ones render as inert <span> — a link to a section that
@@ -116,9 +116,9 @@ def section_html(sec: dict) -> str:
         for date, label, body in sec["history"]
     )
     # The shared .section-head device (1px rule, right-aligned descriptor), one
-    # step below the page's masthead variant (2px). On a twelve-section page
+    # step below the page's masthead variant (2px). On an eleven-section page
     # that step is load-bearing: at the page weight the scroll would read as
-    # twelve separate documents.
+    # eleven separate documents.
     return (
         f'<section class="term-section" id="{sec["id"]}">'
         f'{_section_head_html(sec["title"], sec["descriptor"])}'
@@ -134,7 +134,7 @@ def page_html(sections, matched_ids) -> str:
     body = "".join(section_html(s) for s in sections if s["id"] in matched_ids)
     if not body:
         body = ('<div class="term-empty">No section matches that term. Clear the '
-                "search to see all twelve, or try a broader word — the index is "
+                "search to see every section, or try a broader word — the index is "
                 "keyed to concepts, not to every phrase on the page.</div>")
     return (f'<div class="term-layout">{index_html(sections, matched_ids)}'
             f'<div class="term-body">{body}</div></div>')

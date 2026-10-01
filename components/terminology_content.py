@@ -1,4 +1,4 @@
-"""Terminology page content: the twelve sections, as data.
+"""Terminology page content: the eleven sections, as data.
 
 
 Copy lives here; layout lives in ``components/terminology.py``. The split exists
@@ -613,135 +613,6 @@ SECTIONS = [
     },
     # 8 ─────────────────────────────────────────────────────────────────────
     {
-        "id": "paper-book",
-        "title": "Paper Book",
-        "descriptor": "How the mechanical portfolio trades and is scored",
-        "kw": ("paper book portfolio nav benchmark spy soxx buy sell stop rule "
-               "starter tranche stake small cap half size t-bill sleeve fees "
-               "sharpe drawdown residual luck bar twin lane inception fx exit "
-               "extension thesis trail time delist scorecard"),
-        "answer": (
-            "A mechanical portfolio that trades the pipeline's own signals — no "
-            "discretion, no hindsight. It answers one question: if you had "
-            "followed the signals literally since inception on 2026-04-19, would "
-            "you have beaten the market, and would that beat survive once the "
-            "market's own move is stripped out? It is measurement only, and never "
-            "feeds back into the signals, buckets or writeups. The book the "
-            "Tracker headlines is the <b>v2 starter default</b> (since 28 Aug 2026); "
-            "every other line on the scorecard is a twin that changes exactly one "
-            "rule, or an older rulebook kept as a control."
-        ),
-        "body": (
-            _plate(
-                "<var>book_return</var> = (current_NAV / inception_NAV − 1) × 100   "
-                "# cash + T-bill sleeve + positions marked to market\n"
-                "<var>spy_return</var>  = (SPY_close_today / SPY_close_inception − 1) × 100\n"
-                "<var>soxx_return</var> = (SOXX_close_today / SOXX_close_inception − 1) × 100\n"
-                "<var>residual</var>    = daily book return − β_SPY × SPY move − β_SOXX × SOXX move"
-                "   # what the rules own"
-            )
-            + _grid([
-                ("NAV",
-                 "Net asset value — the whole book's worth: cash, the T-bill sleeve and "
-                 "every open position marked at its latest price. The chart shows every "
-                 "series as dollars of a $100,000 starting pot, so $106,000 means +6% "
-                 "since 2026-04-19. Foreign holdings convert to USD at the day's FX rate."),
-                ("vs SPY / SOXX",
-                 "The book's <i>total</i> return — realized gains plus the mark-to-market of "
-                 "open positions — against simply buying and holding the index over the "
-                 "exact same dates. Both indexes are charted: SPY is the market, SOXX the "
-                 "semiconductor factor that 17 of the 33 names load on. The scorecard's "
-                 "<b>residual</b> columns strip both moves out of each day's return, and "
-                 "that is the number the book is judged on."),
-                ("When it buys",
-                 "At that day's close, with available cash only — never on margin. A "
-                 "<b>BUY</b> fills a 15%-of-pot position in one go. An <b>ACCUMULATE</b> "
-                 "opens a single 7.5% <i>starter</i> stake; the same name staying on "
-                 "ACCUMULATE the next day adds nothing, and only a later BUY tops it up to "
-                 "15%. That replays what the report means by ACCUMULATE (a starter that "
-                 "does not persist). Small and mid caps get half those sizes. A fill whose "
-                 "price already sits below its own stop is refused."),
-                ("When it sells",
-                 "Every exit liquidates the <i>whole</i> position. Five triggers: "
-                 "<b>stop</b> (price touches the nearest structural support below the "
-                 "report's invalidation level — the wider of the two — and the fill is the "
-                 "worse of the stop or that day's open, so a gap-down pays the gap); "
-                 "<b>extension exit</b> (the report puts the name on CAUTION for running "
-                 "too far above its trend — since 22 Sep 2026 that includes an extension "
-                 "block whose trend exception failed on RSI, which earlier reports filed "
-                 "as an RSI caution and the book held through; reads across that date "
-                 "are two different exit rules); <b>thesis exit</b> (the report says the story "
-                 "broke); <b>AVOID exit</b> (the signal turns AVOID while held); and "
-                 "<b>delist exit</b> (the ticker drops off the watchlist). No exit is "
-                 "driven by the book's own P&amp;L — the trailing-stop and time-limit "
-                 "twins test whether one should be."),
-                ("Cash and costs",
-                 "Idle cash is swept into 3-month T-bills each day and earns their rate; "
-                 "the sweep is booked as a ledger row, never as a trade. Commissions, the "
-                 "Korean sell tax, FX conversion and half-spread slippage follow IBKR's "
-                 "published schedule — about 0.1% of the pot over four months."),
-            ], label_w="150px")
-            + '<div class="term-subhead">How it is scored</div>'
-            + _grid([
-                ("Sharpe / Max DD",
-                 "Return per unit of daily wobble (annualised, risk-free rate 0) and the "
-                 "worst peak-to-trough fall on daily closes. Read the pair, not the NAV: "
-                 "a book can lead SPY on NAV by holding more risk."),
-                ("Residual",
-                 "The same statistics on the daily return with the SPY and SOXX moves "
-                 "regressed out. Roughly 40% of the headline return is the semis tide; the "
-                 "residual is what the signals themselves added."),
-                ("Luck bar",
-                 "Sixty-seven rule versions have been tried on the same window. Pure chance "
-                 "would hand the best of them a Sharpe near 2.8, so a lane is coloured green "
-                 "only when its residual Sharpe beats that bar with 95% confidence. Nothing "
-                 "on the scorecard is green yet — that is the honest state, not a bug."),
-            ], label_w="150px")
-            + '<div class="term-subhead">Twins and controls</div>'
-            + _note(
-                "Each twin is the default with exactly <i>one</i> rule changed, so the gap "
-                "between them is that rule's effect: a tighter stop on small caps · idle "
-                "cash in SOXX while the trend is up · small caps at full size · a 15% "
-                "trailing stop from the peak · a 40-session time limit on names not up 5% · "
-                "unlimited cash (theoretical). The <b>previous default (v1)</b> kept adding "
-                "7.5% every day a name stayed on ACCUMULATE, with no T-bills and no fees; "
-                "the <b>control</b> is the original book with a stop just under the 50-day "
-                "average, which fired on every one of its closed trades. Books whose sleeve "
-                "sits in SPY or SOXX show that share separately — it is market exposure, "
-                "not idle cash."
-            )
-            + '<div class="term-subhead">Position fields</div>'
-            + _grid([
-                ("Weight",
-                 "A position's size as a percent of the book — 7.5% for a starter stake, up "
-                 "to 15% after a BUY; half that for small and mid caps."),
-                ("Stop", "The price at which that position auto-sells — the structural support level."),
-                ("Tranches",
-                 "How many fills built the position. 1 = a BUY or a single ACCUMULATE "
-                 "starter; 2 = a starter later topped up by a BUY."),
-                ("Max drawdown",
-                 "The largest peak-to-trough dip the position has taken while held. A risk "
-                 "gauge, not a realized loss."),
-            ], label_w="124px")
-            + _limits([
-                ("Two segments, no bear market.",
-                 "One trending stretch and one choppy one since 22 Jul 2026, about 15 "
-                 "closed trades a lane. Hypothesis-grade; the pre-registered read around "
-                 "8 Sep 2026 is a progress report, not a verdict."),
-                ("Absolute NAV runs about one point high.",
-                 "Three pre-June signal rows were replayed with data the live run did not "
-                 "have (pipeline ledger KI-23). Every book carries it the same way, so "
-                 "comparisons between books stand."),
-                ("Curves before a lane's in-sample date prove nothing.",
-                 "Every lane is replayed from the common inception; only trades after the "
-                 "day its rules were chosen are a live test."),
-            ])
-        ),
-        "drawers": [],
-        "history": [],
-    },
-    # 9 ─────────────────────────────────────────────────────────────────────
-    {
         "id": "macro",
         "title": "Macro Scenarios & Odds",
         "descriptor": "What the probability bar represents",
@@ -766,7 +637,7 @@ SECTIONS = [
         "drawers": [],
         "history": [],
     },
-    # 10 ────────────────────────────────────────────────────────────────────
+    # 9 ─────────────────────────────────────────────────────────────────────
     {
         "id": "entry-block",
         "title": "Entry Block & Catalyst Context",
@@ -818,7 +689,7 @@ SECTIONS = [
              "CAUTION on its extension.</p>"),
         ],
     },
-    # 11 ────────────────────────────────────────────────────────────────────
+    # 10 ────────────────────────────────────────────────────────────────────
     {
         "id": "pulse",
         "title": "Pulse Strip",
@@ -849,7 +720,7 @@ SECTIONS = [
         "drawers": [],
         "history": [],
     },
-    # 12 ────────────────────────────────────────────────────────────────────
+    # 11 ────────────────────────────────────────────────────────────────────
     {
         "id": "limitations",
         "title": "Limitations",

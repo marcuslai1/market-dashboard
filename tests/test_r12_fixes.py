@@ -3,14 +3,14 @@
 Each test names the finding it closes. The review's own probe file lives in
 the pipeline repo's audit folder (codex-reviews/2026-09-15) and is opt-in;
 these are the permanent, collected pins. F01/F02/F12/F13 (Pipeline Stats) and
-F15 (capex pulse) went with those surfaces on 2026-09-29.
+F15 (capex pulse) went with those surfaces on 2026-09-29; F17 (paper-book
+exit-reason buckets) went with the paper book on 2026-10-01.
 """
 from __future__ import annotations
 
 from datetime import date
 
 import pandas as pd
-import pytest
 
 from components import retrospective as review
 from components import signal_tracker as tracker
@@ -18,7 +18,6 @@ from lib.calls import first_of_run
 from lib.data_loader import _load_sqlite_prices_cached
 from lib.formatters import currency_for_key, rr_display
 from lib.levels import rr_level
-from lib.paper_metrics import lane_trade_stats
 from lib.symbols import RETIRED_ANY_SPELLING, provider_symbol
 
 
@@ -183,7 +182,7 @@ def test_f16_tombstone_is_no_outcome_not_too_early():
                     {"date": "2026-06-20", "ticker": "AMD", "signal": "BUY",
                      "return_20d": float("nan"), "maturation_status": None}])
     digest = review.build_month_digest(calls, "2026-06")
-    board = review.month_scoreboard_html(digest, None)
+    board = review.month_scoreboard_html(digest)
     assert "1 still inside their 20-session windows" in board
     assert "1 with no outcome recorded" in board
     assert "all 2 calls are still inside" not in board
@@ -192,22 +191,3 @@ def test_f16_tombstone_is_no_outcome_not_too_early():
                        "maturation_status": None})
     assert review.classify_call(plain) == ("pending", "too early to judge")
 
-
-# ── F17 — exit-reason buckets cover every lane's own rule ──
-def test_f17_time_and_trail_exits_land_in_the_right_bucket():
-    pid = "x"
-    trades = pd.DataFrame([
-        {"policy_id": pid, "exit_reason": "caution_exit", "avg_entry_price": 100,
-         "entry_stop": 90, "exit_price": 120, "pnl_pct": 20, "pnl_units": 20000},
-        {"policy_id": pid, "exit_reason": "time_stop", "avg_entry_price": 100,
-         "entry_stop": 90, "exit_price": 101, "pnl_pct": 1, "pnl_units": 1000},
-        {"policy_id": pid, "exit_reason": "trail_stop", "avg_entry_price": 100,
-         "entry_stop": 90, "exit_price": 110, "pnl_pct": 10, "pnl_units": 10000},
-        {"policy_id": pid, "exit_reason": "stop", "avg_entry_price": 100,
-         "entry_stop": 90, "exit_price": 90, "pnl_pct": -10, "pnl_units": -10000},
-        {"policy_id": pid, "exit_reason": "delist_exit", "avg_entry_price": 100,
-         "entry_stop": 90, "exit_price": 100, "pnl_pct": 0, "pnl_units": 0},
-    ])
-    by = lane_trade_stats(trades, pid)["by_reason"]
-    assert by["exit_rule"]["n"] == 2 and by["exit_rule"]["mean_r"] == pytest.approx(1.05)
-    assert by["stop"]["n"] == 2 and by["other"]["n"] == 1

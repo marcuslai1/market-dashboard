@@ -16,7 +16,6 @@ from components.retrospective import (
     month_label,
     month_label_short,
     month_scoreboard_html,
-    paper_month_stats,
 )
 
 
@@ -183,51 +182,6 @@ def test_banner_text_falls_back_when_absent():
     assert banner_text({"confidence_banner": "  "}) == fallback
 
 
-def _nav():
-    return pd.DataFrame({
-        "policy_id": ["v1_flat10"] * 3,
-        "date": ["2026-05-29", "2026-06-10", "2026-06-30"],
-        "nav_units": [1000000.0, 1010000.0, 1030000.0],
-        "spy_close": [700.0, 707.0, 714.0],
-        "soxx_close": [400.0, 404.0, 410.0],
-    })
-
-
-def test_paper_month_stats_uses_pre_month_baseline():
-    s = paper_month_stats(_nav(), {"policy_id": "v1_flat10"}, "2026-06")
-    assert s["month_name"] == "June"
-    assert round(s["nav_pct"], 1) == 3.0
-    assert round(s["spy_pct"], 1) == 2.0
-    assert round(s["soxx_pct"], 1) == 2.5
-
-
-def test_paper_month_stats_seed_month_baselines_on_first_in_month_row():
-    nav = _nav().iloc[1:]  # no pre-June row: June return measured from 06-10
-    s = paper_month_stats(nav, {"policy_id": "v1_flat10"}, "2026-06")
-    assert round(s["nav_pct"], 1) == 2.0  # 1010000 -> 1030000
-
-
-def test_paper_month_stats_none_when_month_has_no_rows():
-    assert paper_month_stats(_nav(), {"policy_id": "v1_flat10"}, "2026-07") is None
-    assert paper_month_stats(pd.DataFrame(), {}, "2026-06") is None
-
-
-def test_paper_month_stats_none_when_nav_column_unusable():
-    """Benchmarks alone say nothing about following the calls, so a missing NAV
-    read suppresses the whole paper panel rather than showing SPY on its own."""
-    nav = _nav()
-    nav["nav_units"] = float("nan")
-    assert paper_month_stats(nav, {"policy_id": "v1_flat10"}, "2026-06") is None
-
-
-def test_paper_month_stats_keeps_nav_when_a_benchmark_is_missing():
-    nav = _nav()
-    nav["soxx_close"] = float("nan")
-    s = paper_month_stats(nav, {"policy_id": "v1_flat10"}, "2026-06")
-    assert round(s["nav_pct"], 1) == 3.0
-    assert s["soxx_pct"] is None
-
-
 def _row(signal="ACCUMULATE", ticker="AMD"):
     return pd.Series({
         "date": pd.Timestamp("2026-06-05"),
@@ -289,14 +243,11 @@ def test_hit_rate_is_none_when_nothing_resolved():
 
 def test_scoreboard_leads_with_the_percentage_and_shows_its_arithmetic():
     d = build_month_digest(_calls_frame(), "2026-06")
-    out = month_scoreboard_html(d, {"month_name": "June", "nav_pct": 3.0,
-                                    "spy_pct": 2.0, "soxx_pct": 2.5})
+    out = month_scoreboard_html(d)
     assert "50%" in out
     assert "data-empty" not in out                       # a real reading, in brass
     assert "1 of 2 resolved calls went our way" in out   # never a bare percentage
     assert "June 2026 · hit rate" in out                 # which month, what measure
-    assert "+3.0%" in out
-    assert "vs SPY +2.0% / SOXX +2.5%" in out
 
 
 def test_scoreboard_bar_and_counts_carry_the_unresolved_slice():
@@ -304,7 +255,7 @@ def test_scoreboard_bar_and_counts_carry_the_unresolved_slice():
     stop a partial month reading as a complete one."""
     calls = _calls_frame()
     d = build_month_digest(calls, "2026-06")
-    out = month_scoreboard_html(d, None)
+    out = month_scoreboard_html(d)
     assert 'data-seg="worked" style="width:50.0%;"' in out
     assert 'data-seg="failed" style="width:50.0%;"' in out
     assert 'data-seg="open"' not in out            # June has none open
@@ -314,7 +265,7 @@ def test_scoreboard_bar_and_counts_carry_the_unresolved_slice():
 
 def test_scoreboard_pending_only_month_states_it_instead_of_dividing():
     d = build_month_digest(_calls_frame(), "2026-07")
-    out = month_scoreboard_html(d, None)
+    out = month_scoreboard_html(d)
     # No 0%, no ZeroDivisionError, and no bare dash sitting in the figure slot
     # where it reads as a rule. data-empty steps it out of the brass treatment.
     assert '<div class="rb-hit" data-empty="1">No verdict yet</div>' in out
@@ -331,30 +282,13 @@ def test_scoreboard_empty_verdict_names_the_open_count_when_plural():
         "hit_upside_target": [float("nan")] * 2,
         "hit_invalidation": [float("nan")] * 2,
     })
-    out = month_scoreboard_html(build_month_digest(calls, "2026-08"), None)
+    out = month_scoreboard_html(build_month_digest(calls, "2026-08"))
     assert "all 2 calls are still inside their 20-session windows" in out
-
-
-def test_scoreboard_without_nav_rows_says_so_instead_of_showing_zero():
-    d = build_month_digest(_calls_frame(), "2026-06")
-    out = month_scoreboard_html(d, None)
-    assert '<div class="rb-paper-val" data-empty="1">Not measured</div>' in out
-    assert "no paper-book rows this month" in out
-    assert "+0.0%" not in out
-
-
-def test_scoreboard_names_the_missing_benchmark_but_keeps_the_nav_read():
-    d = build_month_digest(_calls_frame(), "2026-06")
-    out = month_scoreboard_html(d, {"month_name": "June", "nav_pct": -0.3,
-                                    "spy_pct": None, "soxx_pct": None})
-    assert "-0.3%" in out
-    assert "no benchmark read this month" in out
 
 
 def test_digest_html_scoreboard_then_groups_empty_groups_omitted():
     d = build_month_digest(_calls_frame(), "2026-06")
-    out = digest_html(d, {"month_name": "June", "nav_pct": 3.0,
-                          "spy_pct": 2.0, "soxx_pct": 2.5})
+    out = digest_html(d)
     assert "50%" in out
     assert out.index("retro-board") < out.index("What worked")   # verdict first
     assert "What didn&#x27;t" in out or "What didn't" in out
@@ -363,7 +297,7 @@ def test_digest_html_scoreboard_then_groups_empty_groups_omitted():
 
 def test_digest_html_pending_month_renders_board_and_pending_group():
     d = build_month_digest(_calls_frame(), "2026-07")
-    out = digest_html(d, None)
+    out = digest_html(d)
     assert "retro-board" in out
     assert "No verdict yet" in out   # R12 F16: head renamed (tombstones share it)
     assert "What worked" not in out
@@ -371,7 +305,7 @@ def test_digest_html_pending_month_renders_board_and_pending_group():
 
 def test_digest_html_month_with_no_calls_omits_the_scoreboard():
     d = build_month_digest(_calls_frame(), "2026-05")
-    out = digest_html(d, None)
+    out = digest_html(d)
     assert "retro-board" not in out          # nothing to score
     assert "No calls this month." in out
 
@@ -397,16 +331,8 @@ def test_page_renders_and_month_picker_switches_months():
             "hit_upside_target": [1.0, 1.0, None],
             "return_20d": [12.0, 12.5, None],
         })
-        nav = pd.DataFrame({
-            "policy_id": ["v1_flat10"] * 3,
-            "date": ["2026-05-30", "2026-06-10", "2026-06-30"],
-            "nav_units": [1000000.0, 1010000.0, 1020000.0],
-            "spy_close": [700.0, 707.0, 714.0],
-            "soxx_close": [400.0, 404.0, 410.0],
-        })
-        report = {"calibration_insights": {"confidence_banner": "Single-regime test banner."},
-                  "paper_portfolio": {"policy_id": "v1_flat10"}}
-        render_retrospective_page(report, log, nav)
+        report = {"calibration_insights": {"confidence_banner": "Single-regime test banner."}}
+        render_retrospective_page(report, log)
 
     at = AppTest.from_function(app, default_timeout=30)
     at.run()
@@ -425,7 +351,7 @@ def test_page_renders_and_month_picker_switches_months():
     assert "hit its target" in body
     assert "100%" in body                           # 1 of 1 resolved call worked
     assert "1 of 1 resolved call went our way" in body
-    assert "+2.0%" in body                          # June paper read, NAV rows present
+    assert "Paper book" not in body                 # panel removed 2026-10-01 (books frozen)
     assert "still in progress" not in body.lower()  # June is closed
 
 
@@ -436,7 +362,7 @@ def test_page_empty_log_renders_honest_empty_state():
         import pandas as pd
 
         from components.retrospective import render_retrospective_page
-        render_retrospective_page({}, pd.DataFrame(), pd.DataFrame())
+        render_retrospective_page({}, pd.DataFrame())
 
     at = AppTest.from_function(app, default_timeout=30)
     at.run()

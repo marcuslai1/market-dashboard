@@ -216,10 +216,9 @@
   position: relative;   /* containing block for the corner marks */
 }
 /* "+" registration marks — a small cross centred on each corner of the border.
-   Selector is bare `.corner` (not `.blueprint > .corner`) so the marks also
-   work inside the paper-book chart card, whose frame is a Streamlit container
-   the marks cannot be direct children of. `.corner` is only ever emitted by
-   card_container and _chart_head_html. */
+   Selector is bare `.corner` (not `.blueprint > .corner`); it was made bare for
+   the paper-book chart card (removed 2026-10-01). `.corner` is emitted by
+   card_container and the Retrospective scoreboard. */
 .corner {
   position: absolute;
   width: 9px;
@@ -1688,8 +1687,8 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--color-text-4); margin-bottom: 8px;
 }
-/* Shared with the Signal Tracker's tiles, paper-book stats and stop-rule lanes
-   (spec 2026-07-25 §3.1): a grid of cells always means "peer measurements,
+/* Shared with the Signal Tracker's tiles (spec 2026-07-25 §3.1; the paper-book
+   stats and lanes that also used it were removed 2026-10-01): a grid of cells always means "peer measurements,
    compare across", so the construction is declared once for all of them. */
 .hair-grid, .fp-grid {
   display: grid; gap: 1px;
@@ -2617,8 +2616,8 @@ details.led-details[open] > summary {
 .cal-scorecard tr[data-lowconf="1"] { opacity: 0.62; }
 .cal-fullcorpus { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
 .cal-taxonomy { color: var(--ink-2); font-size: 12px; line-height: 1.5; margin: 8px 0 4px; }
-/* Not italic: the paper book's single-regime disclaimer is the only italic on
-   the page, which is exactly why it is noticeable. */
+/* Not italic: it was set against the paper book's italic single-regime
+   disclaimer (removed 2026-10-01); kept upright as it was. */
 .cal-caveat { color: var(--color-text-3); font-size: 11.5px; line-height: 1.5; margin: 4px 0 0; }
 .cal-colkey { color: var(--ink-3); font-family: var(--mono); font-size: 11px; line-height: 1.6; margin: 2px 0 6px; }
 .cal-empty { color: var(--ink-3); font-family: var(--mono); font-size: 12px; padding: 6px 0; }
@@ -2685,7 +2684,9 @@ details.led-details[open] > summary {
 /* ── Briefing status banners ──────────────────────────────────────
    One class replaces three near-identical inline-styled <div>s in
    dashboard.py (data-coverage / accumulate-paper-phase / crisis flag).
-   `data-tone` picks the palette; values reproduce the originals 1:1. */
+   `data-tone` picks the palette; values reproduce the originals 1:1.
+   2026-10-01: the accumulate-paper-phase banner's tones (test / ok) were
+   deleted — nothing has emitted them since that banner went in 83d8f6d. */
 .briefing-banner {
   margin-bottom: 14px;
   padding: 10px 16px;
@@ -2701,18 +2702,6 @@ details.led-details[open] > summary {
   background: rgba(239, 68, 68, 0.10);
   border-color: rgba(239, 68, 68, 0.40);
   border-left-color: var(--caution);
-}
-.briefing-banner[data-tone="test"] {
-  padding: 9px 14px;
-  background: rgba(245, 158, 11, 0.08);
-  border-color: #f59e0b55;
-  border-left-color: var(--watch);
-}
-.briefing-banner[data-tone="ok"] {
-  padding: 9px 14px;
-  background: rgba(245, 158, 11, 0.08);
-  border-color: #22c55e55;
-  border-left-color: var(--buy);
 }
 .briefing-banner[data-tone="crisis"] {
   margin-bottom: 16px;
@@ -2804,94 +2793,11 @@ details.led-details[open] > summary {
 }
 .method b { color: var(--color-text); font-weight: 600; opacity: 1; }
 
-/* ── Signal Tracker · Paper-book band (tier 1c — spec 2026-07-05) ── */
-/* A full sentence, not a stat row: the conclusion is the last clause and the
-   only coloured words. */
-.pb-verdict {
-  font-family: var(--font-display); font-size: 20px; line-height: 1.45;
-  color: var(--color-text); margin: 14px 0 12px; max-width: 88ch;
-}
-.pb-verdict .pb-val,
-.pb-verdict .pb-ret { font-weight: 600; font-variant-numeric: tabular-nums; }
-.pb-verdict .pb-clause { font-weight: 600; }
-/* Inputs, not verdicts — all neutral. */
-.pb-stats { margin: 0 0 16px; }
-.pb-stats .stat-tick { padding: 12px 14px 14px; }
-@media (max-width: 900px) {
-  .pb-stats { grid-template-columns: repeat(2, 1fr) !important; }
-}
-/* The only italic on the page — which is exactly why it is noticeable. */
-.pb-banner { font-size: 12px; font-style: italic; color: var(--color-text-3);
-  line-height: 1.5; margin: 10px 0 0; max-width: 96ch; }
-/* Both captions sit below the plot. Terracotta marks a trust limitation, brass
-   a measurement — never a rating in either case. */
-.pb-chartnote { font-size: 12.5px; line-height: 1.5; color: var(--color-text-2);
-  opacity: 0.66; margin: 8px 0 0; max-width: 96ch; }
-.pb-chartnote .lim { color: var(--stress); }
-.pb-chartnote .val { color: var(--brass); font-variant-numeric: tabular-nums; }
-/* The lane grid takes border-top: 0 so it butts directly against its own
-   eyebrow rule — the label and the grid then read as one object. */
-.pb-lane-eyebrow {
-  font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--eyebrow);
-  border-bottom: 1px solid var(--color-divider);
-  padding-bottom: 6px; margin: 18px 0 0;
-}
-.pb-lanes { border-top: 0; }
-.pb-lane { padding: 12px 14px 14px; }
-.pb-lane-label {
-  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--color-text-3);
-}
-.pb-lane-head { color: var(--accent); }
-/* Measurements → brass; the stop-out count is an input → neutral. */
-.pb-lane-ret {
-  font-family: var(--font-display); font-size: 22px; font-weight: 600;
-  color: var(--brass); font-variant-numeric: tabular-nums; margin-top: 6px;
-}
-.pb-lane-stops {
-  display: block; font-size: 11px; color: var(--color-text-3); margin-top: 4px;
-  font-variant-numeric: tabular-nums;
-}
-@media (max-width: 900px) {
-  .pb-lanes { grid-template-columns: repeat(2, 1fr) !important; }
-}
-/* Strategy scorecard (2026-08-27): the metrics the book is judged on. Role
-   rails say which row is the default / challenger / legacy control — the
-   same steel rail the old lane grid used for "headline". Measurements are
-   tabular; since 2026-09-01 the LIVE books' cells (Default + Twins) are toned
-   good / bad against the "?" scales (see _cell_tone in components/paper_book.py);
-   every other row stays neutral (the caption carries the reading). */
-.pb-scorecard { width: 100%; border-collapse: collapse; font-size: 12.5px;
-  margin-top: 0; font-variant-numeric: tabular-nums; }
-.pb-scorecard th { font-family: var(--font-display); font-size: 9.5px;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-3);
-  text-align: right; padding: 8px 10px 6px; border-bottom: 1px solid var(--color-divider);
-  white-space: nowrap; }
-.pb-scorecard th:first-child { text-align: left; }
-/* Group-title row above the column headers (2026-08-29): centred labels, a
-   hairline under each block, no rule under the blank lane cell. */
-.pb-scorecard tr.pb-sc-group th { text-align: center; font-size: 9px;
-  letter-spacing: 0.14em; color: var(--color-text-2); padding: 6px 10px 4px;
-  border-bottom: 1px solid var(--color-divider); }
-.pb-scorecard tr.pb-sc-group th.pb-sc-group-blank { border-bottom: none; }
-.pb-scorecard tr.pb-sc-group th + th { border-left: 1px solid var(--color-divider); }
-.pb-scorecard td { padding: 8px 10px; text-align: right; white-space: nowrap;
-  border-bottom: 1px solid var(--color-divider); color: var(--color-text-1); }
-.pb-scorecard td small { color: var(--color-text-3); font-size: 10.5px; }
-/* Lane cell (2026-09-01): descriptions are now two plain sentences for an
-   outsider, so the column gets room to wrap them at a readable measure
-   instead of squeezing to the 180px floor. */
-.pb-scorecard td.pb-sc-lane { text-align: left; white-space: normal;
-  min-width: 240px; max-width: 360px; }
-.pb-scorecard td.pb-sc-lane b { display: block; font-family: var(--font-display);
-  font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; }
-.pb-scorecard td.pb-sc-lane small { display: block; margin-top: 3px; line-height: 1.4; }
-.pb-scorecard tr.pb-role-default td { background: color-mix(in srgb, var(--brass) 9%, transparent); }
-.pb-scorecard tr.pb-role-default td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--brass); }
-.pb-scorecard tr.pb-role-challenger td.pb-sc-lane { box-shadow: inset 3px 0 0 var(--accent); }
+/* ── Signal Tracker · "?" popovers ── */
 /* Click-to-open "?" popover on <details>: the marker is the summary, the
-   body floats beside it. Works on click, touch and keyboard; no JS. */
+   body floats beside it. Works on click, touch and keyboard; no JS. Still live
+   after the paper-book band's removal (2026-10-01): lib/cards.help_tip emits it
+   for the Signal Tracker's tiles. */
 .pb-tip { display: inline-block; position: relative; margin-left: 5px; vertical-align: 1px; }
 .pb-tip > summary { list-style: none; cursor: pointer; display: inline-block; width: 14px; height: 14px;
   line-height: 13px; border-radius: 50%; border: 1px solid var(--color-divider);
@@ -2906,24 +2812,6 @@ details.led-details[open] > summary {
   text-align: left; white-space: normal; color: var(--color-text-2); }
 .pb-tip-body b { color: var(--color-text-1); font-weight: 600; }
 th .pb-tip-body { right: 0; left: auto; }
-.pb-eyebrow-hint { font-weight: 400; letter-spacing: 0.02em; text-transform: none;
-  color: var(--color-text-3); margin-left: 10px; font-family: var(--font-body, inherit); font-size: 11px; }
-/* Rationale list (collapsed drawer): the choice in ink-1, the reason in ink-2. */
-.pb-rationale { list-style: none; padding: 0; margin: 0; }
-.pb-rationale li { padding: 9px 0; border-bottom: 1px solid var(--color-divider);
-  font-size: 13px; line-height: 1.5; color: var(--color-text-1); }
-.pb-rationale li:last-child { border-bottom: 0; }
-.pb-rationale .pb-why { color: var(--color-text-2); font-size: 12.5px; }
-.pb-scorecard tr.pb-role-bench td { color: var(--color-text-2); border-top: 1px solid var(--color-divider); }
-/* Cell tone (2026-09-01): price-delta green / terracotta on live-book cells only. */
-.pb-tone-good { color: var(--up); }
-.pb-tone-bad { color: var(--stress); }
-/* td-level selectors: `.pb-scorecard td { color }` above outranks a bare class,
-   so the tone must be restated at the same specificity (live check 2026-09-01). */
-.pb-scorecard td.pb-tone-good { color: var(--up); font-weight: 600; }
-.pb-scorecard td.pb-tone-bad { color: var(--stress); font-weight: 600; }
-.pb-trades { list-style: none; padding: 0; margin: 0 0 10px; font-size: 13px; }
-.pb-trades span { color: var(--ink-3); }
 
 /* ── Briefing · Today's Trade card (action card) ────────────────────────────
    Base: prose column + right-aligned price rail. Below 720px the fixed
@@ -3099,14 +2987,15 @@ th .pb-tip-body { right: 0; left: auto; }
   padding-bottom: 6px;
 }
 
-/* §6 Month scoreboard. Three panels in ONE blueprint frame because these are
-   three readings of the same month — the verdict, its composition, and the
-   portfolio consequence. Three separate cards would imply three subjects.
-   Corner marks come from the shared .blueprint > .corner rules. */
+/* §6 Month scoreboard. Two panels in ONE blueprint frame because these are
+   two readings of the same month — the verdict and its composition. Separate
+   cards would imply separate subjects. (The third, paper-book panel was removed
+   2026-10-01 when the paper books were frozen.) Corner marks come from the
+   shared .blueprint > .corner rules. */
 .retro-board {
   position: relative;
   display: grid;
-  grid-template-columns: 190px 1fr 250px;
+  grid-template-columns: 190px 1fr;
   border: 1px solid var(--color-divider);
   background: transparent;
   margin: var(--space-3) 0 var(--space-5);
@@ -3114,7 +3003,6 @@ th .pb-tip-body { right: 0; left: auto; }
 .rb-panel { padding: 22px 28px; }
 /* Hairlines between panels mark a boundary without fragmenting the frame. */
 .rb-comp { border-left: 1px solid var(--color-divider); }
-.rb-paper { border-left: 1px solid var(--color-divider); }
 .rb-eyebrow {
   font-family: var(--mono);
   font-size: 9.5px;
@@ -3139,10 +3027,8 @@ th .pb-tip-body { right: 0; left: auto; }
 /* Nothing to measure yet. Brass at 48px is reserved for readings that exist, and
    a dash in the figure slot reads as a stray rule rather than a missing value —
    so the empty state states itself in words, in the muted ramp, at a size that
-   still holds the panel's top line. Applies to both figures (hit rate, paper
-   return) so an unmeasured month looks the same wherever it shows up. */
-.rb-hit[data-empty="1"],
-.rb-paper-val[data-empty="1"] {
+   still holds the panel's top line. */
+.rb-hit[data-empty="1"] {
   font-size: 19px;
   font-weight: 500;
   letter-spacing: 0;
@@ -3201,24 +3087,6 @@ th .pb-tip-body { right: 0; left: auto; }
   text-transform: uppercase;
   color: var(--color-text-3);
   margin-top: 4px;
-}
-/* The paper book is the cross-check, not the subject: the hit rate says the
-   calls were directionally right, this says whether following them made money.
-   Same brass as the Tracker's paper book — the same quantity wears the same
-   colour on both pages — but 26px to the hit rate's 48px. */
-.rb-paper-val {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--brass);
-}
-.rb-vs {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  color: var(--color-text-3);
-  margin-top: 8px;
 }
 
 /* §7 Verdict groups. 19px over a 1px rule is a deliberate step DOWN from the
@@ -3363,7 +3231,7 @@ th .pb-tip-body { right: 0; left: auto; }
 @media (max-width: 719px) {
   .retro-board { grid-template-columns: 1fr; }
   .rb-panel { padding: 18px 20px; }
-  .rb-comp, .rb-paper {
+  .rb-comp {
     border-left: none;
     border-top: 1px solid var(--color-divider);
   }
@@ -3578,8 +3446,7 @@ th .pb-tip-body { right: 0; left: auto; }
   details.led-details > summary > div:nth-child(8)::before { content: "Worst"; }
 
   /* ── Stacked table (.stack-m) ──
-     Wide ep-tables (paper-book positions/history, compare diffs, episode
-     drill-downs) opt in via class="ep-table stack-m" + data-l="label" on
+     Wide ep-tables (compare diffs, episode drill-downs) opt in via class="ep-table stack-m" + data-l="label" on
      each labeled cell. The <thead> hides; every row becomes a bordered card
      of label-over-value pairs, so nothing hangs past the phone screen.
      Tables that stay deliberately horizontal (eps/cal scorecards) simply
@@ -3657,31 +3524,6 @@ th .pb-tip-body { right: 0; left: auto; }
    on every page. (An earlier scoped block here was dead: it selected
    `details[data-testid="stExpander"]`, but that testid sits on the wrapping
    div, so it matched nothing.) */
-
-/* ── Paper-book chart card ──
-   The chart is a line drawing like everything else on the page: a hairline
-   frame, a header row, and a rule between the header and the plot. The frame is
-   a Streamlit bordered container because that is the only wrapper a Plotly
-   element can sit inside; position:relative makes it the containing block for
-   the injected corner marks. */
-.stApp:has(.tracker-page) [data-testid="stVerticalBlockBorderWrapper"] {
-  position: relative; border: 1px solid var(--color-divider);
-  border-radius: 0; background: transparent;
-}
-.pb-chart-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  flex-wrap: wrap; gap: 10px;
-  border-bottom: 1px solid var(--color-divider); padding-bottom: 8px;
-}
-.pb-legend { display: flex; flex-wrap: wrap; gap: 14px; }
-/* Swatches are real line samples, so the legend and the plot use identical
-   encoding — a colour square would encode nothing about weight or dash. */
-.pb-legend-item {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.06em;
-  text-transform: uppercase; color: var(--color-text-3);
-}
-.pb-swatch { flex: none; }
 
 /* ══════════════════════════════════════════════════════════════════════
    TERMINOLOGY & METHOD — the reference document
@@ -4271,123 +4113,6 @@ a.term-index-item:hover {
   .pm-tiles { grid-template-columns: repeat(2, 1fr); }
   .pm-crow { grid-template-columns: 22px 1fr 58px; }
   .pm-crow .pm-cbar, .pm-crow .pm-cchars, .pm-crow .pm-cnote { display: none; }
-}
-
-
-/* in-sample tag on scorecard lanes (2026-08-28): mono, muted, one line */
-.pb-sc-lane .pb-seeded { display:block; font-family: var(--mono, "JetBrains Mono", monospace);
-  font-size: 0.66rem; letter-spacing: 0.04em; color: var(--ink-4); margin-top: 2px; }
-\n
-
-/* ── Scorecard fit (2026-09-01, owner: "it extends and I have to move right") ──
-   The page measure is 1200px, so twenty columns never fit. Compact view =
-   tiers 1+2 (14 columns) sized to the measure; tier 3 sits behind a
-   CSS-only toggle (<details> + :has()); the lane column is sticky so a
-   scrolled table never loses its row labels; below 1000px only tier 1
-   stays (7 columns) and the group-title rows go (their colspans no longer
-   match). Group titles are rendered twice — compact and full — and the
-   matching one is shown. */
-.pb-sc-wrap { position: relative; }
-.pb-sc-wrap .pb-sc-more { margin: 0 0 6px; }
-.pb-sc-wrap .pb-sc-more summary { list-style: none; cursor: pointer; display: inline-block;
-  font-family: var(--font-display); font-size: 10px; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--color-text-3);
-  border: 1px solid var(--color-divider); border-radius: 3px; padding: 3px 8px; }
-.pb-sc-wrap .pb-sc-more summary::-webkit-details-marker { display: none; }
-.pb-sc-wrap .pb-sc-more summary::before { content: attr(data-more); }
-.pb-sc-wrap .pb-sc-more[open] summary::before { content: attr(data-less); }
-.pb-sc-wrap .pb-sc-more summary:hover { color: var(--color-text-1); border-color: var(--color-text-3); }
-/* tiers */
-.pb-scorecard .pb-t3 { display: none; }
-.pb-scorecard tr.pb-sc-group-full { display: none; }
-.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard .pb-t3 { display: table-cell; }
-.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard tr.pb-sc-group-full { display: table-row; }
-.pb-sc-wrap:has(.pb-sc-more[open]) .pb-scorecard tr.pb-sc-group-compact { display: none; }
-/* fit the compact view to the measure */
-.pb-scorecard { font-size: 12px; }
-.pb-scorecard td { padding: 7px 7px; }
-.pb-scorecard th { padding: 7px 7px 5px; }
-.pb-scorecard td.pb-sc-lane { min-width: 200px; max-width: 260px; }
-/* sticky lane column: an opaque ground so scrolled cells never show through */
-.pb-scorecard th:first-child,
-.pb-scorecard td.pb-sc-lane { position: sticky; left: 0; z-index: 1;
-  background: var(--color-surface); }
-.pb-scorecard tr.pb-role-default td.pb-sc-lane {
-  background: color-mix(in srgb, var(--brass) 9%, var(--color-surface)); }
-.pb-scorecard tr.pb-sc-group th.pb-sc-group-blank { position: sticky; left: 0; z-index: 1;
-  background: var(--color-surface); }
-.pb-sc-wrap .tk-scroll { scrollbar-width: thin; scrollbar-color: var(--color-text-4) transparent; }
-.pb-sc-wrap .tk-scroll::-webkit-scrollbar { height: 8px; }
-.pb-sc-wrap .tk-scroll::-webkit-scrollbar-thumb { background: var(--color-text-4); border-radius: 4px; }
-@media (max-width: 999px) {
-  .pb-scorecard .pb-t2 { display: none; }
-  .pb-scorecard tr.pb-sc-group { display: none !important; }
-  .pb-scorecard td.pb-sc-lane { min-width: 160px; max-width: 200px; }
-}
-
-
-
-/* ── Paper-book doors: colour by role (2026-09-01, owner: "the expandables
-   are monotonous… there should be a way to make them identifiable") ──
-   A row of identical steel doors says nothing until opened. The scorecard
-   and the chart already colour by ROLE — brass for the default, dimmed
-   brass for its twins, the accent for the older v1 books, steel for
-   reference material — so the doors now speak the same language: a 3px
-   rail on the left edge and the role word in the rail colour; the rest of
-   the label is sentence case, not the site-wide uppercase, because these
-   labels carry nouns and counts a reader actually scans. Never a filled
-   panel (a door is chrome, not an object).
-   Mechanics: st.expander takes no class, so a hidden <span class="pb-door
-   pb-door-<kind>"> precedes each one and the stylesheet targets the NEXT
-   wrapper with :has() + the adjacent-sibling combinator (the top-nav trick).
-   Both wrapper testids are matched (stLayoutWrapper on Streamlit ≥1.50,
-   stElementContainer earlier). */
-[data-testid="stElementContainer"]:has([data-testid="stMarkdownContainer"] .pb-door) {
-  display: none !important;
-}
-.pb-door-kicker { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--color-text-4); margin: 18px 0 2px !important; }
-
-/* label typography for every marked door */
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p,
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p {
-  text-transform: none !important; letter-spacing: 0.02em !important;
-  font-size: 12px !important; font-weight: 500 !important;
-  color: var(--color-text-2) !important;
-}
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
-  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 10.5px;
-  margin-right: 2px;
-}
-/* the rail + the role colour */
-[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
-[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
-  border-left: 3px solid var(--brass) !important; }
-[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
-[data-testid="stElementContainer"]:has(.pb-door-default) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
-  color: var(--brass); }
-[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
-[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
-  border-left: 3px solid color-mix(in srgb, var(--brass) 55%, var(--color-text-4)) !important; }
-[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
-[data-testid="stElementContainer"]:has(.pb-door-twin) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
-  color: color-mix(in srgb, var(--brass) 70%, var(--color-text-3)); }
-[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"],
-[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stElementContainer"] > [data-testid="stExpander"] {
-  border-left: 3px solid var(--accent) !important; }
-[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
-[data-testid="stElementContainer"]:has(.pb-door-v1) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
-  color: var(--accent); }
-/* reference doors: no rail, steel role word — the absence IS the signal */
-[data-testid="stElementContainer"]:has(.pb-door-ref) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] summary p strong,
-[data-testid="stElementContainer"]:has(.pb-door-ref) + [data-testid="stElementContainer"] > [data-testid="stExpander"] summary p strong {
-  color: var(--eyebrow); }
-/* open door: the summary takes the surface tint so the room you are in is
-   visible while a long table scrolls; the rail already runs its full height */
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stLayoutWrapper"] > [data-testid="stExpander"] details[open] > summary,
-[data-testid="stElementContainer"]:has(.pb-door) + [data-testid="stElementContainer"] > [data-testid="stExpander"] details[open] > summary {
-  background: var(--color-surface-2) !important;
 }
 
 /* ── Market Read card (EXPERIMENTAL) ───────────────────────────────────────

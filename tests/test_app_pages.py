@@ -131,7 +131,7 @@ def test_terminology_defines_decay_half_life_and_shrinkage():
 
 def test_terminology_index_and_sections_cannot_drift():
     """One array drives the rail and the body — the rule that keeps a
-    twelve-section reference page honest as sections are added."""
+    eleven-section reference page honest as sections are added."""
     from components.terminology import SECTIONS, page_html
 
     ids = [s["id"] for s in SECTIONS]
@@ -184,7 +184,7 @@ def test_terminology_search_removes_non_matching_sections():
     page = " ".join(str(m.value) for m in at.markdown)
     assert 'id="valuation"' in page, "the matching section was dropped"
     assert 'id="rr"' not in page, "a non-matching section still rendered"
-    assert "1 of 12 sections matches" in page
+    assert "1 of 11 sections matches" in page
     # The rail still lists everything: it is how a reader learns what exists —
     # incl. the dated model-off notice once a data-only report exists (2026-09-28).
     from components.terminology import sections_for
@@ -199,7 +199,7 @@ def test_terminology_no_match_says_so():
     assert not at.exception, f"no-match: {[e.value for e in at.exception]}"
     page = " ".join(str(m.value) for m in at.markdown)
     assert "No section matches that term" in page
-    assert "0 of 12 sections match" in page
+    assert "0 of 11 sections match" in page
 
 
 def test_briefing_is_pulse_briefing_and_market_read_only():

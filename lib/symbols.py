@@ -1,6 +1,6 @@
 """Report-key ↔ provider-symbol mapping, shared by every frame that joins them.
 
-Report JSONs and ``signal_log.csv`` / ``paper_*.csv`` use sanitized keys
+Report JSONs and ``signal_log.csv`` use sanitized keys
 (``000660_KS``); ``market_data.csv`` carries the provider's dotted symbols
 (``000660.KS``). The Tracker always converted; the price loader's retired-
 ticker filter compared sanitized keys to dotted symbols and so only dropped

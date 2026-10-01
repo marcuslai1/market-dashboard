@@ -22,7 +22,7 @@ import pytest
 
 from tests.visual.harness import SETTLE_TIMEOUT_MS
 
-EXPECTED_SECTIONS = 12
+EXPECTED_SECTIONS = 11
 
 
 def _settle(page, url: str) -> None:

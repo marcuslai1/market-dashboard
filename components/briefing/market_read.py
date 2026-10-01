@@ -24,7 +24,7 @@ Three deliberate constraints, all owner decisions on 2026-09-09:
    than no card at all. ``read_state`` derives live / in-play / matured from the
    stamped target closes, and the header says which.
 
-The card is inert: nothing here feeds a signal, a bucket, or the paper book.
+The card is inert: nothing here feeds a signal or a bucket.
 """
 from __future__ import annotations
 
@@ -317,8 +317,8 @@ def market_read_card_html(payload: dict, now: _dt.datetime | None = None) -> str
             f'Experimental — session {sessions} of {target}, <b>not yet scored</b>. '
             'Every read is graded against its benchmark close in a separate log; the '
             f'record is reviewed at {target} sessions and the adviser is retired if it '
-            'has not beaten a naive always-up call. Nothing here feeds a signal, a '
-            'bucket or the paper book.'
+            'has not beaten a naive always-up call. Nothing here feeds a signal or a '
+            'bucket.'
             '</div>'
         )
 

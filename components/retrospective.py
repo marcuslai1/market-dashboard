@@ -19,7 +19,6 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.paper_book import select_policy
 from lib.calls import first_of_run
 from lib.cards import render_section_head
 from lib.formatters import _escape_dollars, _price_str, currency_for_key, display_ticker
@@ -160,40 +159,6 @@ def banner_text(calibration_insights: dict | None) -> str:
     return banner or _FALLBACK_BANNER
 
 
-def paper_month_stats(nav_df: pd.DataFrame, block: dict, month: str) -> dict | None:
-    """Paper-book month move as numbers, or None when the month has no NAV read.
-
-    ``{"month_name": "June", "nav_pct": 3.0, "spy_pct": 2.0, "soxx_pct": 2.5}``
-    — a benchmark key is None when its column has no usable pair.
-
-    Baseline = last NAV at-or-before month start (the seed month, with no prior
-    row, measures from its first in-month observation). Uses the same
-    ``select_policy`` rule as the Paper Book band so both surfaces always
-    describe the same headline lane.
-    """
-    rows = select_policy(nav_df if nav_df is not None else pd.DataFrame(), block or {})
-    if rows.empty:
-        return None
-    rows = rows.assign(_d=pd.to_datetime(rows["date"], errors="coerce")).dropna(subset=["_d"])
-    keys = rows["_d"].dt.strftime("%Y-%m")
-    in_month = rows[keys == month]
-    if in_month.empty:
-        return None
-    before = rows[keys < month]
-    base = before.iloc[-1] if not before.empty else in_month.iloc[0]
-    end = in_month.iloc[-1]
-
-    out: dict = {"month_name": pd.Timestamp(f"{month}-01").strftime("%B")}
-    for col, key in [("nav_units", "nav_pct"), ("spy_close", "spy_pct"),
-                     ("soxx_close", "soxx_pct")]:
-        b = pd.to_numeric(base.get(col), errors="coerce")
-        e = pd.to_numeric(end.get(col), errors="coerce")
-        out[key] = None if (pd.isna(b) or pd.isna(e) or b == 0) else (e - b) / b * 100
-    # No NAV read means no paper read at all: the benchmarks alone say nothing
-    # about whether following the calls made money.
-    return None if out["nav_pct"] is None else out
-
-
 _ICONS = {"worked": "✓", "failed": "✗", "pending": "⏳"}
 _GROUP_HEADS = [("worked", "What worked"), ("failed", "What didn't"),
                 ("pending", "No verdict yet")]
@@ -208,15 +173,16 @@ def _price(v, ccy: str = "USD") -> str:
     return _price_str(float(v), ccy)
 
 
-def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
-    """The month's verdict, its composition, and the paper-book consequence.
+def month_scoreboard_html(digest: dict) -> str:
+    """The month's verdict and its composition.
 
-    Three panels in one blueprint frame: three readings of the same month, not
-    three subjects. The hit rate is the loudest element because a percentage is
+    Two panels in one blueprint frame: two readings of the same month, not
+    two subjects. The hit rate is the loudest element because a percentage is
     the answer to the question the page asks. The bar beside it carries the
     unresolved slice the hit rate structurally cannot show — together they are
-    honest in a way either alone isn't. The paper return is the cross-check that
-    stops either number being taken for the whole story.
+    honest in a way either alone isn't. (A third, paper-book panel was removed
+    2026-10-01 when the paper books were frozen — MarketReport
+    PIPELINE_FEATURES §116.)
     """
     n_calls = digest["n_calls"]
     n_res = digest["n_resolved"]
@@ -265,19 +231,6 @@ def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
         for v, lbl in ((n_calls, "New calls"), (n_res, "Resolved"), (n_open, "Still open"))
     )
 
-    if stats:
-        paper_val, paper_empty = f"{stats['nav_pct']:+.1f}%", ""
-        bench = " / ".join(
-            f"{lbl} {stats[k]:+.1f}%"
-            for k, lbl in (("spy_pct", "SPY"), ("soxx_pct", "SOXX"))
-            if stats.get(k) is not None
-        )
-        paper_sub = f"vs {bench}" if bench else "no benchmark read this month"
-    else:
-        # Same treatment as an unresolved hit rate: say it, don't draw a dash.
-        paper_val, paper_empty = "Not measured", ' data-empty="1"'
-        paper_sub = "no paper-book rows this month"
-
     return (
         '<div class="retro-board blueprint">'
         '<i class="corner tl"></i><i class="corner tr"></i>'
@@ -291,11 +244,6 @@ def month_scoreboard_html(digest: dict, stats: dict | None) -> str:
         '<div class="rb-eyebrow">Composition</div>'
         f'{bar}'
         f'<div class="rb-counts">{counts}</div>'
-        '</div>'
-        '<div class="rb-panel rb-paper">'
-        '<div class="rb-eyebrow">Paper book</div>'
-        f'<div class="rb-paper-val"{paper_empty}>{paper_val}</div>'
-        f'<div class="rb-vs">{_escape_dollars(paper_sub)}</div>'
         '</div>'
         '</div>'
     )
@@ -337,15 +285,14 @@ def call_item_html(row, bucket: str, outcome: str, ccy: str | None = None) -> st
     )
 
 
-def digest_html(digest: dict, stats: dict | None,
-                currencies: dict | None = None) -> str:
+def digest_html(digest: dict, currencies: dict | None = None) -> str:
     """Scoreboard + the three verdict groups for one month.
 
     Empty groups are omitted: a month with nothing pending should not render an
     empty "No verdict yet" head. ``currencies`` maps ticker key → native
     currency for the price levels (USD when absent).
     """
-    board = month_scoreboard_html(digest, stats) if digest["n_calls"] else ""
+    board = month_scoreboard_html(digest) if digest["n_calls"] else ""
     groups = ""
     ccy = currencies or {}
     for key, title in _GROUP_HEADS:
@@ -383,8 +330,7 @@ _FOOTER_RULES = ("Signal pills keep the rating · rails state the outcome",
                  "Verdicts frozen to each call's own window")
 
 
-def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame,
-                              nav_df: pd.DataFrame) -> None:
+def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame) -> None:
     """Retrospective page — monthly narrative digest of calls vs outcomes.
 
     Deliberately NOT clipped by the sidebar date filter: the month picker is
@@ -435,10 +381,9 @@ def render_retrospective_page(latest_report: dict, log_df: pd.DataFrame,
             )
 
     digest = build_month_digest(calls, sel)
-    stats = paper_month_stats(nav_df, (latest_report or {}).get("paper_portfolio") or {}, sel)
     _wl = (latest_report or {}).get("watchlist") or {}
     currencies = {str(tk): currency_for_key(str(tk), _wl) for tk in calls["ticker"].unique()}
-    st.markdown(digest_html(digest, stats, currencies), unsafe_allow_html=True)
+    st.markdown(digest_html(digest, currencies), unsafe_allow_html=True)
 
     st.markdown(f'<p class="retro-method">{_METHOD_NOTE}</p>', unsafe_allow_html=True)
     st.markdown(

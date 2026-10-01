@@ -190,24 +190,6 @@ def load_sqlite_prices() -> pd.DataFrame:
 
 
 @st.cache_data(max_entries=4)
-def _load_paper_nav_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    return _safe_read_csv(Path(path_str))
-
-
-def load_paper_nav() -> pd.DataFrame:
-    """Daily paper-portfolio NAV series (``data/paper_nav.csv``), or empty.
-
-    Exported by the pipeline from its ``paper_portfolio_nav`` table (spec
-    2026-07-05-paper-book-band-design): ``policy_id, date, nav_units,
-    cash_units, n_positions, spy_close, soxx_close``. Raw frame — date
-    parsing and policy selection live in the band's reducers. Missing file
-    (every checkout until the pipeline first exports it) → empty frame.
-    """
-    path = DATA_DIR / "paper_nav.csv"
-    return _load_paper_nav_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
 def _load_earnings_history_cached(path_str: str, mtime: float) -> pd.DataFrame:
     return _safe_read_csv(Path(path_str))
 
@@ -253,44 +235,6 @@ def load_earnings_map() -> dict:
 
 
 @st.cache_data(max_entries=4)
-def _load_paper_trades_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    return _safe_read_csv(Path(path_str))
-
-
-def load_paper_trades() -> pd.DataFrame:
-    """Completed paper-book round-trips (``data/paper_trades.csv``), or empty.
-
-    Exported by the pipeline (spec 2026-07-17-paper-trade-history-design):
-    ``policy_id, ticker, entry_date, avg_entry_price, tranches, exit_date,
-    exit_price, exit_reason, pnl_pct, pnl_units``, one row per closed
-    position. Raw frame — date parsing, policy selection, and the
-    units→dollars transform live in the band's reducers. Missing file (every
-    checkout until the pipeline first exports it) → empty frame.
-    """
-    path = DATA_DIR / "paper_trades.csv"
-    return _load_paper_trades_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
-def _load_paper_positions_cached(path_str: str, mtime: float) -> pd.DataFrame:
-    return _safe_read_csv(Path(path_str))
-
-
-def load_paper_positions() -> pd.DataFrame:
-    """Open paper-book positions across every lane
-    (``data/paper_positions.csv``), or empty.
-
-    Exported by the pipeline (spec 2026-07-17-paper-trade-history-design,
-    addendum 2): ``policy_id, ticker, entry_date, avg_entry_price, tranches,
-    qty, invested_units, last_close, fx_rate, stop_price, max_dd_pct``, one
-    row per open position. Raw frame — the pot scaling lives in the band's
-    reducers. Missing file → empty frame.
-    """
-    path = DATA_DIR / "paper_positions.csv"
-    return _load_paper_positions_cached(str(path), _mtime(path))
-
-
-@st.cache_data(max_entries=4)
 def _load_signal_log_cached(path_str: str, mtime: float) -> pd.DataFrame:
     df = _safe_read_csv(Path(path_str))
     if df.empty or "date" not in df.columns:
@@ -308,7 +252,7 @@ def _load_signal_log_cached(path_str: str, mtime: float) -> pd.DataFrame:
 
 
 def load_signal_log() -> pd.DataFrame:
-    """Load signal_evaluation_log export (paper-trade outcomes)."""
+    """Load signal_evaluation_log export (the pipeline's call ledger: signals and their matured outcomes)."""
     path = DATA_DIR / "signal_log.csv"
     return _load_signal_log_cached(str(path), _mtime(path))
 

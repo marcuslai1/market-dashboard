@@ -37,7 +37,6 @@ from lib.data_loader import (
     load_briefings,
     load_earnings_map,
     load_market_reads,
-    load_paper_nav,
     load_report,
     load_signal_log,
     load_sqlite_prices,
@@ -306,7 +305,7 @@ def _page_retrospective() -> None:
     # control and the archive should always be complete.
     _dates = list_report_dates()
     _latest = load_report(_dates[-1]) if _dates else {}
-    render_retrospective_page(_latest, load_signal_log(), load_paper_nav())
+    render_retrospective_page(_latest, load_signal_log())
 
 
 def _page_terminology() -> None:

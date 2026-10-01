@@ -2,11 +2,26 @@
 
 Currently exposes ``render_section_head`` — the eyebrow + headline header
 used by almost every editorial section. Other card primitives
-(``card_container``, density helpers) land here during Part 2.
+(``card_container``, density helpers) land here during Part 2. ``help_tip``
+(the click-to-open "?" popover) moved here from ``components/paper_book.py``
+when the paper books were frozen and that module removed (2026-10-01).
 """
 from __future__ import annotations
 
 import streamlit as st
+
+from lib.formatters import _escape_dollars
+
+
+def help_tip(text: str, label: str = "What this means") -> str:
+    """A click-to-open "?" popover. Built on <details>, which Streamlit's
+    sanitiser keeps (the watchlist drawers use it), so it opens on click and
+    on keyboard, and needs no JavaScript. A title attribute alone only shows
+    after a long hover and never on click/touch (owner report 2026-08-27).
+    Styled by the ``.pb-tip`` rules in ``assets/theme.css``."""
+    body = _escape_dollars(text)
+    return (f'<details class="pb-tip"><summary aria-label="{label}">?</summary>'
+            f'<div class="pb-tip-body">{body}</div></details>')
 
 
 def _section_head_html(title: str, sub: str = "", masthead: bool = False) -> str:

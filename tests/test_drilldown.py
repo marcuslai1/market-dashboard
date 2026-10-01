@@ -433,26 +433,6 @@ def test_rsi_without_a_zone_has_no_trailing_space():
     assert ">53</span>" in html
 
 
-# The paper book's stop when it differs from the invalidation (pipeline
-# `book_stop`, 2026-09-21) rides the invalidation cell's sub-line as text.
-
-def test_invalidation_sub_names_the_paper_book_stop_when_it_differs():
-    d = dict(_MU, book_stop={"level": 900.0, "pct_below": 10.6,
-                             "source": "structural_support", "policy_id": "v2_starter_b15_tb_fees",
-                             "differs_from_invalidation": True})
-    html = render_drilldown_detail_html("MU", d)
-    assert "paper book stops" in html and "900.00" in html and "−10.6%" in html
-    assert html.count("dd-lv-val") == 4          # no fifth cell, no new colour
-
-
-def test_invalidation_sub_silent_when_book_stop_equals_or_is_absent():
-    same = dict(_MU, book_stop={"level": 952.2, "pct_below": 5.0, "source": "invalidation",
-                                "policy_id": "v2_starter_b15_tb_fees",
-                                "differs_from_invalidation": False})
-    assert "paper book stops" not in render_drilldown_detail_html("MU", same)
-    assert "paper book stops" not in render_drilldown_detail_html("MU", _MU)
-
-
 # ── ACCUMULATE-gates summary line: model era vs data-only (2026-10-01) ──
 # MarketReport went data-only on 2026-09-28 (meta.llm_enabled False): nothing
 # assigns ACCUMULATE any more, so a full gate pass no longer leads to a judgment
