@@ -29,7 +29,7 @@ from __future__ import annotations
 import datetime as _dt
 import re
 
-from components.briefing.market_read import _txt
+from components.briefing.sections import _txt
 from components.earnings_chart import (
     block_html,
     eps_chart_html,

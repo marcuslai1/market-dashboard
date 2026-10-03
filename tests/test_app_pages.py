@@ -236,15 +236,17 @@ def test_era_line_states_both_dates_and_makes_no_claim():
         assert "not a finding about the labels" in line
 
 
-def test_briefing_is_pulse_briefing_and_market_read_only():
-    """Since 2026-09-29 the Briefing tab is the pulse strip, the daily briefing
-    card and the market read. The signal blocks and the cards the report LLM
-    used to write (off since 09-28) were removed — pin that they stay gone."""
+def test_briefing_is_pulse_and_briefing_only():
+    """Since 2026-09-29 the Briefing tab is the pulse strip and the daily briefing
+    card. The signal blocks and the cards the report LLM used to write (off since
+    09-28) were removed, and the market-read card went 2026-10-03 when MarketReport
+    retired that skill — pin that they stay gone."""
     at = _boot()
     assert not at.exception
     page = " ".join(str(m.value) for m in at.markdown)
     for gone in ("IF YOU ONLY DO ONE THING TODAY", "ACTIVE RISKS", "Catalysts that move signals",
-                 "where each group stands", "the cycle cross-check", "THE MACRO NOTE"):
+                 "where each group stands", "the cycle cross-check", "THE MACRO NOTE",
+                 "MARKET READ", "not yet scored"):
         assert gone not in page, gone
     assert "DAILY BRIEFING" in page
 

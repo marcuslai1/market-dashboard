@@ -10,9 +10,10 @@ Constraints, all upstream decisions:
 
 1. **Information, not advice.** The briefing makes no directional call and names no
    signal label; the publish step refuses both. The card adds nothing on top.
-2. **Structural colour only.** It reuses the market-read card's section primitives
-   (``.mr-`` classes), whose CSS carries no verdict hue — a fact card must not look
-   like a call.
+2. **Structural colour only.** It uses the shared section primitives in
+   ``components/briefing/sections.py`` (``.mr-`` classes, named for the market-read card
+   they came from, removed 2026-10-03), whose CSS carries no verdict hue — a fact card
+   must not look like a call.
 3. **Staleness is stated.** When the newest briefing is for an older data date than
    the report on screen, the header says so instead of letting presence imply
    currency.
@@ -22,7 +23,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 
 from components.briefing.daily_briefing_v2 import briefing_v2_html
-from components.briefing.market_read import _bullets, _drawer, _section, _source_links, _txt
+from components.briefing.sections import _bullets, _drawer, _section, _source_links, _txt
 from lib.cards import card_container
 from lib.formatters import _escape_attr, _escape_dollars
 

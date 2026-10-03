@@ -1811,14 +1811,16 @@ a.term-index-item:hover {
   .term-index { position: static; }
 }
 
-/* ── Market Read card (EXPERIMENTAL) ───────────────────────────────────────
+/* ── Section primitives (.mr-; from the retired Market Read card) ───────────────────────────────────
    Colour here is STRUCTURAL ONLY (owner decisions 2026-09-09 + 2026-09-14).
    Each section carries an accent from the non-verdict metric palette (indigo /
    gold / teal / violet / moss) so the card reads as sections, but no hue ever
    attaches to a call: the lean and guidance chips stay neutral ink and
    direction is an arrow glyph. Green/red here would claim proven good/bad and
-   this adviser has passed no measurement bar — see the module docstring in
-   components/briefing/market_read.py. tests/test_market_read_card.py pins the
+   this adviser has passed no measurement bar. The card was removed 2026-10-03
+   (MarketReport retired /market-read); the daily briefing card renders through
+   these classes via components/briefing/sections.py, its card-only rules (lean
+   rows, badge, lede) went with it, and tests/test_briefing_sections.py pins the
    verdict tokens out of every .mr- rule. */
 .mr-head {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
@@ -1843,10 +1845,6 @@ a.term-index-item:hover {
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
   color: var(--ink-3);
 }
-.mr-blurb {
-  font-size: 13px; color: var(--ink-3); line-height: 1.6;
-  margin: 0 0 14px 0; max-width: 68ch;
-}
 
 /* Section sub-panel: a hue rail on the left, a faint wash, a hued label. */
 .mr-sec {
@@ -1869,16 +1867,6 @@ a.term-index-item:hover {
 /* The two plain-language commitments read largest: the bottom line and the call. */
 .mr-sec[data-sec="bottom"],
 .mr-sec[data-sec="call"] { background: color-mix(in srgb, var(--mr-hue) 9%, transparent); }
-.mr-lede {
-  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
-  color: var(--ink); margin-top: 6px; max-width: 78ch;
-}
-.mr-inline-lab {
-  display: inline-block; margin-right: 8px;
-  font-family: var(--mono); font-size: 9.5px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.12em; color: var(--mr-hue);
-}
-.mr-sec > .mr-inline-lab { display: block; margin-top: 10px; }
 .mr-sec-lab {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -1888,36 +1876,6 @@ a.term-index-item:hover {
 .mr-list { margin: 6px 0 0 0; padding-left: 18px; }
 .mr-list li { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 4px; }
 .mr-list li::marker { color: var(--mr-hue); }
-
-/* Confidence word as a badge in the section's own (gold) hue. */
-.mr-badge {
-  font-size: 10px; letter-spacing: 0.14em; padding: 2px 8px;
-  color: var(--ink); border: 1px solid color-mix(in srgb, var(--mr-hue) 60%, transparent);
-  border-radius: var(--radius-pill);
-}
-
-/* Cluster | lean | guidance | why — the three short columns align down the
-   card so the reader can scan leans without reading prose, and the why column
-   wraps freely beside them. Chips are NEUTRAL: no hue on a call. */
-.mr-row {
-  display: grid; grid-template-columns: 112px 118px 82px 1fr;
-  gap: 12px; align-items: baseline;
-  padding: 10px 0; border-bottom: 1px solid var(--rule);
-}
-.mr-row:last-child { border-bottom: 0; padding-bottom: 2px; }
-.mr-cl {
-  font-family: var(--font-display); font-size: 14px; font-weight: 600;
-  color: var(--ink);
-}
-.mr-lean, .mr-guide {
-  justify-self: start; white-space: nowrap;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
-  text-transform: lowercase; padding: 2px 8px; border-radius: var(--radius-pill);
-}
-.mr-lean  { color: var(--ink); background: var(--paper-3); border: 1px solid var(--rule-strong); }
-.mr-guide { color: var(--ink-3); border: 1px solid var(--rule); }
-.mr-arrow { font-style: normal; margin-right: 5px; color: var(--ink-2); }
-.mr-why { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
 
 /* Drawers (sources, grading notes) — collapsed by default, .tm-details idiom. */
 .mr-drawer > summary { cursor: pointer; list-style: none; }
@@ -1942,11 +1900,6 @@ a.term-index-item:hover {
   color: var(--ink-4); line-height: 1.65; max-width: 78ch;
 }
 .mr-foot b { color: var(--ink-3); }
-@media (max-width: 760px) {
-  .mr-row { grid-template-columns: auto auto 1fr; row-gap: 6px; }
-  .mr-cl  { grid-column: 1 / -1; }
-  .mr-why { grid-column: 1 / -1; }
-}
 
 /* ── Daily briefing card, record v2 (.bf-) ─────────────────────────────────
    MarketReport spec docs/superpowers/specs/2026-09-28-briefing-card-v2.md;

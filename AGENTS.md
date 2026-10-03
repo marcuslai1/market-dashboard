@@ -59,9 +59,10 @@ fuller project instructions.
   `date`, `ticker`, `last_price`, `sma_50`, `sma_200`; its `signal` column,
   never read, is dropped from the 2026-10-02 run) and `earnings_history.csv` —
   then `git add data/ && git commit && git push origin main`. A skipped slot (US
-  holiday) writes nothing that day. `briefings.json` and `market_reads.json`
-  are written by separate owner-run scripts (`scripts/briefing.py publish`,
-  `scripts/market_read.py publish`); `revenue_estimates.json` is
+  holiday) writes nothing that day. `briefings.json` is written by a
+  separate owner-run script (`scripts/briefing.py publish`; `market_reads.json`
+  and its card went 2026-10-03 when MarketReport retired `/market-read`);
+  `revenue_estimates.json` is
   hand-curated. Exports and files that went: `report_memory.json` (export
   stopped 2026-09-28), `claude_analysis.csv` / `pipeline_stats.csv` (exports
   removed 2026-09-30 / 10-01), the paper CSVs (2026-10-01), `signal_log.csv`

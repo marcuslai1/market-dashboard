@@ -27,7 +27,6 @@ import streamlit as st
 # briefing card's Week ahead + Upcoming events.
 from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html, briefing_history_html
-from components.briefing.market_read import market_read_card_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
 from lib.cards import data_health_banners_html, render_section_head
@@ -35,7 +34,6 @@ from lib.data_loader import (
     list_report_dates,
     load_briefings,
     load_earnings_map,
-    load_market_reads,
     load_report,
     load_text_asset,
 )
@@ -132,15 +130,6 @@ def _page_briefing() -> None:
             _history = briefing_history_html(load_briefings())
             if _history:
                 st.markdown(_history, unsafe_allow_html=True)
-
-        # Experimental market-read card. Sits BELOW the proven briefing blocks
-        # (owner decision 2026-09-09): it is a 4-session adviser and must not
-        # front-run instruments that have passed a measurement bar. Renders
-        # nothing until a read has been published, and carries no score — see
-        # components/briefing/market_read.py for why.
-        _mr = market_read_card_html(load_market_reads())
-        if _mr:
-            st.markdown(_mr, unsafe_allow_html=True)
 
         st.markdown(
             '<div style="margin-top:28px;padding:14px 16px;border-top:1px solid var(--rule);'
