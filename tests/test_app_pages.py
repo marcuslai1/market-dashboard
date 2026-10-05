@@ -52,12 +52,15 @@ def test_nav_is_exactly_the_three_pages():
     assert list(at.radio(key="page_nav").options) == PAGES
 
 
-def test_sidebar_counts_tickers_from_the_watchlist_and_shows_no_signals():
-    at = _boot()
-    side = " ".join(str(m.value) for m in at.sidebar.markdown)
-    assert re.search(r'Tickers</span><span class="status-value">\d+<', side)
-    assert "Signals" not in side and "●" not in side
-    assert not at.sidebar.date_input           # the Tracker-only range filter is gone
+def test_there_is_no_sidebar():
+    """The sidebar went 2026-10-06 (status block, density, live-prices toggle, refresh):
+    nothing may write to it, or Streamlit brings back an empty panel and its chip."""
+    for page in PAGES:
+        at = _boot()
+        if page != "Briefing":
+            at.radio(key="page_nav").set_value(page).run()
+        assert not at.exception, page
+        assert len(at.sidebar.children) == 0, (page, at.sidebar.children)
 
 
 def test_masthead_kicker_drops_signal_intelligence():
@@ -314,3 +317,14 @@ def test_terminology_defines_the_2026_10_01_surfaces():
     assert "Coverage degraded" in by_id["data-health"]
     assert "No news this run" in by_id["data-health"]
     assert "median" in by_id["order"] and "vs cluster" in by_id["order"]
+
+
+def test_terminology_defines_the_company_profile():
+    """The drill-down's Company profile drawer (2026-10-06) has a definition, incl. its two
+    customer tags and what "checked" means."""
+    from components.terminology import SECTIONS
+
+    by_id = {s["id"]: s["answer"] + s["body"] for s in SECTIONS}
+    text = by_id["profile"]
+    for term in ("Disclosed", "Reported", "Checked", "Not disclosed", "12 months", "every report date"):
+        assert term in text, term

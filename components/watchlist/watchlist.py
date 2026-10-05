@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from components.watchlist.company_profile import profiles_by_key
 from components.watchlist.grid import (
     build_grid_html,
     footer_html,
@@ -20,7 +21,7 @@ from components.watchlist.grid import (
     ordered_groups,
 )
 from components.watchlist.row import render_ticker_details_html
-from lib.data_loader import load_earnings_map, load_price_history
+from lib.data_loader import load_company_profiles, load_earnings_map, load_price_history
 
 
 def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
@@ -46,6 +47,9 @@ def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
     # Daily price + 50/200-day averages per name (market_data.csv) → the
     # drill-down's price chart; missing file → the chart stays silent.
     price_map = load_price_history()
+    # Facts-only company cards (MarketReport company_profiles.json) → the
+    # drill-down's Company profile drawer; missing file → no drawer.
+    profile_map = profiles_by_key(load_company_profiles())
 
     # ONE st.markdown for the whole table: a div opened in one st.markdown and
     # closed in another does not wrap sibling Streamlit blocks (the browser
@@ -53,7 +57,7 @@ def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
     # fixed-column grid can swipe horizontally on phones.
     st.markdown(
         build_grid_html(groups, eh_map, render_ticker_details_html, report_date=report_date,
-                        price_map=price_map),
+                        price_map=price_map, profile_map=profile_map),
         unsafe_allow_html=True,
     )
     st.markdown(method_note_html(), unsafe_allow_html=True)

@@ -190,8 +190,8 @@ SECTIONS = [
         ], label_w="150px"),
         "drawers": [
             ("Why the last point can differ from the price in the row",
-             "<p>The chart is drawn from the reports' own prices. On the latest report, with "
-             "live prices on, the row and the drill-down header show the live quote, while "
+             "<p>The chart is drawn from the reports' own prices. On the latest report the "
+             "row and the drill-down header show the live quote when Yahoo returns one, while "
              "the chart's last point stays at the report's price.</p>"),
         ],
         "history": [],
@@ -223,7 +223,7 @@ SECTIONS = [
                  "The simple average of the last 50 or 200 daily closes."),
                 ("Last",
                  "The last price — the report's, or the live quote on the latest report when "
-                 "live prices are on."),
+                 "Yahoo returns one."),
             ], label_w="150px")
         ),
         "drawers": [
@@ -339,6 +339,56 @@ SECTIONS = [
              "59 analysts”). A third-party figure, quoted with its source; this site makes no "
              "rating of its own."),
         ], label_w="150px"),
+        "drawers": [],
+        "history": [],
+    },
+    # 5b ────────────────────────────────────────────────────────────────────
+    {
+        "id": "profile",
+        "title": "Company Profile",
+        "descriptor": "What the company does, from its own filings",
+        "kw": ("company profile business what they do revenue mix segment segments region "
+               "geography customers customer competitors competition changes acquisition "
+               "sources disclosed reported checked filing annual report"),
+        "answer": (
+            "A short card in each drill-down: what the company does, how its revenue splits, "
+            "who buys from it, who it competes with and what has changed in its business in "
+            "the last year, each fact linked to its source. Facts only: no opinion, no outlook."
+        ),
+        "body": (
+            _grid([
+                ("Revenue mix",
+                 "Each segment's share of revenue in the latest full fiscal year the annual "
+                 "report covers, as the company reports its segments; the heading names the "
+                 "period. A bank's revenue is its total income."),
+                ("By region",
+                 "The same year by region, on the basis the company states (where the "
+                 "customer is, or where the goods ship). “Not disclosed” when it gives none."),
+                ("Customers",
+                 "How concentrated sales are, in the company's own numbers, then up to five "
+                 "named customers. <b>Disclosed</b>: the company names the customer or states "
+                 "its share. <b>Reported</b>: only a secondary source names it."),
+                ("Competitors",
+                 "As named in the company's annual report; when it names none, one secondary "
+                 "source, and the line says so."),
+                ("Changes",
+                 "Material changes to the business in the past 12 months, dated by "
+                 "announcement: acquisitions, sales of a business, new named customers, new "
+                 "ventures, new segments, a first move to a new contract model. Not price "
+                 "moves, results or guidance."),
+                ("Sources",
+                 "The s1, s2 … beside a fact link to the document it rests on; the list at the "
+                 "foot dates each document and says whether it is the company's own (primary) "
+                 "or a secondary source."),
+                ("Checked",
+                 "One research agent wrote each card and a second checked it against its "
+                 "sources. “Checked” is the last time the card was verified: cards are "
+                 "re-checked in rotation and updated when the business changes, so the date "
+                 "can be weeks old."),
+            ], label_w="124px")
+            + _note("The same card shows on every report date: it describes the company, "
+                    "not the day.")
+        ),
         "drawers": [],
         "history": [],
     },

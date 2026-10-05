@@ -12,8 +12,11 @@ the ``<details>`` element rendered by ``components.watchlist.row``.
 3. the price chart — the price since the first report and its 50- / 200-day
    averages, no threshold marks (``components.watchlist.price_chart``);
 4. the levels ladder, the technicals and the valuation, side by side;
-5. the Earnings drawer (band, charts, history, the result headline);
-6. news & context — the name's recent headlines (``recent_news``, from the
+5. the Company profile drawer — what the company does, its revenue mix, customers,
+   competitors and recent changes to the business, from MarketReport's checked cards
+   (``components.watchlist.company_profile``; the same card on every report date);
+6. the Earnings drawer (band, charts, history, the result headline);
+7. news & context — the name's recent headlines (``recent_news``, from the
    pipeline cutover on), thesis highlights and the catalyst headline.
 
 Gone with the labels: the entry-block card, the writeup verdict / what-to-do,
@@ -28,6 +31,7 @@ import re
 from datetime import date
 
 from components.earnings_chart import reports_in_foreign_currency
+from components.watchlist.company_profile import company_profile_html
 from components.watchlist.drilldown_drawers import (
     STRESS,
     catalyst_html,
@@ -345,14 +349,14 @@ def _news_html(d: dict) -> str:
 
 def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
                                  report_date: str | None = None,
-                                 price_hist=None) -> str:
+                                 price_hist=None, profile=None) -> str:
     """The whole drill-down body for one ticker, as an HTML string.
 
     ``earnings_hist`` (optional) is the ticker's ``earnings_history`` records,
     newest quarter first; the caller loads and filters the CSV so this module
     stays Streamlit-free. ``report_date`` dates a day-count-only earnings entry
     and ends the price chart (``price_hist``, the name's market_data.csv rows) on
-    the report's own day.
+    the report's own day. ``profile`` (optional) is the name's company card.
     """
     ccy = d.get("currency", "USD")
     pfx = _ccy_prefix(ccy)
@@ -377,6 +381,7 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
         f'{_health_chips_html(d)}'
         f'{price_chart_html(tk, price_hist, report_date, _p)}'
         f'{cols_html}'
+        f'{company_profile_html(profile)}'
         f'{render_drawers_html(d, _p, earnings_hist, report_date=report_date)}'
         f'{_news_html(d)}'
         '</div>'

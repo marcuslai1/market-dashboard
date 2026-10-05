@@ -6,8 +6,11 @@ Slim orchestrator — page-level UI lives in ``components/``. This module owns:
 - ``st.set_page_config`` + theme CSS injection
 - the page functions + ``st.navigation`` registry (real URL per page)
 - the masthead/nav call (returns the selected page title)
-- sidebar controls (status block, density, live-prices toggle, refresh)
 - ``_pg.run()`` dispatch at the bottom
+
+No sidebar since 2026-10-06 (owner: "no longer useful"): its status block repeated
+the masthead's date, density stayed on Relaxed, live prices stayed on and the
+data cache is mtime-keyed, so the refresh button had nothing left to do.
 
 Information only since 2026-10-01 (MarketReport spec
 2026-10-01-info-only-watchlist, O6 / O7; tag ``pre-label-removal``): no page
@@ -38,7 +41,6 @@ from lib.data_loader import (
     load_text_asset,
 )
 from lib.pills import _render_live_caption
-from lib.state import init_session_state
 from live_prices import fetch_live_quotes, overlay_live
 
 # ── Config ──
@@ -46,10 +48,6 @@ DATA_DIR = Path(__file__).parent / "data"
 ASSETS_DIR = Path(__file__).parent / "assets"
 
 st.set_page_config(page_title="MarketReport Dashboard", layout="wide")
-
-# ── Session state bootstrap ──
-# Must run BEFORE any component reads st.session_state.density.
-init_session_state()
 
 # ── Theme CSS: dark editorial (Newsreader serif + JetBrains Mono + Inter Tight) ──
 # Stylesheet lives at assets/theme.css. The <style> block must be re-emitted on
@@ -59,25 +57,16 @@ init_session_state()
 _THEME_CSS = load_text_asset(Path(__file__).parent / "assets" / "theme.css")
 st.markdown(f"<style>{_THEME_CSS}</style>", unsafe_allow_html=True)
 
-# ── Density override ──
-# theme.css declares the relaxed defaults in :root. When the user picks Compact
-# in the sidebar, we inject a later-in-document-order :root block that wins via
-# cascade order.
-if st.session_state.density == "compact":
-    st.markdown(
-        "<style>:root {"
-        " --card-pad-y: 16px;"
-        " --card-pad-x: 16px;"
-        " --card-gap: 20px;"
-        "}</style>",
-        unsafe_allow_html=True,
-    )
+# Live Yahoo quotes on the latest report (benchmarks and the watchlist's Last / Δ;
+# RSI, 1-month and the averages stay at the report date; past reports are never
+# overlaid). Always on since the sidebar toggle went (2026-10-06) — it defaulted
+# to on, and a failed fetch already falls back to the snapshot with a caption.
+LIVE_PRICES = True
 
 
 # ════════════════════════════════════════════
 # Page bodies. Each runs via st.navigation → _pg.run() at the bottom of this
-# script, AFTER the sidebar has assigned LIVE_PRICES — the functions read that
-# module global at call time.
+# script; they read the LIVE_PRICES module global at call time.
 # ════════════════════════════════════════════
 def _page_briefing() -> None:
     _dates = list_report_dates()
@@ -99,7 +88,7 @@ def _page_briefing() -> None:
 
     # Live prices are the only per-minute-changing input on the Briefing, and the
     # Yahoo fetch can stall for a few seconds. Rendering the body inside a fragment
-    # keeps that fetch off the main script run — masthead, nav, and sidebar paint
+    # keeps that fetch off the main script run — masthead and nav paint
     # immediately — and lets the body auto-refresh every 60s (when live prices are
     # on) without re-parsing reports or rebuilding the masthead. overlay_live only
     # touches price/chg_pct, so every component still reads the frozen snapshot for
@@ -155,7 +144,7 @@ def _page_watchlist() -> None:
 
     # Same treatment the Briefing body got in the perf pass: the Yahoo fetch
     # runs inside a fragment, so a live-quote cache miss can't block the
-    # masthead/sidebar paint, and live prices auto-refresh every 60s in
+    # masthead/nav paint, and live prices auto-refresh every 60s in
     # isolation. The selectbox stays on the main run so picking a date
     # redefines the fragment with the right run_every (historical dates never
     # fetch or auto-refresh).
@@ -218,69 +207,6 @@ _pg = st.navigation(list(_PAGES.values()), position="hidden")
 page = render_masthead_and_nav(_pg.title)
 if page != _pg.title:
     st.switch_page(_PAGES[page])
-
-
-# ── Sidebar: status summary ──
-# Only the latest report is needed here — load it lazily rather than parsing
-# every report. The ticker count is the latest watchlist's own length (it used
-# to be the sum of the signal counts; the signal dots, the signal legend and the
-# date-range filter that fed only the Tracker went on 2026-10-01).
-_report_dates = list_report_dates()
-_latest_date = _report_dates[-1] if _report_dates else "—"
-_latest_rpt = load_report(_latest_date) if _report_dates else {}
-
-# ── Body-level refresh row: removed in the 2026-07-24 density pass ──
-# It cost ~62px directly under the nav on every page and duplicated two things
-# that already exist: the masthead's right block carries the date ("Last close
-# …"), and the sidebar carries "↻ Refresh Data". Its original reason — that the
-# sidebar was unreachable on narrow viewports — no longer holds: theme.css
-# force-pins the sidebar-expand chip visible at every width (see the
-# stExpandSidebarButton block), so the sidebar refresh is always reachable.
-
-_status_html = (
-    '<div class="sidebar-status">'
-    '<div class="status-row">'
-    '<span class="status-label">Latest report</span>'
-    f'<span class="status-value">{_latest_date}</span></div>'
-    '<div class="status-row">'
-    '<span class="status-label">Tickers</span>'
-    f'<span class="status-value">{len(_latest_rpt.get("watchlist") or {})}</span></div>'
-    '</div>'
-)
-st.sidebar.markdown(_status_html, unsafe_allow_html=True)
-
-st.sidebar.divider()
-
-# ── Sidebar: density toggle ──
-# Radio holds the display label ("Relaxed"/"Compact"); on_change normalises to
-# the canonical lowercase value in st.session_state.density. The :root override
-# above watches that canonical value.
-st.sidebar.radio(
-    "Density",
-    options=["Relaxed", "Compact"],
-    index=0 if st.session_state.density == "relaxed" else 1,
-    horizontal=True,
-    key="density_radio",
-    on_change=lambda: st.session_state.update(density=st.session_state.density_radio.lower()),
-)
-
-st.sidebar.divider()
-LIVE_PRICES = st.sidebar.toggle(
-    "Live prices (Yahoo)",
-    value=True,
-    help="When on, benchmarks and watchlist Last/Δ show live Yahoo quotes "
-         "(60s cache). Snapshot fields like RSI / 1mo / SMA stay frozen at the "
-         "report date. Historical reports are never overlaid.",
-)
-
-if st.sidebar.button(
-    "↻ Refresh Data",
-    help="Clear the data cache and refetch reports + live prices. Same action as "
-         "the ↻ Refresh button in the main column (surfaced there for narrow "
-         "viewports where the sidebar is collapsed).",
-):
-    st.cache_data.clear()
-    st.rerun()
 
 
 # ── Run the active page ──

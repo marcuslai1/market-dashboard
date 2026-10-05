@@ -76,7 +76,7 @@ def _safe_read_csv(csv_path: Path) -> pd.DataFrame:
         return pd.read_csv(csv_path)
     except (OSError, ValueError, UnicodeDecodeError, pd.errors.ParserError,
             pd.errors.EmptyDataError):
-        st.sidebar.warning(f"Skipped unreadable data file: {csv_path.name}")
+        st.warning(f"Skipped unreadable data file: {csv_path.name}")
         return pd.DataFrame()
 
 
@@ -196,6 +196,17 @@ def load_earnings_map() -> dict:
     for tkey in set(out) | {k for k in backfill if not k.startswith("_")}:
         out[tkey] = merge_backfill(out.get(tkey, []), backfill.get(tkey))
     return out
+
+
+def load_company_profiles() -> dict:
+    """Facts-only company cards (MarketReport ``scripts/company_profiles.py publish``), keyed by
+    the pipeline ticker, plus ``_meta``. ``{}`` when absent — the drill-down then has no
+    Company profile drawer."""
+    path = DATA_DIR / "company_profiles.json"
+    if not path.exists():
+        return {}
+    data = _load_json_cached(str(path), _mtime(path))
+    return data if isinstance(data, dict) else {}
 
 
 def load_briefings() -> dict:

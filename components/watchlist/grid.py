@@ -151,11 +151,12 @@ def build_grid_html(
     row_builder: Callable[..., str],
     report_date: str | None = None,
     price_map: dict | None = None,
+    profile_map: dict | None = None,
 ) -> str:
     """The whole table as one string: wrapper, column header, groups, rows.
 
-    ``earnings_map`` / ``price_map`` are per-ticker side data (earnings history,
-    price history) handed to each row's drill-down."""
+    ``earnings_map`` / ``price_map`` / ``profile_map`` are per-ticker side data
+    (earnings history, price history, company card) handed to each row's drill-down."""
     parts = [column_header_html()]
     for cluster, rows in groups:
         parts.append(group_header_html(cluster, len(rows), cluster_move(rows)))
@@ -163,7 +164,8 @@ def build_grid_html(
             parts.append(row_builder(tk, d,
                                      earnings_hist=(earnings_map or {}).get(tk),
                                      report_date=report_date,
-                                     price_hist=(price_map or {}).get(tk)))
+                                     price_hist=(price_map or {}).get(tk),
+                                     profile=(profile_map or {}).get(tk)))
     return (
         '<div class="tk-scroll" role="table" '
         'aria-label="Watchlist — click a row to expand">'

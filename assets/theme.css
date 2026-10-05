@@ -85,7 +85,7 @@
    Both theme value sets live here as raw --*-light / --*-dark vars (defined
    once). "Active" tokens (--color-bg, --accent, …) default to the DARK set.
    The theme toggle swaps the map by injecting a light override on :root from
-   dashboard.py (same mechanism as the density override below) — no per-
+   dashboard.py (the mechanism the density override used until 2026-10-06) — no per-
    component theme logic. Signal RAILS are shared across themes (§3a); only
    pill text / accent / brass / up-down / base surfaces get per-theme values.
    ══════════════════════════════════════════════════════════════════════ */
@@ -196,9 +196,6 @@
   --rule-strong:var(--color-divider-strong);
 }
 
-/* Compact-density :root overrides are injected from dashboard.py via a
-   conditional <style> block when st.session_state.density == "compact". */
-
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; }
   *, *::before, *::after {
@@ -284,7 +281,6 @@
 /* One 1200px centred column, padding 16px 28px 0 (header spec); the bottom pad
    is scroll room, not part of the spec's header geometry. */
 .main .block-container { max-width: 1200px; padding: 16px 28px 80px; }
-[data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--rule-strong); }
 
 /* Hide default Streamlit chrome. The header is both hidden AND collapsed to
    0 height so it stops reserving the tall empty band above the masthead while
@@ -295,26 +291,8 @@ header[data-testid="stHeader"] {
   height: 0;
   min-height: 0;
 }
-/* …but the blanket header hide also killed Streamlit's sidebar-expand control,
-   which is the ONLY affordance to reopen the sidebar once it auto-collapses on
-   narrow/mobile viewports. Without it, date-range / density / live-price (and
-   the whole sidebar) are unreachable on phones, and a collapse at any width is
-   a one-way trip. Force just that control back — it's fixed-positioned, so the
-   header's height:0 doesn't clip it — and lift it above the sticky top-nav. */
-[data-testid="stExpandSidebarButton"],
-[data-testid="stSidebarCollapsedControl"] {
-  visibility: visible !important;
-  /* The 0-height absolute header centres this control on y=0, leaving it half
-     above the viewport. Pin it into the top-left corner as a small, legible chip
-     so it's a real tap target on the paper background. */
-  position: fixed !important;
-  top: 6px !important;
-  left: 8px !important;
-  z-index: 61 !important;
-  background: var(--paper-2) !important;
-  border: 1px solid var(--rule-strong) !important;
-  border-radius: var(--radius-control, 6px) !important;
-}
+/* No sidebar since 2026-10-06, so the sidebar-expand chip this block used to
+   force back into view (and the masthead nudge that cleared it) are gone. */
 /* Trim Streamlit's default ~6rem top padding on the main content column so the
    masthead sits near the top instead of below a tall void. Both the legacy
    (.block-container) and current (stMainBlockContainer) selectors are set. */
@@ -327,7 +305,7 @@ header[data-testid="stHeader"] {
 /* Reclaim the band above the masthead. It was NOT the header bar (already
    height:0 below) nor the container padding — dashboard.py injects three
    style-only st.markdown blocks (theme CSS, first-mount animations, density
-   override) and Streamlit gives each its own element container, which then
+   override — the last two since removed) and Streamlit gives each its own element container, which then
    takes part in the vertical block's row-gap. Collapsing the style-only
    containers removes that dead space; a <style> still applies while its
    wrapper is display:none. Scoped to markdown whose ONLY child is a <style>,
@@ -670,25 +648,6 @@ hr { border-color: var(--rule) !important; margin: 18px 0 !important; }
 /* Code/pre/json */
 pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
-/* Sidebar header (legacy — only used for the small refresh / status block) */
-
-.sidebar-status {
-  background: var(--paper-3);
-  border: 1px solid var(--rule);
-  border-radius: 0;
-  padding: 10px 12px;
-  margin: 8px 0;
-  font-family: var(--mono);
-  font-size: 11px;
-}
-.sidebar-status .status-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 0;
-}
-.sidebar-status .status-label { color: var(--ink-3); }
-.sidebar-status .status-value { color: var(--ink); font-weight: 600; }
-
 /* ── Editorial masthead ── */
 /* Header carries as few rules as possible (owner review 2026-07-24, ref
    briefing.jpg): the wordmark has NO rule under it — the nav strip's single
@@ -786,15 +745,6 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   }
   .masthead .title { font-size: 22px; }
   .masthead .right { align-items: flex-start; text-align: left; }
-  /* The sidebar-expand chip is FIXED at top-left (top:6, ~28px tall). The
-     density pass moved the masthead to y=16, so wherever that chip exists — the
-     phone default, sidebar collapsed — it clipped the wordmark ("E MARKET
-     REPORT"). Nudge the masthead clear of it instead of restoring the container
-     padding, so the reclaimed space is only given back where the chip is. */
-  body:has([data-testid="stExpandSidebarButton"]) .masthead,
-  body:has([data-testid="stSidebarCollapsedControl"]) .masthead {
-    margin-top: 24px;
-  }
 }
 @media (max-width: 400px) {
   .masthead .title { font-size: 20px; }
@@ -1278,6 +1228,60 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
    box already contains it. */
 .tk-drilldown .dd-drawer-body { padding: 0 13px 13px; }
 .tk-drilldown .dd-drawer-body .dd-section:first-child { margin-top: 4px; }
+
+/* Company profile drawer (MarketReport company_profiles.json, 2026-10-06): a
+   static, checked card, not the day's data. Structural colour only — a revenue
+   share is a proportion, not a verdict, so its bar is neutral ink; the
+   disclosed / reported tag is an outline, never a tone. */
+.tk-drilldown .cp-caption {
+  font-size: 12px; color: var(--ink-3); line-height: 1.5; margin: 0 0 8px;
+}
+.tk-drilldown .cp-what { color: var(--ink); }
+.tk-drilldown .cp-share {
+  display: grid; grid-template-columns: 52px 1fr; gap: 0 10px;
+  margin: 0 0 9px; align-items: start;
+}
+.tk-drilldown .cp-pct {
+  font-family: var(--font-display); font-variant-numeric: tabular-nums;
+  font-size: 14px; color: var(--ink); text-align: right; line-height: 1.35;
+}
+.tk-drilldown .cp-name { font-size: 13px; color: var(--ink); line-height: 1.35; }
+.tk-drilldown .cp-bar {
+  display: block; height: 3px; margin: 4px 0 3px;
+  background: var(--color-divider);
+}
+.tk-drilldown .cp-bar > span { display: block; height: 100%; background: var(--ink-3); }
+.tk-drilldown .cp-plain {
+  font-size: 12.5px; color: var(--color-text-2); line-height: 1.5; margin-top: 2px;
+}
+.tk-drilldown .cp-item { margin: 0 0 9px; font-size: 13px; color: var(--ink); line-height: 1.45; }
+.tk-drilldown .cp-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-3);
+  border: 1px solid var(--rule-strong); padding: 0 4px; margin-left: 4px;
+}
+.tk-drilldown .cp-date {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  margin-right: 8px; white-space: nowrap;
+}
+.tk-drilldown .cp-src { font-family: var(--mono); font-size: 10.5px; color: var(--ink-4); }
+.tk-drilldown .cp-src a {
+  color: var(--ink-3); text-decoration: underline;
+  text-decoration-color: var(--rule-strong); text-underline-offset: 2px;
+}
+.tk-drilldown .cp-source {
+  display: grid; grid-template-columns: 26px 1fr; gap: 0 8px;
+  font-size: 12px; color: var(--ink-3); line-height: 1.45; margin: 0 0 5px;
+}
+.tk-drilldown .cp-source a {
+  color: var(--color-text-2); text-decoration: underline;
+  text-decoration-color: var(--rule-strong); text-underline-offset: 2px;
+}
+.tk-drilldown .cp-sid { font-family: var(--mono); color: var(--ink-4); }
+.tk-drilldown .cp-foot {
+  margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--color-divider);
+  font-size: 11.5px; color: var(--ink-3); line-height: 1.5;
+}
 
 /* The one place body-length text uses the HEADING font: condensed, it reads as a
    newspaper standfirst — larger and airier than ordinary body — which marks it
