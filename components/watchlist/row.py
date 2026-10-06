@@ -58,14 +58,18 @@ def earnings_cell_html(d: dict, report_date: str | None) -> str:
 
 def render_ticker_details_html(tk: str, d: dict, earnings_hist=None,
                                report_date: str | None = None,
-                               price_hist=None, profile=None) -> str:
+                               price_hist=None, profile=None,
+                               growth_html: str = "") -> str:
     """Build a complete <details> block: row as summary, drill-down as body.
 
     ``earnings_hist`` (optional) is passed straight through to the drill-down for
     the quarter-on-quarter earnings-history table. ``report_date`` (the report's
     ``meta.report_date``) dates the Earnings cell on reports that carry only a
     day count. ``price_hist`` (optional) feeds the drill-down's price chart,
-    ``profile`` (optional) its Company profile drawer.
+    ``profile`` (optional) its Company profile drawer. ``growth_html`` (the
+    experimental growth sort's line, ``components.watchlist.growth``) is an eighth
+    child of the summary that spans the row under its seven cells; the default
+    order passes none.
     """
     display_tk = _escape_dollars(display_ticker(tk))
     ccy = d.get("currency", "USD")
@@ -95,6 +99,7 @@ def render_ticker_details_html(tk: str, d: dict, earnings_hist=None,
         f'{extension_gauge_html(d.get("vs_sma50_pct"))}'
         f'<div class="tk-rsi">{_fmt_num(d.get("rsi_14"), 0)}</div>'
         f'{earnings_cell_html(d, report_date)}'
+        f'{growth_html}'
         '</summary>'
     )
     body = (

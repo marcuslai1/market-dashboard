@@ -125,12 +125,14 @@ SECTIONS = [
     {
         "id": "order",
         "title": "Watchlist Order",
-        "descriptor": "The same order every day",
+        "descriptor": "The same order every day, unless you sort by growth",
         "kw": ("order watchlist grouped group cluster clusters sort sorting alphabetical "
-               "a-z rows layout fixed semis bigtech neocloud header median move"),
+               "a-z rows layout fixed semis bigtech neocloud header median move "
+               "experimental sales growth two-year average latest quarter operating margin"),
         "answer": (
             "Names are grouped by cluster — the same cluster printed under each ticker — "
-            "and listed in one fixed order. Nothing on the page is ranked."
+            "and listed in one fixed order. An experimental control above the table can "
+            "sort them by sales growth instead; nothing on the page rates a name."
         ),
         "body": (
             _grid([
@@ -146,12 +148,39 @@ SECTIONS = [
                  "The cluster's name, its number of names and the <b>median</b> day, 5-day and "
                  "1-month change of its names — the same median the drill-down's “vs cluster” "
                  "figures are measured against. A cluster with fewer than two names has none."),
+                ("Sales growth sort (experimental)",
+                 "<b>Order</b> above the table. “Clusters” is the default. “Sales growth · "
+                 "2-year” sorts by the <b>two-year average sales growth</b>: last full year's "
+                 "sales to analysts' forecast for next year, as a yearly rate. “Sales growth · "
+                 "latest quarter” sorts by the latest reported quarter's sales against the same "
+                 "quarter a year earlier. Fastest first; names without a figure last."),
+                ("Growth line",
+                 "In a sorted view each row adds one line: both growth figures, the month the "
+                 "latest quarter ended, and the <b>operating margin</b> (operating profit as a "
+                 "share of sales) a year earlier → in the latest quarter. The figure the rows "
+                 "are sorted by is in bold."),
             ], label_w="124px")
             + _note("Every report date — including reports from before "
-                    f"{SITE_FACTS_ONLY_SINCE} — renders in this order with the same columns.")
+                    f"{SITE_FACTS_ONLY_SINCE} — renders in this order by default, with the same "
+                    "columns.")
         ),
-        "drawers": [],
+        "drawers": [
+            ("About the growth figures",
+             "<p>They measure a company's <b>sales</b>, not its share price, and the sort is a "
+             "way to read the list, not a pick list: nothing has tested whether faster growth "
+             "picks better stocks. The figures come from Yahoo Finance (reported results and "
+             "analysts' average forecasts) and are refreshed weekly, so they carry their own "
+             "date and are the same for every report date. Yahoo can lag a company's newest "
+             "quarter by one report, and a single quarter's margin can include one-off costs. "
+             "Fiscal years end in different months, so “next year” is not the same twelve "
+             "months for every company.</p>"),
+        ],
         "history": [
+            ("2026-10-06", "experimental sales growth sort",
+             "<p>An order control was added above the table: the fixed cluster order stays the "
+             "default, and a reader can sort by two-year or latest-quarter sales growth, with "
+             "each row's growth figures and operating margin shown. Numbers only, no growth "
+             "labels and no colour.</p>"),
             (SITE_FACTS_ONLY_SINCE, "fixed order replaces signal groups",
              "<p>The Watchlist used to group rows by signal label and sort each group by "
              "one-month return, so a name's position changed from day to day. Labels left the "

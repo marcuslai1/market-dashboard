@@ -1012,6 +1012,24 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   color: var(--color-text-3); margin: 10px 0 0;
 }
 
+/* ── Experimental growth sort (2026-10-06) ─────────────────────────────────────
+   The order control above the table (st.radio key wl_order) and, in a sorted view,
+   one growth line per row. The line is an eighth child of the row's <summary> that
+   spans every track, so it sits under the seven cells on desktop and under the
+   stacked card on phones without touching either grid. Neutral ink only: a sales
+   figure is a fact, not a verdict; the bold marks the figure the rows are sorted by. */
+.st-key-wl_order [role="radiogroup"] {
+  flex-direction: row !important; flex-wrap: wrap !important; gap: 6px 22px !important;
+}
+.tk-sortline.tk-sortline-exp { opacity: 0.7; }
+details.tk-details > summary > .tk-growth {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+  font-family: var(--font-body); font-size: 11px; line-height: 1.45;
+  color: var(--color-text-3); font-variant-numeric: tabular-nums;
+}
+.tk-growth b { color: var(--color-text-2); font-weight: 600; }
+
 /* Native <details> drill-down — entire ticker row is the click target */
 details.tk-details { margin: 0; padding: 0; border: 0; background: transparent; }
 /* Must stay in lockstep with .tk-row above — the static column header and every

@@ -4,7 +4,7 @@
   bare `python` resolves to on this machine — the MarketReport pipeline uses
   anaconda3 instead, never mix them).
 - Tests: `.venv\Scripts\python.exe -m pytest tests` — module form is required
-  (puts the repo root on `sys.path`). Baseline 2026-10-06: 287 passed, ~7s (283 before the revenue-estimate rows) (289 on 2026-10-02, before the market-read card went 2026-10-03).
+  (puts the repo root on `sys.path`). Baseline 2026-10-06: 302 passed, ~7s, after the experimental growth sort (287 before it; 283 before the revenue-estimate rows) (289 on 2026-10-02, before the market-read card went 2026-10-03).
   `tests/visual` is excluded by `pyproject.toml` and is ON-DEMAND only
   (`workflow_dispatch`; the weekly sweep was switched off 2026-10-01 — it renders
   the live `data/`, so it went stale daily); never regenerate pixel baselines for an

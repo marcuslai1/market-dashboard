@@ -209,6 +209,17 @@ def load_company_profiles() -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def load_growth() -> dict:
+    """Sales-growth figures per company (MarketReport ``scripts/growth_types.py publish``,
+    numbers only), keyed by the pipeline ticker, plus ``_meta``. ``{}`` when absent — the
+    Watchlist then has no growth sort and keeps its fixed order."""
+    path = DATA_DIR / "growth.json"
+    if not path.exists():
+        return {}
+    data = _load_json_cached(str(path), _mtime(path))
+    return data if isinstance(data, dict) else {}
+
+
 def load_briefings() -> dict:
     """Daily briefing card payload (MarketReport `scripts/briefing.py publish`).
 

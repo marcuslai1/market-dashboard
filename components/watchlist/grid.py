@@ -17,6 +17,8 @@ Two constructions here are load-bearing and easy to break:
    and ``.tk-scroll`` stops containing the rows.
 2. **A fixed order.** The rows never re-sort by a daily quantity. The order is a
    rule (``ordered_groups``), so a new ticker slots itself in with no upkeep.
+   (The experimental growth sort, ``components.watchlist.growth``, is a separate
+   view a reader asks for; it sorts by quarterly sales figures, never a price.)
 """
 from __future__ import annotations
 
