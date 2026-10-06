@@ -216,6 +216,26 @@ def test_old_report_without_the_next_fy_figure_shows_no_estimate_row():
     assert "Est. EPS growth" not in html and "last quarter y/y" in html
 
 
+def test_revenue_rows_show_the_last_quarter_then_both_estimates():
+    """Pipeline 2026-10-06: analysts' sales growth this FY and next, beside the last quarter's."""
+    d = {"valuation": {"revenue_growth_pct": 379.3, "revenue_growth_this_fy_pct": 106.4,
+                       "revenue_growth_next_fy_pct": 14.3}}
+    html = render_drilldown_detail_html("MU", d)
+    q = html.index("Revenue growth, last quarter y/y")
+    assert q < html.index("Est. revenue growth, this FY") < html.index("Est. revenue growth, next FY")
+    assert "+379.3%" in html and "+106.4%" in html and "+14.3%" in html
+
+
+def test_old_report_shows_no_revenue_estimate_rows():
+    html = render_drilldown_detail_html("MU", {"valuation": {"revenue_growth_pct": 379.3}})
+    assert "Est. revenue growth" not in html and "Revenue growth, last quarter y/y" in html
+
+
+def test_a_missing_revenue_estimate_side_drops_alone():
+    html = render_drilldown_detail_html("CBRS", {"valuation": {"revenue_growth_next_fy_pct": 232.7}})
+    assert "Est. revenue growth, next FY" in html and "this FY" not in html
+
+
 # ── Data-health chips ──
 def test_clean_name_has_no_chips():
     assert "dd-chips" not in render_drilldown_detail_html("NVDA", {"price": 1.0})

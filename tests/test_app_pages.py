@@ -328,3 +328,12 @@ def test_terminology_defines_the_company_profile():
     text = by_id["profile"]
     for term in ("Disclosed", "Reported", "Checked", "Not disclosed", "12 months", "every report date"):
         assert term in text, term
+
+
+def test_terminology_defines_the_revenue_estimates():
+    """The drill-down's three revenue rows (2026-10-06) each have a definition."""
+    from components.terminology import SECTIONS
+
+    body = {s["id"]: s["body"] for s in SECTIONS}["valuation"]
+    assert "Revenue growth, last quarter y/y" in body
+    assert "Est. revenue growth, this FY / next FY" in body and "not yet" in body

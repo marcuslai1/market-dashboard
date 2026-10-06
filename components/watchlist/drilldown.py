@@ -248,7 +248,11 @@ def _valuation_html(d: dict, tk: str = "") -> str:
             if pe_vs_cluster is not None else "")
          if cluster_med_pe else "—"),
         ("PEG", _fmt_num(val.get("peg_ratio"), 2)),
-        ("Revenue growth", _pct(val.get("revenue_growth_pct"))),
+        # Revenue: the last reported quarter, then analysts' sales growth this FY and next
+        # (pipeline 2026-10-06) — together they show whether growth is speeding up or fading.
+        ("Revenue growth, last quarter y/y", _pct(val.get("revenue_growth_pct"))),
+        ("Est. revenue growth, this FY", _pct(val.get("revenue_growth_this_fy_pct"))),
+        ("Est. revenue growth, next FY", _pct(val.get("revenue_growth_next_fy_pct"))),
         ("FCF yield", _pct(fcf, 2)),
         ("Dividend yield", f"{_fmt_num(div_y, 2)}%" if div_y else "—"),
         ("Price / Book", f"{_fmt_num(pb, 2)}x" if pb else "—"),

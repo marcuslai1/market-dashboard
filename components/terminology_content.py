@@ -323,8 +323,15 @@ SECTIONS = [
              "on 1 October 2026; 28x on its Amsterdam listing), so P/B and FCF yield are not "
              "shown for any of the five on any date. Their P/E figures are on one currency and "
              "stay."),
-            ("Revenue growth",
+            ("Revenue growth, last quarter y/y",
              "The latest reported quarter's revenue against the same quarter a year earlier."),
+            ("Est. revenue growth, this FY / next FY",
+             "Analysts' consensus revenue for the company's current fiscal year against the last "
+             "reported one, and for the next fiscal year against the current one (from 7 October "
+             "2026). “This FY” is the year the company is in, or has just ended and not yet "
+             "reported. Read beside the last quarter's figure, they show whether growth is "
+             "expected to speed up or fade (Micron's sales forecast: about +106% this year, +14% "
+             "the next). Not shown when Yahoo has no base year."),
             ("Est. EPS growth, next FY",
              "Analysts' consensus EPS for the next fiscal year against the current one (from "
              "2 October 2026; not shown when the current year is a loss)."),
