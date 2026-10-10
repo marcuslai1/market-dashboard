@@ -6,13 +6,7 @@
     "aliases": {
       "SKHY": "000660.KS"
     },
-    "flags": {
-      "MU": {
-        "date": "2026-10-05",
-        "what": "FY2026 10-K not yet filed when the card was written (FY2025's was filed 2025-10-03): the revenue mix is FY2026 built from the Q3 10-Q and the Q4 release, geography and customer concentration are FY2025. Once the 10-K is on EDGAR, refresh all three from it.",
-        "url": null
-      }
-    }
+    "flags": {}
   },
   "SOI.PA": {
     "name": "Soitec",
@@ -35,7 +29,7 @@
         {
           "name": "Edge & Cloud AI",
           "pct": 36.1,
-          "plain": "Photonics-SOI wafers for optical transceivers (devices that turn electrical signals into light) linking servers in AI data centres (over $100m in FY2026), plus wafers for low-power AI chips in connected devices and wearables.",
+          "plain": "Photonics-SOI wafers, used to make the light-based chips in optical links between AI data-centre servers (over $100m in FY2026), plus wafers for low-power AI chips in connected devices and wearables.",
           "src": [
             "s1",
             "s2"
@@ -44,7 +38,7 @@
         {
           "name": "Automotive & Industrial",
           "pct": 11.6,
-          "plain": "Wafers for car chips that manage batteries and power, radar and microcontrollers (small control chips), plus SmartSiC silicon-carbide wafers for electric-vehicle power chips.",
+          "plain": "Wafers for car chips that manage batteries and power, radar and microcontrollers (small control chips), plus SmartSiC wafers (Soitec's silicon-carbide wafers) for electric-vehicle power chips.",
           "src": [
             "s1",
             "s2"
@@ -80,17 +74,8 @@
       "summary": "Revenue is concentrated: the top 5 customers were 61% of FY2026 revenue and the next 5 another 22%. Two customers each exceeded 10%; Soitec does not name them.",
       "named": [
         {
-          "who": "Skyworks Solutions",
-          "what": "Multi-year agreement (announced 5 Mar 2026) to supply POI wafers (a wafer type used for 5G phone filters) for Skyworks' Sky5 smartphone platform.",
-          "share": null,
-          "status": "disclosed",
-          "src": [
-            "s2"
-          ]
-        },
-        {
           "who": "ZenSemi",
-          "what": "Specialty chip foundry; collaboration (announced 29 Jun 2026) under which Soitec supplies 300mm Power-SOI wafers (SOI wafers for power-management chips) for ZenSemi's new power-chip process.",
+          "what": "Specialty chip foundry; collaboration (announced 29 Jun 2026) under which Soitec will supply 300mm Power-SOI wafers (SOI wafers for power-management chips) to support the development and ramp-up of ZenSemi's new power-chip process.",
           "share": null,
           "status": "disclosed",
           "src": [
@@ -98,12 +83,12 @@
           ]
         },
         {
-          "who": "Qualcomm Technologies",
-          "what": "Agreement announced July 2020 to supply POI wafers for smartphone radio filters; still cited in the FY2026 annual report.",
+          "who": "Skyworks Solutions",
+          "what": "Multi-year agreement (announced 5 Mar 2026) to supply POI wafers (a wafer type used for 5G phone filters) for Skyworks' Sky5 platform (its range of 5G phone radio parts).",
           "share": null,
           "status": "disclosed",
           "src": [
-            "s1"
+            "s2"
           ]
         },
         {
@@ -154,21 +139,21 @@
     "changes": [
       {
         "date": "2026-07-22",
-        "what": "Said it is signing multi-year Capacity Reservation Agreements for Photonics-SOI with multiple customers (customers commit to buy reserved future output); none named.",
+        "what": "Said it is signing multi-year Capacity Reservation Agreements for Photonics-SOI (wafers for light-based data-centre chips) with multiple customers, who pay cash deposits to secure capacity, with commitments running beyond FY27; none named.",
         "src": [
           "s3"
         ]
       },
       {
         "date": "2026-06-29",
-        "what": "New named customer: specialty foundry ZenSemi, supplied with 300mm Power-SOI wafers for high-volume power-chip production.",
+        "what": "New named customer: specialty foundry ZenSemi; Soitec will supply 300mm Power-SOI wafers (SOI wafers for power-management chips) to support the development and ramp-up of its new power-chip process.",
         "src": [
           "s3"
         ]
       },
       {
         "date": "2026-03-05",
-        "what": "Multi-year agreement with Skyworks Solutions to supply POI wafers for its Sky5 5G smartphone platform, extending an existing relationship.",
+        "what": "Multi-year agreement with Skyworks Solutions to supply POI wafers for its Sky5 platform (5G phone radio parts), extending an existing relationship.",
         "src": [
           "s2"
         ]
@@ -197,14 +182,14 @@
         "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 30 claims — 25 C / 1 W / 1 O / 3 MISSING (checker's tally); all re-verified in-session: Skyworks figure removed, production sites corrected, Photonics-SOI capacity agreements added, NSIG licence extension left out (extends an existing partner)"
+    "last_changed": "2026-10-10",
+    "last_checked": "2026-10-10",
+    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 30 claims — 25 C / 1 W / 1 O / 3 MISSING (checker's tally); all re-verified in-session: Skyworks figure removed, production sites corrected, Photonics-SOI capacity agreements added, NSIG licence extension left out (extends an existing partner) | Rotation 2026-10-10, checker Opus 5.5 (fresh context): revenue mix and geography recompute exactly from the URD (note 7.1; delivery-location table). Corrected after in-session re-reads: Qualcomm dropped (the URD cites only the July 2020 announcement, no FY2026 revenue or running deal); the capacity-reservation and ZenSemi lines reworded to the Q1 FY27 release (cash deposits; 'will supply ... to support the development and capacity ramp-up'); brackets added for Photonics-SOI, SmartSiC and Sky5; named customers reordered newest first. No material change missing."
   },
   "AXTI": {
     "name": "AXT Inc",
     "listing": "Nasdaq · USD",
-    "what_they_do": "AXT makes substrates (the thin polished discs, or wafers, that chips are built on) from materials other than silicon: indium phosphide, gallium arsenide and germanium. They are used where silicon is too slow, runs too hot or cannot give off light. Its customers grow extra layers on the wafers, and the finished chips become lasers and light sensors for fibre-optic and data-centre links, radio amplifiers for phones, LEDs and satellite solar cells. It also sells purified gallium and crucibles (heat-proof containers for growing crystals). All manufacturing is in China.",
+    "what_they_do": "AXT makes substrates (the thin polished discs, or wafers, that chips are built on) from materials other than silicon: indium phosphide, gallium arsenide and germanium. They are used where silicon is too slow, runs too hot or cannot give off light. Its customers grow extra layers on the wafers, and the finished chips become lasers and light sensors for fibre-optic and data-centre links, radio amplifiers for phones, LEDs and satellite solar cells. It also sells purified gallium and crucibles (heat-proof containers for growing crystals), and makes everything in China.",
     "revenue_mix": {
       "period": "FY2025 (12 months to 31 Dec 2025)",
       "total": "US$88.3 million (US$88,326 thousand)",
@@ -221,7 +206,7 @@
         {
           "name": "Raw materials and others",
           "pct": 33.3,
-          "plain": "Materials two Chinese subsidiaries sell outside AXT: purified gallium; boron nitride crucibles and parts used in crystal growing, chip-layer reactors and tools that make OLED screens; germanium, arsenic and boron oxide.",
+          "plain": "Materials AXT's Chinese subsidiaries sell to other companies: purified gallium, boron oxide and a gallium-magnesium alloy, plus boron nitride crucibles and parts used in crystal growing, chip-layer reactors and OLED-making tools.",
           "src": [
             "s1"
           ]
@@ -405,9 +390,9 @@
         "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 35 claims — 30 C / 0 W / 3 O / 2 MISSING (checker's tally); all re-verified in-session against the 10-K, 10-Q and 8-Ks: raw-materials line widened, Lumentum term given as six years per the 8-K, Coherent prepayment marked as agreed (not yet paid), Casela added to customers; the Dec 2025 / Apr 2026 share sales left out as financing; the July 2026 withdrawal of subsidiary Tongmei's Shanghai listing left out as a listing event (as the CBRS IPO and WRD Hong Kong listing)"
+    "last_changed": "2026-10-10",
+    "last_checked": "2026-10-10",
+    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 35 claims — 30 C / 0 W / 3 O / 2 MISSING (checker's tally); all re-verified in-session against the 10-K, 10-Q and 8-Ks: raw-materials line widened, Lumentum term given as six years per the 8-K, Coherent prepayment marked as agreed (not yet paid), Casela added to customers; the Dec 2025 / Apr 2026 share sales left out as financing; the July 2026 withdrawal of subsidiary Tongmei's Shanghai listing left out as a listing event (as the CBRS IPO and WRD Hong Kong listing) | Rotation 2026-10-10, checker Opus 5.5 (fresh context): revenue mix and geography recompute exactly from Note 14; customers, competitors, changes and sources confirmed. Corrected after an in-session re-read of the 10-K: the raw-materials line now lists only what the 10-K's Raw Materials Group table shows (germanium and arsenic are made by partly owned or 'newly formed' companies, not shown as AXT revenue); what_they_do cut to four sentences."
   },
   "TSEM": {
     "name": "Tower Semiconductor",
@@ -598,17 +583,17 @@
         ]
       },
       {
-        "date": "2026-07-14",
-        "what": "Announced a Japan expansion backed by the Government of Japan: the former Arai plant (Fab 6) is being converted to 300mm (wafers 30 cm across) silicon photonics and advanced packaging, with full production readiness expected in Q4 2027. A second new 300mm fab next to Fab 7 depends on agreements still to be signed and closed. The company forecasts about $3 billion of investment, net of $1 billion in Japanese grants.",
-        "src": [
-          "s8"
-        ]
-      },
-      {
         "date": "2026-05-13",
         "what": "Signed silicon photonics contracts with its largest customers for $1.3 billion of 2027 revenue and received $290 million in customer prepayments to reserve capacity. The company says a larger contractual wafer commitment covers 2028.",
         "src": [
           "s6"
+        ]
+      },
+      {
+        "date": "2026-04-27",
+        "what": "Began making radar beamforming chips (chips that steer a radar beam electronically) for Axiro Semiconductor, a designer of radar chips for US defense, in its US fabs; ramping to volume production.",
+        "src": [
+          "s10"
         ]
       },
       {
@@ -618,14 +603,6 @@
           "s4",
           "s5"
         ]
-      },
-      {
-        "date": "2026-02-11",
-        "what": "Disclosed that Intel intends not to perform the September 2023 agreement to make 300mm wafers for Tower's customers at Intel's New Mexico fab. The parties are in mediation, and the affected customers are being moved to Fab 7 in Japan.",
-        "src": [
-          "s2",
-          "s1"
-        ]
       }
     ],
     "sources": [
@@ -634,13 +611,6 @@
         "title": "Tower Semiconductor Ltd. Annual Report on Form 20-F for the fiscal year ended December 31, 2025",
         "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326002318/zk2635149.htm",
         "date": "2026-04-30",
-        "kind": "primary"
-      },
-      {
-        "id": "s2",
-        "title": "Tower Semiconductor Reports Record Revenue for the Fourth Quarter of 2025 (Form 6-K, Exhibit 99.1)",
-        "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326000404/exhibit_99-1.htm",
-        "date": "2026-02-11",
         "kind": "primary"
       },
       {
@@ -679,13 +649,6 @@
         "kind": "primary"
       },
       {
-        "id": "s8",
-        "title": "Tower Semiconductor with METI Support Announces Strategic Capacity Expansion in Japan (Form 6-K)",
-        "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326003477/zk2635682.htm",
-        "date": "2026-07-14",
-        "kind": "primary"
-      },
-      {
         "id": "s9",
         "title": "NewPhotonics and Tower Semiconductor Begin High-Volume Shipments of Laser-Integrated, Serviceable Optical Engine PICs for Scale-Out and Scale Up AI Interconnect (Form 6-K)",
         "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326004535/zk2636128.htm",
@@ -700,9 +663,9 @@
         "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 35 claims — 33 C / 0 W / 0 O / 1 MISSING + 1 wording flag (checker's tally); re-verified in-session: wafer sizes explained; GlobalFoundries' March 2026 patent suits left out (litigation is not a business change); RF infrastructure kept at 26.9% (computed from the disclosed US$421M; the company rounds to 27%)"
+    "last_changed": "2026-10-10",
+    "last_checked": "2026-10-10",
+    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 35 claims — 33 C / 0 W / 0 O / 1 MISSING + 1 wording flag (checker's tally); re-verified in-session: wafer sizes explained; GlobalFoundries' March 2026 patent suits left out (litigation is not a business change); RF infrastructure kept at 26.9% (computed from the disclosed US$421M; the company rounds to 27%) | Rotation 2026-10-10, checker Opus 5.5 (fresh context): revenue mix (Q4 2025 call shares) and geography (20-F Note 14A) recompute; customers, competitors and sources confirmed. Corrected under the writer brief's current changes rules (the capacity/lease exclusion was added after this card was written): the Jul 14 Japan capacity expansion and the Feb 11 Intel New Mexico non-performance dropped (capacity deal; capacity arrangement plus dispute); Axiro (first named in Tower's Apr 27 6-K) added as a new named customer. Unused sources removed: s2, s8."
   },
   "AIXA.DE": {
     "name": "Aixtron SE",
@@ -3003,7 +2966,7 @@
   "INTC": {
     "name": "Intel Corporation",
     "listing": "Nasdaq · USD",
-    "what_they_do": "Intel designs and makes processors (CPUs, the main \"brain\" chip in a computer) for desktop and laptop PCs and for data-centre servers. It sells them mostly to PC makers and cloud companies. Its chips use the x86 design (the instruction set that most Windows PCs and servers run). Intel also runs its own chip factories (Intel Foundry), which mostly make Intel's own chips and are offered to outside chip designers. It owns about 77% of Mobileye (June 2026), which sells driver-assistance chips for cars.",
+    "what_they_do": "Intel designs and makes processors (CPUs, the main \"brain\" chip in a computer) for desktop and laptop PCs and for data-centre servers. It sells them mostly to PC makers and cloud companies. Its chips use the x86 design (the instruction set that most Windows PCs run). Intel also runs its own chip factories (Intel Foundry), which mostly make Intel's own chips and are offered to outside chip designers. It owns about 77% of Mobileye (June 2026), which sells driver-assistance chips for cars.",
     "revenue_mix": {
       "period": "FY2025 (12 months to 27 Dec 2025)",
       "total": "US$52,853 million",
@@ -3012,7 +2975,7 @@
         {
           "name": "Client Computing Group (CCG)",
           "pct": 61.0,
-          "plain": "Processors for desktop and laptop PCs (US$27.6B) and other PC-related products (US$4.6B), sold to PC makers and distributors. Renamed Client Computing and Physical AI Group (CCPG) in July 2026.",
+          "plain": "Processors for desktop and laptop PCs (US$27.6B) and other PC-related products (US$4.6B), sold to PC makers and distributors. Reported as Client Computing and Physical AI Group (CCPG) from Q2 2026.",
           "src": [
             "s1",
             "s3"
@@ -3181,11 +3144,10 @@
     },
     "changes": [
       {
-        "date": "2026-07-23",
-        "what": "Renamed its PC-chip segment from Client Computing Group (CCG) to Client Computing and Physical AI Group (CCPG; physical AI = AI in robots and edge devices). The segment's description in the filings did not change.",
+        "date": "2026-08-18",
+        "what": "Socionext, a Japanese designer of custom chips, announced it will use Intel Foundry's 18A-P manufacturing process to develop custom SoCs (systems-on-chip: one chip holding a computer's main parts) for data-centre, edge and high-performance computing customers. Its first project is a high-performance compute chiplet (one building block of a chip assembled from several pieces). No volume, value or production date was disclosed.",
         "src": [
-          "s3",
-          "s2"
+          "s6"
         ]
       },
       {
@@ -3193,13 +3155,6 @@
         "what": "Announced a strategic collaboration with Fortinet to develop Fortinet Security Processor 6, Fortinet's own security chip, using Intel's design, packaging and manufacturing. No process node, timing or financial terms disclosed.",
         "src": [
           "s5"
-        ]
-      },
-      {
-        "date": "2026-04-09",
-        "what": "Announced a multiyear collaboration with Google: Xeon processors across Google's infrastructure over multiple generations, plus wider co-development of custom IPUs (chips that offload networking, storage and security work from the main CPU).",
-        "src": [
-          "s4"
         ]
       },
       {
@@ -3246,11 +3201,18 @@
         "url": "https://www.intc.com/news-events/press-releases/detail/1775/intel-and-fortinet-collaborate-to-advance-cybersecurity",
         "date": "2026-07-21",
         "kind": "primary"
+      },
+      {
+        "id": "s6",
+        "title": "Socionext Broadens SoC Roadmap with Intel 18A-P Process Technology",
+        "url": "https://socionextus.com/?p=12633",
+        "date": "2026-08-18",
+        "kind": "secondary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 29 claims — 28 C / 0 W / 1 O (checker's tally); re-verified in-session against the 10-K and Q2 2026 10-Q: Mobileye stake updated to about 77% (10-Q Note 3), the Intel 14A commitment dropped (a roadmap decision, not a business change); Dell, Lenovo and HP are named in the 10-K's own XBRL tags (the text says Customer A/B/C); the NVIDIA $5bn partnership left out (announced 18 Sep 2025, before the window), the Fab 34 buy-back, Terafab and share sales as capacity or financing"
+    "last_changed": "2026-10-10",
+    "last_checked": "2026-10-10",
+    "check": "Socionext update 2026-10-10: writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context). The checker recomputed the revenue mix, geography and customer shares from the FY2025 10-K (Dell / Lenovo / HP named in Intel's own XBRL tags) and confirmed the competitors. Corrected after in-session re-reads: Socionext's release marked secondary (not Intel's document) and kept in changes only (a development plan with no supply yet, so not in named customers); the CCPG rename item dropped (name only; announced 4 May 2026, intc.com release 1768); the Google item dropped (Intel's Apr 9 release says Google 'continues to deploy' Xeon, an existing relationship); 'and servers' dropped from the x86 line. Left out: Intel Capital's SambaNova stake and partnership (Feb 2026; only secondary sources) and the Apple chip-making claim (Trump, Jun 18; neither company has confirmed it). | Previous: writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 29 claims — 28 C / 0 W / 1 O (checker's tally); re-verified in-session against the 10-K and Q2 2026 10-Q: Mobileye stake updated to about 77% (10-Q Note 3), the Intel 14A commitment dropped (a roadmap decision, not a business change); Dell, Lenovo and HP are named in the 10-K's own XBRL tags (the text says Customer A/B/C); the NVIDIA $5bn partnership left out (announced 18 Sep 2025, before the window), the Fab 34 buy-back, Terafab and share sales as capacity or financing"
   },
   "ASML": {
     "name": "ASML Holding N.V.",
@@ -3824,28 +3786,24 @@
     "listing": "Nasdaq · USD",
     "what_they_do": "Micron makes memory and storage chips. Its main product is DRAM (working memory that holds data while a device is switched on), including HBM (high-bandwidth memory: DRAM chips stacked on top of each other beside an AI processor to feed it data faster). It also makes NAND flash (storage chips that keep data with the power off, used in SSDs and phones) and NOR flash (chips that store a device's start-up code). Buyers include cloud and AI data centres, makers of servers, PCs, phones and cars, and industrial firms.",
     "revenue_mix": {
-      "period": "FY2026 (fiscal year to 3 Sep 2026)",
+      "period": "FY2026 (53 weeks to 3 Sep 2026)",
       "total": "US$133,188 million",
-      "basis": "The company's four reportable business units for FY2026. The FY2026 annual report is not yet filed, so each unit's full-year revenue = nine months to 28 May 2026 (Q3 FY2026 10-Q, segment note) + fiscal Q4 to 3 Sep 2026 (FY2026 earnings release). pct = unit revenue / reported total revenue of $133,188m. 'All Other' ($24m, 0.02%) is not shown. The four units plus All Other equal reported total revenue; the segment note has no line for sales between units.",
+      "basis": "The company's four reportable business units (segment note, Note 20 of the FY2026 annual report). pct = unit revenue / reported total revenue of $133,188m. 'All Other' ($24m, 0.02%) is not shown. The segment table has no line for sales between units: the four units plus All Other equal reported total revenue.",
       "segments": [
         {
           "name": "Cloud Memory Business Unit (CMBU)",
           "pct": 32.3,
           "plain": "Memory for the largest cloud companies' servers, plus all of Micron's HBM (stacked memory placed beside AI processors) for every data-centre customer; also standard, low-power and graphics DRAM for those servers.",
           "src": [
-            "s2",
-            "s3",
-            "s1"
+            "s12"
           ]
         },
         {
           "name": "Core Data Center Business Unit (CDBU)",
           "pct": 28.2,
-          "plain": "Server memory for smaller cloud firms, businesses and server makers, plus SSDs (chip-based storage drives) and NAND flash chips for all data-centre customers.",
+          "plain": "Server memory for server makers, businesses and AI-focused cloud firms other than the largest cloud companies, plus SSDs (chip-based storage drives) and NAND flash chips for all data-centre customers.",
           "src": [
-            "s2",
-            "s3",
-            "s1"
+            "s12"
           ]
         },
         {
@@ -3853,82 +3811,67 @@
           "pct": 27.5,
           "plain": "Memory and storage chips for smartphones, laptops and desktop PCs, plus Crucial-brand memory and SSDs sold to consumers, which Micron said it would stop shipping after February 2026.",
           "src": [
-            "s2",
-            "s3",
-            "s1",
+            "s12",
             "s4"
           ]
         },
         {
           "name": "Automotive and Embedded Business Unit (AEBU)",
           "pct": 11.9,
-          "plain": "Memory and storage for cars (infotainment screens, driver-assistance systems), factory and industrial equipment, and consumer devices such as set-top boxes and cameras, including NOR flash for start-up code.",
+          "plain": "Memory and storage for cars (infotainment screens, driver-assistance systems), factory and industrial equipment, and consumer devices such as cameras, TVs, home assistants and smart glasses, including NOR flash for start-up code.",
           "src": [
-            "s2",
-            "s3",
-            "s1"
+            "s12"
           ]
         }
       ],
       "src": [
-        "s2",
-        "s3"
+        "s12"
       ]
     },
     "geography": {
-      "period": "FY2025 (year to 28 Aug 2025); the FY2026 split is not yet published",
-      "basis": "By location of the customer's headquarters, not by shipping destination. About 80% of FY2025 revenue was shipped to customer locations outside the US. Total FY2025 revenue $37,378m.",
+      "period": "FY2026 (53 weeks to 3 Sep 2026)",
+      "basis": "By location of the customer's headquarters, not by shipping destination. About 70% of FY2026 revenue was from products shipped to customer locations outside the US. Total FY2026 revenue $133,188m.",
       "regions": [
         {
           "name": "United States",
-          "pct": 64.5
+          "pct": 68.6
         },
         {
           "name": "Taiwan",
-          "pct": 15.2
+          "pct": 12.7
         },
         {
           "name": "Mainland China (excluding Hong Kong)",
-          "pct": 7.1
-        },
-        {
-          "name": "Other Asia Pacific",
-          "pct": 5.1
+          "pct": 6.3
         },
         {
           "name": "Hong Kong",
-          "pct": 3.0
+          "pct": 4.7
+        },
+        {
+          "name": "Other Asia Pacific",
+          "pct": 4.3
         },
         {
           "name": "Japan",
-          "pct": 2.4
+          "pct": 1.6
         },
         {
           "name": "Europe",
-          "pct": 1.7
+          "pct": 1.3
         },
         {
           "name": "Other",
-          "pct": 1.0
+          "pct": 0.5
         }
       ],
       "src": [
-        "s1"
+        "s12"
       ]
     },
     "customers": {
-      "summary": "Top ten customers were over half of FY2025 revenue; one unnamed customer was 17% of FY2025 revenue and one was 10% of the first nine months of FY2026, mainly in Cloud Memory. Micron does not name its largest customers.",
+      "summary": "Over half of FY2026 revenue came from the top ten customers, and about 60% from the data-centre market. No customer reached 10% of FY2026 revenue (one was 17% in FY2025). The annual report names no customers.",
       "named": [
-        {
-          "who": "Largest customer (unnamed)",
-          "what": "Buys mainly from the Cloud Memory unit (memory for hyperscale cloud servers and HBM). In the first nine months of FY2026 one customer (not stated to be the same) was 10% of revenue.",
-          "share": "17% of FY2025 revenue",
-          "status": "disclosed",
-          "src": [
-            "s1",
-            "s2"
-          ]
-        },
         {
           "who": "Ford Motor Company",
           "what": "Long-term Strategic Customer Agreement (multi-year supply contract) announced 6 Jul 2026 for memory and storage used in Ford's next-generation vehicle production.",
@@ -3968,8 +3911,7 @@
         }
       ],
       "src": [
-        "s1",
-        "s2",
+        "s12",
         "s5",
         "s6",
         "s7",
@@ -3978,7 +3920,7 @@
       ]
     },
     "competitors": {
-      "basis": "named in its FY2025 annual report (list repeated unchanged in the Q3 FY2026 10-Q); the filing does not assign competitors to business units",
+      "basis": "named in its FY2026 annual report; the filing does not assign competitors to business units",
       "named": [
         {
           "who": "Samsung Electronics",
@@ -4006,8 +3948,7 @@
         }
       ],
       "src": [
-        "s1",
-        "s2"
+        "s12"
       ]
     },
     "changes": [
@@ -4057,13 +3998,6 @@
       }
     ],
     "sources": [
-      {
-        "id": "s1",
-        "title": "Micron Technology, Inc. Form 10-K for the fiscal year ended August 28, 2025",
-        "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312525000028/mu-20250828.htm",
-        "date": "2025-10-03",
-        "kind": "primary"
-      },
       {
         "id": "s2",
         "title": "Micron Technology, Inc. Form 10-Q for the quarterly period ended May 28, 2026",
@@ -4133,11 +4067,18 @@
         "url": "https://finance.yahoo.com/sectors/technology/articles/nvidia-certifies-samsung-sk-hynix-133001560.html",
         "date": "2026-06-05",
         "kind": "secondary"
+      },
+      {
+        "id": "s12",
+        "title": "Micron Technology, Inc. Form 10-K for the fiscal year ended September 3, 2026",
+        "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000023/mu-20260903.htm",
+        "date": "2026-10-09",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 38 claims — 35 C / 0 W / 3 O (checker's tally); re-verified in-session against the Q3 10-Q, the FY2026 release and the Investing.com report: basis reworded (the segment table has no elimination line), the largest-customer entry relabelled to its FY2025 share, NVIDIA changed to reported (Huang, 5 Jun 2026). The FY2026 10-K was not filed on 2026-10-05: the revenue mix is FY2026 built from the Q3 10-Q plus the Q4 release; geography and concentration stay FY2025 — refresh all three from the FY2026 10-K. The PSMC fab purchase and GlobalWafers deal left out as capacity"
+    "last_changed": "2026-10-10",
+    "last_checked": "2026-10-10",
+    "check": "FY2026 10-K update 2026-10-10: writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context); the checker confirmed every claim and recomputed the revenue mix and geography from the 10-K (Notes 20 and 22), with no wrong, overstated, unsourced or missing item. Session spot-check of the same tables against the filing. Judgement calls kept: the GM, Ford and auto-supplier agreements stay in changes as new named customers (no earlier Micron release names them); the Oct 5 Netlist settlement and licence stay out as litigation."
   },
   "000660.KS": {
     "name": "SK hynix Inc.",
