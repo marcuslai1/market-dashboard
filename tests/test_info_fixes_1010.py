@@ -75,5 +75,5 @@ def test_terminology_defines_the_new_readings():
     text = " ".join(str(s) for s in SECTIONS)
     assert "usual by this time of day" in text
     assert "“est.” means Yahoo itself marks the date as an estimate" in text
-    assert "market roundups fill a slot only when nothing else is there" in text
+    assert "headlines about the company are chosen over market roundups" in text
     assert INFO_FIXES_SINCE == "2026-10-12"

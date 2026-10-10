@@ -518,10 +518,11 @@ SECTIONS = [
         "body": _grid([
             ("Recent news",
              "Up to three recent headlines Yahoo Finance links to the name, shown newest first, "
-             "each with its publisher, date and a link when one was carried. Headlines about "
-             "the company come first; market roundups fill a slot only when nothing else is "
-             "there; template pieces (stock-comparison and daily price-recap articles, "
-             "market-research releases) are left out. In reports from 2026-10-02 on. A name "
+             "each with its publisher, date and a link when one was carried. When more than "
+             "three qualify, headlines about the company are chosen over market roundups, which "
+             "fill a slot only when nothing else is there; template pieces (stock-comparison and "
+             "daily price-recap articles, market-research releases) are left out. In reports "
+             "from 2026-10-02 on. A name "
              "with no headline that day — most often a Singapore, Korea or European listing — "
              "shows none, and the list is left out."),
             ("Thesis highlights",
