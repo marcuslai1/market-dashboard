@@ -194,14 +194,23 @@ def _technicals_html(d: dict) -> str:
     trend = "rising" if rising is True else "not rising" if rising is False else "—"
     days_above = d.get("days_above_sma50")
     vol_ratio = d.get("vol_ratio")
+    # A market still trading when the report ran (SGX / KRX at 12:05 SGT,
+    # MarketReport 2026-10-10): the ratio is against the usual volume at the
+    # same time of day, or withheld.
+    vol_basis = d.get("vol_basis")
+    if vol_basis == "same_time_of_day" and vol_ratio is not None:
+        vol_text = f"{_fmt_num(vol_ratio, 2)}× usual by this time of day"
+    elif vol_basis == "session_open" or vol_ratio is None:
+        vol_text = "— (market still open)" if vol_basis == "session_open" else "—"
+    else:
+        vol_text = f"{_fmt_num(vol_ratio, 2)}× 10-session avg"
     rsi = d.get("rsi_14")
     pairs = _pairs_html([
         ("RSI (14-session)", _fmt_num(rsi, 0) if rsi is not None else "—"),
         ("vs 50-day", _pct(d.get("vs_sma50_pct"))),
         ("50-day average", trend),
         ("Sessions above 50-day", str(days_above) if days_above is not None else "—"),
-        ("Volume", f"{_fmt_num(vol_ratio, 2)}× 10-session avg"
-         if vol_ratio is not None else "—"),
+        ("Volume", vol_text),
         ("5-day return", _pct(d.get("5d_pct"))),
         ("1-month return", _pct(d.get("1mo_pct"))),
         ("vs cluster · day", _pct(d.get("vs_cluster_chg_pct"), 2)),

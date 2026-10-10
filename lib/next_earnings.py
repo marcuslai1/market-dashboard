@@ -31,6 +31,12 @@ class NextEarnings(NamedTuple):
     when: date | None
     days_until: int | None
     status: str
+    #: Yahoo itself marks the date an estimate: the company has not announced it
+    #: (``next_earnings.date_estimated``, MarketReport 2026-10-10).
+    estimated: bool = False
+    #: The date comes from the company's own notice, not Yahoo
+    #: (``next_earnings.date_source == "confirmed"``, MarketReport 2026-10-10).
+    confirmed: bool = False
 
 
 def _parse_date(v) -> date | None:
@@ -64,7 +70,9 @@ def next_earnings(d: dict, report_date: str | None) -> NextEarnings | None:
         if when is None and days is None:
             return None
         return NextEarnings(when, days,
-                            _status_for(days, ne.get("status") == "released_overnight"))
+                            _status_for(days, ne.get("status") == "released_overnight"),
+                            estimated=ne.get("date_estimated") is True,
+                            confirmed=ne.get("date_source") == "confirmed")
 
     band = d.get("pre_earnings_band") or {}
     gates = d.get("accumulate_gates") or {}
@@ -92,9 +100,13 @@ def short_date(when: date | None) -> str:
 
 def days_phrase(ne: NextEarnings) -> str:
     """The second line of the Earnings cell: ``in 47 d`` / ``today`` /
-    ``reported`` / ``no calendar``."""
+    ``reported`` / ``no calendar``; ``est. · in 19 d`` when the date is Yahoo's
+    estimate."""
     if ne.status == UNAVAILABLE:
         return "no calendar"
     if ne.status in (REPORTED, TODAY):
         return ne.status
-    return f"in {ne.days_until} d" if ne.days_until is not None else ""
+    if ne.days_until is None:
+        return ""
+    # Yahoo's own estimate, said where the date is read (no colour: a fact).
+    return f"est. · in {ne.days_until} d" if ne.estimated else f"in {ne.days_until} d"

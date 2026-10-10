@@ -148,6 +148,12 @@ def _earnings_body_html(d: dict, price_fn, earnings_hist, report_date=None) -> s
     if ne is not None:
         when = "not available — the earnings calendar could not be read" \
             if ne.when is None else f"{short_date(ne.when)} {ne.when.year} · {days_phrase(ne)}"
+        # Whose date it is (MarketReport 2026-10-10): Yahoo's own estimate, or
+        # the company's notice. Plain words, no colour.
+        if ne.when is not None and ne.estimated:
+            when += " — Yahoo's estimate; the company has not announced the date"
+        elif ne.when is not None and ne.confirmed:
+            when += " — date confirmed by the company"
         parts.append(f'<div class="dd-line"><strong>Next report.</strong> {when}</div>')
     band = d.get("pre_earnings_band") or {}
     if band:

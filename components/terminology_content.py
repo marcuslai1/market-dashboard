@@ -30,6 +30,11 @@ from __future__ import annotations
 
 #: The day this site stopped rendering signal labels, for every report date.
 SITE_FACTS_ONLY_SINCE = "2026-10-01"
+#: First report with the 2026-10-10 information fixes (MarketReport PIPELINE_FEATURES
+#: §127): Yahoo's estimated earnings dates marked, the company's confirmed dates,
+#: open-market volume against the same time of day, the new headline choice. The
+#: first run after the merge — move it if the merge lands later.
+INFO_FIXES_SINCE = "2026-10-12"
 #: The day the pipeline's evaluation log started taking rows (its scoring record).
 EVAL_LOG_FROM = "2026-04-01"
 
@@ -293,7 +298,12 @@ SECTIONS = [
              "session's own 50-day average."),
             ("Volume",
              "The latest session's volume divided by the average of the last ten sessions "
-             "(the latest included). 1.40× means 40% above that average."),
+             "(the latest included). 1.40× means 40% above that average. A Singapore or "
+             "Korea listing is still trading when the morning report runs, so its volume so "
+             "far is compared with its usual volume at the same time of day: the middle "
+             "(median) of the report's own reading over its last ten runs, shown as "
+             "“usual by this time of day”. With fewer than five such readings no ratio is "
+             "shown."),
             ("5-day · 1-month",
              "Price change against the close 5 and 21 sessions earlier."),
             ("vs cluster",
@@ -308,6 +318,10 @@ SECTIONS = [
              "drill-down says so in a Data freshness chip.</p>"),
         ],
         "history": [
+            (INFO_FIXES_SINCE, "volume on a market still open",
+             "<p>Until this date a Singapore or Korea listing's volume so far was divided by "
+             "the average of whole sessions, so an ordinary morning read about half of "
+             "normal: UOB showed 0.33× on 7 Oct, a normal day once the session closed.</p>"),
             (SITE_FACTS_ONLY_SINCE, "definitions corrected",
              "<p>This page said the volume ratio used a 20-day average and that “rising” "
              "compared the 50-day average with five sessions earlier at a 0.3% margin. The "
@@ -443,9 +457,11 @@ SECTIONS = [
         "body": (
             _grid([
                 ("Next report",
-                 "From the Yahoo earnings calendar. “reported” means the result came out "
-                 "after the last US close; “no calendar” means the calendar could not be read, "
-                 "which is not the same as no date."),
+                 "From the Yahoo earnings calendar. “est.” means Yahoo itself marks the date as "
+                 "an estimate: the company has not announced it. Where the company has announced "
+                 "a date and Yahoo's differs, the company's date is shown and the drawer says so. "
+                 "“reported” means the result came out after the last US close; “no calendar” "
+                 "means the calendar could not be read, which is not the same as no date."),
                 ("Days",
                  "Calendar days from the report date to the earnings date."),
             ], label_w="150px")
@@ -477,6 +493,10 @@ SECTIONS = [
              "name's own past earnings-day moves, projected onto today's price.</p>"),
         ],
         "history": [
+            (INFO_FIXES_SINCE, "estimated and confirmed dates",
+             "<p>Until this date Yahoo's estimated dates looked like announced ones, and a "
+             "date Yahoo had wrong stayed wrong: Samsung's third-quarter results showed 28 Oct "
+             "against the company's 29 Oct.</p>"),
             (SITE_FACTS_ONLY_SINCE, "setup archetypes removed",
              "<p>The band used to carry a setup tag — “priced for perfection”, “low bar” or "
              "“neutral” — read off the 50-day distance and RSI. It was an interpretation, not "
@@ -497,10 +517,13 @@ SECTIONS = [
         ),
         "body": _grid([
             ("Recent news",
-             "Up to three recent headlines from Yahoo Finance's news feed for the name, newest "
-             "first, each with its publisher, date and a link when the feed carried one. In "
-             "reports from 2026-10-02 on. A name with no headline that day — most often a "
-             "Singapore, Korea or European listing — shows none, and the list is left out."),
+             "Up to three recent headlines Yahoo Finance links to the name, shown newest first, "
+             "each with its publisher, date and a link when one was carried. Headlines about "
+             "the company come first; market roundups fill a slot only when nothing else is "
+             "there; template pieces (stock-comparison and daily price-recap articles, "
+             "market-research releases) are left out. In reports from 2026-10-02 on. A name "
+             "with no headline that day — most often a Singapore, Korea or European listing — "
+             "shows none, and the list is left out."),
             ("Thesis highlights",
              "Notes from the project's tracked thesis for the name that matched that "
              "day's news."),
@@ -512,7 +535,13 @@ SECTIONS = [
              "Earnings drawer)."),
         ], label_w="150px"),
         "drawers": [],
-        "history": [],
+        "history": [
+            (INFO_FIXES_SINCE, "how the three are chosen",
+             "<p>Until this date the three were the newest that passed the filters, so a "
+             "market roundup could take a company's slot: on 9 Oct, the day after Samsung's "
+             "record third-quarter profit, its three were a tablet launch, an analyst's "
+             "comment on a possible Elon Musk phone and a “Stocks to Watch” list.</p>"),
+        ],
     },
     # 8 ─────────────────────────────────────────────────────────────────────
     {

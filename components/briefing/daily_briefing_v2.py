@@ -64,6 +64,14 @@ def _signed(v, nd: int = 2, unit: str = "%") -> str:
     return f"{sign}{abs(v):.{nd}f}{unit}"
 
 
+
+def _vol(n: dict) -> str:
+    """The mover's volume ratio. On a market still trading when the report ran
+    (SGX / KRX at 12:05 SGT, MarketReport 2026-10-10) it is against the usual
+    volume at that time of day, so it reads "so far"."""
+    v = f'{n["vol_ratio"]:.2f}×'
+    return f"{v} usual so far" if n.get("vol_basis") == "same_time_of_day" else v
+
 def _x(v) -> str:
     v = _num(v)
     return "" if v is None else f"{v:.1f}×"
@@ -214,7 +222,7 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
             n = mv.get(it["key"]) or {}
             size = _txt(it["size_note"]) if it.get("size_note") else (
                 f'{_x(n.get("x_usual"))} usual' if n.get("x_usual") is not None else "")
-            vol = f' · vol {n["vol_ratio"]:.2f}×' if _num(n.get("vol_ratio")) is not None else ""
+            vol = f' · vol {_vol(n)}' if _num(n.get("vol_ratio")) is not None else ""
             none = it.get("why_state") == "none_found"
             why = (f'<td class="bf-why{" bf-none" if none else ""}">{_txt(it.get("why"))} '
                    f'{_chips(it.get("src"), sources)}</td>')
@@ -229,7 +237,7 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
     if also:
         bits = " · ".join(
             f'{_txt(a.get("name") or a.get("key"))} {_signed(a.get("chg_pct"))} ({_x(a.get("x_usual"))}'
-            + (f', vol {a["vol_ratio"]:.2f}×' if _num(a.get("vol_ratio")) is not None else "") + ")"
+            + (f', vol {_vol(a)}' if _num(a.get("vol_ratio")) is not None else "") + ")"
             for a in also)
         table += f'<p class="bf-also"><b>Also moved, not looked up:</b> {bits}</p>'
     return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
