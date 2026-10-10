@@ -179,7 +179,7 @@ def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     assert "Nvidia earnings" in later and "AMD" not in soon
     assert "<details" not in far                                      # static: visible without a click
     assert '<b data-kind="earnings">ASML earnings</b>' in far and '<b data-kind="macro">FOMC Rate Decision</b>' in far
-    assert "some are its estimates" in far
+    assert "Yahoo itself calls an estimate" in far and "an unmarked one can still move" in far
     none = _v2()
     none["latest"]["numbers"].pop("further_out")
     assert "Upcoming events" not in briefing_card_html(none, "2026-09-28")   # older records: section absent

@@ -75,5 +75,23 @@ def test_terminology_defines_the_new_readings():
     text = " ".join(str(s) for s in SECTIONS)
     assert "usual by this time of day" in text
     assert "“est.” means Yahoo itself marks the date as an estimate" in text
-    assert "headlines about the company are chosen over market roundups" in text
+    assert "headlines that lead with the company are picked first" in text
     assert INFO_FIXES_SINCE == "2026-10-12"
+
+
+def test_definitions_claim_only_what_the_pipeline_does():
+    """2026-10-10 (b) audit: the Recent news entry said template pieces "are left out"
+    (only known title patterns are), Next report said the company's date is shown
+    wherever Yahoo's differs (only where the project recorded it), and the card's
+    source note said every date past 14 days is Yahoo's (a confirmed one is not)."""
+    from components.briefing.daily_briefing_v2 import _further
+    from components.terminology_content import SECTIONS
+    text = " ".join(str(s) for s in SECTIONS)
+    assert "A piece worded differently can still appear" in text
+    assert "are left out. In reports" not in text
+    assert "For a report in the next 60 days, when the project has recorded the date from the company" in text
+    html = _further({"further_out": [{"date": "2026-10-29", "kind": "earnings", "key": "005930_KS",
+                                      "what": "Samsung Electronics (date confirmed)", "later": False}]})
+    assert "Samsung Electronics (date confirmed) earnings" in html
+    assert "marks a date the project took from the company" in html
+    assert "come from Yahoo Finance's calendar; some are its estimates" not in html

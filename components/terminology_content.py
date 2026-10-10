@@ -458,8 +458,10 @@ SECTIONS = [
             _grid([
                 ("Next report",
                  "From the Yahoo earnings calendar. “est.” means Yahoo itself marks the date as "
-                 "an estimate: the company has not announced it. Where the company has announced "
-                 "a date and Yahoo's differs, the company's date is shown and the drawer says so. "
+                 "an estimate: it has not seen the company announce one. For a report in the next "
+                 "60 days, when the project has recorded the date from the company's own "
+                 "announcement, that date is shown instead of Yahoo's and the drawer says “date "
+                 "confirmed by the company”. "
                  "“reported” means the result came out after the last US close; “no calendar” "
                  "means the calendar could not be read, which is not the same as no date."),
                 ("Days",
@@ -519,10 +521,11 @@ SECTIONS = [
             ("Recent news",
              "Up to three recent headlines Yahoo Finance links to the name, shown newest first, "
              "each with its publisher, date and a link when one was carried. When more than "
-             "three qualify, headlines about the company are chosen over market roundups, which "
-             "fill a slot only when nothing else is there; template pieces (stock-comparison and "
-             "daily price-recap articles, market-research releases) are left out. In reports "
-             "from 2026-10-02 on. A name "
+             "three qualify, headlines that lead with the company are picked first and market "
+             "roundups last, so a roundup appears only when nothing else is left. Common "
+             "template pieces are dropped when the title follows a known pattern: "
+             "stock-versus-stock comparisons, daily price recaps and market-research releases. "
+             "A piece worded differently can still appear. In reports from 2026-10-02 on. A name "
              "with no headline that day — most often a Singapore, Korea or European listing — "
              "shows none, and the list is left out."),
             ("Thesis highlights",

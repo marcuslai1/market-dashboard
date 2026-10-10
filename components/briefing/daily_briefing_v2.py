@@ -477,8 +477,10 @@ def _further(nums: dict) -> str:
                  'Earnings dates this far out are often estimates and may move.</p>'
                  f'{_far_list(later)}</div>')
     return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
-                prov="Earnings dates past 14 days come from Yahoo Finance's calendar; some are its estimates, "
-                     "not dates the company has announced; they are the exchange's local date. Macro: "
+                prov="Earnings dates past 14 days are the exchange's local date. Most come from Yahoo "
+                     "Finance's calendar: “estimated date” marks one Yahoo itself calls an estimate, and an "
+                     "unmarked one can still move. “date confirmed” marks a date the project took from the "
+                     "company's own announcement. Macro: "
                      "high-impact releases only, dated in New York time, so a Singapore-morning release "
                      "(MAS) shows the day before. Conferences: the pipeline's tech-events list. Not held: "
                      "results from a company off the watchlist that move names on it (looked up 21 days "
