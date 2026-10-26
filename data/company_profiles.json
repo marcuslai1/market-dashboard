@@ -6,18 +6,7 @@
     "aliases": {
       "SKHY": "000660.KS"
     },
-    "flags": {
-      "AVGO": {
-        "date": "2026-10-19",
-        "what": "New way of selling: the AI XPV platform (launched June 2026, $35B initial tranche led by a financial partner) with a Broadcom backstop of a customer's lease obligations (~$29B maximum) and up to $42B of customer convertible notes, disclosed in the 10-Q for the quarter ended Aug 2, 2026",
-        "url": "https://www.sec.gov/Archives/edgar/data/1730168/000173016826000080/avgo-20260802.htm"
-      },
-      "TSEM": {
-        "date": "2026-10-19",
-        "what": "Semtech named as a customer: expanded multi-year agreement under which Semtech invests in dedicated SiGe capacity at Tower's US, Israel and Japan fabs (6-K Oct 13, 2026; no value or term) — capacity rule may keep it out of changes, but customers may list it",
-        "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326004752/zk2636221.htm"
-      }
-    }
+    "flags": {}
   },
   "SOI.PA": {
     "name": "Soitec",
@@ -511,6 +500,15 @@
           ]
         },
         {
+          "who": "Semtech",
+          "what": "Customer for 20 years; its amplifier and driver chips for optical and copper data links in AI data centres are made on Tower's SiGe (silicon germanium — a fast, low-noise chip process for high-speed signals) process. In October 2026 a multi-year agreement was expanded so that Semtech will invest in securing dedicated SiGe capacity at Tower's US, Israel and Japan fabs (no value or term disclosed)",
+          "share": null,
+          "status": "disclosed",
+          "src": [
+            "s11"
+          ]
+        },
+        {
           "who": "NewPhotonics",
           "what": "Fabless chip designer; Tower began high-volume shipments of its laser-integrated optical-engine chips for AI data links in September 2026",
           "share": null,
@@ -542,7 +540,8 @@
         "s1",
         "s7",
         "s9",
-        "s10"
+        "s10",
+        "s11"
       ]
     },
     "competitors": {
@@ -602,7 +601,7 @@
       },
       {
         "date": "2026-04-27",
-        "what": "Began making radar beamforming chips (chips that steer a radar beam electronically) for Axiro Semiconductor, a designer of radar chips for US defense, in its US fabs; ramping to volume production.",
+        "what": "Named Axiro Semiconductor, a designer of radar chips for US defense, as a customer: Tower makes its radar beamforming chips (chips that steer a radar beam electronically) in its US fabs, ramping to volume production.",
         "src": [
           "s10"
         ]
@@ -672,11 +671,18 @@
         "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326002220/zk2635136.htm",
         "date": "2026-04-27",
         "kind": "primary"
+      },
+      {
+        "id": "s11",
+        "title": "Tower Semiconductor and Semtech Expand SiGe Partnership to Scale Power-Efficient Analog Connectivity for Data Centers (Form 6-K)",
+        "url": "https://www.sec.gov/Archives/edgar/data/928876/000117891326004752/zk2636221.htm",
+        "date": "2026-10-13",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-10",
-    "last_checked": "2026-10-10",
-    "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 35 claims — 33 C / 0 W / 0 O / 1 MISSING + 1 wording flag (checker's tally); re-verified in-session: wafer sizes explained; GlobalFoundries' March 2026 patent suits left out (litigation is not a business change); RF infrastructure kept at 26.9% (computed from the disclosed US$421M; the company rounds to 27%) | Rotation 2026-10-10, checker Opus 5.5 (fresh context): revenue mix (Q4 2025 call shares) and geography (20-F Note 14A) recompute; customers, competitors and sources confirmed. Corrected under the writer brief's current changes rules (the capacity/lease exclusion was added after this card was written): the Jul 14 Japan capacity expansion and the Feb 11 Intel New Mexico non-performance dropped (capacity deal; capacity arrangement plus dispute); Axiro (first named in Tower's Apr 27 6-K) added as a new named customer. Unused sources removed: s2, s8."
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
+    "check": ""
   },
   "AIXA.DE": {
     "name": "Aixtron SE",
@@ -1524,7 +1530,7 @@
         },
         {
           "who": "Higgsfield",
-          "what": "AI video maker; one of Nebius's first AI cloud customers, with usage up more than 20x since its first contract.",
+          "what": "One of Nebius's first AI cloud customers, with usage up more than 20x since its first contract; in summer 2026 it premiered a 95-minute feature film made entirely with AI on Nebius computing.",
           "share": null,
           "status": "disclosed",
           "src": [
@@ -1591,13 +1597,6 @@
     },
     "changes": [
       {
-        "date": "2026-10-01",
-        "what": "Acquired Inferize, whose software cuts the time large AI models take to start up and scale; its team joined Token Factory, Nebius's service that runs AI models for customers.",
-        "src": [
-          "s7"
-        ]
-      },
-      {
         "date": "2026-09-08",
         "what": "Partnership with Palantir: Palantir named Nebius its preferred sovereign AI infrastructure partner (computing kept under the customer's own control) and, after an integration period, will offer Nebius computing and inference to eligible Palantir commercial customers.",
         "src": [
@@ -1605,9 +1604,10 @@
         ]
       },
       {
-        "date": "2026-08-12",
-        "what": "Named Reflection and Cohere as two of four AI cloud deals signed in Q2 2026 that averaged more than $1 billion each in total contract value.",
+        "date": "2026-07-14",
+        "what": "Signed a deal worth more than $1 billion to supply computing capacity, including NVIDIA's latest chips, to AI startup Reflection. Nebius's Q2 letter (12 Aug 2026) named Reflection and Cohere as two of four AI cloud deals signed in Q2 2026 that averaged more than $1 billion each in total contract value.",
         "src": [
+          "s13",
           "s5"
         ]
       },
@@ -1628,7 +1628,7 @@
       },
       {
         "date": "2026-03-16",
-        "what": "Second Meta agreement: five years, $12 billion of dedicated capacity on NVIDIA Vera Rubin systems from early 2027; Meta must also buy any of up to $15 billion of further capacity that Nebius does not sell to other customers (up to ~$27 billion in total).",
+        "what": "Second Meta agreement: five years, $12 billion of dedicated capacity on NVIDIA Vera Rubin systems (NVIDIA's next-generation AI computers) from early 2027; Meta must also buy any of up to $15 billion of further capacity that Nebius does not sell to other customers (up to ~$27 billion in total).",
         "src": [
           "s4",
           "s8"
@@ -1636,7 +1636,7 @@
       },
       {
         "date": "2026-03-11",
-        "what": "NVIDIA partnership: NVIDIA invested $2.0 billion (pre-funded warrants for ~21.1 million Class A shares), with collaboration aimed at Nebius deploying more than 5 GW of NVIDIA systems by end-2030.",
+        "what": "NVIDIA partnership: NVIDIA invested $2.0 billion (pre-funded warrants, rights to shares that are already paid for, for ~21.1 million Class A shares), with collaboration aimed at Nebius deploying more than 5 GW of NVIDIA systems by end-2030.",
         "src": [
           "s10",
           "s8"
@@ -1644,7 +1644,7 @@
       },
       {
         "date": "2026-02-10",
-        "what": "Agreed to acquire Tavily (real-time web search for AI agents); closed 19 Feb 2026 for $177.3 million cash at closing, plus a holdback paid after two years, replacement staff equity awards and an earn-out of up to $67.3 million tied to revenue milestones.",
+        "what": "Agreed to acquire Tavily (real-time web search for AI agents); closed 19 Feb 2026 for $177.3 million cash at closing, plus a holdback (part of the price kept back) paid after two years, replacement staff equity awards and an earn-out (a further payment if targets are met) of up to $67.3 million tied to revenue milestones.",
         "src": [
           "s11",
           "s1",
@@ -1656,13 +1656,6 @@
         "what": "First Meta agreement: AI infrastructure valued at ~$3 billion over five years.",
         "src": [
           "s3"
-        ]
-      },
-      {
-        "date": "2025-10-22",
-        "what": "Avride, the group's self-driving unit, secured up to $375 million of investment and commitments from Uber and Nebius, with Uber becoming a strategic investor.",
-        "src": [
-          "s12"
         ]
       }
     ],
@@ -1710,13 +1703,6 @@
         "kind": "primary"
       },
       {
-        "id": "s7",
-        "title": "Nebius acquires Inferize to strengthen Nebius Token Factory's production inference stack (Exhibit 99.1)",
-        "url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926112824/tm2626792d1_ex99-1.htm",
-        "date": "2026-10-01",
-        "kind": "primary"
-      },
-      {
         "id": "s8",
         "title": "Nebius Group N.V. Unaudited Condensed Consolidated Financial Statements, quarter ended March 31, 2026 (Exhibit 99.2 to Form 6-K)",
         "url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
@@ -1745,21 +1731,21 @@
         "kind": "primary"
       },
       {
-        "id": "s12",
-        "title": "Avride secures strategic investment and other commitments of up to $375 million, backed by Uber and Nebius (Exhibit 99.1)",
-        "url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465925101520/tm2529289d1_ex99-1.htm",
-        "date": "2025-10-22",
-        "kind": "primary"
+        "id": "s13",
+        "title": "AI startup Reflection signs over $1 billion computing deal with Nebius (Reuters via Investing.com)",
+        "url": "https://www.investing.com/news/stock-market-news/ai-startup-reflection-signs-over-1-billion-computing-deal-with-nebius-4790506",
+        "date": "2026-07-14",
+        "kind": "secondary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 38 claims — 34 C / 0 W / 2 O / 2 MISSING (session's count of the checker's table); all re-verified in-session against the 20-F and Q1 2026 statements: Meta's $15B restated as a backstop for unsold capacity, Tavily's holdback and earn-out added; Prima Mente and Avride's Uber partners not added (5-name cap; Uber named as partner and investor)"
   },
   "NVTS": {
     "name": "Navitas Semiconductor",
     "listing": "Nasdaq · USD",
-    "what_they_do": "Navitas designs power chips: the switches inside power converters that change electricity from one voltage to another. They are made from gallium nitride (GaN) and silicon carbide (SiC), materials that waste less energy and handle higher voltages than ordinary silicon. TSMC makes its GaN chips (GlobalFoundries is due to start in late 2026) and X-Fab its SiC chips. Most sales were once phone fast chargers; by mid-2026 it had largely left mobile to target AI data-center power, grid equipment, high-end computer chargers and industrial machines.",
+    "what_they_do": "Navitas designs power chips: the switches in power converters that change one voltage to another. They are made from gallium nitride (GaN) and silicon carbide (SiC), which waste less energy and handle higher voltages than ordinary silicon. TSMC makes its GaN chips (GlobalFoundries from late 2026) and X-Fab its SiC chips. Until late 2025 most sales came from phone and other consumer chargers; it now targets AI data-center power, grid equipment, high-end computer chargers and industrial machines. Since October 2026 it also owns Claros (power converters inside AI processor packages).",
     "revenue_mix": {
       "period": "FY2025 (12 months to 31 Dec 2025)",
       "total": "US$45.9 million (US$45,916 thousand)",
@@ -1812,7 +1798,7 @@
       ]
     },
     "customers": {
-      "summary": "Sold mainly through electronics distributors. Two unnamed distributors were 46% and 11% of FY2025 revenue; one was 69% in H1 2026. Navitas does not name them or its end customers.",
+      "summary": "Sold mainly through electronics distributors. Two unnamed distributors were 46% and 11% of FY2025 revenue; a single distributor was 69% in H1 2026. Navitas does not name them or its end customers.",
       "named": [
         {
           "who": "Unnamed distributor B",
@@ -1923,9 +1909,11 @@
       },
       {
         "date": "2026-08-24",
-        "what": "Agreed to acquire Claros, Inc., founded in 2024, which develops vertical power delivery and integrated voltage regulators (power converters placed directly beneath or inside an AI processor's package). Price: up to about US$232.8 million, made up of US$126.4 million cash, about 6.9 million shares (US$89.7 million) and US$16.7 million tied to milestones. The company expects closing before year-end, subject to regulatory approvals.",
+        "what": "Agreed to acquire Claros, Inc., founded in 2024, which develops vertical power delivery and integrated voltage regulators (power converters placed directly beneath or inside an AI processor's package). Price: up to about US$232.8 million, made up of US$126.4 million cash, about 6.9 million shares (US$89.7 million) and US$16.7 million tied to milestones. The deal closed on 6 Oct 2026.",
         "src": [
-          "s8"
+          "s8",
+          "s11",
+          "s12"
         ]
       },
       {
@@ -1943,11 +1931,11 @@
         ]
       },
       {
-        "date": "2025-12-11",
-        "what": "Made Avnet a global distribution partner as part of consolidating its franchised distributors.",
+        "date": "2025-12-08",
+        "what": "Signed a long-term partnership with Cyient Semiconductors to co-develop GaN products for India. Under it, Cyient licenses Navitas's GaN technology for use in India and serves as a second source for some Navitas GaN chips already in mass production (May 2026).",
         "src": [
-          "s5",
-          "s6"
+          "s13",
+          "s14"
         ]
       },
       {
@@ -2006,10 +1994,10 @@
       },
       {
         "id": "s5",
-        "title": "Navitas Semiconductor Expands Global Distribution Network with Avnet (Navitas press release, via MarketScreener)",
+        "title": "Navitas Semiconductor Expands Global Distribution Network with Avnet (S&P Capital IQ summary, via MarketScreener)",
         "url": "https://www.marketscreener.com/news/navitas-semiconductor-expands-global-distribution-network-with-avnet-ce7d50d8dc81f725",
         "date": "2025-12-11",
-        "kind": "primary"
+        "kind": "secondary"
       },
       {
         "id": "s6",
@@ -2045,10 +2033,38 @@
         "url": "https://www.sec.gov/Archives/edgar/data/1821769/000162828026049795/exhibit991-navitassemicond.htm",
         "date": "2026-07-27",
         "kind": "primary"
+      },
+      {
+        "id": "s11",
+        "title": "Navitas Semiconductor Corp Form 8-K (Item 1.01, Agreement and Plan of Merger with Claros, Inc.)",
+        "url": "https://www.sec.gov/Archives/edgar/data/1821769/000110465926100478/tm2623854d1_8k.htm",
+        "date": "2026-08-25",
+        "kind": "primary"
+      },
+      {
+        "id": "s12",
+        "title": "Navitas Semiconductor Corp Form 8-K (Item 8.01, closing of the Claros acquisition)",
+        "url": "https://www.sec.gov/Archives/edgar/data/1821769/000110465926114051/tm2626897d3_8k.htm",
+        "date": "2026-10-06",
+        "kind": "primary"
+      },
+      {
+        "id": "s13",
+        "title": "Navitas, Cyient Semiconductors enter into a strategic partnership to accelerate GaN adoption in India's AI, Mobility, Industrial, and Energy Markets (press release, via Yahoo Finance)",
+        "url": "https://finance.yahoo.com/news/navitas-cyient-semiconductors-enter-strategic-140000467.html",
+        "date": "2025-12-08",
+        "kind": "primary"
+      },
+      {
+        "id": "s14",
+        "title": "Cyient Semiconductors Launches India's First GaN Power IC Family Leveraging Navitas Technology (press release, via Yahoo Finance)",
+        "url": "https://finance.yahoo.com/sectors/technology/articles/cyient-semiconductors-launches-indias-first-132900888.html",
+        "date": "2026-05-11",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 31 claims — 24 C / 0 W / 1 O / 1 UNSOURCED / 5 MISSING (session's count of the checker's table); all re-verified in-session against the 10-K, Q2 10-Q and Q2 release: fab roles corrected (GlobalFoundries not yet producing), H1 2026 distributor share added, unsourced voltage list replaced by the 10-Q's wording, mobile exit added; Wolfspeed and Renesas lawsuits left out as litigation, the US Army 10 kV award as a development (research) contract"
   },
   "WRD": {
@@ -2073,7 +2089,8 @@
           "pct": 29.0,
           "plain": "Paid engineering work: developing driver-assistance software (features that help a human driver steer, brake and park) for carmakers and suppliers such as Bosch, plus data services (which it now reports as AI infrastructure).",
           "src": [
-            "s1"
+            "s1",
+            "s2"
           ]
         },
         {
@@ -2193,31 +2210,11 @@
     },
     "changes": [
       {
-        "date": "2026-09-14",
-        "what": "Its H1 2026 interim report split revenue into L4 business (driverless vehicles and their operating support, RMB179.5m) and other businesses (driver-assistance development and AI data services, RMB166.4m).",
+        "date": "2026-08-12",
+        "what": "Its H1 2026 interim results split revenue into L4 business (driverless vehicles and their operating support, RMB179.5m) and other businesses (driver-assistance development and AI data services, RMB166.4m).",
         "src": [
+          "s7",
           "s2"
-        ]
-      },
-      {
-        "date": "2026-06-22",
-        "what": "Agreed with Geely Farizon and Hong Kong bus operator Kwoon Chung to jointly develop a right-hand-drive robotaxi on its GXR platform (its production-ready robotaxi model); the company says commercial service will start in Hong Kong.",
-        "src": [
-          "s3"
-        ]
-      },
-      {
-        "date": "2026-04-16",
-        "what": "GAC Aion opened pre-sales of the Aion N60, the first mass-produced passenger car jointly developed with WeRide, running its WRD 3.0 driver-assistance software.",
-        "src": [
-          "s4"
-        ]
-      },
-      {
-        "date": "2026-02-06",
-        "what": "Expanded its Uber partnership to deploy at least 1,200 robotaxis across Abu Dhabi, Dubai and Riyadh, bookable on the Uber app; the companies expect completion as soon as 2027.",
-        "src": [
-          "s5"
         ]
       }
     ],
@@ -2237,13 +2234,6 @@
         "kind": "primary"
       },
       {
-        "id": "s3",
-        "title": "WeRide, Geely Farizon and Kwoon Chung Launch Right-Hand-Drive Robotaxi (press release)",
-        "url": "https://ir.weride.ai/news-releases/news-release-details/weride-geely-farizon-and-kwoon-chung-launch-right-hand-drive",
-        "date": "2026-06-22",
-        "kind": "primary"
-      },
-      {
         "id": "s4",
         "title": "WeRide and GAC Debut First Co-Developed Vehicle, Aion N60, Powered by WRD 3.0 (press release)",
         "url": "https://ir.weride.ai/news-releases/news-release-details/weride-and-gac-debut-first-co-developed-vehicle-aion-n60-powered",
@@ -2251,22 +2241,22 @@
         "kind": "primary"
       },
       {
-        "id": "s5",
-        "title": "WeRide and Uber to Deploy 1,200 Robotaxis in the Middle East (press release)",
-        "url": "https://ir.weride.ai/news-releases/news-release-details/weride-and-uber-deploy-1200-robotaxis-middle-east",
-        "date": "2026-02-06",
-        "kind": "primary"
-      },
-      {
         "id": "s6",
         "title": "Robotaxi rankings show Waymo lead, China's rise (Axios, via Yahoo Finance)",
         "url": "https://finance.yahoo.com/technology/ai/articles/robotaxi-rankings-show-waymo-lead-173053586.html",
-        "date": "2026-06-18",
+        "date": "2026-06-17",
         "kind": "secondary"
+      },
+      {
+        "id": "s7",
+        "title": "WeRide Inc. Announcement of Interim Results for the Six Months Ended June 30, 2026 (Form 6-K, Exhibit 99.1)",
+        "url": "https://www.sec.gov/Archives/edgar/data/1867729/000110465926094852/tm2622690d1_ex99-1.htm",
+        "date": "2026-08-12",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": "writer Opus 5.5 + checker Opus 5.5 (same-model, fresh context) 2026-10-05: 41 claims — 32 C / 0 W / 4 O / 1 UNSOURCED / 4 MISSING + 1 wording flag (session's count of the checker's table); all re-verified in-session against the 20-F and H1 2026 interim report: Hong Kong listing added, reporting change re-dated to the interim report and no longer claimed to replace the old split, three 10%+ customers added, Chery and Alliance Ventures lines made exact, bus size and 'custom' dropped, GXR explained; the Hong Kong listing not entered as a change (listing event), the Mercedes-Benz L3 proof-of-concept left out as a pilot, Lenovo left out (secondary only)"
   },
   "NVDA": {
@@ -5257,7 +5247,7 @@
         {
           "name": "Family of Apps",
           "pct": 98.9,
-          "plain": "Ad space in Facebook, Instagram, Messenger, Threads and WhatsApp (US$196.2bn, 97.6% of total revenue), plus WhatsApp business-messaging fees, Meta Verified (paid account-verification) subscriptions, developer payment fees and other sources (US$2.6bn).",
+          "plain": "Ads in Facebook, Instagram, Messenger, Threads, WhatsApp and other companies' apps and websites (US$196.2bn, 97.6% of total revenue), plus WhatsApp business-messaging fees, Meta Verified (paid account-verification) subscriptions, developer payment fees and other sources (US$2.6bn).",
           "src": [
             "s1"
           ]
@@ -5277,7 +5267,7 @@
     },
     "geography": {
       "period": "FY2025 (12 months to 31 Dec 2025)",
-      "basis": "By the address of the customer (10-K Note 2). Europe includes Russia and Turkey. Rest of World is Africa, Latin America and the Middle East. The United States alone was US$74.78bn (37.2%).",
+      "basis": "By the address of the customer (10-K Note 2). Europe includes Russia and Turkey. Rest of World includes Africa, Latin America and the Middle East. The United States alone was US$74.78bn (37.2%).",
       "regions": [
         {
           "name": "United States and Canada",
@@ -5330,10 +5320,10 @@
     "changes": [
       {
         "date": "2026-04-27",
-        "what": "China's National Development and Reform Commission (its state planning agency) prohibited Meta's acquisition of Manus after the deal had closed. On 11 Aug 2026 Manus said it was separating from Meta to comply; buy-back terms were not final as reported.",
+        "what": "China's National Development and Reform Commission (its state planning agency) ordered Meta to unwind its acquisition of Manus after the deal had closed. Meta completed the divestiture of Manus in August 2026.",
         "src": [
           "s4",
-          "s5"
+          "s6"
         ]
       },
       {
@@ -5381,15 +5371,15 @@
         "kind": "secondary"
       },
       {
-        "id": "s5",
-        "title": "Manus returns to independence after China blocks Meta acquisition (Quartz via Yahoo Finance)",
-        "url": "https://finance.yahoo.com/technology/ai/articles/manus-returns-independence-china-blocks-170145849.html",
-        "date": "2026-08-11",
-        "kind": "secondary"
+        "id": "s6",
+        "title": "Meta Platforms, Inc. Form 10-Q for the quarterly period ended September 30, 2026",
+        "url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026066773/meta-20260930.htm",
+        "date": "2026-10-22",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": ""
   },
   "AVGO": {
@@ -5523,7 +5513,7 @@
     "changes": [
       {
         "date": "2026-06-09",
-        "what": "Set up a platform with Apollo and Blackstone in which investors fund AI racks built on Broadcom chips, which AI labs lease. First tranche $35bn for over 1 GW for Anthropic. Broadcom guarantees part of the lessee's 5-year lease payments, capped at about $29bn; the customer may issue Broadcom up to $42bn of convertible notes.",
+        "what": "Set up a platform with Apollo and Blackstone in which investors fund AI racks built on Broadcom chips, which AI labs lease. First tranche $35bn for over 1 GW for Anthropic. Broadcom guarantees part of the lessee's 5-year lease payments, capped at about $29bn. Its September 10-Q adds that the customer may, if needed, issue Broadcom up to $42bn of convertible notes (loans that can turn into shares) to pay those lease obligations.",
         "src": [
           "s5",
           "s2"
@@ -5548,13 +5538,6 @@
         "what": "Named Anthropic as the customer behind a $10 billion order, received in Q3 FY2025, for Google TPU Ironwood racks (complete server racks built around Google's AI chips), and said Anthropic placed a further $11 billion order in Q4 FY2025 for delivery in late 2026.",
         "src": [
           "s10"
-        ]
-      },
-      {
-        "date": "2025-10-13",
-        "what": "Collaboration with OpenAI for 10 GW of OpenAI-designed AI accelerators; term sheet for Broadcom to deploy racks of accelerators and networking from the second half of 2026 to end-2029.",
-        "src": [
-          "s7"
         ]
       }
     ],
@@ -5630,8 +5613,8 @@
         "kind": "secondary"
       }
     ],
-    "last_changed": "2026-10-05",
-    "last_checked": "2026-10-05",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": ""
   },
   "PLTR": {
@@ -6433,7 +6416,7 @@
   "NOK": {
     "name": "Nokia Oyj (Nokia Corporation)",
     "listing": "NYSE (ADS) · USD; Nasdaq Helsinki (NOKIA) · EUR",
-    "what_they_do": "Nokia makes the equipment and software that telecom operators, cloud and AI data-centre builders, utilities and militaries use to run their networks: radio gear and software for mobile-phone masts, fibre-optic systems that carry data as light between cities and data centres, internet routers, home fibre-broadband equipment, and core software that connects calls and manages subscribers. It also licenses its patents on mobile, video and Wi-Fi technology to more than 250 device, car and electronics makers. Telecom operators bought 77.0% of 2025 sales.",
+    "what_they_do": "Nokia makes the equipment and software that telecom operators, cloud and AI data-centre builders, utilities and militaries use to run their networks: radio gear and software for mobile-phone masts, fibre-optic systems that carry data as light between cities and data centres, internet routers, home fibre-broadband equipment, and core software that connects calls and manages subscribers. It also licenses its patents on mobile, video and Wi-Fi technology to more than 250 licensees, including device, car and electronics makers and video-streaming services. Telecom operators bought 77.0% of 2025 sales.",
     "revenue_mix": {
       "period": "FY2025 (12 months to 31 Dec 2025)",
       "total": "EUR 19,889 million",
@@ -6600,8 +6583,16 @@
     },
     "changes": [
       {
+        "date": "2026-10-13",
+        "what": "Signed a definitive agreement to sell its Enterprise Campus Edge business to AURELIUS. The business sells private wireless networks, industrial devices and on-site computing software (it processes data from factory and plant machines on the premises) to nearly 900 customers in manufacturing, mining, logistics, airports, ports and power generation. In 2025 it was part of Cloud and Network Services. Closing is expected in H1 2027, subject to conditions, and Nokia did not disclose a price. Nokia has reported the business as a discontinued operation since Q2 2026. Together with the fixed wireless access CPE business (home and office boxes that receive broadband over the mobile network) sold to Inseego, it had net sales of EUR 212m in Jan–Sep 2026.",
+        "src": [
+          "s9",
+          "s10"
+        ]
+      },
+      {
         "date": "2026-04-30",
-        "what": "Agreed to sell its fixed wireless access CPE business (home and office boxes that receive broadband over the mobile network) to Inseego for 1,163,693 Inseego shares, warrants and assumed liabilities, and agreed to invest USD 10m in cash in Inseego. The deal completed on 1 Oct 2026, leaving Nokia with about 11% of Inseego.",
+        "what": "Agreed to sell its fixed wireless access CPE business (home and office boxes that receive broadband over the mobile network) to Inseego for 1,163,693 Inseego shares, warrants and assumed liabilities, and agreed to invest USD 10m in cash in Inseego. The deal completed on 1 Oct 2026, leaving Nokia with about 11% of Inseego. An amendment of 30 Sep 2026 added a further USD 10m cash payment from Nokia for Inseego's engineering work, and the warrant exercise price was reset to USD 4.26 at closing.",
         "src": [
           "s4",
           "s5",
@@ -6681,10 +6672,24 @@
         "url": "https://www.sec.gov/Archives/edgar/data/924613/000110465925111065/tm2531166d1_6k.htm",
         "date": "2025-11-13",
         "kind": "primary"
+      },
+      {
+        "id": "s9",
+        "title": "Nokia to sell Enterprise Campus Edge business to AURELIUS",
+        "url": "https://www.nokia.com/newsroom/nokia-to-sell-enterprise-campus-edge-business-to-aurelius/",
+        "date": "2026-10-13",
+        "kind": "primary"
+      },
+      {
+        "id": "s10",
+        "title": "Form 6-K: Nokia Corporation Interim Report for Q3 2026",
+        "url": "https://www.sec.gov/Archives/edgar/data/924613/000110465926117972/tm2628115d1_6k.htm",
+        "date": "2026-10-22",
+        "kind": "primary"
       }
     ],
-    "last_changed": "2026-10-06",
-    "last_checked": "2026-10-06",
+    "last_changed": "2026-10-26",
+    "last_checked": "2026-10-26",
     "check": ""
   },
   "BE": {
