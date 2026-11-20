@@ -48,6 +48,10 @@ _KIND_LABEL = {"earnings": "Earnings", "after": "After the data", "move": "Bigge
 _BENCH_LABEL = {"SOXX": "SOXX · semis", "US10Y": "US 10-year", "DXY": "Dollar · DXY",
                 "USDSGD": "US$ vs S$ · USD/SGD", "WTI": "Oil · WTI", "Gold": "Gold"}
 _MINUS = "−"
+# Tiles whose headline is the LEVEL, with the day's change beside it (decimals shown). Owner 2026-11-20: the
+# VIX at 28.44, up 70% in a month, was on the card as "+15.80%"; a change alone does not say whether the level
+# is high. The 10-year yield has always shown its level (`level` / `bp`).
+_LEVEL_TILES = {"VIX": 2, "USDSGD": 4}
 
 
 # ── formatting ───────────────────────────────────────────────────────────────
@@ -181,26 +185,50 @@ def _after(latest: dict, sources: list) -> str:
                 cls="bf-after", kind="after", prov="Not in the US prices below. Later sessions (SGX, KRX) may already include it.")
 
 
-def _tape(latest: dict, nums: dict) -> str:
+def _mark(m) -> str:
+    """"Highest since the 31 Mar report": the level against this site's own stored reports (MarketReport
+    `bench_extreme_facts`, 20 or more earlier reports). A fact about the level; it takes no colour."""
+    if not isinstance(m, dict) or m.get("word") not in ("highest", "lowest"):
+        return ""
+    if m.get("since"):
+        text = f'{m["word"]} since the {_date(m["since"], "%-d %b")} report'
+    elif m.get("basis_from"):
+        text = f'{m["word"]} in {m.get("reports")} reports, back to {_date(m["basis_from"], "%-d %b")}'
+    else:
+        text = f'{m["word"]} in the {m.get("reports")} reports before it'
+    return f'<span class="bf-s bf-mark">{_txt(text[:1].upper() + text[1:])}</span>'
+
+
+def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
     tiles = ""
     for r in nums.get("tape") or []:
         name = r.get("name", "")
+        price = _num(r.get("price"))
         if r.get("level") is not None:
             val = f'{r["level"]:.2f}%<small>{_signed(r.get("bp"), 0, "bp")}</small>'
+        elif name in _LEVEL_TILES and price is not None:
+            val = f'{price:.{_LEVEL_TILES[name]}f}<small>{_signed(r.get("chg_pct"))}</small>'
         else:
             val = _signed(r.get("chg_pct"))
         usual = f'{_x(r.get("x_usual"))} usual · ' if r.get("x_usual") is not None else ""
+        month = f' · 1mo {_signed(r.get("mo_pct"), 1)}' if _num(r.get("mo_pct")) is not None else ""
         tiles += (f'<div class="bf-tile"><span class="bf-n">{_txt(_BENCH_LABEL.get(name, name))}</span>'
-                  f'<span class="bf-v">{val}</span><span class="bf-s">{usual}5d {_signed(r.get("5d_pct"), 1)}</span>'
-                  f'</div>')
+                  f'<span class="bf-v">{val}</span><span class="bf-s">{usual}5d {_signed(r.get("5d_pct"), 1)}'
+                  f'{month}</span>{_mark(r.get("mark"))}</div>')
     if not tiles:
         return ""
     note = f'<p class="bf-cap">{_txt(latest["tape_note"])}</p>' if latest.get("tape_note") else ""
+    vix = latest.get("vix_note")
+    if isinstance(vix, dict) and str(vix.get("text") or "").strip():
+        # The writer's short note: what the VIX is, where it stands and what the day's reports tie the move to.
+        note += (f'<div class="bf-vix"><b>The VIX</b><p>{_txt(vix["text"])} '
+                 f'{_chips(vix.get("src"), sources or [])}</p></div>')
     last = (nums.get("health") or {}).get("last_us_session")
     # "Markets", not "The tape" (owner 2026-09-29: trader shorthand a reader should not need).
     aside = "stocks, rates, dollar, oil, gold" + (f" · US close {_date(last)}" if last else "")
     return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside,
-                prov="Numbers: morning report", kind="price")
+                prov="Numbers: morning report. “Highest” / “lowest” compares the level with this site’s own "
+                     "earlier daily reports (they start in March 2026), not with all history.", kind="price")
 
 
 def _movers(latest: dict, nums: dict, sources: list) -> str:
@@ -585,7 +613,7 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
         _masthead(latest, state, when)
         + _what_matters(latest, sources)
         + _after(latest, sources)
-        + _tape(latest, nums)
+        + _tape(latest, nums, sources)
         + _movers(latest, nums, sources)
         + _week(latest)
         + _earnings(latest, nums, sources, earnings or {})

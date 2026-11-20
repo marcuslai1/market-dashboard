@@ -2045,6 +2045,13 @@ a.term-index-item:hover {
 .bf-v { font-family: var(--font-display); font-size: 22px; font-weight: 600; line-height: 1.1; color: var(--ink); }
 .bf-v small { font-size: 13px; font-weight: 500; color: var(--ink-3); margin-left: 4px; }
 .bf-s { font-size: 12.5px; color: var(--ink-3); }
+/* "Highest since the 31 Mar report": a fact about the level - ink, never a tone colour (colour is a claim) */
+.bf-mark { color: var(--ink-2); }
+/* the writer's short VIX note under the tiles: what it is, where it stands, what the reports tie the move to */
+.bf-vix { margin: 12px 0 0; padding: 10px 12px 11px; border: 1px solid var(--rule); background: var(--paper-2); }
+.bf-vix b { font-family: var(--font-display); font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--metric-input); }
+.bf .bf-vix p { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 4px 0 0; }
 
 /* movers */
 .bf-movers { width: 100%; border-collapse: collapse; font-size: 14px; }

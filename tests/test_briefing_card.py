@@ -285,3 +285,70 @@ def test_history_with_a_bad_id_drops_only_the_time():
     html = briefing_history_html(_hist_payload(
         recent=[{"id": "bad", "data_date": "2026-09-30", "headline": "H"}]))
     assert '<span class="bh-when">Wed 30 Sep</span>' in html
+
+
+# ── 2026-11-20: levels on the Markets tiles, the VIX note, a latched day (MarketReport §131 (d)) ──
+
+def _with_tape(tape, **over):
+    payload = _v2(**over)
+    payload["latest"]["numbers"]["tape"] = tape
+    return payload
+
+
+def test_vix_tile_leads_with_the_level_and_says_when_it_is_the_highest():
+    """The VIX closed at 28.44 on 2026-11-19, 70% up in a month, and the tile read "+15.80%"."""
+    tape = [{"name": "SPY", "chg_pct": -1.96, "5d_pct": -5.45, "x_usual": 2.0, "level": None, "bp": None,
+             "price": 715.87, "mo_pct": -7.4, "mark": None},
+            {"name": "VIX", "chg_pct": 15.8, "5d_pct": 52.09, "x_usual": 1.3, "level": None, "bp": None,
+             "price": 28.44, "mo_pct": 70.5,
+             "mark": {"word": "highest", "reports": 168, "since": "2026-03-31", "basis_from": None}},
+            {"name": "USDSGD", "chg_pct": 0.18, "5d_pct": 0.38, "x_usual": 1.0, "level": None, "bp": None,
+             "price": 1.2918, "mo_pct": 1.15,
+             "mark": {"word": "highest", "reports": 37, "since": None, "basis_from": None}},
+            {"name": "US10Y", "chg_pct": -0.28, "5d_pct": -1.0, "x_usual": 0.3, "level": 5.05, "bp": -1,
+             "price": 5.05, "mo_pct": -1.83, "mark": None}]
+    html = briefing_card_html(_with_tape(tape), "2026-09-28")
+    assert '<span class="bf-v">28.44<small>+15.80%</small></span>' in html           # level first, change beside it
+    assert '1.3× usual · 5d +52.1% · 1mo +70.5%' in html
+    assert '<span class="bf-s bf-mark">Highest since the 31 Mar report</span>' in html
+    assert '<span class="bf-v">1.2918<small>+0.18%</small></span>' in html
+    assert '<span class="bf-s bf-mark">Highest in the 37 reports before it</span>' in html
+    assert '<span class="bf-v">−1.96%</span>' in html                                  # an ETF price is not a level to read
+    assert '<span class="bf-v">5.05%<small>−1bp</small></span>' in html               # the yield keeps its own form
+    assert html.count("bf-mark") == 2
+    assert "this site’s own earlier daily reports" in html                              # what "highest" is measured against
+
+
+def test_tiles_from_an_older_record_render_as_before():
+    html = briefing_card_html(_v2(), "2026-09-28")                     # no price / mo_pct / mark keys
+    assert '<span class="bf-v">+0.54%</span><span class="bf-s">0.8× usual · 5d +1.3%</span></div>' in html
+    assert "bf-mark" not in html and "bf-vix" not in html
+
+
+def test_vix_note_sits_under_the_tiles_with_its_source():
+    note = {"text": "The VIX closed at 28.4. Stocks fell after the Fed minutes.", "src": [1]}
+    html = briefing_card_html(_v2(vix_note=note), "2026-09-28")
+    block = html.split('<div class="bf-vix">')[1].split("</div>")[0]
+    assert block.startswith("<b>The VIX</b><p>The VIX closed at 28.4.")
+    assert 'href="https://www.cnbc.com/x"' in block                                    # the chip of source 1
+    assert html.index("bf-tape") < html.index("bf-vix") < html.index("Names that moved")
+    assert "bf-vix" not in briefing_card_html(_v2(vix_note={"text": "  "}), "2026-09-28")
+
+
+def test_a_latched_day_renders_a_notice_with_no_price_sections():
+    """Owner 2026-11-20: when the pipeline's own check fails, the card shows a notice and no numbers."""
+    payload = _v2(what_matters=[{"kind": "data", "head": "Today's numbers are withheld.",
+                                 "detail": "The data failed the pipeline's own check."}])
+    latest = payload["latest"]
+    for k in ("tape_note", "movers", "group_notes", "chart_facts"):
+        latest.pop(k)
+    nums = latest["numbers"]
+    nums.update(tape=[], movers={}, also_moved=[], chart={}, hold=True)
+    nums["health"]["latch_active"] = True
+    html = briefing_card_html(payload, "2026-09-28")
+    assert "Today's numbers are withheld." in html or "Today&#x27;s numbers are withheld." in html
+    for gone in ("<h3>Markets</h3>", "<h3>Names that moved</h3>", "<h3>Chart facts</h3>"):
+        assert gone not in html
+    assert "<h3>Week ahead</h3>" in html and "<h3>Upcoming events</h3>" in html         # dates are not prices
+    assert 'bf-fault">Latch <b>ON</b>' in html
+
