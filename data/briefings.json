@@ -1,9 +1,9 @@
 {
  "schema": 1,
- "generated_utc": "2026-11-20T06:03:52+00:00",
+ "generated_utc": "2026-11-20T13:10:08+00:00",
  "latest": {
-  "id": "20261120T060349Z",
-  "ts_sgt": "2026-11-20T14:03:49+08:00",
+  "id": "20261120T131002Z",
+  "ts_sgt": "2026-11-20T21:10:02+08:00",
   "data_date": "2026-11-20",
   "what_matters": [
    {
@@ -21,7 +21,7 @@
     "kind": "macro",
     "tag_note": "US close, Thu 19 Nov",
     "head": "Gold fell 5.1%, about 3.4 × its usual day, to its lowest in about 14 months",
-    "detail": "CNBC ties it to a firmer dollar and bets on a December Fed rate rise. The Fed's minutes, out on 18 Nov, said nearly all officials expect a quarter-point increase in December (AP).",
+    "detail": "CNBC ties it to a firmer dollar and bets on a December Fed rate rise. The dollar index was flat on the day (−0.03%) and is up 2.0% in a month. The Fed's minutes, out on 18 Nov, said nearly all officials expect a quarter-point increase in December (AP).",
     "src": [
      3,
      4
@@ -84,6 +84,7 @@
     "date": "2026-11-18"
    }
   ],
+  "revises": "20261120T060349Z",
   "after_data": [
    {
     "lead": "US futures",
@@ -107,7 +108,7 @@
    {
     "label": "News checked",
     "when": "Fri 20 Nov, about 14:00 SGT",
-    "note": "Thu 01:00 New York time"
+    "note": "Fri 01:00 New York time"
    }
   ],
   "calendar": [
@@ -165,7 +166,7 @@
    ],
    "note": "Most watchlist names are below their 50-day averages. Nvidia's RSI of 19.6 is the lowest on the list. The three Singapore banks have RSI in the 20s."
   },
-  "data_notes": "SanDisk's 8-for-1 split takes effect today. Its figures here are on the post-split basis. Calendar data for conferences runs out on 30 Nov.",
+  "data_notes": "SanDisk's 8-for-1 split is due to take effect today, 20 Nov. Its prices here are already on the post-split basis. Calendar data for conferences runs out on 30 Nov. Revised on 20 Nov: the New York time of the news check is corrected (Friday, not Thursday); the markets note adds the VIX level and the count of names that fell; the gold item adds the dollar's own move; three rechecks due 25 and 27 Nov are restored.",
   "earnings": {
    "out": [],
    "coming": [
@@ -258,7 +259,7 @@
      },
      {
       "name": "SanDisk",
-      "q": "Did the 8-for-1 split take effect today?"
+      "q": "Did split-adjusted trading start on 20 Nov as scheduled?"
      },
      {
       "name": "APEC",
@@ -299,10 +300,32 @@
       "q": "Has the merger's antitrust (HSR) filing been made, and has Marvell filed its S-4?"
      }
     ]
+   },
+   {
+    "date": "2026-11-25",
+    "items": [
+     {
+      "name": "Nvidia",
+      "q": "Is the Q3 quarterly report (10-Q) out, and what does it show for the advance payments to suppliers behind the October and November supply agreements?"
+     }
+    ]
+   },
+   {
+    "date": "2026-11-27",
+    "items": [
+     {
+      "name": "Anthropic",
+      "q": "Has a filing confirmed that the IPO and the $26.0B private placement closed, and did the underwriters take up their option for extra shares?"
+     },
+     {
+      "name": "Micron",
+      "q": "Did the 26 Nov mediation session with the Taoyuan union end in a settlement, a third date, or failure?"
+     }
+    ]
    }
   ],
   "schema": 2,
-  "tape_note": "A broad US down day: more than 90% of S&P 500 stocks fell, the index's longest losing streak since 2024 (AP). Chip stocks are down 11% over five days. Gold fell 5.1%, about 3.4 × usual.",
+  "tape_note": "A broad US down day: more than 90% of S&P 500 stocks fell, the index's longest losing streak since 2024 (AP). 30 of the 34 names here fell in their latest session and 32 are below their 50-day average. The VIX, which rises when traders pay more to protect against big moves in US stocks, closed at 28.4. That is 70% higher than a month ago and its highest in these daily reports since 31 March. Chip stocks fell 2.8% on the day, 11% over five days and 19% in a month. Gold fell 5.1%, about 3.4 × usual.",
   "tonight": "WeRide's Q3 results, with the call at 21:00 SGT. The University of Michigan's final November consumer sentiment reading is due at about 23:00 SGT.",
   "numbers": {
    "tape": [
@@ -425,6 +448,52 @@
      "stale": false,
      "vol_basis": "same_time_of_day",
      "key": "005930_KS"
+    },
+    {
+     "name": "Nebius",
+     "market": "US",
+     "chg_pct": -9.39,
+     "x_usual": 1.5,
+     "vol_ratio": 1.07,
+     "stale": false,
+     "key": "NBIS"
+    },
+    {
+     "name": "AMD",
+     "market": "US",
+     "chg_pct": -7.72,
+     "x_usual": 1.5,
+     "vol_ratio": 1.5,
+     "stale": false,
+     "key": "AMD"
+    },
+    {
+     "name": "Cerebras",
+     "market": "US",
+     "chg_pct": -7.64,
+     "x_usual": 1.4,
+     "vol_ratio": 0.83,
+     "stale": false,
+     "key": "CBRS"
+    },
+    {
+     "name": "CoreWeave",
+     "market": "US",
+     "chg_pct": -6.1,
+     "x_usual": 0.9,
+     "vol_ratio": 0.96,
+     "stale": false,
+     "key": "CRWV"
+    },
+    {
+     "name": "SK Hynix",
+     "market": "KRX",
+     "chg_pct": -5.92,
+     "x_usual": 1.3,
+     "vol_ratio": 0.81,
+     "stale": false,
+     "vol_basis": "same_time_of_day",
+     "key": "000660_KS"
     }
    ],
    "chart": {
@@ -539,7 +608,7 @@
  },
  "recent": [
   {
-   "id": "20261120T060349Z",
+   "id": "20261120T131002Z",
    "data_date": "2026-11-20",
    "headline": "US stocks fell about 2% even as Anthropic's debut closed 17% above its IPO price"
   },
