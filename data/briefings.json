@@ -1,9 +1,9 @@
 {
  "schema": 1,
- "generated_utc": "2026-11-20T13:10:08+00:00",
+ "generated_utc": "2026-11-20T13:50:10+00:00",
  "latest": {
-  "id": "20261120T131002Z",
-  "ts_sgt": "2026-11-20T21:10:02+08:00",
+  "id": "20261120T135008Z",
+  "ts_sgt": "2026-11-20T21:50:08+08:00",
   "data_date": "2026-11-20",
   "what_matters": [
    {
@@ -84,7 +84,7 @@
     "date": "2026-11-18"
    }
   ],
-  "revises": "20261120T060349Z",
+  "revises": "20261120T131002Z",
   "after_data": [
    {
     "lead": "US futures",
@@ -99,6 +99,11 @@
     "label": "US prices",
     "when": "Thu 19 Nov close (New York)",
     "note": "last US session"
+   },
+   {
+    "label": "Europe prices",
+    "when": "Thu 19 Nov close (Paris, Frankfurt)",
+    "note": "about 4½ hours before the US close"
    },
    {
     "label": "SGX · KRX prices",
@@ -166,7 +171,7 @@
    ],
    "note": "Most watchlist names are below their 50-day averages. Nvidia's RSI of 19.6 is the lowest on the list. The three Singapore banks have RSI in the 20s."
   },
-  "data_notes": "SanDisk's 8-for-1 split is due to take effect today, 20 Nov. Its prices here are already on the post-split basis. Calendar data for conferences runs out on 30 Nov. Revised on 20 Nov: the New York time of the news check is corrected (Friday, not Thursday); the markets note adds the VIX level and the count of names that fell; the gold item adds the dollar's own move; three rechecks due 25 and 27 Nov are restored.",
+  "data_notes": "SanDisk's 8-for-1 split is due to take effect today, 20 Nov. Its prices here are already on the post-split basis. Calendar data for conferences runs out on 30 Nov. Revised on 20 Nov: the New York time of the news check is corrected (Friday, not Thursday); the markets note adds the VIX level and the count of names that fell; the gold item adds the dollar's own move; three rechecks due 25 and 27 Nov are restored. Second revision: adds when the European prices were taken.",
   "earnings": {
    "out": [],
    "coming": [
@@ -201,6 +206,9 @@
     }
    ],
    "note": "No watchlist results came out since the last run."
+  },
+  "group_notes": {
+   "Europe": "Thursday's close, about 4½ hours before the US close"
   },
   "movers": [
    {
@@ -587,11 +595,53 @@
      "later": false
     },
     {
+     "date": "2026-12-24",
+     "kind": "event",
+     "what": "Frankfurt (Xetra) closed",
+     "later": true,
+     "closure": true
+    },
+    {
+     "date": "2026-12-24",
+     "kind": "event",
+     "what": "US stock market closes early (13:00 New York)",
+     "later": true,
+     "closure": true
+    },
+    {
+     "date": "2026-12-25",
+     "kind": "event",
+     "what": "US stock market, Frankfurt (Xetra), Paris closed",
+     "later": true,
+     "closure": true
+    },
+    {
+     "date": "2026-12-31",
+     "kind": "event",
+     "what": "Frankfurt (Xetra) closed",
+     "later": true,
+     "closure": true
+    },
+    {
+     "date": "2027-01-01",
+     "kind": "event",
+     "what": "US stock market, Frankfurt (Xetra), Paris closed",
+     "later": true,
+     "closure": true
+    },
+    {
      "date": "2027-01-14",
      "kind": "earnings",
      "key": "TSM",
      "what": "TSMC (estimated date)",
      "later": true
+    },
+    {
+     "date": "2027-01-18",
+     "kind": "event",
+     "what": "US stock market closed",
+     "later": true,
+     "closure": true
     }
    ],
    "health": {
@@ -608,7 +658,7 @@
  },
  "recent": [
   {
-   "id": "20261120T131002Z",
+   "id": "20261120T135008Z",
    "data_date": "2026-11-20",
    "headline": "US stocks fell about 2% even as Anthropic's debut closed 17% above its IPO price"
   },
