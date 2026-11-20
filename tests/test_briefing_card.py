@@ -316,13 +316,15 @@ def test_vix_tile_leads_with_the_level_and_says_when_it_is_the_highest():
     assert '<span class="bf-v">−1.96%</span>' in html                                  # an ETF price is not a level to read
     assert '<span class="bf-v">5.05%<small>−1bp</small></span>' in html               # the yield keeps its own form
     assert html.count("bf-mark") == 2
-    assert "this site’s own earlier daily reports" in html                              # what "highest" is measured against
+    assert "this site’s own earlier daily reports, not with all history" in html        # what "highest" is measured against
+    assert "March 2026" not in html                                                     # USD/SGD's series is shorter
 
 
 def test_tiles_from_an_older_record_render_as_before():
     html = briefing_card_html(_v2(), "2026-09-28")                     # no price / mo_pct / mark keys
     assert '<span class="bf-v">+0.54%</span><span class="bf-s">0.8× usual · 5d +1.3%</span></div>' in html
     assert "bf-mark" not in html and "bf-vix" not in html
+    assert "Numbers: morning report</p>" in html and "earlier daily reports" not in html   # no marker, no note on it
 
 
 def test_vix_note_sits_under_the_tiles_with_its_source():

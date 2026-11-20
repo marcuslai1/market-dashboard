@@ -226,9 +226,13 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
     last = (nums.get("health") or {}).get("last_us_session")
     # "Markets", not "The tape" (owner 2026-09-29: trader shorthand a reader should not need).
     aside = "stocks, rates, dollar, oil, gold" + (f" · US close {_date(last)}" if last else "")
-    return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside,
-                prov="Numbers: morning report. “Highest” / “lowest” compares the level with this site’s own "
-                     "earlier daily reports (they start in March 2026), not with all history.", kind="price")
+    # Only when a tile carries the marker, and with no start month: the rows' stored series differ in length
+    # (USD/SGD joined in September 2026), and each marker already says how far back it looks.
+    marked = any(isinstance(r.get("mark"), dict) for r in nums.get("tape") or [])
+    prov = "Numbers: morning report" + (
+        ". “Highest” / “lowest” compares the level with this site’s own earlier daily reports, not with all "
+        "history." if marked else "")
+    return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside, prov=prov, kind="price")
 
 
 def _movers(latest: dict, nums: dict, sources: list) -> str:
