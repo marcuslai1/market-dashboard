@@ -354,3 +354,20 @@ def test_a_latched_day_renders_a_notice_with_no_price_sections():
     assert "<h3>Week ahead</h3>" in html and "<h3>Upcoming events</h3>" in html         # dates are not prices
     assert 'bf-fault">Latch <b>ON</b>' in html
 
+
+
+def test_v2_further_out_shows_a_hand_pinned_row_whole():
+    """A pinned policy date or company release (MarketReport, 2026-11-23) carries its own text: the card adds
+    no " earnings" to it, keeps the kind's hue, and the source line says where such a date comes from."""
+    from components.briefing.daily_briefing_v2 import _further
+    html = _further({"further_out": [
+        {"date": "2026-12-04", "kind": "macro", "what": "US tariff on polysilicon takes effect", "later": False,
+         "pinned": True},
+        {"date": "2027-01-07", "kind": "earnings", "what": "Samsung preliminary results", "later": True,
+         "pinned": True},
+        {"date": "2026-12-17", "kind": "earnings", "key": "MU", "what": "Micron", "later": False}]})
+    assert '<b data-kind="macro">US tariff on polysilicon takes effect</b>' in html
+    assert '<b data-kind="earnings">Samsung preliminary results</b>' in html
+    assert '<b data-kind="earnings">Micron earnings</b>' in html                 # an ordinary row is unchanged
+    assert "entered by hand from the official notice" in html
+    assert "A policy date can be moved or renewed." in html

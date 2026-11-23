@@ -476,7 +476,8 @@ def _far_item(r: dict) -> str:
     elif isinstance(r.get("read_across"), list):
         moves = ", ".join(str(m) for m in r["read_across"][:4])
         extra = f'<small>not held{" · moves " + _txt(moves) if moves else ""}</small>'
-    suffix = " earnings" if r.get("kind") == "earnings" else ""
+    # A hand-pinned row (2026-11-23) carries its whole text: "Samsung preliminary results", not "... earnings".
+    suffix = " earnings" if r.get("kind") == "earnings" and not r.get("pinned") else ""
     return f'<b data-kind="{_escape_attr(r.get("kind"))}">{_txt(r["what"])}{suffix}{extra}</b>'
 
 
@@ -506,7 +507,7 @@ def _further(nums: dict) -> str:
     body = _far_list(soon) if soon else ""
     if later:
         body += ('<div class="bf-later"><p class="bf-later-h"><b>Later · 31–60 days · less certain</b> '
-                 'Earnings dates this far out are often estimates and may move.</p>'
+                 'Earnings dates this far out are often estimates and may move. A policy date can be moved or renewed.</p>'
                  f'{_far_list(later)}</div>')
     return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
                 prov="Earnings dates past 14 days are the exchange's local date. Most come from Yahoo "
@@ -514,7 +515,9 @@ def _further(nums: dict) -> str:
                      "unmarked one can still move. “date confirmed” marks a date the project took from the "
                      "company's own announcement. Macro: "
                      "high-impact releases only, dated in New York time, so a Singapore-morning release "
-                     "(MAS) shows the day before. Conferences: the pipeline's tech-events list. Not held: "
+                     "(MAS) shows the day before. Policy dates (a tariff taking effect, a deadline) and "
+                     "company releases the calendar feed does not carry: entered by hand from the official notice, "
+                     "in that authority's own date. Conferences: the pipeline's tech-events list. Not held: "
                      "results from a company off the watchlist that move names on it (looked up 21 days "
                      "ahead).")
 
