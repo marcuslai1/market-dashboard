@@ -149,6 +149,8 @@
   --color-text-2:var(--text-2-dark);
   --color-text-3:var(--text-3-dark);
   --color-text-4:var(--text-4-dark);
+  --color-text-muted:#86898f;   /* small labels meant to be read: 5.06:1 on --bg-dark, 4.58:1 on --surface-dark.
+                                   --color-text-4 stays the switched-off grey (placeholders, dimmed, not on file). */
   --color-divider:var(--divider-dark);
   --color-divider-strong:var(--divider-strong-dark);
   --accent:var(--accent-dark);
@@ -752,7 +754,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
 /* Section heads (used inside Briefing) */
 .section-head {
-  display: flex; justify-content: space-between; align-items: baseline;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 8px;
   margin: var(--card-gap) 0 14px;   /* density-aware (was 28px) */
@@ -880,7 +882,8 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    whole grid reflows to stacked cards. */
 .tk-row {
   display: grid;
-  grid-template-columns: 132px 112px 74px 74px 168px 52px 104px;
+  grid-template-columns: minmax(132px, 1.15fr) minmax(112px, 0.95fr) minmax(74px, 0.85fr) minmax(74px, 0.85fr)
+    minmax(168px, 1.4fr) minmax(52px, 0.65fr) minmax(104px, 0.85fr);
   gap: 12px; padding: 12px;
   border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
@@ -932,7 +935,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-2);
 }
 .tk-group-count {
-  font-size: 11px; color: var(--color-text-4);
+  font-size: 11px; color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 .tk-group-rule { flex: 1; height: 1px; background: var(--color-divider); }
@@ -953,7 +956,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    down a column. The full name is stated in the drill-down header. */
 .tk-tick-cluster {
   font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--color-text-3); opacity: 0.45; margin-top: 2px;
+  color: var(--color-text-muted); margin-top: 2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tk-last { text-align: right; }
@@ -978,7 +981,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    ±10% marked the pipeline's entry block and went with the labels. */
 .tk-ext { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .tk-ext-track {
-  position: relative; width: 100%; height: 9px;
+  position: relative; width: 100%; max-width: 196px; margin: 0 auto; height: 9px;
   border: 1px solid var(--color-divider);
 }
 /* Steel, and over-tall (top/bottom -2px) so it stays visible where a bar
@@ -997,7 +1000,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
    The sort line is the page's only statement of its own ordering. Small, but on
    a dense table a reader otherwise cannot tell whether row order means anything. */
 .tk-sortline {
-  font-size: 9.5px; opacity: 0.45; letter-spacing: 0.04em; margin: 2px 0 10px;
+  font-size: 9.5px; color: var(--color-text-muted); letter-spacing: 0.04em; margin: 2px 0 10px;
 }
 /* Exactly three bolded phrases — the three pieces of encoding a reader cannot
    infer from looking. Bolding is by what breaks comprehension if missed, never
@@ -1021,7 +1024,7 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 .st-key-wl_order [role="radiogroup"] {
   flex-direction: row !important; flex-wrap: wrap !important; gap: 6px 22px !important;
 }
-.tk-sortline.tk-sortline-exp { opacity: 0.7; }
+.tk-sortline.tk-sortline-exp { color: var(--color-text-3); }
 details.tk-details > summary > .tk-growth {
   grid-column: 1 / -1;
   margin-top: -4px;
@@ -1039,7 +1042,8 @@ details.tk-details > summary {
   list-style: none;
   cursor: pointer;
   display: grid;
-  grid-template-columns: 132px 112px 74px 74px 168px 52px 104px;
+  grid-template-columns: minmax(132px, 1.15fr) minmax(112px, 0.95fr) minmax(74px, 0.85fr) minmax(74px, 0.85fr)
+    minmax(168px, 1.4fr) minmax(52px, 0.65fr) minmax(104px, 0.85fr);
   gap: 12px; padding: 12px;
   border-bottom: 1px solid var(--color-divider);
   font-family: var(--mono); font-size: 12.5px; align-items: center;
@@ -1151,7 +1155,7 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 }
 .tk-drilldown .dd-rung-head {
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--color-text-4); padding-top: 0;
+  text-transform: uppercase; color: var(--color-text-muted); padding-top: 0;
 }
 .tk-drilldown .dd-rung-head span:nth-child(n + 2),
 .tk-drilldown .dd-rung-px, .tk-drilldown .dd-rung-pct {
@@ -1190,7 +1194,7 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 .tk-drilldown .dd-news { margin-top: 20px; }
 .tk-drilldown .dd-sub {
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--color-text-4); margin: 10px 0 6px;
+  text-transform: uppercase; color: var(--color-text-muted); margin: 10px 0 6px;
 }
 .tk-drilldown .dd-highlight {
   border-left: 2px solid var(--brass); padding-left: 10px;
@@ -1265,10 +1269,10 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
 }
 .tk-drilldown .cp-name { font-size: 13px; color: var(--ink); line-height: 1.35; }
 .tk-drilldown .cp-bar {
-  display: block; height: 3px; margin: 4px 0 3px;
+  display: block; height: 7px; max-width: 440px; margin: 4px 0 3px;
   background: var(--color-divider);
 }
-.tk-drilldown .cp-bar > span { display: block; height: 100%; background: var(--ink-3); }
+.tk-drilldown .cp-bar > span { display: block; height: 100%; background: var(--brass); }
 .tk-drilldown .cp-plain {
   font-size: 12.5px; color: var(--color-text-2); line-height: 1.5; margin-top: 2px;
 }
@@ -1282,7 +1286,7 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   font-family: var(--mono); font-size: 11px; color: var(--ink-3);
   margin-right: 8px; white-space: nowrap;
 }
-.tk-drilldown .cp-src { font-family: var(--mono); font-size: 10.5px; color: var(--ink-4); }
+.tk-drilldown .cp-src { font-family: var(--mono); font-size: 10.5px; color: var(--color-text-muted); }
 .tk-drilldown .cp-src a {
   color: var(--ink-3); text-decoration: underline;
   text-decoration-color: var(--rule-strong); text-underline-offset: 2px;
@@ -1295,7 +1299,7 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   color: var(--color-text-2); text-decoration: underline;
   text-decoration-color: var(--rule-strong); text-underline-offset: 2px;
 }
-.tk-drilldown .cp-sid { font-family: var(--mono); color: var(--ink-4); }
+.tk-drilldown .cp-sid { font-family: var(--mono); color: var(--color-text-muted); }
 .tk-drilldown .cp-foot {
   margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--color-divider);
   font-size: 11.5px; color: var(--ink-3); line-height: 1.5;
@@ -2384,4 +2388,38 @@ a.term-index-item:hover {
 }
 @media (max-width: 719px) {
   .tk-drilldown .pc-plot { height: 130px; }
+}
+
+/* ── Look review 2026-11-23 (outside review, findings 3, 5, 8, 10, 14, 15, 16, 18) ──────────────
+   14: the Terminology jump list keeps the steel eyebrow colour (Streamlit's
+       markdown link colour was winning).
+   16: nine Markets tiles in two columns left an empty tenth cell; the last odd
+       tile spans the row. */
+.term-index a.term-index-item { color: var(--eyebrow) !important; }
+.term-index a.term-index-item:hover,
+.term-index:has(.is-dim) a.term-index-item.is-match { color: var(--color-text) !important; }
+@container (max-width: 560px) {
+  .bf-tape:has(> .bf-tile:nth-child(odd):last-child) > .bf-tile:last-child { grid-column: 1 / -1; }
+}
+/* 8: running text keeps a readable line on a wide screen (the Terminology page and
+      the data-notes text already do). */
+.bf-det, .bf-head, .bf .bf-cap, .bf .bf-vix, .bf-box li, .bf .bf-prov, .bf .bf-facts,
+.tk-drilldown .dd-line, .tk-drilldown .dd-highlight, .tk-drilldown .dd-news-item,
+.tk-drilldown .cp-caption, .tk-drilldown .cp-plain, .tk-drilldown .cp-item, .tk-drilldown .cp-foot { max-width: 78ch; }
+/* 10: the Watchlist's Order control: the site's accent instead of Streamlit's orange,
+       and plain-case labels so a long option does not shout or wrap badly. */
+.st-key-wl_order [role="radiogroup"] > label:has(input:checked) > div:first-child {
+  background-color: var(--accent) !important; border-color: var(--accent) !important;
+}
+.st-key-wl_order [role="radiogroup"] > label:has(input:checked) > div:first-child > div {
+  background-color: var(--color-bg) !important;
+}
+.st-key-wl_order [role="radiogroup"] > label [data-testid="stMarkdownContainer"] p {
+  font-family: var(--font-body) !important; font-size: 13px !important;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+/* 15: on a phone a section head stacks its title over its subtitle. */
+@media (max-width: 719px) {
+  .section-head:not(.masthead) { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .st-key-wl_order [role="radiogroup"] { flex-direction: column !important; gap: 8px !important; }
 }
