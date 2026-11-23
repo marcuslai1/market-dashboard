@@ -199,8 +199,9 @@ def test_v2_staleness_and_escaping():
 
 
 def test_v2_card_css_never_puts_a_verdict_colour_on_this_surface():
-    # Colour is a claim: no .bf- rule may reference a good/bad token; --stress is the
-    # data-fault chip's alone.
+    # Colour is a claim: no .bf- rule may reference a good/bad token; --stress (the data-condition
+    # colour) is for two chips only: the data-fault chip, and since 2026-11-23 (owner) the chip of a
+    # briefing that is older than the report on screen.
     import pathlib
     import re
 
@@ -213,7 +214,20 @@ def test_v2_card_css_never_puts_a_verdict_colour_on_this_surface():
         for token in banned:
             assert token not in body, f"{selector.strip()} uses {token}"
         if "--stress" in body:
-            assert "bf-fault" in selector, f"{selector.strip()} uses --stress outside the fault chip"
+            allowed = "bf-fault" in selector or 'bf-state[data-stale="1"]' in selector
+            assert allowed, f"{selector.strip()} uses --stress outside the fault chip and the stale chip"
+
+
+def test_v2_stale_chip_takes_the_data_condition_colour():
+    # A briefing older than the report on screen sits under newer prices; its chip must not look
+    # like the neutral "Revised" / "Written" chips beside it.
+    import pathlib
+    import re
+
+    css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
+    rule = re.search(r'\.bf-chip\.bf-state\[data-stale="1"\]\s*\{([^}]*)\}', css)
+    assert rule, "no rule for the stale chip"
+    assert "color: var(--stress)" in rule.group(1)
 
 
 def _earnings_map():

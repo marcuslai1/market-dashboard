@@ -1984,6 +1984,15 @@ a.term-index-item:hover {
   line-height: 1; text-transform: uppercase; padding: 6px 9px; border-radius: var(--radius-pill);
   border: 1px solid var(--rule-strong); color: var(--ink-2); }
 .bf-chip.bf-live { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+/* A briefing older than the report on screen is a data condition (the card sits under newer
+   prices), so its chip takes the data-condition colour instead of the neutral chip grey
+   (look review 2026-11-23, owner's yes). line-height: the chip wraps to two lines on a phone. */
+.bf-chip.bf-state[data-stale="1"] {
+  color: var(--stress);
+  border-color: color-mix(in srgb, var(--stress) 65%, transparent);
+  background: color-mix(in srgb, var(--stress) 14%, transparent);
+  line-height: 1.35;
+}
 .bf-asof { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; margin: 0;
   background: var(--rule); border: 1px solid var(--rule); }
 .bf-asof div { background: var(--paper-2); padding: 10px 12px; }
