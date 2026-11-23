@@ -2430,5 +2430,7 @@ a.term-index-item:hover {
 /* 15: on a phone a section head stacks its title over its subtitle. */
 @media (max-width: 719px) {
   .section-head:not(.masthead) { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .st-key-wl_order [role="radiogroup"] { flex-direction: column !important; gap: 8px !important; }
+  .st-key-wl_order [role="radiogroup"] {
+    flex-direction: column !important; align-items: flex-start !important; gap: 8px !important;
+  }
 }
