@@ -878,8 +878,9 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 
    Tracks sum to 716px + six 12px gaps = 788px, which fits the ~1060px content
    width at the 1100px viewport where the sticky-header rule below releases
-   .tk-scroll's overflow. Narrower viewports keep the swipe; below 720px the
-   whole grid reflows to stacked cards. */
+   .tk-scroll's overflow. From 719.01 to 991.98px the tracks take smaller minimums so
+   all seven still fit (end of this file, look review 2026-11-23 second batch);
+   below 720px the whole grid reflows to stacked cards. */
 .tk-row {
   display: grid;
   grid-template-columns: minmax(132px, 1.15fr) minmax(112px, 0.95fr) minmax(74px, 0.85fr) minmax(74px, 0.85fr)
@@ -2430,7 +2431,110 @@ a.term-index-item:hover {
 /* 15: on a phone a section head stacks its title over its subtitle. */
 @media (max-width: 719px) {
   .section-head:not(.masthead) { flex-direction: column; align-items: flex-start; gap: 4px; }
+  /* One column, no gap: each option is a 44px row of its own (second batch, 9), and
+     stretched so the whole row takes the tap, not only the words. Streamlit sizes
+     the control to its longest label and BaseWeb gives each label a 16px right
+     margin, which left the right quarter of the row dead; every box in the chain
+     takes the full width. */
+  .st-key-wl_order, .st-key-wl_order .stRadio { width: 100% !important; }
   .st-key-wl_order [role="radiogroup"] {
-    flex-direction: column !important; align-items: flex-start !important; gap: 8px !important;
+    flex-direction: column !important; align-items: stretch !important; gap: 0 !important;
+    width: 100% !important;
   }
+  .st-key-wl_order [role="radiogroup"] > label { margin-right: 0 !important; }
+}
+
+/* ── Look review 2026-11-23, second batch (live-site review, findings 1, 5, 9) ─────────────────
+   1: the Watchlist's seven columns at tablet width. The minimums above need an 800px table,
+      and the table is narrower than that at two bands of window width: 720–842px (16px page
+      padding) and 864–970px (Streamlit's page padding steps up to 80px at 864px, so the
+      table gets NARROWER there). The Earnings column fell off the right edge with nothing
+      to show it. Smaller minimums and 8px gaps need 652px, and the narrowest table in the
+      range is 678px (a 720px window), so all seven fit; spare width is still shared by the
+      same fr weights. Kept in lockstep for the header row, the rows and the group header.
+      The lower bound is 719.01px, not 720px: a zoomed or scaled window can be 719.3px
+      wide, which is past the phone reflow's `max-width: 719px` and short of 720px.
+      The upper bound is 991.98px: the wide tracks want an 812px table to keep their 12px
+      right padding, and a 980px window with a 17px scrollbar leaves 803px. Plain
+      min/max-width with decimals, not the `(width > 719px)` range form, which Safari
+      before 16.4 does not read (it would drop this whole block). */
+@media (min-width: 719.01px) and (max-width: 991.98px) {
+  .tk-row, .tk-row.tk-head, details.tk-details > summary {
+    grid-template-columns: minmax(120px, 1.15fr) minmax(100px, 0.95fr) minmax(60px, 0.85fr) minmax(60px, 0.85fr)
+      minmax(116px, 1.4fr) minmax(42px, 0.65fr) minmax(90px, 0.85fr);
+    gap: 8px; padding-left: 8px; padding-right: 8px;
+  }
+  .tk-group { padding-left: 8px; padding-right: 8px; }
+}
+
+/* 9: phone tap targets, 44px at least (they measured 33 / 28 / 24 / 39px).
+      Tabs, at every width: the row's 11px top padding moves inside each tab, so the tab
+      is 44px tall and the strip looks the same (a touch tablet gets it too, at no cost). */
+.st-key-page_nav [role="radiogroup"] { padding-top: 0 !important; }
+.st-key-page_nav [role="radiogroup"] > label { padding-top: 11px !important; min-height: 44px; }
+/*    Up to 719px: Order options, "On this page" links and drawer headings take a 44px
+      minimum height with the label centred. Eleven 44px links in one column made the
+      list 484px tall, so it runs in two columns, read down the left one and then the
+      right (the page's own order); dimmed entries keep the height so the columns line up. */
+@media (max-width: 719px) {
+  .st-key-wl_order [role="radiogroup"] > label { min-height: 44px; align-items: center; }
+  .term-index { column-count: 2; column-gap: 16px; }
+  .term-index-head { column-span: all; }
+  .term-index-item {
+    display: flex; align-items: center; min-height: 44px; padding-top: 4px; padding-bottom: 4px;
+    break-inside: avoid;
+  }
+  .tk-drilldown details.dd-drawer > summary,
+  .term-door > summary { min-height: 44px; }
+  /* The briefing card's one disclosure line keeps its marker, so it grows by padding;
+     the margin above it shrinks by the same 12px. */
+  .bf-rchk { margin-top: 2px; }
+  .bf-rchk summary { padding: 12px 0; }
+}
+
+/* 5: an older report date on the Watchlist. The masthead always carries the latest
+      report's date, so a past date gets its own strip, pinned while the rows scroll.
+      Ink and the structural accent only: a past date is where the reader is, not a fault
+      in the data (--stress) and not a verdict. The pin is on Streamlit's element container
+      because a sticky box cannot leave its parent, and the strip's own parent is only as
+      tall as the strip. */
+.wl-past {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  box-sizing: border-box; min-height: 38px; padding: 7px 12px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule-strong); border-left: 3px solid var(--accent);
+  font-family: var(--font-body); font-size: 12.5px; line-height: 1.4; color: var(--color-text-2);
+}
+.wl-past-tag {
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.5;
+  color: var(--color-bg); background: var(--color-text); padding: 1px 7px;
+}
+.wl-past-date {
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  color: var(--color-text); font-variant-numeric: tabular-nums;
+}
+/* Seen pinned on Streamlit 1.58 (2026-11-23), where the strip's wrapper is
+   stElementContainer and its parent holds the whole page. Re-check the pin when the
+   Streamlit cap in requirements.txt moves: wrapper test ids have changed before. */
+[data-testid="stElementContainer"]:has(.wl-past) { position: sticky; top: 0; z-index: 40; }
+/* On a phone the latest report's date drops out of the sentence, so the pinned strip
+   is two lines, not three. */
+@media (max-width: 719px) {
+  .wl-past { padding: 6px 10px; }
+  .wl-past-latest { display: none; }
+}
+/* On a PC the column header is pinned too; it sits under the strip, not behind it.
+   The strip is a fixed 38px there, so its sentence stays on one line and is cut
+   with an ellipsis before it can spill onto the header; the box itself clips too,
+   for a browser set to a larger minimum text size.
+   The header's offset asks for the same wrapper the pin is on: if a Streamlit
+   upgrade renames it, the strip stops pinning AND the header goes back to the top,
+   instead of the header hanging 38px down under nothing. (One :has() with a
+   descendant inside it; a :has() inside a :has() is not valid CSS.) */
+@media (min-width: 1100px) {
+  .wl-past { height: 38px; padding-top: 0; padding-bottom: 0; flex-wrap: nowrap; overflow: hidden; }
+  .wl-past-tag, .wl-past-date { flex: none; white-space: nowrap; }
+  .wl-past-note { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past) .tk-scroll > .tk-row.tk-head { top: 38px; }
 }

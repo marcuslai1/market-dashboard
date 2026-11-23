@@ -22,8 +22,10 @@ Two constructions here are load-bearing and easy to break:
 """
 from __future__ import annotations
 
+import html
 import statistics
 from collections.abc import Callable
+from datetime import date
 
 from lib.catalog import CLUSTER_MAP, RETIRED_TICKERS
 from lib.formatters import _escape_dollars, _fmt_num, _sign, display_ticker
@@ -172,6 +174,43 @@ def build_grid_html(
         '<div class="tk-scroll" role="table" '
         'aria-label="Watchlist — click a row to expand">'
         f'{"".join(parts)}</div>'
+    )
+
+
+def _long_date(iso: str) -> str:
+    """``2026-10-23`` → ``Fri 23 Oct 2026`` (the masthead's date grammar); any other
+    string is returned escaped, as it came."""
+    try:
+        return date.fromisoformat(str(iso)).strftime("%a %d %b %Y")
+    except ValueError:
+        return html.escape(str(iso))
+
+
+def past_report_notice_html(selected: str, latest: str) -> str:
+    """The strip shown while an OLDER report date is on screen, ``""`` on the latest.
+
+    The masthead always carries the latest report's date, so without this strip a
+    past date's rows read as today's once the date picker has scrolled away
+    (outside review 2026-11-23, finding 5). It names both dates and claims only
+    what is true of a past date's page: every PRICE on it (the quote strip, the
+    table's columns, an opened row's chart and levels) comes from the selected
+    report. Three things do not, and none of them is a price: the sales-growth
+    lines, the Company profile and the Earnings history are the current files.
+    The first wording said "the quotes and rows", which the growth lines inside
+    the rows made untrue (second outside review, finding 1).
+
+    The latest date sits in its own span so the stylesheet can drop it on a
+    phone, where the pinned strip has to stay short.
+    """
+    if not selected or selected == latest:
+        return ""
+    return (
+        '<div class="wl-past" role="status">'
+        '<span class="wl-past-tag">Past report</span>'
+        f'<span class="wl-past-date">{_long_date(selected)}</span>'
+        '<span class="wl-past-note">Prices are from this report, not the latest one'
+        f'<span class="wl-past-latest"> ({_long_date(latest)})</span>.</span>'
+        '</div>'
     )
 
 

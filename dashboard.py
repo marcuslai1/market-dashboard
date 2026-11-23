@@ -32,6 +32,7 @@ from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html, briefing_history_html
 from components.masthead import render_masthead_and_nav
 from components.watchlist import render_watchlist
+from components.watchlist.grid import past_report_notice_html
 from lib.cards import data_health_banners_html, render_section_head
 from lib.data_loader import (
     list_report_dates,
@@ -157,14 +158,21 @@ def _page_watchlist() -> None:
         watchlist = report.get("watchlist", {})
         benchmarks = report.get("benchmarks", {})
 
-        sub_label = "The whole book, facts only · click any row for the detail"
-        if not _is_latest:
-            sub_label += f" · viewing {selected_date}"
-        render_section_head("The Watchlist", sub_label, masthead=True)
+        render_section_head("The Watchlist",
+                            "The whole book, facts only · click any row for the detail",
+                            masthead=True)
+        # An older date: say so in a strip that stays pinned while the rows scroll
+        # (the masthead above always carries the latest report's date).
+        _past = past_report_notice_html(selected_date, _dates_desc[0])
+        if _past:
+            st.markdown(_past, unsafe_allow_html=True)
         _banners = data_health_banners_html(report.get("meta"))
         if _banners:
             st.markdown(_banners, unsafe_allow_html=True)
-        _render_live_caption(_live, LIVE_PRICES and _is_latest)
+        # The live / snapshot line belongs to the latest report; on an older date
+        # the strip above already says the values are that report's.
+        if _is_latest:
+            _render_live_caption(_live, LIVE_PRICES)
         render_pulse(benchmarks)
         # Every report date renders the same facts-only grid: a report that
         # still carries signal labels in its JSON (to the pipeline cutover)
