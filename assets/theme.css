@@ -2949,3 +2949,10 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
 .bf .bf-v.bf-up, .bf .bf-mv.bf-up, .bf .bf-also-m.bf-up { color: var(--up); }
 .bf .bf-v.bf-down, .bf .bf-mv.bf-down, .bf .bf-also-m.bf-down { color: var(--down); }
 .bf .bf-n, .bf .bf-vix b { color: var(--ink-3); }
+
+/* The card's three text greys, a step warmer and the top two a step further apart (owner
+   2026-11-24, after seeing them rendered on the card: "warmer whites are nice. Go with
+   that."). A headline #e9e8e2 -> #f5f4ee, a sentence #d7d8db -> #d8d7d0, a caption
+   #a0a2a7 -> #a6a59e. On the card only: the Watchlist, Terminology and the quote strip
+   keep the site's values. */
+.bf { --ink: #f5f4ee; --ink-2: #d8d7d0; --ink-3: #a6a59e; }

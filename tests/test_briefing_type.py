@@ -218,3 +218,11 @@ def test_the_wide_card_rules_apply_only_to_a_wide_card():
     assert ".bf .bf-wk { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }" in wide
     outside = re.sub(r"@container[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", PC)
     assert ".bf .bf-movers td" not in outside and ".bf .bf-wk" not in outside
+
+
+def test_the_cards_text_greys_are_the_warmer_ramp_on_the_card_only():
+    # Owner 2026-11-24, shown the two side by side: "warmer whites are nice. Go with that."
+    assert ".bf { --ink: #f5f4ee; --ink-2: #d8d7d0; --ink-3: #a6a59e; }" in AFTER_PHONE
+    # the site's own three values are as they were, so the other pages do not change
+    assert "--text-dark:#e9e8e2;" in CSS and "--text-2-dark:#d7d8db;" in CSS and "--text-3-dark:#a0a2a7;" in CSS
+    assert CSS.count("#f5f4ee") == 2 and CSS.count("#d8d7d0") == 2 and CSS.count("#a6a59e") == 2   # the rule and its comment
