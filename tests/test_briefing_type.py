@@ -167,6 +167,7 @@ def test_sizes_step_down_in_one_order_on_a_phone():
     assert section > head > lead >= name > inner >= sentence > row >= note > 13
     assert _phone(".bf .bf-also li") == row < _phone(".bf .bf-also > b")
     assert _phone(".bf .bf-far li") == row < _phone(".bf .bf-later-h b")
+    assert _phone(".bf .bf-movers .bf-why") == sentence < name         # a phone-only rule must not lift a reason over its name
     assert _phone(".bf .bf-rchk li") == row <= _phone(".bf .bf-rchk summary")   # the drawer's line over its rows
     # the phone rules make no heading inside a block smaller (the first build shrank "Later" to 13px)
     assert "bf-later-h" not in PHONE and "bf-also > b" not in PHONE
