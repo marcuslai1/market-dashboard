@@ -70,6 +70,12 @@ _LEVEL_TILES = {"VIX": 2, "USDSGD": 4}
 # rows that ARE coloured, so a row added later is ink until someone puts it here (outside review of the
 # build, 2026-11-24: a list of exceptions coloured the dollar index and would have coloured any new rate).
 _PRICE_TILES = {"SPY", "QQQ", "SOXX", "WTI", "Gold"}
+# Rows whose headline is the day's change and whose level a reader still needs: the tile's small line
+# opens with it (unit, decimals). Until 2026-11-25 the markets note carried these ("the dollar index rose
+# 0.5% to 104.32"); the note no longer repeats a tile, and a tile marked "Lowest since the 10 Aug report"
+# then showed no level at all (outside review of the build). The three funds are left out: a fund's
+# share price says nothing about the market it tracks.
+_SUB_LEVEL = {"DXY": ("", 2), "WTI": ("$", 2), "Gold": ("$", 0)}
 # The watchlist through time: fewer reports than this draw no chart (a line of two days says nothing).
 _BREADTH_MIN = 5
 # A run of reports on one side of half the list is named in the chart's facts from this length.
@@ -349,7 +355,9 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
             moved = _dir(r.get("chg_pct")) if name in _PRICE_TILES else ""
         # Each figure with its label is one unbreakable piece: on a phone five of nine
         # tiles broke "1mo" from its figure (outside review, 2026-11-24).
-        parts = ([f'{_x(r.get("x_usual"))} usual'] if _num(r.get("x_usual")) is not None else []) + [
+        unit, nd = _SUB_LEVEL.get(name, ("", 0))
+        at = [f'at {unit}{price:,.{nd}f}'] if name in _SUB_LEVEL and price is not None else []
+        parts = at + ([f'{_x(r.get("x_usual"))} usual'] if _num(r.get("x_usual")) is not None else []) + [
             f'5d {_signed(r.get("5d_pct"), 1)}'] + (
             [f'1mo {_signed(r.get("mo_pct"), 1)}'] if _num(r.get("mo_pct")) is not None else [])
         sub = " · ".join(f'<span class="bf-nw">{p}</span>' for p in parts)
@@ -378,22 +386,34 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
     return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside, prov=prov, kind="price")
 
 
+def _why_key(text) -> str:
+    """A reason as it is compared: spaces, the kind of quote mark and a closing full stop do
+    not make two sentences differ. MarketReport's ``why_key`` reads it the same way (its
+    ``log`` refuses a plural left on one row); keep the two alike."""
+    text = " ".join(str(text or "").split())
+    for curly, plain in (("\u2019", "'"), ("\u2018", "'"), ("\u201c", '"'), ("\u201d", '"')):
+        text = text.replace(curly, plain)
+    return text.rstrip(". ")
+
+
 def _shared(items: list) -> list:
-    """The rows of one market, with the names that carry the same reason set together: a list
-    of lists, in the order each reason first appears. Two rows share a reason when their
-    ``why`` reads the same word for word (spaces apart) and their ``why_state`` is the same;
-    the briefing's writer gives such names one sentence (owner 2026-11-24: on a day one event
-    moved the list, five of seven rows said the same thing in different words). A row with
-    no ``why`` text stands alone."""
+    """The rows of one market, with the names that carry the same reported reason set
+    together: a list of lists, in the order each reason first appears. Two rows share a
+    reason when both are ``found`` and their ``why`` reads the same (``_why_key``); the
+    briefing's writer gives such names one sentence (owner 2026-11-24: on a day one event
+    moved the list, five of seven rows said the same thing in different words).
+
+    Rows with no reported cause never share: "No reported cause found." under a name that
+    rose 12% and one that fell 8% would set the two together as if they had moved together
+    (outside review of the build). A row with no text stands alone."""
     out, seen = [], {}
     for it in items:
-        text = " ".join(str(it.get("why") or "").split())
-        key = (text, it.get("why_state"))
-        if text and key in seen:
+        key = _why_key(it.get("why"))
+        if key and it.get("why_state") == "found" and key in seen:
             seen[key].append(it)
             continue
         out.append([it])
-        if text:
+        if key and it.get("why_state") == "found":
             seen[key] = out[-1]
     return out
 
@@ -451,8 +471,19 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
         # One row a name (name, move, size against its usual day, volume). It was one
         # sentence of names joined by middots: fourteen of them ran 14 lines on a phone.
         # A size or a volume that is not a figure is left out: "usual" alone said nothing.
+        # Two listings of one company read as one name ("SK Hynix" in Korea and its US listing):
+        # a name the card shows more than once carries its ticker here.
+        shown = [str((mv.get(it["key"]) or {}).get("name") or "") for g in groups.values() for it in g]
+        shown += [str(a.get("name") or "") for a in also]
+
+        def also_name(a: dict) -> str:
+            name = str(a.get("name") or a.get("key") or "")
+            tick = str(a.get("key") or "").split("_")[0]
+            twice = name and shown.count(name) > 1 and tick and tick != name
+            return _txt(name) + (f' <small>{_txt(tick)}</small>' if twice else "")
+
         rows = "".join(
-            f'<li><span class="bf-also-n">{_txt(a.get("name") or a.get("key"))}</span>'
+            f'<li><span class="bf-also-n">{also_name(a)}</span>'
             f'<span class="bf-also-m{_dir(a.get("chg_pct"))}">{_signed(a.get("chg_pct"))}</span>'
             f'<span class="bf-also-x">' + " · ".join(
                 ([f'{_x(a.get("x_usual"))} usual'] if _num(a.get("x_usual")) is not None else [])
@@ -460,9 +491,12 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
             for a in also)
         table += f'<div class="bf-also"><b>Also moved, not looked up:</b><ul>{rows}</ul></div>'
     return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
+                # "Moves of 2x or more are always looked up" stood here until 2026-11-25, under fifteen
+                # names at 2.2x to 4.0x that nobody had looked up (outside review of the build).
                 prov="× usual = the move divided by the name's typical daily swing (one standard deviation "
-                     "over recent reports). Moves of 2× or more are always looked up; smaller ones only when "
-                     "tied to a tracked catalyst. Prices: morning report.")
+                     "over recent reports). The largest moves are looked up, a few each day; other names "
+                     "that moved 2× usual or more, or 5% or more, are listed without a reason. Prices: "
+                     "morning report.")
 
 
 def _week(latest: dict) -> str:
@@ -717,50 +751,40 @@ def _further(nums: dict) -> str:
                                     "21 days ahead).")])
 
 
-def _share_points(rows: list, value) -> list:
-    """(x, y) in the plot's 0-1000 by 0-100 box for each report that has the figure: x is the
-    middle of the report's own band (every report takes the same width, so a weekend takes
-    none), y runs from 98 (none of the list) up to 2 (all of it)."""
-    out = []
-    for i, r in enumerate(rows):
-        v, of = value(r)
-        if v is not None:
-            out.append(((i + 0.5) / len(rows) * 1000, 98 - v / of * 96))
-    return out
-
-
-def _breadth_panel(rows: list, value, title: str, cls: str, bars: bool) -> str:
-    """One of the chart's two panels: its heading with the latest count, the plot, and the
-    latest point marked. Both panels use one scale, the share of the list, so their heights
-    compare."""
-    pts = _share_points(rows, value)
+def _panel(rows: list, pts: list, title: str, now: str, lines: list, aria: str, zero=None) -> str:
+    """One of the chart's two panels: its heading with the latest figure, the plot with its
+    scale words, and the latest point marked. ``pts`` are (x, y) in the plot's 0-1000 by
+    0-100 box, None for a report with no figure; ``lines`` are (y, word) for the scale."""
     last = rows[-1]
-    now, of = value(last)
-    head = (f'<p class="bf-br-h"><b>{_txt(title)}</b><span>'
-            + (f'{now} of {of}' if now is not None else "no figure")
-            + f' · {_txt(_date(last["date"], "%-d %b"))}</span></p>')
-    grid = "".join(f'<line class="bf-br-grid" x1="0" x2="1000" y1="{y}" y2="{y}" vector-effect="non-scaling-stroke"/>'
-                   for y in (2, 50, 98))
-    if bars:
-        w = 1000 / len(rows)
-        marks = "".join(f'<rect class="bf-br-bar" x="{x - w / 2:.1f}" y="{y:.1f}" width="{w:.2f}" height="{98 - y:.1f}"/>'
-                        for x, y in pts if y < 98)
-    else:
-        line = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
-        marks = (f'<polygon class="bf-br-area" points="{pts[0][0]:.1f},98 {line} {pts[-1][0]:.1f},98"/>'
-                 f'<polyline class="bf-br-line" points="{line}" vector-effect="non-scaling-stroke"/>') if len(pts) > 1 else ""
+    head = (f'<p class="bf-br-h"><b>{_txt(title)}</b><span>{now} · '
+            f'{_txt(_date(last["date"], "%-d %b"))}</span></p>')
+    grid = "".join(
+        f'<line class="bf-br-grid{" bf-br-zero" if y == zero else ""}" x1="0" x2="1000" y1="{y:.1f}" '
+        f'y2="{y:.1f}" vector-effect="non-scaling-stroke"/>' for y, _ in lines)
+    runs = [[]]
+    for p in pts:                                  # a report with no figure breaks the line
+        if p is None:
+            if runs[-1]:
+                runs.append([])
+        else:
+            runs[-1].append(f"{p[0]:.1f},{p[1]:.1f}")
+    marks = "".join(f'<polyline class="bf-br-line" points="{" ".join(run)}" vector-effect="non-scaling-stroke"/>'
+                    for run in runs if len(run) > 1)
     dot = (f'<i class="bf-br-dot" style="left:{pts[-1][0] / 10:.2f}%;top:{pts[-1][1]:.1f}%"></i>'
-           if now is not None and not bars else "")
-    labels = "".join(f'<span class="bf-br-y" style="top:{y}%">{t}</span>' for y, t in ((2, "all"), (50, "half"), (98, "none")))
-    return (f'{head}<div class="bf-br-plot {cls}"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" '
-            f'aria-hidden="true">{grid}{marks}</svg>{labels}{dot}</div>')
+           if pts[-1] is not None else "")
+    words = "".join(f'<span class="bf-br-y" style="top:{y:.1f}%">{t}</span>' for y, t in lines)
+    return (f'{head}<div class="bf-br-plot" role="img" aria-label="{_escape_attr(aria)}">'
+            f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">{grid}{marks}</svg>'
+            f'{words}{dot}</div>')
 
 
 def _breadth(nums: dict) -> str:
     """The watchlist through time: for every stored report, how many of the list's names sit
-    above their 50-day average and how many have an RSI under 30 (MarketReport
-    ``breadth_series``, joined at publish). Two small panels on one scale, the share of the
-    list, because the list grew over these reports; the counts are stated in words.
+    above their 50-day average, and how far the middle name is from its own (MarketReport
+    ``breadth_series``, joined at publish). Two small panels over one row of months. The
+    upper one is the share of the list, because the list grew over these reports; the
+    lower one is a percentage on its own scale, so the two heights do not compare and
+    nothing says they do.
 
     It replaces "Chart facts" (owner 2026-11-24: that chart "doesnt really tell me much of
     anything"), which showed five or so names the writer picked, each with its distance from
@@ -768,35 +792,82 @@ def _breadth(nums: dict) -> str:
     the same note, and the two ends of two Watchlist columns. This one shows where today
     stands in the months before it, which no other part of the site does.
 
-    Counts, never a reading: no "oversold", no line a reader could take for a rule, and one
-    ink for both panels (the hue of price data from the report)."""
+    The first build drew the names with an RSI under 30 in the lower panel. An outside
+    review: that count was zero in about four reports of five, and the count above the
+    average barely moved on a day the list rose 10% to 30% (0 of 34 to 1 of 34), while the
+    middle name's distance went from -26.6% to -18.6%.
+
+    Figures, never a reading: no "oversold", no line a reader could take for a rule (the
+    lower panel's one marked line is the average itself), and one ink for both panels (the
+    hue of price data from the report)."""
     rows = []
     for r in nums.get("breadth") or []:
         if not isinstance(r, dict):
             continue
-        n, above = _num(r.get("n")), _num(r.get("above"))
-        low, low_of = _num(r.get("rsi_low")), _num(r.get("rsi_n"))
+        n, above, mid = _num(r.get("n")), _num(r.get("above")), _num(r.get("mid"))
         try:
             _dt.date.fromisoformat(str(r.get("date"))[:10])
         except ValueError:
             continue
         if n is None or above is None or n < 1 or not 0 <= above <= n:
             continue
-        # The RSI count has its own base: a new listing has an RSI before it has a 50-day average.
-        if low is None or low_of is None or low_of < 1 or not 0 <= low <= low_of:
-            low = low_of = None
-        rows.append({"date": str(r["date"])[:10], "n": int(n), "above": int(above),
-                     "low": None if low is None else int(low), "low_of": None if low is None else int(low_of)})
+        rows.append({"date": str(r["date"])[:10], "n": int(n), "above": int(above), "mid": mid})
     if len(rows) < _BREADTH_MIN:
         return ""
     first, last = rows[0], rows[-1]
+    years = first["date"][:4] != last["date"][:4]
 
     def day(r: dict) -> str:
-        return _txt(_date(r["date"], "%-d %b"))
+        # a day of another year than the last report's says which year
+        return _txt(_date(r["date"], "%-d %b %Y" if r["date"][:4] != last["date"][:4] else "%-d %b"))
 
-    # The facts a reader would otherwise have to measure off the plot. Ties go to the later report.
-    top = max(rows, key=lambda r: (r["above"] / r["n"], r["date"]))
-    facts = [f'Most above: {top["above"]} of {top["n"]} on {day(top)}.']
+    def of(r: dict) -> str:
+        return f'{r["above"]} of {r["n"]}'
+
+    def pct(v) -> str:
+        return _signed(v, 1)
+
+    def xs(i: int) -> float:                       # the middle of a report's own band: a weekend takes no width
+        return (i + 0.5) / len(rows) * 1000
+
+    # the upper panel: the share of the list, none to all
+    top_pts = [(xs(i), 98 - r["above"] / r["n"] * 96) for i, r in enumerate(rows)]
+    hi_r = max(rows, key=lambda r: (r["above"] / r["n"], r["date"]))
+    lo_r = min(rows, key=lambda r: (r["above"] / r["n"], _dt.date.max.toordinal() - _dt.date.fromisoformat(r["date"]).toordinal()))
+
+    def ties(r: dict) -> str:
+        same = sum(x["above"] * r["n"] == r["above"] * x["n"] for x in rows)
+        return f'last on {day(r)}' if same > 1 else f'on {day(r)}'
+
+    # the lower panel: the middle name's distance, on a scale of whole tens that holds zero
+    mids = [r for r in rows if r["mid"] is not None]
+    low_html, mid_fact, mid_before = "", "", ""
+    if len(mids) > 1:
+        lo = min(0, int(min(r["mid"] for r in mids) // 10) * 10)
+        hi = max(0, -int(-max(r["mid"] for r in mids) // 10) * 10)
+        if lo == hi:
+            lo, hi = lo - 10, hi + 10
+
+        def ym(v: float) -> float:
+            return 2 + (hi - v) / (hi - lo) * 96
+
+        low_pts = [None if r["mid"] is None else (xs(i), ym(r["mid"])) for i, r in enumerate(rows)]
+        lines = [(ym(v), "0" if v == 0 else pct(v).replace(".0", "")) for v in dict.fromkeys((hi, 0, lo))]
+        far_lo, far_hi = min(mids, key=lambda r: r["mid"]), max(mids, key=lambda r: r["mid"])
+        mid_fact = (f'The middle name ran from {pct(far_lo["mid"])} ({day(far_lo)}) to {pct(far_hi["mid"])} '
+                    f'({day(far_hi)}).')
+        now = pct(last["mid"]) if last["mid"] is not None else "no figure"
+        low_html = _panel(
+            rows, low_pts, "Middle name, from its 50-day average", now, lines,
+            f'Line chart, {len(mids)} reports from {day(mids[0])} to {day(mids[-1])}: the distance of the '
+            f'list\'s middle name from its 50-day average, in percent. Latest: {now}. {mid_fact}', zero=ym(0))
+        if len(rows) > 1 and rows[-2]["mid"] is not None:
+            mid_before = f', the middle name {pct(rows[-2]["mid"])}'
+
+    # The facts a reader would otherwise have to measure off the plot. The first two change
+    # with the day; the range of these reports is one line each.
+    prev = rows[-2]
+    facts = [f'The report before ({day(prev)}): {of(prev)} above{mid_before}.']
     side = (last["above"] * 2 > last["n"]) - (last["above"] * 2 < last["n"])
     run = 0
     for r in reversed(rows):
@@ -808,43 +879,45 @@ def _breadth(nums: dict) -> str:
         since = (f'every report since {day(rows[-run])}' if run < len(rows)
                  else "every report in this chart")
         facts.append(f'{word} than half above in {since}.')
-    lows = [r for r in rows if r["low"]]
-    if lows:
-        peak = max(lows, key=lambda r: (r["low"] / r["low_of"], r["date"]))
-        facts.append(f'Most with an RSI under 30: {peak["low"]} of {peak["low_of"]} on {day(peak)}.')
-    else:
-        facts.append("No name had an RSI under 30 in any of these reports.")
+    # The share, not the count: 27 of 27 is a higher share than 30 of 33, and the list was smaller then.
+    facts.append(f'Highest share above in these reports: {of(hi_r)}, {ties(hi_r)}. Lowest: {of(lo_r)}, {ties(lo_r)}.')
+    if mid_fact:
+        facts.append(mid_fact)
 
-    # Month starts along the bottom. A first month of only a few reports gives its place to
-    # the month after it (a chart from 31 Aug is September's); after that, a start that would
-    # sit on the label before it, or run off the right edge, is left out.
-    starts, prev = [], None
+    # Month starts along the bottom, a new year by its number. A first month of only a few
+    # reports gives its place to the month after it (a chart from 31 Aug is September's), and
+    # a start at the right edge is left out. When the months are close together (a year of
+    # reports), every second one from the right is marked and a narrow card hides it.
+    starts, seen = [], None
     for i, r in enumerate(rows):
-        if r["date"][:7] != prev:
-            prev = r["date"][:7]
-            starts.append((i / len(rows) * 100, _date(r["date"], "%b")))
+        if r["date"][:7] != seen:
+            seen = r["date"][:7]
+            jan = years and r["date"][5:7] == "01"
+            starts.append((i / len(rows) * 100, r["date"][:4] if jan else _date(r["date"], "%b")))
     if len(starts) > 1 and starts[1][0] - starts[0][0] < 9:
         starts = starts[1:]
-    months, at = "", -100.0
-    for left, label in starts:
-        if left - at >= 9 and left <= 93:
-            months += f'<span style="left:{left:.1f}%">{label}</span>'
-            at = left
-    aria = _escape_attr(
-        f'Two charts of {len(rows)} reports from {_date(first["date"], "%-d %b %Y")} to '
-        f'{_date(last["date"], "%-d %b %Y")}. Names above their 50-day average: {last["above"]} of {last["n"]} '
-        f'on the last report. ' + " ".join(facts))
-    body = (f'<div class="bf-br" role="img" aria-label="{aria}">'
-            + _breadth_panel(rows, lambda r: (r["above"], r["n"]), "Above their 50-day average", "bf-br-top", bars=False)
-            + _breadth_panel(rows, lambda r: (r["low"], r["low_of"]), "RSI under 30", "bf-br-low", bars=True)
-            + f'<div class="bf-br-x" aria-hidden="true">{months}</div></div>'
+    starts = [st for st in starts if st[0] <= 93]
+    close = any(b[0] - a[0] < 10 for a, b in zip(starts, starts[1:], strict=False))
+    months = "".join(
+        f'<span{" class=" + chr(34) + "bf-br-alt" + chr(34) if close and (len(starts) - 1 - k) % 2 else ""} '
+        f'style="left:{left:.1f}%">{label}</span>' for k, (left, label) in enumerate(starts))
+
+    top_html = _panel(
+        rows, top_pts, "Above their 50-day average", of(last), [(2, "all"), (50, "half"), (98, "none")],
+        f'Line chart, {len(rows)} reports from {day(first)} to {day(last)}: the share of the list\'s names '
+        f'above their 50-day average. Latest: {of(last)}. {facts[-2] if mid_fact else facts[-1]}')
+    body = (f'<div class="bf-br">{top_html}{low_html}'
+            f'<div class="bf-br-x" aria-hidden="true">{months}</div></div>'
             + '<ul class="bf-br-facts">' + "".join(f"<li>{f}</li>" for f in facts) + "</ul>")
-    grew = (f' The list had {first["n"]} names with a 50-day average in the first of these reports and '
-            f'{last["n"]} in the last, so the plots show the share of the list.' if first["n"] != last["n"] else "")
-    return _sec("The watchlist through time", body,
-                f'names counted in each report since {_date(first["date"], "%-d %b")}', cls="bf-brsec",
+    sizes = sorted({r["n"] for r in rows})
+    grew = (f' The list had between {sizes[0]} and {sizes[-1]} names with a 50-day average over these reports, '
+            f'so the upper plot shows the share of the list.' if len(sizes) > 1 else "")
+    since = _date(first["date"], "%-d %b %Y" if years else "%-d %b")
+    return _sec("The watchlist through time", body, f'each report since {since}', cls="bf-brsec",
                 prov="Counted from each morning report: a US or European name at its last close, a Singapore or "
-                     "Seoul name part-day. RSI: the 14-day relative strength index." + grew, kind="price")
+                     "Seoul name part-day. The middle name: with the list in order of distance from the 50-day "
+                     "average, the one in the middle, so half the list is further below and half further above."
+                     + grew, kind="price")
 
 
 def _health(latest: dict, nums: dict) -> str:

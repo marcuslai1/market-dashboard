@@ -2213,31 +2213,40 @@ a.term-index-item:hover {
 .bf .bf-out { margin: 12px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); }
 .bf .bf-out li { margin: 0 0 6px; }
 
-/* The watchlist through time (daily_briefing_v2._breadth): two panels on one scale, the
-   share of the list. One ink for both, the hue of price data from the report: a count is
-   not a verdict. The plot is an SVG stretched to its box (non-scaling strokes); every
-   word is HTML, so it takes the card's own type. It replaced "Chart facts" on 2026-11-25
-   (five names picked by the writer, each a bar from its 50-day average, with its RSI). */
+/* The watchlist through time (daily_briefing_v2._breadth): two panels over one row of
+   months. The upper one is the share of the list above its 50-day average; the lower one
+   is the middle name's distance from its own, on its own scale. One ink for both, the hue
+   of price data from the report: a figure is not a verdict. A plot is an SVG stretched to
+   its box (non-scaling strokes); every word is HTML, so it takes the card's own type. It
+   replaced "Chart facts" on 2026-11-25 (five names picked by the writer, each a bar from
+   its 50-day average, with its RSI). */
 .bf .bf-br-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 8px;
   font-family: var(--font-display); font-weight: 600; letter-spacing: 0.03em; color: var(--ink); }
 .bf .bf-br-h b { font-weight: 600; }
 .bf .bf-br-h span { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.bf-br-plot { position: relative; margin: 0 38px 20px 0; }        /* the right margin holds all / half / none */
-.bf-br-top { height: 120px; }
-.bf-br-low { height: 64px; margin-bottom: 0; }
+.bf .bf-br-plot + .bf-br-h { margin-top: 22px; }
+.bf-br-plot { position: relative; height: 112px; margin: 0 44px 0 0; }   /* the right margin holds the scale's words */
 .bf-br-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .bf-br-grid { stroke: var(--rule); stroke-width: 1; }
+/* the average itself, in the lower panel: the one line there that is more than a scale mark */
+.bf-br-grid.bf-br-zero { stroke: var(--rule-strong); }
 .bf-br-line { fill: none; stroke: var(--metric-input); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.bf-br-area { fill: color-mix(in srgb, var(--metric-input) 16%, transparent); }
-.bf-br-bar { fill: color-mix(in srgb, var(--metric-input) 62%, transparent); }
 .bf-br-y { position: absolute; left: 100%; transform: translateY(-50%); padding-left: 7px;
   font-family: var(--font-display); font-size: 12.5px; letter-spacing: 0.02em; white-space: nowrap; color: var(--ink-3); }
 .bf-br-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%;
   background: var(--metric-input); box-shadow: 0 0 0 2px var(--color-bg); }
-.bf-br-x { position: relative; height: 16px; margin: 5px 38px 0 0; }
+.bf-br-x { position: relative; height: 16px; margin: 6px 44px 0 0; }
 .bf-br-x span { position: absolute; font-family: var(--font-display); font-size: 12.5px; letter-spacing: 0.02em;
   color: var(--ink-3); }
 .bf .bf-br-facts { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 4px; color: var(--ink-2); }
+/* A year of reports puts a month start every 8% of the plot: a narrow card shows every second one. */
+@container (max-width: 440px) {
+  .bf-br-x .bf-br-alt { display: none; }
+}
+
+/* a ticker beside a name the card shows twice (two listings of one company) */
+.bf-also-n small { margin-left: 6px; font-family: var(--font-display); font-size: 12px; letter-spacing: 0.06em;
+  color: var(--ink-3); }
 
 /* Names that moved for one reported reason (daily_briefing_v2._shared). On a wide card the
    reason is one cell beside all of them, and the row of its own stays hidden; a narrow
@@ -2249,6 +2258,10 @@ a.term-index-item:hover {
 @container (min-width: 560.01px) {
   .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-last) td:not(.bf-why) { padding-bottom: 5px; }
   .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first) td { padding-top: 5px; }
+  /* A rule down the reason's left side, the height of all its names, and the sentence set at
+     their middle. Top-aligned with no rule, a two-line reason ended beside the first name and
+     the last name stood next to nothing (outside review of the build). */
+  .bf .bf-movers td.bf-why-span { border-left: 2px solid var(--rule-strong); padding-left: 14px; vertical-align: middle; }
 }
 
 /* data notes, sources, footer */
@@ -2301,8 +2314,13 @@ a.term-index-item:hover {
      is the row after the last of them. The cell beside the names is the wide card's. */
   .bf .bf-movers td.bf-why-span { display: none; }
   .bf .bf-movers tbody tr.bf-sh-row { border-bottom: 0; padding-bottom: 0; }
-  .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first) { padding-top: 10px; }
-  .bf .bf-movers tbody tr.bf-sh-why { padding-top: 8px; }
+  /* One rule down the left of the names and their reason, and the names closer to each
+     other than the reason is to the last of them. Before, the only sign that two names
+     shared the reason was a faint line that was not there (outside review of the build). */
+  .bf .bf-movers tbody tr.bf-sh-row, .bf .bf-movers tbody tr.bf-sh-why {
+    border-left: 2px solid var(--rule-strong); padding-left: 12px; }
+  .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first) { padding-top: 6px; }
+  .bf .bf-movers tbody tr.bf-sh-why { padding-top: 10px; }
 }
 /* The date beside its text holds down to a 380px card; only a phone-width card stacks
    them. From 381 to 560px (the briefing's right-hand column on a PC) Week ahead sets its

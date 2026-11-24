@@ -62,16 +62,18 @@ def test_terminology_model_off_notice_gave_way_to_the_era_line():
 
 # ── record v2 (MarketReport spec 2026-09-28-briefing-card-v2.md) ─────────────
 
-def _series(above: list, n: int = 20, low: int = 0, end: str = "2026-09-28") -> list:
+def _series(above: list, n: int = 20, mid=None, end: str = "2026-09-28") -> list:
     """A ``numbers.breadth`` series: one report a weekday, ending on ``end``, with ``above`` of ``n``
-    names above their 50-day average in each and ``low`` of them at an RSI under 30."""
+    names above their 50-day average in each. ``mid`` is the middle name's distance from its
+    50-day average in each report (a list), or one figure for all of them; -5.0 when not given."""
     import datetime as dt
     day, days = dt.date.fromisoformat(end), []
     while len(days) < len(above):
         if day.weekday() < 5:
             days.append(day.isoformat())
         day -= dt.timedelta(days=1)
-    return [{"date": d, "n": n, "above": a, "rsi_n": n, "rsi_low": low} for d, a in zip(reversed(days), above, strict=True)]
+    mids = mid if isinstance(mid, list) else [-5.0 if mid is None else mid] * len(above)
+    return [{"date": d, "n": n, "above": a, "mid": m} for d, a, m in zip(reversed(days), above, mids, strict=True)]
 
 
 def _v2(**over):
@@ -161,7 +163,8 @@ def test_v2_week_and_earnings_and_chart():
     assert "Analysts expect" in html and "Company forecast" in html and "Analyst estimates" in html
     for jargon in ("Consensus revenue", "Company guide", "consensus 51.2", "expected 51.2", ">EPS<"):
         assert jargon not in html, jargon                                   # plain labels (owner 09-29)
-    assert "Above their 50-day average" in html and "4 of 20" in html and "RSI under 30" in html
+    assert "Above their 50-day average" in html and "4 of 20" in html
+    assert "Middle name, from its 50-day average" in html and "RSI under 30" not in html
     assert "all clear" in html and "bf-fault" not in html
 
 
