@@ -9,8 +9,8 @@ P1.  The Watchlist opens with one toolbar row (Report date and Order, two select
 P2.  A phone row is two lines, not a three-line card.
 P4.  On a phone the masthead is two lines and the briefing card's "as of" boxes fold to a short
      block that still carries every entry's label and time.
-P11. On a narrow card a Week ahead day is its header over full-width events, and a Chart facts
-     end label that would print on top of "0" is dropped.
+P11. On a narrow card a Week ahead day is its header over full-width events. (It also dropped a
+     Chart facts end label that would print on top of "0"; that chart left the card on 2026-11-25.)
 """
 import glob
 import re
@@ -271,7 +271,7 @@ def test_next_is_one_line_an_item_on_a_narrow_card_only():
     assert ".bf-next-list time .bf-next-hm { font-family: inherit; }" in _CSS
 
 
-# ── P11: Week ahead headers, Chart facts axis ────────────────────────────────
+# ── P11: Week ahead headers ──────────────────────────────────────────────────
 def _narrow_card() -> str:
     marker = _CSS.index("narrow card (phone, or a narrow column): stack")
     return _block(_CSS[marker:], "@container (max-width: 560px)")
@@ -283,56 +283,6 @@ def test_a_day_is_its_header_over_full_width_events_on_a_narrow_card():
     assert "grid-column: 2" not in body        # the events no longer sit in a second column
     assert "display: flex" in _block(body, ".bf-dh {")
     assert "display: inline" in _block(body, ".bf-dh b {")
-
-
-def _ticks(chart: dict) -> dict:
-    html = _card(numbers={"chart": {k: {"name": k, "vs_sma50_pct": v, "rsi": 50.0} for k, v in chart.items()}})
-    axis = html.split('<div class="bf-ax">', 1)[1].split("</div>", 1)[0]
-    return {text: cls for cls, text in re.findall(r'<span(?: class="([\w-]+)")?[^>]*>([^<]+)</span>', axis)}
-
-
-
-def test_an_end_label_next_to_zero_is_marked_and_dropped_on_a_narrow_card():
-    # Every bar below zero, as on 23 Nov 2026: the axis runs -60 to +10 and "+10%" sat on "0".
-    low = _ticks({"NVDA": -39.36, "NBIS": -55.15, "DBS": -10.68})
-    assert low["+10%"] == "bf-near" and low["0"] == "" and low["−60%"] == ""
-    # Every bar far above zero: the "-10%" end is the one next to "0".
-    high = _ticks({"BE": 45.0, "MU": 12.0})
-    assert high["−10%"] == "bf-near" and high["+50%"] == ""
-    # The line is a quarter of the axis. At exactly a fifth (-40 to +10) the two labels still
-    # touched on a 360px phone, so that end is marked; at exactly a quarter (-10 to +30) it is not.
-    assert _ticks({"NVDA": -39.0, "MU": -12.0})["+10%"] == "bf-near"
-    assert "bf-near" not in _ticks({"BE": 25.7, "AVGO": -6.2}).values()
-    # Dropped where the minor ticks are (a card up to 440px), not on every card up to 560px.
-    marker = _CSS.index("what matters keeps its tag column")
-    assert ".bf-ax .bf-near { display: none; }" in _block(_CSS[marker:], "@container (max-width: 440px)")
-    assert ".bf-ax .bf-near" not in _narrow_card()
-
-
-def _bar_labels(chart: dict) -> dict:
-    html = _card(numbers={"chart": {k: {"name": k, "vs_sma50_pct": v, "rsi": 50.0} for k, v in chart.items()}})
-    rows = html.split('<ul class="bf-cf"', 1)[1].split("</ul>", 1)[0]
-    found = re.findall(r'<span class="bf-nm2">(\w+)</span>.*?<span class="(bf-val[\w -]*)" style="left:([\d.]+)%">', rows)
-    return {name: (cls, float(left)) for name, cls, left in found}
-
-
-def test_a_bar_below_zero_keeps_its_figure_clear_of_the_rsi_column():
-    # 23 Nov 2026: every bar below zero, the zero line at 85.71% of the axis. The figures
-    # sat right of the line, where a 320px phone has 17px, and ran into the RSI figure.
-    low = _bar_labels({"DBS": -10.68, "UOB": -13.6, "NVDA": -39.36, "NBIS": -55.15})
-    # A long bar holds its figure inside, at the zero end; a short one has it on its left.
-    assert low["NVDA"] == ("bf-val bf-in", 85.71) and low["NBIS"] == ("bf-val bf-in", 85.71)
-    assert low["DBS"][0] == "bf-val bf-beside" and low["UOB"][0] == "bf-val bf-beside"
-    assert low["DBS"][1] == pytest.approx(85.71 - 10.68 / 70 * 100, abs=0.02)       # the bar's far end
-    for selector in (".bf-val.bf-in {", ".bf-val.bf-beside {"):
-        assert "transform: translateX(-100%)" in _block(_CSS, selector)
-    assert "color" not in _block(_CSS, ".bf-val.bf-beside {")           # ink, as beside the bar
-    # Not "bf-out": that class is the results list's and would move the figure off its row.
-    assert ".bf .bf-out {" in _CSS and not any("bf-out" in cls for cls, _ in low.values())
-    # With a quarter of the axis or more right of zero, the figure stays where it was.
-    mixed = _bar_labels({"BE": 25.7, "AVGO": -6.2})
-    assert mixed["AVGO"] == ("bf-val", 26.5)                        # the zero line at 25%, plus 1.5
-    assert mixed["BE"][0] == "bf-val bf-in"
 
 
 # ── after the outside review of this batch (2026-11-24) ──────────────────────

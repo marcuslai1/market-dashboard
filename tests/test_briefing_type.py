@@ -134,7 +134,7 @@ def test_names_that_moved_and_also_moved_are_coloured_by_direction():
 
 
 def test_nothing_else_on_the_card_takes_a_direction_class():
-    """The 5-day and 1-month figures, the chart facts and the sentences stay as they were, on a
+    """The 5-day and 1-month figures, the chart and the sentences stay as they were, on a
     card that also holds the level tiles; and the site-wide `.up` / `.down` classes are not a way
     round the two rules."""
     tape = [_row("SPY", -3.64, mo_pct=-9.7), _row("VIX", 26.2, price=35.89, mo_pct=88.6),
@@ -178,7 +178,8 @@ def test_sizes_step_down_in_one_order_on_a_pc():
     assert _px(".bf .bf-movers .bf-why") == sentence < name            # a reason is a sentence, under its name
     assert _px(".bf .bf-also li") == row < _px(".bf .bf-also > b")     # "Also moved" over its rows
     assert _px(".bf .bf-far li") == row < _px(".bf .bf-later-h b")     # "Later" over its rows
-    assert _px(".bf .bf-cf + .bf-cap") == note                         # the note under the chart
+    assert _px(".bf .bf-br-facts") == note                             # the facts under the chart
+    assert _px(".bf .bf-br-h") == inner                                # a panel's heading with its count
     assert section > _px(".bf .bf-ec-name") > head                     # a company's name on an earnings card
     assert _px(".bf .bf-rchk li") == row < _px(".bf .bf-rchk summary") == inner   # the drawer's line over its rows
 
@@ -197,9 +198,10 @@ def test_sizes_step_down_in_one_order_on_a_phone():
     assert _phone(".bf .bf-key") == _phone(".bf .bf-prov") == 13       # the legend and the source note beside it
     assert section > _phone(".bf .bf-ec-name") > head
     assert _phone(".bf .bf-box li") == sentence < lead                 # an After-the-data item under its lead
-    # the note under the chart stays at the size of the chart's own name labels (14px at every width)
-    assert _phone(".bf .bf-cf + .bf-cap") == 14 and re.search(r"\.bf-nm2 \{ font-size: 14px;", CSS)
-    assert ".bf .bf-cf + .bf-cap { max-width: none; }" in PHONE
+    # the facts under the chart are a note about the data; a panel's heading is a heading inside a block
+    assert _phone(".bf .bf-br-facts") == note and _phone(".bf .bf-br-h") == inner
+    # the chart's axis words are captions: 13px on a phone, like a date in a row
+    assert _phone(".bf .bf-br-y") == _phone(".bf .bf-br-x span") == 13
     # a date or a small label in a row is a caption: on a phone no smaller than the source note under it
     for caption in (".bf .bf-ev time", ".bf .bf-far li time", ".bf .bf-far li b small", ".bf .bf-rchk li time"):
         assert _phone(caption) == 13, caption

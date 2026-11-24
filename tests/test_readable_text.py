@@ -259,18 +259,6 @@ def test_initials_titles_and_a_month_before_a_day_number_do_not_end_a_sentence()
     assert _sentences("A note (see the filing.) Next point.") == ["A note (see the filing.)", "Next point."]
 
 
-def test_the_chart_facts_note_is_a_list_from_three_sentences():
-    note = "Every name is below its average. Nvidia's RSI is the lowest. Nebius is the furthest below."
-    html = _card(chart_facts={"names": ["NVDA"], "note": note},
-                 numbers={"health": {"fetched": 35, "expected": 35},
-                          "chart": {"NVDA": {"name": "Nvidia", "vs_sma50_pct": -39.4, "rsi": 15.0}}})
-    assert '<ul class="bf-cap bf-pts"><li>Every name is below its average.</li>' in html
-    short = _card(chart_facts={"names": ["NVDA"], "note": "Plain note."},
-                  numbers={"health": {"fetched": 35, "expected": 35},
-                           "chart": {"NVDA": {"name": "Nvidia", "vs_sma50_pct": -39.4, "rsi": 15.0}}})
-    assert '<p class="bf-cap">Plain note.</p>' in short
-
-
 def test_a_line_break_in_the_middle_of_a_sentence_is_not_a_point():
     """The writer's lines are points only when every line ends a sentence; a stray break
     leaves the note to be cut by sentence (outside review, finding 7)."""

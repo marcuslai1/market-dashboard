@@ -2,13 +2,15 @@
 
 A v2 record is typed items rather than five prose sections: Claude writes the words and
 picks the names; ``scripts/briefing.py publish`` joins the numbers (tape, moves, × usual,
-volume, % from the 50-day average, RSI, data health, display names) from the day's
-morning report into ``latest.numbers``. This module only lays them out.
+volume, the count of names above their 50-day average in each stored report, data health,
+display names) from the morning reports into ``latest.numbers``. This module only lays
+them out.
 
 Reading order: masthead (date, what each number is as of, next timed events) → what
 matters → after the data → markets → names that moved (grouped by the market whose session
 the price is from) → week ahead → earnings → further out (dates only, to two months; the
-second month under a "less certain" label) → chart facts → data notes → sources. On a PC
+second month under a "less certain" label) → the watchlist through time → data notes →
+sources. On a PC
 the four "today" sections and the three "coming" sections sit in two columns
 (``bf-cols``, layout review 2026-11-24); the order in the markup is the same.
 
@@ -24,9 +26,10 @@ Constraints, all upstream decisions:
    move, never a verdict. It was one ink for every move until then, and a 10.55% fall
    looked like a 0.09% one. In Markets only the rows in ``_PRICE_TILES`` take it (three
    funds, oil, gold): the VIX, the 10-year yield and the two dollar rows stay ink, so a
-   jump in the VIX is never green. The 5-day and 1-month figures, the chart facts and
+   jump in the VIX is never green. The 5-day and 1-month figures, the chart and
    every sentence stay as they were.
-3. **No rule lines.** Chart facts draw a zero line only; +5 % / +20 % are gate rules.
+3. **No rule lines.** The chart draws its scale (none, half, all of the list) and nothing
+   that reads as a threshold to act on; +5 % / +20 % are gate rules.
 4. **Searched ≠ not looked up.** "No reported cause found" and the publish-listed names
    nobody looked up render differently.
 5. **Server-side only.** Everything is static HTML + ``.bf-`` CSS in assets/theme.css (no
@@ -67,6 +70,10 @@ _LEVEL_TILES = {"VIX": 2, "USDSGD": 4}
 # rows that ARE coloured, so a row added later is ink until someone puts it here (outside review of the
 # build, 2026-11-24: a list of exceptions coloured the dollar index and would have coloured any new rate).
 _PRICE_TILES = {"SPY", "QQQ", "SOXX", "WTI", "Gold"}
+# The watchlist through time: fewer reports than this draw no chart (a line of two days says nothing).
+_BREADTH_MIN = 5
+# A run of reports on one side of half the list is named in the chart's facts from this length.
+_BREADTH_RUN = 5
 
 
 # ── formatting ───────────────────────────────────────────────────────────────
@@ -354,7 +361,9 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
     note = _points(latest.get("tape_note"), "bf-cap")
     vix = latest.get("vix_note")
     if isinstance(vix, dict) and str(vix.get("text") or "").strip():
-        # The writer's short note: what the VIX is, where it stands and what the day's reports tie the move to.
+        # The writer's short note, only on a day a report says something about the VIX itself (its own
+        # cause, a level it reached, a later session). Until 2026-11-25 it ran whenever the VIX or the
+        # S&P 500 fund moved 2 x usual, opened with what the VIX is and repeated the tile.
         note += (f'<div class="bf-vix"><b>The VIX</b><p>{_txt(vix["text"])} '
                  f'{_chips(vix.get("src"), sources or [])}</p></div>')
     last = (nums.get("health") or {}).get("last_us_session")
@@ -367,6 +376,26 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
         ". “Highest” / “lowest” compares the level with this site’s own earlier daily reports, not with all "
         "history." if marked else "")
     return _sec("Markets", f'<div class="bf-tape">{tiles}</div>{note}', aside, prov=prov, kind="price")
+
+
+def _shared(items: list) -> list:
+    """The rows of one market, with the names that carry the same reason set together: a list
+    of lists, in the order each reason first appears. Two rows share a reason when their
+    ``why`` reads the same word for word (spaces apart) and their ``why_state`` is the same;
+    the briefing's writer gives such names one sentence (owner 2026-11-24: on a day one event
+    moved the list, five of seven rows said the same thing in different words). A row with
+    no ``why`` text stands alone."""
+    out, seen = [], {}
+    for it in items:
+        text = " ".join(str(it.get("why") or "").split())
+        key = (text, it.get("why_state"))
+        if text and key in seen:
+            seen[key].append(it)
+            continue
+        out.append([it])
+        if text:
+            seen[key] = out[-1]
+    return out
 
 
 def _movers(latest: dict, nums: dict, sources: list) -> str:
@@ -384,20 +413,35 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
             label += f" · {_date(last)} close"
         note = f'<small>{_txt(notes[market])}</small>' if notes.get(market) else ""
         rows += f'<tr class="bf-grp"><th colspan="3" scope="colgroup">{_txt(label)}{note}</th></tr>'
-        for it in groups[market]:
-            n = mv.get(it["key"]) or {}
-            size = _txt(it["size_note"]) if it.get("size_note") else (
-                f'{_x(n.get("x_usual"))} usual' if _num(n.get("x_usual")) is not None else "")
-            vol = f' · vol {_vol(n)}' if _num(n.get("vol_ratio")) is not None else ""
-            none = it.get("why_state") == "none_found"
+        for items in _shared(groups[market]):
+            none = items[0].get("why_state") == "none_found"
+            src = [i for it in items for i in (it.get("src") or [])]
+            src = [i for n, i in enumerate(src) if i not in src[:n]]
             # The inner block carries the line cap: `max-width` does not bind on a table cell,
             # and at 768 to 1024px a reason ran about 86 characters a line.
-            why = (f'<td class="bf-why{" bf-none" if none else ""}"><div class="bf-why-in">{_txt(it.get("why"))} '
-                   f'{_chips(it.get("src"), sources)}</div></td>')
-            rows += (f'<tr><td class="bf-nm"><b>{_txt(n.get("name") or it["key"])}</b>'
-                     f'<span>{_txt(it["key"].split("_")[0])}</span></td>'
-                     f'<td class="bf-mv{_dir(n.get("chg_pct"))}">{_signed(n.get("chg_pct"))}'
-                     f'<small>{size}{vol}</small></td>{why}</tr>')
+            inner = f'<div class="bf-why-in">{_txt(items[0].get("why"))} {_chips(src, sources)}</div>'
+            cls = f'bf-why{" bf-none" if none else ""}'
+            for pos, it in enumerate(items):
+                n = mv.get(it["key"]) or {}
+                size = _txt(it["size_note"]) if it.get("size_note") else (
+                    f'{_x(n.get("x_usual"))} usual' if _num(n.get("x_usual")) is not None else "")
+                vol = f' · vol {_vol(n)}' if _num(n.get("vol_ratio")) is not None else ""
+                cells = (f'<td class="bf-nm"><b>{_txt(n.get("name") or it["key"])}</b>'
+                         f'<span>{_txt(it["key"].split("_")[0])}</span></td>'
+                         f'<td class="bf-mv{_dir(n.get("chg_pct"))}">{_signed(n.get("chg_pct"))}'
+                         f'<small>{size}{vol}</small></td>')
+                if len(items) == 1:
+                    rows += f'<tr>{cells}<td class="{cls}">{inner}</td></tr>'
+                    continue
+                # Several names, one reason. On a wide card the reason is one cell beside all of
+                # them; on a narrow card a row is a name over its reason, so the reason is a row
+                # of its own under the last name. The markup carries both and the stylesheet
+                # shows one, as the "As of" boxes do.
+                place = " bf-sh-first" if pos == 0 else " bf-sh-last" if pos == len(items) - 1 else ""
+                span = f'<td class="{cls} bf-why-span" rowspan="{len(items)}">{inner}</td>' if pos == 0 else ""
+                rows += f'<tr class="bf-sh-row{place}">{cells}{span}</tr>'
+            if len(items) > 1:
+                rows += f'<tr class="bf-sh-why"><td class="{cls}" colspan="3">{inner}</td></tr>'
     if not rows:
         return ""
     table = (f'<table class="bf-movers"><thead><tr><th scope="col">Name</th><th scope="col">Move</th>'
@@ -673,64 +717,134 @@ def _further(nums: dict) -> str:
                                     "21 days ahead).")])
 
 
-def _chart(latest: dict, nums: dict) -> str:
-    rows = [(k, v) for k, v in (nums.get("chart") or {}).items()
-            if isinstance(v, dict) and _num(v.get("vs_sma50_pct")) is not None]
-    if not rows:
+def _share_points(rows: list, value) -> list:
+    """(x, y) in the plot's 0-1000 by 0-100 box for each report that has the figure: x is the
+    middle of the report's own band (every report takes the same width, so a weekend takes
+    none), y runs from 98 (none of the list) up to 2 (all of it)."""
+    out = []
+    for i, r in enumerate(rows):
+        v, of = value(r)
+        if v is not None:
+            out.append(((i + 0.5) / len(rows) * 1000, 98 - v / of * 96))
+    return out
+
+
+def _breadth_panel(rows: list, value, title: str, cls: str, bars: bool) -> str:
+    """One of the chart's two panels: its heading with the latest count, the plot, and the
+    latest point marked. Both panels use one scale, the share of the list, so their heights
+    compare."""
+    pts = _share_points(rows, value)
+    last = rows[-1]
+    now, of = value(last)
+    head = (f'<p class="bf-br-h"><b>{_txt(title)}</b><span>'
+            + (f'{now} of {of}' if now is not None else "no figure")
+            + f' · {_txt(_date(last["date"], "%-d %b"))}</span></p>')
+    grid = "".join(f'<line class="bf-br-grid" x1="0" x2="1000" y1="{y}" y2="{y}" vector-effect="non-scaling-stroke"/>'
+                   for y in (2, 50, 98))
+    if bars:
+        w = 1000 / len(rows)
+        marks = "".join(f'<rect class="bf-br-bar" x="{x - w / 2:.1f}" y="{y:.1f}" width="{w:.2f}" height="{98 - y:.1f}"/>'
+                        for x, y in pts if y < 98)
+    else:
+        line = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+        marks = (f'<polygon class="bf-br-area" points="{pts[0][0]:.1f},98 {line} {pts[-1][0]:.1f},98"/>'
+                 f'<polyline class="bf-br-line" points="{line}" vector-effect="non-scaling-stroke"/>') if len(pts) > 1 else ""
+    dot = (f'<i class="bf-br-dot" style="left:{pts[-1][0] / 10:.2f}%;top:{pts[-1][1]:.1f}%"></i>'
+           if now is not None and not bars else "")
+    labels = "".join(f'<span class="bf-br-y" style="top:{y}%">{t}</span>' for y, t in ((2, "all"), (50, "half"), (98, "none")))
+    return (f'{head}<div class="bf-br-plot {cls}"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" '
+            f'aria-hidden="true">{grid}{marks}</svg>{labels}{dot}</div>')
+
+
+def _breadth(nums: dict) -> str:
+    """The watchlist through time: for every stored report, how many of the list's names sit
+    above their 50-day average and how many have an RSI under 30 (MarketReport
+    ``breadth_series``, joined at publish). Two small panels on one scale, the share of the
+    list, because the list grew over these reports; the counts are stated in words.
+
+    It replaces "Chart facts" (owner 2026-11-24: that chart "doesnt really tell me much of
+    anything"), which showed five or so names the writer picked, each with its distance from
+    its 50-day average and its RSI: over twelve report dates nearly the same names with nearly
+    the same note, and the two ends of two Watchlist columns. This one shows where today
+    stands in the months before it, which no other part of the site does.
+
+    Counts, never a reading: no "oversold", no line a reader could take for a rule, and one
+    ink for both panels (the hue of price data from the report)."""
+    rows = []
+    for r in nums.get("breadth") or []:
+        if not isinstance(r, dict):
+            continue
+        n, above = _num(r.get("n")), _num(r.get("above"))
+        low, low_of = _num(r.get("rsi_low")), _num(r.get("rsi_n"))
+        try:
+            _dt.date.fromisoformat(str(r.get("date"))[:10])
+        except ValueError:
+            continue
+        if n is None or above is None or n < 1 or not 0 <= above <= n:
+            continue
+        # The RSI count has its own base: a new listing has an RSI before it has a 50-day average.
+        if low is None or low_of is None or low_of < 1 or not 0 <= low <= low_of:
+            low = low_of = None
+        rows.append({"date": str(r["date"])[:10], "n": int(n), "above": int(above),
+                     "low": None if low is None else int(low), "low_of": None if low is None else int(low_of)})
+    if len(rows) < _BREADTH_MIN:
         return ""
-    rows.sort(key=lambda kv: -kv[1]["vs_sma50_pct"])
-    vals = [v["vs_sma50_pct"] for _, v in rows]
-    lo = min(-10, int((min(vals) - 1) // 10) * 10)
-    hi = max(10, -int(-(max(vals) + 1) // 10) * 10)
+    first, last = rows[0], rows[-1]
 
-    def pos(v):
-        return (v - lo) / (hi - lo) * 100
+    def day(r: dict) -> str:
+        return _txt(_date(r["date"], "%-d %b"))
 
-    z = pos(0)
-    ticks = ""
-    for t in range(lo, hi + 1, 10):
-        minor = "" if t in (lo, 0, hi) else ' class="bf-minor"'       # dropped on a narrow card
-        # An end label less than a quarter of the axis from "0" prints on top of it, or
-        # touches it, on a phone-width card (all bars one side of zero: "0" and "+10%"
-        # read "+010%"); the stylesheet drops that end label there. A fifth was the
-        # first figure: at exactly a fifth the two still touched on a 360px phone. The
-        # scale itself does not change.
-        if t in (lo, hi) and abs(pos(t) - z) < 25:
-            minor = ' class="bf-near"'
-        align = ";transform:none" if t == lo else ";transform:translateX(-100%)" if t == hi else ""
-        ticks += f'<span{minor} style="left:{pos(t):.2f}%{align}">{_signed(t, 0) if t else "0"}</span>'
-    body = (f'<div class="bf-cfhead" aria-hidden="true"><span>Name</span><div class="bf-ax">{ticks}</div>'
-            f'<span>RSI</span></div><ul class="bf-cf" aria-label="Distance from the 50-day average">')
-    for k, v in rows:
-        val = v["vs_sma50_pct"]
-        a = pos(val)
-        left, width = min(a, z), abs(a - z)
-        if val >= 0 and width > 22:
-            lab = f'<span class="bf-val bf-in" style="left:{a:.2f}%">{_signed(val, 1)}</span>'
-        elif val >= 0:
-            lab = f'<span class="bf-val" style="left:{a + 1.5:.2f}%">{_signed(val, 1)}</span>'
-        elif 100 - z < 25 and width > 36:
-            # Bars below zero carry their figure right of the zero line. With every bar
-            # below zero the line sits near the axis's right end (85.7% on 23 Nov 2026) and
-            # the figure ran into the RSI column on a 320px phone ("−10.7%20.5"; 4px clear
-            # at 360px). With under a quarter of the axis right of zero the figure goes
-            # inside a long bar, at its zero end (36% of the narrowest axis, 121px, holds
-            # it), and left of a short one (outside review, 2026-11-24).
-            lab = f'<span class="bf-val bf-in" style="left:{z:.2f}%">{_signed(val, 1)}</span>'
-        elif 100 - z < 25:
-            lab = f'<span class="bf-val bf-beside" style="left:{a:.2f}%">{_signed(val, 1)}</span>'
-        else:
-            lab = f'<span class="bf-val" style="left:{z + 1.5:.2f}%">{_signed(val, 1)}</span>'
-        rsi = f'{v["rsi"]:.1f}' if _num(v.get("rsi")) is not None else "—"
-        body += (f'<li><span class="bf-nm2">{_txt(v.get("name") or k)}</span><div class="bf-bar">'
-                 f'<span class="bf-zero" style="left:{z:.2f}%"></span>'
-                 f'<span class="bf-b" style="left:{left:.2f}%;width:{max(width, 0.4):.2f}%"></span>{lab}</div>'
-                 f'<span class="bf-rsi">{rsi}</span></li>')
-    body += "</ul>"
-    body += _points((latest.get("chart_facts") or {}).get("note"), "bf-cap")
-    last = (nums.get("health") or {}).get("last_us_session")
-    return _sec("Chart facts", body, "% from the 50-day average" + (f" · {_date(last)}" if last else ""),
-                prov="% from the 50-day moving average and RSI: morning report", kind="price")
+    # The facts a reader would otherwise have to measure off the plot. Ties go to the later report.
+    top = max(rows, key=lambda r: (r["above"] / r["n"], r["date"]))
+    facts = [f'Most above: {top["above"]} of {top["n"]} on {day(top)}.']
+    side = (last["above"] * 2 > last["n"]) - (last["above"] * 2 < last["n"])
+    run = 0
+    for r in reversed(rows):
+        if (r["above"] * 2 > r["n"]) - (r["above"] * 2 < r["n"]) != side:
+            break
+        run += 1
+    if side and run >= _BREADTH_RUN:
+        word = "More" if side > 0 else "Fewer"
+        since = (f'every report since {day(rows[-run])}' if run < len(rows)
+                 else "every report in this chart")
+        facts.append(f'{word} than half above in {since}.')
+    lows = [r for r in rows if r["low"]]
+    if lows:
+        peak = max(lows, key=lambda r: (r["low"] / r["low_of"], r["date"]))
+        facts.append(f'Most with an RSI under 30: {peak["low"]} of {peak["low_of"]} on {day(peak)}.')
+    else:
+        facts.append("No name had an RSI under 30 in any of these reports.")
+
+    # Month starts along the bottom. A first month of only a few reports gives its place to
+    # the month after it (a chart from 31 Aug is September's); after that, a start that would
+    # sit on the label before it, or run off the right edge, is left out.
+    starts, prev = [], None
+    for i, r in enumerate(rows):
+        if r["date"][:7] != prev:
+            prev = r["date"][:7]
+            starts.append((i / len(rows) * 100, _date(r["date"], "%b")))
+    if len(starts) > 1 and starts[1][0] - starts[0][0] < 9:
+        starts = starts[1:]
+    months, at = "", -100.0
+    for left, label in starts:
+        if left - at >= 9 and left <= 93:
+            months += f'<span style="left:{left:.1f}%">{label}</span>'
+            at = left
+    aria = _escape_attr(
+        f'Two charts of {len(rows)} reports from {_date(first["date"], "%-d %b %Y")} to '
+        f'{_date(last["date"], "%-d %b %Y")}. Names above their 50-day average: {last["above"]} of {last["n"]} '
+        f'on the last report. ' + " ".join(facts))
+    body = (f'<div class="bf-br" role="img" aria-label="{aria}">'
+            + _breadth_panel(rows, lambda r: (r["above"], r["n"]), "Above their 50-day average", "bf-br-top", bars=False)
+            + _breadth_panel(rows, lambda r: (r["low"], r["low_of"]), "RSI under 30", "bf-br-low", bars=True)
+            + f'<div class="bf-br-x" aria-hidden="true">{months}</div></div>'
+            + '<ul class="bf-br-facts">' + "".join(f"<li>{f}</li>" for f in facts) + "</ul>")
+    grew = (f' The list had {first["n"]} names with a 50-day average in the first of these reports and '
+            f'{last["n"]} in the last, so the plots show the share of the list.' if first["n"] != last["n"] else "")
+    return _sec("The watchlist through time", body,
+                f'names counted in each report since {_date(first["date"], "%-d %b")}', cls="bf-brsec",
+                prov="Counted from each morning report: a US or European name at its last close, a Singapore or "
+                     "Seoul name part-day. RSI: the 14-day relative strength index." + grew, kind="price")
 
 
 def _health(latest: dict, nums: dict) -> str:
@@ -788,17 +902,20 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
     # empty beside capped text, and the coming dates sat three screens down). Below
     # that width the two wrappers take no box and the sections stack as before. A
     # day with only one of the two groups gets no wrappers.
-    # Chart facts closes the right-hand column (owner 2026-11-24, on an outside review of the
-    # published card): with the larger text the left column ran about 550 to 590px past the
-    # right, which left that much empty beside it, and the chart sat full width below both.
-    # It stays the block after Upcoming events, so the order on a phone is as it was.
+    # The chart runs the card's full width under both columns. On 2026-11-24 the old "Chart
+    # facts" block was moved into the right-hand column (owner, on an outside review: with the
+    # larger text the left column ran about 550px past the right). The next change the same
+    # day cut the left column's text (the VIX box, the markets note, the movers' reasons) and
+    # made the chart taller, and on that day's briefing the right column then ran 629px past
+    # the left at a 1440px window. Under both columns the two are 47px apart there, and a
+    # line through nine months reads better wide. The order on a phone is as it was.
     today = (_what_matters(latest, sources) + _after(latest, sources)
              + _tape(latest, nums, sources) + _movers(latest, nums, sources))
     coming = _week(latest) + _earnings(latest, nums, sources, earnings or {}) + _further(nums)
-    chart = _chart(latest, nums)
+    chart = _breadth(nums)
     if today and coming:
         middle = (f'<div class="bf-cols"><div class="bf-col bf-col-today">{today}</div>'
-                  f'<div class="bf-col bf-col-coming">{coming}{chart}</div></div>')
+                  f'<div class="bf-col bf-col-coming">{coming}</div></div>{chart}')
     else:
         middle = today + coming + chart
     body = (

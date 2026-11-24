@@ -17,6 +17,7 @@ from pathlib import Path
 from components.briefing.daily_briefing import briefing_card_html
 from components.watchlist.drilldown import render_drilldown_detail_html
 from components.watchlist.row import render_ticker_details_html
+from tests.test_briefing_card import _series
 
 _CSS = (Path(__file__).resolve().parent.parent / "assets" / "theme.css").read_text(encoding="utf-8")
 _PAST = '[data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past)'
@@ -117,12 +118,15 @@ def test_rows_do_not_share_a_name():
 
 
 # ── P5: the briefing card in two columns ─────────────────────────────────────
+_CHART = "<h3>The watchlist through time</h3>"
+
+
 def _card(**over) -> str:
     latest = {
         "schema": 2, "id": "20261123T111708Z", "ts_sgt": "2026-11-23T19:17:08+08:00", "data_date": "2026-11-23",
         "what_matters": [{"kind": "macro", "head": "A headline."}],
         "calendar": [{"sgt": "2026-11-25T21:30", "kind": "macro", "what": "US GDP", "impact": "high"}],
-        "numbers": {"chart": {"NVDA": {"name": "Nvidia", "vs_sma50_pct": -39.4, "rsi": 15.0}}},
+        "numbers": {"breadth": _series([15, 14, 12, 9, 6, 4], end="2026-11-23")},
     }
     latest.update(over)
     return briefing_card_html({"schema": 1, "latest": latest, "recent": []}, "2026-11-23")
@@ -134,15 +138,16 @@ def test_today_and_coming_sections_sit_in_two_wrappers_in_reading_order():
     coming = html.split('<div class="bf-col bf-col-coming">', 1)[1].split("</section></div></div>", 1)[0]
     assert "<h3>What matters</h3>" in today and "<h3>Week ahead</h3>" not in today
     assert "<h3>Week ahead</h3>" in coming and "<h3>What matters</h3>" not in coming
-    # Chart facts closes the right-hand column (2026-11-24: the left column ran about 550 to 590px
-    # past the right, and the chart sat full width under both). It is still the block after the
-    # coming dates, so the order on a phone is unchanged.
-    assert "<h3>Chart facts</h3>" in coming and "<h3>Chart facts</h3>" not in today
-    assert coming.index("<h3>Week ahead</h3>") < coming.index("<h3>Chart facts</h3>")
+    # The chart runs the full width under both columns. The old Chart facts block was moved into
+    # the right-hand column on 2026-11-24 to even the two out; the next change cut the left
+    # column's text, and with the chart in it the right column ran 629px past the left at a
+    # 1440px window (47px with the chart under both). It is still the block after the coming
+    # dates, so the order on a phone is unchanged.
+    assert _CHART not in coming and _CHART not in today
     assert "<h3>Data notes</h3>" not in coming
-    # The masthead before the wrappers, the notes after them: full width.
+    # The masthead before the wrappers, the chart and the notes after them: full width.
     order = [html.index(x) for x in ('class="bf-date"', 'class="bf-cols"', "<h3>What matters</h3>",
-                                     "<h3>Week ahead</h3>", "<h3>Chart facts</h3>", "</section></div></div>",
+                                     "<h3>Week ahead</h3>", "</section></div></div>", _CHART,
                                      "<h3>Data notes</h3>")]
     assert order == sorted(order)
 
@@ -151,10 +156,10 @@ def test_a_day_with_one_group_gets_no_wrappers():
     assert "bf-cols" not in _card(calendar=[])            # nothing coming
     assert "bf-cols" not in _card(what_matters=[])        # nothing for today
     assert "<h3>Week ahead</h3>" in _card(what_matters=[])
-    # and Chart facts follows the one group, as it always did
+    # and the chart follows the one group, as it always did
     for html in (_card(calendar=[]), _card(what_matters=[])):
-        assert html.index("<h3>Chart facts</h3>") < html.index("<h3>Data notes</h3>")
-        assert html.count("<h3>Chart facts</h3>") == 1
+        assert html.index(_CHART) < html.index("<h3>Data notes</h3>")
+        assert html.count(_CHART) == 1
 
 
 
@@ -172,7 +177,7 @@ def test_two_columns_from_1220px_and_no_box_below():
     # apply inside it.
     col = _block(wide, ".bf-col {")
     assert "display: block" in col and "container-type: inline-size" in col
-    assert "max-width: 720px" in _block(wide, ".bf-cfhead, .bf .bf-cf {")
+    assert ".bf-br {" not in _CSS                                   # the chart runs the card's width at any window
     # Only the card's first section loses its top rule, not the first one in a column.
     assert ".bf > .bf-sec:first-child { border-top: 0; padding-top: 4px; }" in _CSS
     assert ".bf .bf-sec:first-child {" not in _CSS

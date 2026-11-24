@@ -2213,26 +2213,43 @@ a.term-index-item:hover {
 .bf .bf-out { margin: 12px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); }
 .bf .bf-out li { margin: 0 0 6px; }
 
-/* chart facts: diverging bars, zero line only; one hue for both directions */
-.bf-cfhead, .bf .bf-cf li { display: grid; grid-template-columns: 120px 1fr 44px; gap: 12px; align-items: center; }
-.bf-cfhead { margin-bottom: 6px; font-family: var(--font-display); font-size: 12px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
-.bf-cfhead > span:last-child, .bf-rsi { text-align: right; }
-.bf-ax { position: relative; height: 14px; text-transform: none; letter-spacing: 0.02em; }
-.bf-ax span { position: absolute; transform: translateX(-50%); }
-.bf .bf-cf { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.bf-nm2 { font-size: 14px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bf-bar { position: relative; height: 20px; }
-.bf-zero { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--ink-2); }
-.bf-b { position: absolute; top: 2px; height: 16px; border-radius: 1px;
-  background: color-mix(in srgb, var(--metric-input) 58%, transparent); }
-.bf-val { position: absolute; top: 0; font-family: var(--font-display); font-size: 13px; font-weight: 600;
-  line-height: 20px; white-space: nowrap; color: var(--ink); }
-.bf-val.bf-in { transform: translateX(-100%); padding-right: 5px; color: var(--paper); }
-/* Left of a short bar below zero, when there is no room right of the zero line
-   (daily_briefing_v2._chart). */
-.bf-val.bf-beside { transform: translateX(-100%); padding-right: 5px; }
-.bf-rsi { font-family: var(--font-display); font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
+/* The watchlist through time (daily_briefing_v2._breadth): two panels on one scale, the
+   share of the list. One ink for both, the hue of price data from the report: a count is
+   not a verdict. The plot is an SVG stretched to its box (non-scaling strokes); every
+   word is HTML, so it takes the card's own type. It replaced "Chart facts" on 2026-11-25
+   (five names picked by the writer, each a bar from its 50-day average, with its RSI). */
+.bf .bf-br-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 8px;
+  font-family: var(--font-display); font-weight: 600; letter-spacing: 0.03em; color: var(--ink); }
+.bf .bf-br-h b { font-weight: 600; }
+.bf .bf-br-h span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bf-br-plot { position: relative; margin: 0 38px 20px 0; }        /* the right margin holds all / half / none */
+.bf-br-top { height: 120px; }
+.bf-br-low { height: 64px; margin-bottom: 0; }
+.bf-br-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.bf-br-grid { stroke: var(--rule); stroke-width: 1; }
+.bf-br-line { fill: none; stroke: var(--metric-input); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.bf-br-area { fill: color-mix(in srgb, var(--metric-input) 16%, transparent); }
+.bf-br-bar { fill: color-mix(in srgb, var(--metric-input) 62%, transparent); }
+.bf-br-y { position: absolute; left: 100%; transform: translateY(-50%); padding-left: 7px;
+  font-family: var(--font-display); font-size: 12.5px; letter-spacing: 0.02em; white-space: nowrap; color: var(--ink-3); }
+.bf-br-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%;
+  background: var(--metric-input); box-shadow: 0 0 0 2px var(--color-bg); }
+.bf-br-x { position: relative; height: 16px; margin: 5px 38px 0 0; }
+.bf-br-x span { position: absolute; font-family: var(--font-display); font-size: 12.5px; letter-spacing: 0.02em;
+  color: var(--ink-3); }
+.bf .bf-br-facts { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 4px; color: var(--ink-2); }
+
+/* Names that moved for one reported reason (daily_briefing_v2._shared). On a wide card the
+   reason is one cell beside all of them, and the row of its own stays hidden; a narrow
+   card shows that row under the last name instead (the rules are with the narrow card's). */
+.bf-movers tr.bf-sh-why { display: none; }
+.bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-last) td:not(.bf-why) { border-bottom: 0; }
+/* Streamlit rules every table row along its top; inside one group that drew a line between two names. */
+.bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first), .bf .bf-movers tbody tr.bf-sh-why { border-top: 0; }
+@container (min-width: 560.01px) {
+  .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-last) td:not(.bf-why) { padding-bottom: 5px; }
+  .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first) td { padding-top: 5px; }
+}
 
 /* data notes, sources, footer */
 .bf-dn { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -2251,17 +2268,12 @@ a.term-index-item:hover {
 .bf .bf-srcs li { padding-left: 2px; }
 .bf-foot { font-size: 12.5px; line-height: 1.5; color: var(--ink-3); padding-top: 14px; border-top: 1px solid var(--rule); }
 
-/* what matters keeps its tag column, and the chart axis its minor ticks, down to a
-   narrow card; the as-of lines stack before a wrap could leave an empty cell */
+/* what matters keeps its tag column down to a narrow card; the as-of lines stack
+   before a wrap could leave an empty cell */
 @container (max-width: 460px) {
   .bf-asof { grid-template-columns: 1fr; }
 }
 @container (max-width: 440px) {
-  .bf-ax .bf-minor { display: none; }
-  /* An end label that would sit on "0" goes too (daily_briefing_v2._chart marks it). Same
-     width as the minor ticks: on a wider card the label has room, and hiding "+10%" while
-     "-10%" still showed read as a fault (outside review of the build, 2026-11-24). */
-  .bf-ax .bf-near { display: none; }
   .bf .bf-wm > li { grid-template-columns: 1fr; }
   .bf-tag { grid-row: auto; }
   .bf-det { grid-column: 1; }
@@ -2271,7 +2283,6 @@ a.term-index-item:hover {
 @container (max-width: 560px) {
   .bf-tape { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bf .bf-date { font-size: 26px !important; }
-  .bf-cfhead, .bf .bf-cf li { grid-template-columns: 96px 1fr 34px; gap: 8px; }
   .bf-wk { grid-template-columns: 1fr; }
   /* A day is its header line ("MON 24 Nov") over its events at the full width
      (layout review 2026-11-24, P11). Until then the header kept an 84px column
@@ -2286,6 +2297,12 @@ a.term-index-item:hover {
   .bf .bf-movers td { display: block; padding: 0; border: 0; }
   .bf-movers td.bf-why { grid-column: 1 / -1; }
   .bf-movers td.bf-mv { text-align: right; }
+  /* Names that share one reason: each name is a row with no rule under it, and the reason
+     is the row after the last of them. The cell beside the names is the wide card's. */
+  .bf .bf-movers td.bf-why-span { display: none; }
+  .bf .bf-movers tbody tr.bf-sh-row { border-bottom: 0; padding-bottom: 0; }
+  .bf .bf-movers tbody tr.bf-sh-row:not(.bf-sh-first) { padding-top: 10px; }
+  .bf .bf-movers tbody tr.bf-sh-why { padding-top: 8px; }
 }
 /* The date beside its text holds down to a 380px card; only a phone-width card stacks
    them. From 381 to 560px (the briefing's right-hand column on a PC) Week ahead sets its
@@ -2791,9 +2808,6 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
   }
   .bf-col { display: block; min-width: 0; container-type: inline-size; }
   .bf .bf-col > .bf-sec:first-child { border-top: 0; }
-  /* Full-width bars for five names were 1,033px long; the figures sit closer to
-     their names at a reading width. */
-  .bf-cfhead, .bf .bf-cf { max-width: 720px; }
 }
 
 /* ── Long text set as lists (owner 2026-11-24: "text dumps with no structuring") ───────────────
@@ -2866,13 +2880,13 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
 /* The VIX box runs the width of the tiles above it; its text keeps the line cap. */
 .bf .bf-vix { max-width: none; }
 /* notes about the data and under the chart stay a step under the day's own text */
-.bf .bf-dntext, .bf .bf-cf + .bf-cap { font-size: 14px; line-height: 1.55; max-width: 60ch; }
+.bf .bf-dntext, .bf .bf-br-facts { font-size: 14px; line-height: 1.55; max-width: 60ch; }
 
 /* an item's headline, a lead on a line of its own, a mover's name, a heading inside a block */
 .bf .bf-head { font-size: 17.5px; line-height: 1.32; max-width: 48ch; }
 .bf .bf-box li b { display: block; margin-bottom: 5px; font-size: 15.5px; }
 .bf .bf-nm b { font-size: 15.5px; }
-.bf .bf-also > b, .bf .bf-later-h b, .bf .bf-rchk summary { font-size: 15px; }
+.bf .bf-also > b, .bf .bf-later-h b, .bf .bf-rchk summary, .bf .bf-br-h { font-size: 15px; }
 /* the company's name on an earnings card: at 22px it stood over the section's heading (21px) */
 .bf .bf-ec-name { font-size: 19px; }
 
@@ -2928,14 +2942,13 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
     .bf .bf-det, .bf .bf-box li, .bf .bf-cap, .bf .bf-vix p, .bf .bf-movers .bf-why,
     .bf .bf-facts, .bf .bf-out { line-height: 1.58; max-width: none; }
     .bf .bf-why-in { max-width: none; }
-    .bf .bf-dntext { font-size: 14.5px; line-height: 1.55; max-width: none; }
-    /* the note under the chart stays 14px: the chart's own name labels are 14px here too */
-    .bf .bf-cf + .bf-cap { max-width: none; }
+    .bf .bf-dntext, .bf .bf-br-facts { font-size: 14.5px; line-height: 1.55; max-width: none; }
     .bf .bf-head { font-size: 17px; max-width: none; }
     .bf .bf-ec-name { font-size: 18px; }
     .bf .bf-ev span, .bf .bf-far li, .bf .bf-rchk li, .bf .bf-also li, .bf .bf-srcs ol, .bf-next-list { font-size: 14.5px; }
     .bf-aside, .bf-dim, .bf .bf-prov, .bf .bf-key, .bf .bf-mv small, .bf .bf-also-x, .bf-foot,
-    .bf .bf-ev time, .bf .bf-far li time, .bf .bf-far li b small, .bf .bf-rchk li time { font-size: 13px; }
+    .bf .bf-ev time, .bf .bf-far li time, .bf .bf-far li b small, .bf .bf-rchk li time,
+    .bf .bf-br-y, .bf .bf-br-x span { font-size: 13px; }
     .bf .bf-v { font-size: 22px; }
     .bf .bf-mv { font-size: 19px; }
     .bf ul.bf-pts { gap: 12px; }

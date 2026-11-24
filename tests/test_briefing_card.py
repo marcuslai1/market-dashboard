@@ -62,6 +62,18 @@ def test_terminology_model_off_notice_gave_way_to_the_era_line():
 
 # ── record v2 (MarketReport spec 2026-09-28-briefing-card-v2.md) ─────────────
 
+def _series(above: list, n: int = 20, low: int = 0, end: str = "2026-09-28") -> list:
+    """A ``numbers.breadth`` series: one report a weekday, ending on ``end``, with ``above`` of ``n``
+    names above their 50-day average in each and ``low`` of them at an RSI under 30."""
+    import datetime as dt
+    day, days = dt.date.fromisoformat(end), []
+    while len(days) < len(above):
+        if day.weekday() < 5:
+            days.append(day.isoformat())
+        day -= dt.timedelta(days=1)
+    return [{"date": d, "n": n, "above": a, "rsi_n": n, "rsi_low": low} for d, a in zip(reversed(days), above, strict=True)]
+
+
 def _v2(**over):
     latest = {
         "schema": 2, "id": "20260928T044233Z", "ts_sgt": "2026-09-28T12:42:33+08:00", "data_date": "2026-09-28",
@@ -82,7 +94,6 @@ def _v2(**over):
         "earnings": {"coming": [{"key": "MU", "period": "fiscal Q4", "when_sgt": "2026-10-01T04:05",
                                  "revenue": {"consensus": 51.2, "guide_low": 49.0, "guide_high": 51.0,
                                              "range_low": 46.9, "range_high": 59.8, "analysts": 35}}]},
-        "chart_facts": {"names": ["BE", "AVGO"], "note": "Plain note."},
         "data_notes": "Clean day.",
         "sources": [{"title": "Report", "url": "file:market_data/morning_report_2026-09-28.json"},
                     {"title": "Oil story (CNBC)", "url": "https://www.cnbc.com/x", "date": "2026-09-28"}],
@@ -94,8 +105,7 @@ def _v2(**over):
                        "000660_KS": {"name": "SK Hynix", "market": "KRX", "chg_pct": -4.1, "x_usual": 0.5,
                                      "vol_ratio": 0.67}},
             "also_moved": [{"key": "WRD", "name": "WeRide", "chg_pct": -4.49, "x_usual": 1.4, "vol_ratio": 1.27}],
-            "chart": {"BE": {"name": "Bloom Energy", "vs_sma50_pct": 25.7, "rsi": 62.8},
-                      "AVGO": {"name": "Broadcom", "vs_sma50_pct": -6.2, "rsi": 44.0}},
+            "breadth": _series([15, 14, 12, 9, 6, 4]),
             "names": {"MU": "Micron"},
             "further_out": [{"date": "2026-10-14", "kind": "macro", "what": "CPI Report (September)", "later": False},
                             {"date": "2026-10-14", "kind": "earnings", "key": "ASML", "what": "ASML", "later": False},
@@ -117,7 +127,8 @@ def _v2(**over):
 def test_v2_renders_in_reading_order():
     html = briefing_card_html(_v2(), "2026-09-28")
     heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "Markets", "Names that moved",
-                                        "Week ahead", "Earnings", "Upcoming events", "Chart facts", "Data notes",
+                                        "Week ahead", "Earnings", "Upcoming events", "The watchlist through time",
+                                        "Data notes",
                                         "All sources")]
     order = [html.index(s) for s in ["Monday 28 September", *heads, "Information, not advice"]]
     assert order == sorted(order)
@@ -150,7 +161,7 @@ def test_v2_week_and_earnings_and_chart():
     assert "Analysts expect" in html and "Company forecast" in html and "Analyst estimates" in html
     for jargon in ("Consensus revenue", "Company guide", "consensus 51.2", "expected 51.2", ">EPS<"):
         assert jargon not in html, jargon                                   # plain labels (owner 09-29)
-    assert "+25.7%" in html and "−6.2%" in html and "RSI" in html
+    assert "Above their 50-day average" in html and "4 of 20" in html and "RSI under 30" in html
     assert "all clear" in html and "bf-fault" not in html
 
 
@@ -170,7 +181,7 @@ def test_calendar_sections_share_the_rose_marker():
 
 def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     html = briefing_card_html(_v2(), "2026-09-28")
-    far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>Chart facts</h3>")]
+    far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>The watchlist through time</h3>")]
     soon, later = far.split('<div class="bf-later">')
     assert soon.count("<li>") == 4 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
     assert '<b data-kind="event">OCP Global Summit 2026<small>to Thu 15 Oct</small></b>' in soon
@@ -391,14 +402,14 @@ def test_a_latched_day_renders_a_notice_with_no_price_sections():
     payload = _v2(what_matters=[{"kind": "data", "head": "Today's numbers are withheld.",
                                  "detail": "The data failed the pipeline's own check."}])
     latest = payload["latest"]
-    for k in ("tape_note", "movers", "group_notes", "chart_facts"):
+    for k in ("tape_note", "movers", "group_notes"):
         latest.pop(k)
     nums = latest["numbers"]
-    nums.update(tape=[], movers={}, also_moved=[], chart={}, hold=True)
+    nums.update(tape=[], movers={}, also_moved=[], breadth=[], hold=True)
     nums["health"]["latch_active"] = True
     html = briefing_card_html(payload, "2026-09-28")
     assert "Today's numbers are withheld." in html or "Today&#x27;s numbers are withheld." in html
-    for gone in ("<h3>Markets</h3>", "<h3>Names that moved</h3>", "<h3>Chart facts</h3>"):
+    for gone in ("<h3>Markets</h3>", "<h3>Names that moved</h3>", "<h3>The watchlist through time</h3>"):
         assert gone not in html
     assert "<h3>Week ahead</h3>" in html and "<h3>Upcoming events</h3>" in html         # dates are not prices
     assert 'bf-fault">Latch <b>ON</b>' in html

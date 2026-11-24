@@ -602,8 +602,13 @@ SECTIONS = [
         ),
         "body": _grid([
             ("SPY · QQQ", "The S&amp;P 500 and Nasdaq-100 exchange-traded funds."),
-            ("VIX", "The CBOE Volatility Index — 30-day implied volatility on S&amp;P 500 "
-                    "options."),
+            # The plain sentence stood at the top of the briefing card's VIX note on each day
+            # the note ran; since 2026-11-25 the note holds only what a report says about the
+            # VIX itself, and this is where a reader finds what it is.
+            ("VIX", "The CBOE Volatility Index. It measures how big a swing in the S&amp;P 500 "
+                    "traders are paying to protect against over the next 30 days, worked out "
+                    "from options prices; it rises when stocks fall fast and more protection "
+                    "is bought."),
             ("US10Y", "The 10-year U.S. Treasury yield, in percent."),
             ("SOXX", "The iShares Semiconductor exchange-traded fund."),
             ("USD/SGD", "Singapore dollars per US dollar at the US close (4 pm New York). A rise "
