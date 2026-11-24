@@ -4,7 +4,7 @@
   bare `python` resolves to on this machine — the MarketReport pipeline uses
   anaconda3 instead, never mix them).
 - Tests: `.venv\Scripts\python.exe -m pytest tests` — module form is required
-  (puts the repo root on `sys.path`). Baseline 2026-11-24: 331 passed, ~8s, after the look review's second batch (tablet columns, 44px tap targets, the past-report strip; `tests/test_look_batch2.py`) (318 on 2026-11-23 after the stale chip's colour test; 316 on 2026-11-20, after the briefing card's level tiles, VIX note and latched-day notice; 312 on 2026-10-10; 302 on 2026-10-06, after the experimental growth sort ; 287 before it; 283 before the revenue-estimate rows) (289 on 2026-10-02, before the market-read card went 2026-10-03).
+  (puts the repo root on `sys.path`). Baseline 2026-11-24: 385 passed, ~9s, after the layout review (`ccd8876`: the Watchlist toolbar and two-line phone rows, the pinned opened row, the briefing card's two columns, long notes as lists; `tests/test_layout_batch1.py`, `test_layout_batch2.py`, `test_readable_text.py`) (331 earlier that day, after the look review's second batch: tablet columns, 44px tap targets, the past-report strip; `tests/test_look_batch2.py`) (318 on 2026-11-23 after the stale chip's colour test; 316 on 2026-11-20, after the briefing card's level tiles, VIX note and latched-day notice; 312 on 2026-10-10; 302 on 2026-10-06, after the experimental growth sort ; 287 before it; 283 before the revenue-estimate rows) (289 on 2026-10-02, before the market-read card went 2026-10-03).
   `tests/visual` is excluded by `pyproject.toml` and is ON-DEMAND only
   (`workflow_dispatch`; the weekly sweep was switched off 2026-10-01 — it renders
   the live `data/`, so it went stale daily); never regenerate pixel baselines for an
