@@ -6,18 +6,25 @@ the ``<details>`` element rendered by ``components.watchlist.row``.
 **Facts only since 2026-10-01** (MarketReport spec 2026-10-01-info-only-watchlist
 §8, O6; tag ``pre-label-removal``). Reading order:
 
-1. identity — restated, because an open drill-down can be taller than the
-   viewport and lose the row that opened it (no pill);
-2. data-health chips — what to distrust in the numbers below;
-3. the price chart — the price since the first report and its 50- / 200-day
-   averages, no threshold marks (``components.watchlist.price_chart``);
-4. the levels ladder, the technicals and the valuation, side by side;
-5. the Company profile drawer — what the company does, its revenue mix, customers,
+1. data-health chips — what to distrust in the numbers below;
+2. one grid (``.dd-grid``) of five blocks: the price chart — the price since the
+   first report and its 50- / 200-day averages, no threshold marks
+   (``components.watchlist.price_chart``) — then the levels ladder, the technicals,
+   the valuation, and news & context: the name's recent headlines
+   (``recent_news``, from the pipeline cutover on), thesis highlights and the
+   catalyst headline;
+3. the Company profile drawer — what the company does, its revenue mix, customers,
    competitors and recent changes to the business, from MarketReport's checked cards
    (``components.watchlist.company_profile``; the same card on every report date);
-6. the Earnings drawer (band, charts, history, the result headline);
-7. news & context — the name's recent headlines (``recent_news``, from the
-   pipeline cutover on), thesis highlights and the catalyst headline.
+4. the Earnings drawer (band, charts, history, the result headline).
+
+Layout review 2026-11-24 (P3, P8). The card no longer restates the ticker, cluster
+and price at its top: the row that opened it stays pinned while its panel scrolls
+(theme.css), so the identity is always in view. On a PC the chart sits beside the
+levels, with technicals, valuation and news in a row of three under them; the
+ladder used to leave a tall empty area beside two shorter columns, under a chart
+as wide as the page. News & context moved ahead of the two drawers so it can sit
+in that row; a tablet shows the blocks two abreast and a phone stacks them.
 
 Gone with the labels: the entry-block card, the writeup verdict / what-to-do,
 the caution-source and momentum chips, the trigger / target / invalidation / R:R
@@ -37,17 +44,14 @@ from components.watchlist.drilldown_drawers import (
     catalyst_html,
     render_drawers_html,
 )
-from components.watchlist.grid import cluster_of
 from components.watchlist.price_chart import price_chart_html
 from lib.formatters import (
     _ccy_decimals,
     _ccy_prefix,
-    _delta_class,
     _escape_dollars,
     _fmt_num,
     _safe_href,
     _sign,
-    display_ticker,
 )
 from lib.levels import level_ladder
 
@@ -85,25 +89,7 @@ def _pairs_html(items: list[tuple]) -> str:
     )
 
 
-# ── 1. Identity ───────────────────────────────────────────────────────────────
-
-def _header_html(tk: str, d: dict, price_str: str) -> str:
-    """Ticker + cluster left, last price + the day's change right."""
-    chg = d.get("chg_pct")
-    chg_html = (f'<div class="dd-head-chg {_delta_class(chg)}">{_pct(chg, 2)}</div>'
-                if chg is not None else "")
-    return (
-        '<div class="dd-head">'
-        '<div class="dd-head-id">'
-        f'<div class="dd-head-tk">{_escape_dollars(display_ticker(tk))}</div>'
-        f'<div class="dd-head-sub">{_escape_dollars(cluster_of(tk, d))}</div></div>'
-        f'<div class="dd-head-right"><div class="dd-head-px">{price_str}</div>'
-        f'{chg_html}</div>'
-        '</div>'
-    )
-
-
-# ── 2. Data-health chips ──────────────────────────────────────────────────────
+# ── 1. Data-health chips ──────────────────────────────────────────────────────
 
 #: Sentences that restate a label or an entry instruction rather than a data
 #: condition. Old reports carry a few ("Signal suppressed." on a price-source
@@ -160,7 +146,7 @@ def _health_chips_html(d: dict) -> str:
     return f'<div class="dd-chips">{"".join(chips)}</div>'
 
 
-# ── 3. Levels, technicals, valuation ──────────────────────────────────────────
+# ── 2. Levels, technicals, valuation ──────────────────────────────────────────
 
 def _ladder_html(d: dict, price_fn) -> str:
     """Every stated level, high → low, with the last price as its own rung.
@@ -276,7 +262,7 @@ def _valuation_html(d: dict, tk: str = "") -> str:
     return f'<div class="dd-eyebrow">Valuation</div>{pairs}' if pairs else ""
 
 
-# ── 5. News & context ─────────────────────────────────────────────────────────
+# ── 3. News & context ─────────────────────────────────────────────────────────
 
 #: The pipeline ships at most 3 per name (the harvest's cap); a longer list is
 #: still cut here so a contract change cannot turn the card into a feed.
@@ -379,23 +365,17 @@ def render_drilldown_detail_html(tk: str, d: dict, earnings_hist=None,
         """Currency-prefixed price with the right decimal count for this ticker."""
         return f"{pfx}{_fmt_num(v, dec)}"
 
-    price = d.get("price")
-    price_str = _p(price) if price is not None else "—"
-    cols = [c for c in (_ladder_html(d, _p), _technicals_html(d), _valuation_html(d, tk)) if c]
-    cols_html = (
-        '<div class="dd-cols dd-cols-3">'
-        + "".join(f'<div class="dd-col">{c}</div>' for c in cols)
-        + '</div>'
-        if cols else ""
-    )
+    # One grid for the five blocks; the stylesheet places them by window width
+    # (chart beside levels on a PC, two abreast on a tablet, stacked on a phone).
+    cols = "".join(f'<div class="dd-col">{c}</div>'
+                   for c in (_ladder_html(d, _p), _technicals_html(d), _valuation_html(d, tk)) if c)
+    grid = f'{price_chart_html(tk, price_hist, report_date, _p)}{cols}{_news_html(d)}'
+    grid_html = f'<div class="dd-grid">{grid}</div>' if grid else ""
     return (
         '<div class="dd-card">'
-        f'{_header_html(tk, d, price_str)}'
         f'{_health_chips_html(d)}'
-        f'{price_chart_html(tk, price_hist, report_date, _p)}'
-        f'{cols_html}'
+        f'{grid_html}'
         f'{company_profile_html(profile)}'
         f'{render_drawers_html(d, _p, earnings_hist, report_date=report_date)}'
-        f'{_news_html(d)}'
         '</div>'
     )

@@ -149,17 +149,21 @@ def test_the_published_file_covers_the_report_watchlist():
 
 
 def _watchlist_app():
-    """Boot ONLY the Watchlist grid on the newest report. ASCII-only source."""
+    """Boot ONLY the Watchlist's toolbar and grid on the newest report. ASCII-only source."""
     import glob
     import json
+    import re
 
-    from components.watchlist import render_watchlist
+    from components.watchlist import render_watchlist, render_watchlist_toolbar
 
     files = sorted(glob.glob("data/morning_report_*.json"))
+    dates = [re.search(r"(\d{4}-\d{2}-\d{2})", f).group(1) for f in files][::-1]
+    _, order = render_watchlist_toolbar(dates)
     with open(files[-1], encoding="utf-8") as fh:
         report = json.load(fh)
     render_watchlist(report.get("watchlist", {}),
-                     report_date=(report.get("meta") or {}).get("report_date"))
+                     report_date=(report.get("meta") or {}).get("report_date"),
+                     order=order)
 
 
 def _boot():
@@ -173,7 +177,7 @@ def _boot():
 
 def test_the_page_defaults_to_the_cluster_order():
     at = _boot()
-    assert at.radio(key="wl_order").value == ORDER_CLUSTERS
+    assert at.selectbox(key="wl_order").value == ORDER_CLUSTERS
     blob = " ".join(str(m.value) for m in at.markdown)
     assert 'class="tk-group"' in blob and "tk-growth" not in blob
 
@@ -181,7 +185,7 @@ def test_the_page_defaults_to_the_cluster_order():
 @pytest.mark.parametrize("order", [ORDER_TWO_YEAR, ORDER_QUARTER])
 def test_each_sort_reorders_the_rows_and_adds_the_growth_lines(order):
     at = _boot()
-    at.radio(key="wl_order").set_value(order).run()
+    at.selectbox(key="wl_order").set_value(order).run()
     assert not at.exception, f"{order}: {[e.value for e in at.exception]}"
     blob = " ".join(str(m.value) for m in at.markdown)
     assert 'class="tk-group"' not in blob

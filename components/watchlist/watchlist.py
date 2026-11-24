@@ -13,6 +13,10 @@ Experimental since 2026-10-06 (owner; MarketReport PIPELINE_FEATURES §125): an
 order control above the table can sort the rows by sales growth instead
 (``components.watchlist.growth``). The default stays the fixed cluster order, and
 the control only appears when ``data/growth.json`` holds figures.
+
+Since the layout review of 2026-11-24 (P1) the page's two controls, Report date
+and Order, are two selects on one row (``render_watchlist_toolbar``), and the
+table follows at once.
 """
 from __future__ import annotations
 
@@ -44,28 +48,48 @@ from lib.data_loader import (
 )
 
 
-def render_watchlist(watchlist: dict, report_date: str | None = None) -> None:
+def render_watchlist_toolbar(dates_desc: list[str]) -> tuple[str, str]:
+    """The page's two controls on one row: Report date and Order. Returns
+    ``(selected date, order)``.
+
+    One keyed container, laid out as a row by the stylesheet (``.st-key-wl_toolbar``):
+    a full-width date bar and three stacked Order options used to fill a phone's
+    first screen before any company (layout review 2026-11-24, P1). The Order
+    select only appears when ``data/growth.json`` holds figures; without it the
+    page keeps the fixed cluster order.
+    """
+    # Sales-growth figures (MarketReport growth_types.json, numbers only) → the
+    # experimental sort; missing file → no control, the fixed order only.
+    has_growth = bool(growth_by_key(load_growth()))
+    with st.container(key="wl_toolbar"):
+        selected = st.selectbox("Report date", dates_desc, index=0, key="watchlist_date")
+        order = ORDER_CLUSTERS
+        if has_growth:
+            order = st.selectbox("Order", ORDERS, index=0, key="wl_order")
+    return selected, order
+
+
+def render_watchlist(watchlist: dict, report_date: str | None = None,
+                     order: str = ORDER_CLUSTERS) -> None:
     """The whole book in its fixed order (or, on request, sorted by sales growth),
     then the footnotes.
 
     ``report_date`` (the report's ``meta.report_date``) dates the Earnings
-    column on reports that carry only a day count.
+    column on reports that carry only a day count. ``order`` is the toolbar's
+    Order choice; an order with no figures on file falls back to the fixed one.
     """
-    # Sales-growth figures (MarketReport growth_types.json, numbers only) → the
-    # experimental sort; missing file → no control, the fixed order only.
     growth_data = load_growth()
     growth_map = growth_by_key(growth_data)
-    order = ORDER_CLUSTERS
-    if growth_map:
-        order = st.radio("Order", ORDERS, index=0, horizontal=True, key="wl_order")
-    field = SORT_FIELD.get(order)
+    field = SORT_FIELD.get(order) if growth_map else None
 
     if not field:
         # The page's only statement of its own ordering. On a dense table a reader
-        # otherwise cannot tell whether row order means anything.
+        # otherwise cannot tell whether row order means anything. It also carries
+        # the "click a row" hint the page heading used to (the heading went with
+        # the layout review of 2026-11-24, P1).
         st.markdown(
             '<div class="tk-sortline">Grouped by cluster, largest first · names A–Z '
-            '· the same order every day</div>',
+            '· the same order every day · click a row for the detail</div>',
             unsafe_allow_html=True,
         )
 

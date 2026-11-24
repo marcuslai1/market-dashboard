@@ -194,7 +194,8 @@ def past_report_notice_html(selected: str, latest: str) -> str:
     (outside review 2026-11-23, finding 5). It names both dates and claims only
     what is true of a past date's page: every PRICE on it (the quote strip, the
     table's columns, an opened row's chart and levels) comes from the selected
-    report. Three things do not, and none of them is a price: the sales-growth
+    report. (Since the layout review of 2026-11-24, P1, the Watchlist shows the
+    quote strip on an older date only; on the latest date it is the Briefing's.) Three things do not, and none of them is a price: the sales-growth
     lines, the Company profile and the Earnings history are the current files.
     The first wording said "the quotes and rows", which the growth lines inside
     the rows made untrue (second outside review, finding 1).

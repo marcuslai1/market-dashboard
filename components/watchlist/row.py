@@ -42,10 +42,13 @@ def _pct_cell(value, decimals: int) -> str:
 
 def earnings_cell_html(d: dict, report_date: str | None) -> str:
     """Date over the distance to it — ``17 Nov`` / ``in 47 d``. Neutral ink at
-    every distance: a report date is a fact, not a warning."""
+    every distance: a report date is a fact, not a warning. A name with no date
+    on file keeps its dash in the table's column and marks the cell
+    (``data-none``), so the two-line phone row can leave the empty cell out
+    (layout review 2026-11-24, P2)."""
     ne = next_earnings(d, report_date)
     if ne is None:
-        return '<div class="tk-earn"><div class="tk-earn-date">—</div></div>'
+        return '<div class="tk-earn" data-none="1"><div class="tk-earn-date">—</div></div>'
     top = "n/a" if ne.when is None else short_date(ne.when)
     sub = days_phrase(ne)
     return (
@@ -107,4 +110,11 @@ def render_ticker_details_html(tk: str, d: dict, earnings_hist=None,
         f'{render_drilldown_detail_html(tk, d, earnings_hist=earnings_hist, report_date=report_date, price_hist=price_hist, profile=profile)}'
         '</div>'
     )
+    # No shared ``name`` on the rows, on purpose. The layout review of 2026-11-24 (P3)
+    # asked for one row open at a time, which a shared name gives without script. It
+    # was built and measured, then left out: when the row that closes sits above the
+    # one just tapped, the page loses that panel's height and the tapped row jumps
+    # (277px from the top to 0, its panel's start scrolled out of view, in Chrome at
+    # 768 and 1440px; a browser without scroll anchoring would do it every time).
+    # Holding the page still needs script, which this page does not use.
     return f'<details class="tk-details">{summary}{body}</details>'

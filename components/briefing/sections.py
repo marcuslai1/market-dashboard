@@ -14,8 +14,12 @@ from lib.formatters import _escape_attr, _escape_dollars
 
 
 def _txt(s) -> str:
-    """Escape prose for the card; markdown emphasis from the reply is dropped."""
-    return _escape_dollars(str(s or "").replace("**", ""))
+    """Escape prose for the card; markdown emphasis from the reply is dropped, and any run
+    of spaces or line breaks becomes one space. The card is one block of HTML handed to a
+    markdown renderer: a blank line inside a paragraph of it splits the paragraph, and the
+    half after it loses the paragraph's class (one test page, 2026-11-24, Streamlit 1.58).
+    HTML shows a run of whitespace as one space anyway, so nothing a reader sees changes."""
+    return _escape_dollars(" ".join(str(s or "").replace("**", "").split()))
 
 
 def _section(kind: str, label: str, inner: str, aside: str = "") -> str:

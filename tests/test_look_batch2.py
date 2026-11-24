@@ -45,7 +45,9 @@ def _no_network(monkeypatch):
     monkeypatch.setattr(live_prices, "fetch_live_quotes", lambda: {})
 
 
-_TABLET = "@media (min-width: 719.01px) and (max-width: 991.98px)"
+#: The upper bound was 991.98px until the layout review of 2026-11-24 released the table's sideways
+#: scroller at every width: at 992px the wide tracks had 3px to spare.
+_TABLET = "@media (min-width: 719.01px) and (max-width: 1099.98px)"
 
 
 # ── 1. tablet columns ────────────────────────────────────────────────────────
@@ -85,28 +87,15 @@ def test_phone_tap_targets_take_a_44px_minimum():
     assert "padding-top: 11px !important" in tab   # or the tab's words jump up 11px
     assert "padding-top: 0 !important" in _block(before_media, '.st-key-page_nav [role="radiogroup"] {')
     body = _block(tail, "@media (max-width: 719px)")
+    # The Order options were on this list until Order became a select in the page's
+    # toolbar (layout review 2026-11-24; tests/test_layout_batch1.py pins its 44px).
     for selector in (
-        '.st-key-wl_order [role="radiogroup"] > label',
         ".term-index-item",
         ".term-door > summary",
     ):
         assert "min-height: 44px" in _block(body, selector + " {"), selector
     # The drill-down drawers share the Terminology drawers' rule.
     assert ".tk-drilldown details.dd-drawer > summary,\n  .term-door > summary" in body.replace("\r\n", "\n")
-
-
-def test_phone_order_options_take_the_whole_row():
-    """Stacked, no gap, stretched, and every box in the chain full width: the
-    control used to stop at its longest label, leaving the right quarter of each
-    row dead (third pass, second review findings 2 and 4)."""
-    marker = _CSS.index("15: on a phone a section head stacks")
-    body = _block(_CSS[marker:], "@media (max-width: 719px)")
-    group = _block(body, '.st-key-wl_order [role="radiogroup"] {')
-    for decl in ("flex-direction: column !important", "align-items: stretch !important",
-                 "gap: 0 !important", "width: 100% !important"):
-        assert decl in group, decl
-    assert "width: 100% !important" in _block(body, ".st-key-wl_order, .st-key-wl_order .stRadio {")
-    assert "margin-right: 0 !important" in _block(body, '.st-key-wl_order [role="radiogroup"] > label {')
 
 
 def test_phone_recheck_line_grows_by_padding():
@@ -162,28 +151,43 @@ def test_past_report_strip_is_pinned_without_a_tone_colour():
         assert tone not in rules, tone
 
 
+
+def test_strip_has_one_fixed_height_at_every_width():
+    """Two things pin directly under the strip (the column header on a PC, an opened
+    row's summary at every width since the layout review of 2026-11-24), so the strip
+    cannot grow by wrapping: 38px on one line, 56px on a phone, the sentence cut with an
+    ellipsis (second review, findings 3 and 6b). The one-line form is the base and a
+    phone overrides it, so no window width falls between two rules."""
+    marker = _CSS.index("The strip has ONE known height at every width")
+    tail = _CSS[marker:]
+    base = tail[:tail.index("@media")]
+    strip = _block(base, ".wl-past {")
+    assert "height: 38px" in strip and "flex-wrap: nowrap" in strip and "overflow: hidden" in strip
+    assert "white-space: nowrap" in _block(base, ".wl-past-tag, .wl-past-date {")
+    note = _block(base, ".wl-past-note {")
+    for decl in ("min-width: 0", "white-space: nowrap", "overflow: hidden", "text-overflow: ellipsis"):
+        assert decl in note, decl
+    phone = _block(tail, "@media (max-width: 719px)")
+    assert "height: 56px" in _block(phone, ".wl-past {") and "flex-wrap: wrap" in _block(phone, ".wl-past {")
+    assert "@media (min-width: 719.01px) {" not in tail[:tail.index("On a PC the column header")]
+
+
 def test_pinned_column_header_sits_under_the_strip_on_a_pc():
     """Both are pinned from 1100px; the header's offset must equal the strip's
-    fixed height or one covers the other (second review, findings 3 and 6b)."""
+    fixed height or one covers the other."""
     marker = _CSS.index("On a PC the column header is pinned too")
     body = _block(_CSS[marker:], "@media (min-width: 1100px)")
-    strip = _block(body, ".wl-past {")
-    strip_h = re.search(r"height:\s*(\d+)px", strip).group(1)
-    assert "flex-wrap: nowrap" in strip and "overflow: hidden" in strip
     # The offset asks for the same wrapper the pin is on, so a renamed wrapper
     # undoes both together (second review, finding 3). No :has() inside a :has().
     head = _block(body, '[data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past)'
                         ' .tk-scroll > .tk-row.tk-head {')
-    assert f"top: {strip_h}px" in head
+    assert "top: 38px" in head
     assert ":has(.wl-past) .tk-scroll" not in _CSS
     assert not re.search(r":has\([^()]*:has\(", _CSS)
-    note = _block(body, ".wl-past-note {")
-    for decl in ("min-width: 0", "white-space: nowrap", "overflow: hidden", "text-overflow: ellipsis"):
-        assert decl in note, decl
 
 
 def test_phone_strip_drops_the_latest_date():
-    marker = _CSS.index("On a phone the latest report's date drops out")
+    marker = _CSS.index("The strip has ONE known height at every width")
     body = _block(_CSS[marker:], "@media (max-width: 719px)")
     assert "display: none" in _block(body, ".wl-past-latest {")
 

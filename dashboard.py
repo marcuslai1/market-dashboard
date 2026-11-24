@@ -31,9 +31,9 @@ import streamlit as st
 from components.briefing import render_pulse
 from components.briefing.daily_briefing import briefing_card_html, briefing_history_html
 from components.masthead import render_masthead_and_nav
-from components.watchlist import render_watchlist
+from components.watchlist import render_watchlist, render_watchlist_toolbar
 from components.watchlist.grid import past_report_notice_html
-from lib.cards import data_health_banners_html, render_section_head
+from lib.cards import data_health_banners_html
 from lib.data_loader import (
     list_report_dates,
     load_briefings,
@@ -138,15 +138,20 @@ def _page_watchlist() -> None:
     if not _dates_desc:
         st.error("No report files found in market_data/.")
         st.stop()
-    selected_date = st.selectbox(
-        "Report date", _dates_desc, index=0, key="watchlist_date"
-    )
+    # The page's two controls, Report date and Order, share one row and the table
+    # follows at once (layout review 2026-11-24, P1). The page used to open with
+    # a full-width date bar, a "The Watchlist" heading that repeated the tab's
+    # label and the Briefing's quote strip, which left no company on a phone's
+    # first screen. An older report date keeps the strip (below): the Briefing only
+    # ever shows the latest report's quotes, so without it the site would show that
+    # day's index levels nowhere (outside review of the build, 2026-11-24).
+    selected_date, order = render_watchlist_toolbar(_dates_desc)
     _is_latest = selected_date == _dates_desc[0]
 
     # Same treatment the Briefing body got in the perf pass: the Yahoo fetch
     # runs inside a fragment, so a live-quote cache miss can't block the
     # masthead/nav paint, and live prices auto-refresh every 60s in
-    # isolation. The selectbox stays on the main run so picking a date
+    # isolation. The two selects stay on the main run so picking a date
     # redefines the fragment with the right run_every (historical dates never
     # fetch or auto-refresh).
     @st.fragment(run_every=(60 if (LIVE_PRICES and _is_latest) else None))
@@ -156,11 +161,7 @@ def _page_watchlist() -> None:
         if _live:
             report = overlay_live(report, _live)
         watchlist = report.get("watchlist", {})
-        benchmarks = report.get("benchmarks", {})
 
-        render_section_head("The Watchlist",
-                            "The whole book, facts only · click any row for the detail",
-                            masthead=True)
         # An older date: say so in a strip that stays pinned while the rows scroll
         # (the masthead above always carries the latest report's date).
         _past = past_report_notice_html(selected_date, _dates_desc[0])
@@ -173,12 +174,14 @@ def _page_watchlist() -> None:
         # the strip above already says the values are that report's.
         if _is_latest:
             _render_live_caption(_live, LIVE_PRICES)
-        render_pulse(benchmarks)
+        else:
+            render_pulse(report.get("benchmarks", {}))
         # Every report date renders the same facts-only grid: a report that
         # still carries signal labels in its JSON (to the pipeline cutover)
         # shows exactly what a label-free one does (spec O6).
         render_watchlist(watchlist,
-                         report_date=(report.get("meta") or {}).get("report_date"))
+                         report_date=(report.get("meta") or {}).get("report_date"),
+                         order=order)
 
     _render_watchlist_body()
 

@@ -1,8 +1,10 @@
 """Tests for the watchlist drill-down card — facts only since 2026-10-01.
 
-MarketReport spec 2026-10-01-info-only-watchlist §8 (O6): header (no pill) →
-data-health chips → levels | technicals | valuation → the Earnings drawer →
-news & context. The entry-block card, the writeup verdict, the caution-source
+MarketReport spec 2026-10-01-info-only-watchlist §8 (O6): data-health chips →
+one grid (price chart, levels, technicals, valuation, news & context) → the
+Company profile and Earnings drawers. The card's own header (ticker, cluster,
+price) went with the layout review of 2026-11-24: the row that opened the card
+stays pinned over it. The entry-block card, the writeup verdict, the caution-source
 chip, the trigger / target / invalidation / R:R plate, the R:R drawer and the
 pipeline-detail drawer are gone for EVERY report date: an old report keeps
 those keys in its JSON and nothing here reads them.
@@ -68,19 +70,29 @@ def test_a_labelled_report_shows_no_label_surface():
         assert gone not in html, gone
 
 
-def test_header_is_identity_price_and_change_without_a_pill():
+def test_card_does_not_restate_the_row_that_opened_it():
+    """The opened row stays pinned over its panel (layout review 2026-11-24, P3), so
+    the card no longer repeats the ticker, the cluster and the price at its top."""
     html = _html()
-    head = html.split('<div class="dd-head">', 1)[1].split('<div class="dd-cols', 1)[0]
-    assert ">MU<" in head and ">Semis<" in head
-    assert "&#36;990.00" in head and "+1.25%" in head
+    assert "dd-head" not in html
+    assert html.startswith('<div class="dd-card"><div class="dd-grid">')
+    assert ">Semis<" not in html and "+1.25%" not in html
 
 
-def test_card_order_is_levels_technicals_valuation_drawer_news():
+def test_card_order_is_levels_technicals_valuation_news_then_the_drawer():
+    """News & context sits in the grid with the other blocks, ahead of the drawers
+    (layout review 2026-11-24, P8: on a PC it is the third block of the second row)."""
     html = _html({"thesis_highlights": ["HBM is sold out through 2027"],
                   "valuation": {"forward_pe": 12.0}})
     order = [html.index(x) for x in ('>Levels<', '>Technicals<', '>Valuation<',
-                                      'class="dd-drawer"', '>News &amp; context<')]
+                                      '>News &amp; context<', 'class="dd-drawer"')]
     assert order == sorted(order)
+    grid = html.split('<div class="dd-grid">', 1)[1].split('<details class="dd-drawer">', 1)[0]
+    assert grid.count('<div class="dd-col">') == 3 and grid.count('<div class="dd-news">') == 1
+
+
+def test_a_card_with_no_blocks_has_no_empty_grid():
+    assert "dd-grid" not in render_drilldown_detail_html("NVDA", {})
 
 
 def test_card_has_one_neutral_rail_and_one_drawer():

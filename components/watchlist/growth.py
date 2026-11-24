@@ -124,6 +124,7 @@ def sortline_html(field: str, as_of: str | None) -> str:
         '<div class="tk-sortline tk-sortline-exp">'
         f'Experimental · sorted by {_SORT_BASIS[field]}, fastest first · names without a '
         f'figure last · sales, not the share price · a sort, not a pick list{dated}'
+        ' · click a row for the detail'
         '</div>'
     )
 

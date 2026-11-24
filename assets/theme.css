@@ -280,9 +280,16 @@
 /* font-variant-numeric inherits, so setting it on the app root gives every
    number tabular figures (design-spec §5) — Barlow isn't monospaced. */
 .stApp { background: var(--paper); color: var(--ink); font-family: var(--sans); font-variant-numeric: tabular-nums; }
-/* One 1200px centred column, padding 16px 28px 0 (header spec); the bottom pad
-   is scroll room, not part of the spec's header geometry. */
-.main .block-container { max-width: 1200px; padding: 16px 28px 80px; }
+/* One centred column whose CONTENT is at most 1200px wide (owner 2026-11-24).
+   Streamlit's page container counts its side padding inside its own width (5rem
+   each side from an 864px window, 1rem below), so the cap is 1200px plus the wide
+   padding. Until then the rule here was `.main .block-container { max-width: 1200px }`,
+   a class the current Streamlit page does not carry, so the page had no cap at all:
+   the Watchlist table measured 1,270px in a 1,440px window and 1,750px in a 1,920px
+   one. !important because Streamlit's own wide-layout rule sets `max-width: none`. */
+[data-testid="stMainBlockContainer"] {
+  max-width: calc(1200px + 10rem) !important; margin-left: auto; margin-right: auto;
+}
 
 /* Hide default Streamlit chrome. The header is both hidden AND collapsed to
    0 height so it stops reserving the tall empty band above the masthead while
@@ -1017,14 +1024,12 @@ pre, code, .stCodeBlock { font-family: var(--mono) !important; }
 }
 
 /* ── Experimental growth sort (2026-10-06) ─────────────────────────────────────
-   The order control above the table (st.radio key wl_order) and, in a sorted view,
-   one growth line per row. The line is an eighth child of the row's <summary> that
-   spans every track, so it sits under the seven cells on desktop and under the
-   stacked card on phones without touching either grid. Neutral ink only: a sales
-   figure is a fact, not a verdict; the bold marks the figure the rows are sorted by. */
-.st-key-wl_order [role="radiogroup"] {
-  flex-direction: row !important; flex-wrap: wrap !important; gap: 6px 22px !important;
-}
+   In a sorted view (the Order select in the toolbar, key wl_order; a radio until
+   the layout review of 2026-11-24), one growth line per row. The line is an eighth
+   child of the row's <summary> that spans every track, so it sits under the seven
+   cells on desktop and under the two-line row on phones without touching either
+   grid. Neutral ink only: a sales figure is a fact, not a verdict; the bold marks
+   the figure the rows are sorted by. */
 .tk-sortline.tk-sortline-exp { color: var(--color-text-3); }
 details.tk-details > summary > .tk-growth {
   grid-column: 1 / -1;
@@ -1104,25 +1109,10 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
    until 2026-10-01), so the expanded body still reads as one object. */
 .tk-drilldown .dd-card { border-left: 3px solid var(--color-divider); padding-left: 18px; }
 
-/* Restates identity, because an open drill-down can be taller than the viewport
-   and a reader who has scrolled into the evidence needs to know whose it is. */
-.tk-drilldown .dd-head {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  gap: 16px; margin-bottom: 12px;
-}
-.tk-drilldown .dd-head-tk {
-  font-family: var(--font-display); font-size: 22px; font-weight: 700;
-  line-height: 1.1;
-}
-.tk-drilldown .dd-head-sub {
-  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--color-text-3); margin-top: 2px;
-}
-.tk-drilldown .dd-head-right { text-align: right; flex: 0 0 auto; }
-.tk-drilldown .dd-head-px {
-  font-size: 16px; font-variant-numeric: tabular-nums; margin-bottom: 3px;
-}
-.tk-drilldown .dd-head-chg { font-size: 12px; font-variant-numeric: tabular-nums; }
+/* The card used to restate the ticker, cluster and price at its top (.dd-head),
+   because an open drill-down can be taller than the viewport. Since the layout
+   review of 2026-11-24 the row that opened it stays pinned instead (end of this
+   file), so the identity is in view at every scroll position and the header is gone. */
 
 /* Data-health chips — terracotta (--stress) is the site's DATA-CONDITION colour:
    "read the numbers below with care", never a statement about the stock. */
@@ -1133,16 +1123,41 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   line-height: 1.5;
 }
 
-/* ── The evidence: levels | technicals | valuation ──────────────────────────── */
-.tk-drilldown .dd-cols {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+/* ── The evidence: chart | levels, then technicals | valuation | news ───────────
+   One grid of up to five blocks (drilldown.py): the price chart, the levels
+   ladder, the technicals, the valuation, news & context (layout review
+   2026-11-24, P8). Twelve tracks on a PC: the chart takes eight and the levels
+   four beside it, then technicals, valuation and news take four each, so the
+   levels column and the news column share an edge. Until then the chart ran the
+   page's full width (1,211px) and the ladder left about 274px empty beside the
+   two shorter columns. A missing block leaves no hole: the rest move up.
+   Two abreast below 1220px, the chart on a row of its own; a phone stacks all
+   five (the phone block near the end of this file). 1220, not 1100: at 1100 a
+   third of the panel was 268px and the longer valuation rows wrapped. With no
+   news the technicals and the valuation share the second row in halves, and with
+   no chart the news takes a row of its own (outside review of the build,
+   2026-11-24). */
+.tk-drilldown .dd-grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 22px 28px; align-items: start; margin-bottom: 18px;
 }
-.tk-drilldown .dd-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-bottom: 18px; }
-.tk-drilldown .dd-col { min-width: 0; }
-/* Below desktop width three columns are too narrow for the valuation labels, so
-   valuation wraps under the ladder; phones stack all three (bottom of file). */
-@media (max-width: 1099px) {
-  .tk-drilldown .dd-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tk-drilldown .dd-grid > * { grid-column: span 4; min-width: 0; margin-top: 0; margin-bottom: 0; }
+.tk-drilldown .dd-grid > .pc { grid-column: span 8; margin: 0; }
+/* Twelve tracks only (the two rules below would add tracks to the two-column grid). */
+@media (min-width: 1220px) {
+  .tk-drilldown .dd-grid:has(> .pc):not(:has(> .dd-news)) > .dd-col:nth-child(n + 3) { grid-column: span 6; }
+  .tk-drilldown .dd-grid:not(:has(> .pc)) > .dd-news { grid-column: 1 / -1; }
+  /* No chart and no levels either (a name with a few sessions of history, ANT on
+     23 Nov 2026): the technicals and the valuation are the whole first row and take
+     half each. At a third each they left the last third of the row empty (386px at
+     1440px; outside review, 2026-11-24). With the levels there are three columns
+     and the third child is a column, so this does not apply. */
+  .tk-drilldown .dd-grid:not(:has(> .pc)):not(:has(> .dd-col:nth-child(3))) > .dd-col { grid-column: span 6; }
+}
+@media (max-width: 1219.98px) {
+  .tk-drilldown .dd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tk-drilldown .dd-grid > * { grid-column: auto; }
+  .tk-drilldown .dd-grid > .pc { grid-column: 1 / -1; }
 }
 
 /* The levels ladder — every stated level, high → low, the last price as its own
@@ -1190,9 +1205,8 @@ details.tk-details[open] > summary { background: var(--paper-2); border-bottom-c
   margin: 0 0 8px; padding-bottom: 6px;
   border-bottom: 1px solid var(--color-divider);
 }
-.tk-drilldown .dd-cols .dd-eyebrow:not(:first-child) { margin-top: 20px; }
-/* News & context — after the Earnings drawer, full width for prose. */
-.tk-drilldown .dd-news { margin-top: 20px; }
+/* News & context — the fifth block of the grid above (it sat after the Earnings
+   drawer, full width, until the layout review of 2026-11-24). */
 .tk-drilldown .dd-sub {
   font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--color-text-muted); margin: 10px 0 6px;
@@ -1507,45 +1521,81 @@ details.tk-details[open] > summary > .tk-tick .tk-tick-id::before {
    here shares specificity with its base rule above, so source order is what
    makes it win (same convention as the action-card phone block). */
 @media (max-width: 719px) {
-  /* ── Watchlist ledger → stacked cards ──
+  /* ── Watchlist ledger → two-line rows (layout review 2026-11-24, P2) ──
      Summary cell order is fixed by row.py and is SEVEN cells: 1 ticker(+cluster)
      · 2 last+Δ · 3 5d · 4 1mo · 5 vs50 gauge · 6 RSI · 7 earnings (facts only
-     since 2026-10-01 — cell 2 was the signal pill, cell 7 the R:R). Cluster
-     rides inside the ticker cell. Cell 2 sits top-right beside the ticker, like
-     a quote header, so it needs no label; cells 3–7 carry small-caps labels.
-     Header row hidden: the labels move into each card so every value stays
+     since 2026-10-01 — cell 2 was the signal pill, cell 7 the R:R).
+     Line 1: the ticker left, the last price and the day's move right, like a
+     quote header, so it needs no label. Line 2: 5 d · 1 mo · RSI · the next
+     earnings date, each behind its own small-caps label, on fixed tracks so the
+     figures line up down the page. Until 2026-11-24 a row was a three-line card
+     of label-over-value cells, about 153px tall, and a phone screen held four or
+     five companies.
+     Two cells leave the phone row: vs 50-day (cell 5; the figure is in the opened
+     row's Technicals) and an Earnings cell with no date on file (its dash said
+     nothing). The cluster under the ticker goes too when the rows sit under
+     cluster headers, which already name it; a growth-sorted table has no headers
+     and keeps it, beside the ticker.
+     Header row hidden: the labels sit in each row so every value stays
      self-describing. */
   .tk-scroll > .tk-row.tk-head { display: none; }
   .tk-group { padding: 16px 4px 4px; flex-wrap: wrap; row-gap: 4px; }
   .tk-group-move { flex-basis: 100%; }
   details.tk-details > summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px 12px;
-    padding: 13px 4px;
+    /* 66 / 72 / 44px hold the widest "5 d", "1 mo" and RSI seen with their labels (61, 70
+       and 40px) and leave the earnings cell 144px of a 390px phone. The first tracks
+       (78 / 82 / 54px) left it 106px, and "EARNINGS 14 Jan est. · in 52 d" (143px)
+       printed over the RSI figure (outside review of the build, 2026-11-24). */
+    grid-template-columns: 66px 72px 44px minmax(0, 1fr);
+    gap: 5px 8px;
+    padding: 11px 4px;
+    align-items: baseline;
   }
   details.tk-details > summary > div:nth-child(1) { grid-area: 1 / 1 / 2 / 3; }
-  details.tk-details > summary > div:nth-child(2) { grid-area: 1 / 3 / 2 / 4; justify-self: end; }
-  /* metric cells: value left-aligned under a small-caps label (the inline
-     text-align:right from row.py must lose here, hence !important) */
-  details.tk-details > summary > div:nth-child(n + 3) { text-align: left !important; }
-  details.tk-details > summary > div:nth-child(n + 3)::before {
-    display: block; font-size: 8.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px;
+  details.tk-details > summary > div:nth-child(2) {
+    grid-area: 1 / 3 / 2 / 5; justify-self: end;
+    display: flex; align-items: baseline; gap: 8px; white-space: nowrap;
   }
-  details.tk-details > summary > div:nth-child(2) { text-align: right; }
+  .tk-scroll:has(> .tk-group) .tk-tick-cluster { display: none; }
+  details.tk-details > summary > .tk-tick { display: flex; align-items: baseline; gap: 8px; }
+  details.tk-details > summary > .tk-tick .tk-tick-id { flex: none; }
+  details.tk-details > summary > .tk-tick .tk-tick-cluster { margin-top: 0; min-width: 0; }
+  details.tk-details > summary > div:nth-child(3) { grid-area: 2 / 1; }
+  details.tk-details > summary > div:nth-child(4) { grid-area: 2 / 2; }
+  details.tk-details > summary > div:nth-child(5) { display: none; }
+  details.tk-details > summary > div:nth-child(6) { grid-area: 2 / 3; }
+  /* The earnings cell never leaves its track: when the date and the distance to it do
+     not fit on one line, the distance drops to a line of its own under the date. */
+  details.tk-details > summary > div:nth-child(7) {
+    grid-area: 2 / 4; justify-self: end; min-width: 0; max-width: 100%;
+    display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline;
+    gap: 1px 5px; white-space: nowrap;
+  }
+  details.tk-details > summary > div.tk-earn[data-none] { display: none; }
+  /* metric cells: the value after a small-caps label, on one line (the
+     text-align:right of the table's cells must lose here, hence !important) */
+  details.tk-details > summary > div:nth-child(n + 3) { text-align: left !important; white-space: nowrap; }
+  details.tk-details > summary > div:nth-child(n + 3)::before {
+    font-size: 8.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); margin-right: 5px;
+  }
   details.tk-details > summary > div:nth-child(3)::before { content: "5 d"; }
   details.tk-details > summary > div:nth-child(4)::before { content: "1 mo"; }
-  details.tk-details > summary > div:nth-child(5)::before { content: "vs 50-day"; }
   details.tk-details > summary > div:nth-child(6)::before { content: "RSI"; }
-  details.tk-details > summary > div:nth-child(7)::before { content: "Earnings"; }
-  /* A 168px centred bar cannot survive a stacked card, so the track drops and
-     the signed figure — the same information — stays. */
+  details.tk-details > summary > div:nth-child(7)::before { content: "Earnings"; margin-right: 0; }
+  details.tk-details > summary > .tk-earn .tk-earn-sub { margin-top: 0; }
+  /* `div.` on these two: they must match the weight of the nth-child rules above
+     and come after them, or the nowrap and the flex display win. */
+  details.tk-details > summary > div.tk-growth { margin-top: 0; white-space: normal; }
+  /* A 168px centred bar cannot survive a phone row, so the track is not drawn
+     (the cell that holds it is hidden above). */
   .tk-ext-track { display: none; }
-  .tk-ext { align-items: flex-start; }
-  /* The card's three evidence columns stack on a phone. */
-  .tk-drilldown .dd-cols,
-  .tk-drilldown .dd-cols-3 { grid-template-columns: 1fr; gap: 20px; }
-  .tk-drilldown .dd-card { padding-left: 12px; }
+  /* The card's blocks stack on a phone, and the panel gives up most of its side
+     padding: 24px each side plus the rail left the text about 36px narrower than
+     it needs to be (layout review 2026-11-24, P8). */
+  .tk-drilldown .dd-grid { grid-template-columns: 1fr; gap: 20px; }
+  .tk-drilldown { padding: 12px 8px; }
+  .tk-drilldown .dd-card { padding-left: 10px; }
 
   /* ── Stacked table (.stack-m) ──
      Wide ep-tables (compare diffs, episode drill-downs) opt in via class="ep-table stack-m" + data-l="label" on
@@ -1959,7 +2009,9 @@ a.term-index-item:hover {
 .bf [data-kind="event"]    { --bf-k: var(--ink-2); }
 
 .bf .bf-sec { padding: 20px 0; border-top: 1px solid var(--rule); }
-.bf .bf-sec:first-child { border-top: 0; padding-top: 4px; }
+/* `>`: the card's first section only. Inside the two-column wrappers (.bf-col) a
+   first section is not the card's first and keeps its rule and padding. */
+.bf > .bf-sec:first-child { border-top: 0; padding-top: 4px; }
 .bf .bf-sh { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
   gap: 4px 12px; margin-bottom: 12px; }
 .bf .bf-sh h3, .bf .bf-srcs summary h3 { display: flex; align-items: center; gap: 9px; line-height: 1.2;
@@ -2011,10 +2063,14 @@ a.term-index-item:hover {
 .bf-next-list strong { color: var(--ink); font-weight: 600; }
 .bf-next-list time { font-family: var(--font-display); font-weight: 600; white-space: nowrap;
   color: var(--bf-k, var(--ink-2)); }
+/* The clock is a span of its own (a narrow card hides it when the time is a stand-in);
+   without this it would take the body face from the site-wide rule for spans. */
+.bf-next-list time .bf-next-hm { font-family: inherit; }
 
 /* what matters */
 .bf .bf-wm { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
-.bf .bf-wm li { display: grid; grid-template-columns: 112px 1fr; gap: 4px 16px; align-items: baseline;
+/* `>`: the items themselves, not a list that an item may one day hold. */
+.bf .bf-wm > li { display: grid; grid-template-columns: 112px 1fr; gap: 4px 16px; align-items: baseline;
   padding-left: 12px; border-left: 2px solid var(--bf-k, var(--rule-strong)); }
 .bf-tag { grid-row: span 2; font-family: var(--font-display); font-size: 12px; font-weight: 600;
   letter-spacing: 0.1em; text-transform: uppercase; color: var(--bf-k, var(--ink-2)); }
@@ -2173,6 +2229,9 @@ a.term-index-item:hover {
 .bf-val { position: absolute; top: 0; font-family: var(--font-display); font-size: 13px; font-weight: 600;
   line-height: 20px; white-space: nowrap; color: var(--ink); }
 .bf-val.bf-in { transform: translateX(-100%); padding-right: 5px; color: var(--paper); }
+/* Left of a short bar below zero, when there is no room right of the zero line
+   (daily_briefing_v2._chart). */
+.bf-val.bf-beside { transform: translateX(-100%); padding-right: 5px; }
 .bf-rsi { font-family: var(--font-display); font-size: 13.5px; font-weight: 500; color: var(--ink-2); }
 
 /* data notes, sources, footer */
@@ -2199,7 +2258,11 @@ a.term-index-item:hover {
 }
 @container (max-width: 440px) {
   .bf-ax .bf-minor { display: none; }
-  .bf .bf-wm li { grid-template-columns: 1fr; }
+  /* An end label that would sit on "0" goes too (daily_briefing_v2._chart marks it). Same
+     width as the minor ticks: on a wider card the label has room, and hiding "+10%" while
+     "-10%" still showed read as a fault (outside review of the build, 2026-11-24). */
+  .bf-ax .bf-near { display: none; }
+  .bf .bf-wm > li { grid-template-columns: 1fr; }
   .bf-tag { grid-row: auto; }
   .bf-det { grid-column: 1; }
 }
@@ -2210,8 +2273,12 @@ a.term-index-item:hover {
   .bf .bf-date { font-size: 26px !important; }
   .bf-cfhead, .bf .bf-cf li { grid-template-columns: 96px 1fr 34px; gap: 8px; }
   .bf-wk { grid-template-columns: 1fr; }
-  .bf-day { grid-template-columns: 84px 1fr; align-items: start; }
-  .bf-day > :not(.bf-dh) { grid-column: 2; }
+  /* A day is its header line ("MON 24 Nov") over its events at the full width
+     (layout review 2026-11-24, P11). Until then the header kept an 84px column
+     of its own beside the events, which left them about 194px on a phone. */
+  .bf-day { grid-template-columns: 1fr; }
+  .bf-dh { display: flex; align-items: baseline; gap: 8px; }
+  .bf-dh b { display: inline; margin: 0; }
   .bf-movers thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .bf-movers tbody, .bf-movers tr.bf-grp, .bf-movers tr.bf-grp th { display: block; }
   .bf .bf-movers tr:not(.bf-grp) { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 12px 0;
@@ -2219,8 +2286,17 @@ a.term-index-item:hover {
   .bf .bf-movers td { display: block; padding: 0; border: 0; }
   .bf-movers td.bf-why { grid-column: 1 / -1; }
   .bf-movers td.bf-mv { text-align: right; }
+}
+/* The date beside its text holds down to a 380px card; only a phone-width card stacks
+   them. From 381 to 560px (the briefing's right-hand column on a PC) Week ahead sets its
+   days two abreast. Both were phone layouts at 560px, which made that column about
+   1,100px taller than the one beside it (outside review of the build, 2026-11-24). */
+@container (max-width: 380px) {
   .bf .bf-rchk li { grid-template-columns: 1fr; gap: 2px; }
   .bf .bf-far li { grid-template-columns: 1fr; gap: 2px; }
+}
+@container (min-width: 380.01px) and (max-width: 560px) {
+  .bf-wk { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ── earnings trajectory charts (components/earnings_chart.py, 2026-09-29) ──────────
@@ -2251,6 +2327,11 @@ a.term-index-item:hover {
 .ec-x small { display: block; font-size: 12px; }
 .ec-coming .ec-x { font-style: italic; }
 @media (max-width: 480px) {
+  .ec-x { font-size: 11px; letter-spacing: -0.02em; white-space: nowrap; }
+  .ec-x small { font-size: 11px; }
+}
+/* The same for a narrow chart in a wide window (the briefing's right-hand column on a PC). */
+@container (max-width: 440px) {
   .ec-x { font-size: 11px; letter-spacing: -0.02em; white-space: nowrap; }
   .ec-x small { font-size: 11px; }
 }
@@ -2416,32 +2497,13 @@ a.term-index-item:hover {
 .bf-det, .bf-head, .bf .bf-cap, .bf .bf-vix, .bf-box li, .bf .bf-prov, .bf .bf-facts,
 .tk-drilldown .dd-line, .tk-drilldown .dd-highlight, .tk-drilldown .dd-news-item,
 .tk-drilldown .cp-caption, .tk-drilldown .cp-plain, .tk-drilldown .cp-item, .tk-drilldown .cp-foot { max-width: 78ch; }
-/* 10: the Watchlist's Order control: the site's accent instead of Streamlit's orange,
-       and plain-case labels so a long option does not shout or wrap badly. */
-.st-key-wl_order [role="radiogroup"] > label:has(input:checked) > div:first-child {
-  background-color: var(--accent) !important; border-color: var(--accent) !important;
-}
-.st-key-wl_order [role="radiogroup"] > label:has(input:checked) > div:first-child > div {
-  background-color: var(--color-bg) !important;
-}
-.st-key-wl_order [role="radiogroup"] > label [data-testid="stMarkdownContainer"] p {
-  font-family: var(--font-body) !important; font-size: 13px !important;
-  text-transform: none !important; letter-spacing: 0 !important;
-}
+/* 10: the Watchlist's Order control was a radio here (the site's accent on its dot,
+       plain-case labels, stacked 44px rows on a phone). It is a select in the page's
+       toolbar since the layout review of 2026-11-24 (end of this file), so those
+       rules are gone. */
 /* 15: on a phone a section head stacks its title over its subtitle. */
 @media (max-width: 719px) {
   .section-head:not(.masthead) { flex-direction: column; align-items: flex-start; gap: 4px; }
-  /* One column, no gap: each option is a 44px row of its own (second batch, 9), and
-     stretched so the whole row takes the tap, not only the words. Streamlit sizes
-     the control to its longest label and BaseWeb gives each label a 16px right
-     margin, which left the right quarter of the row dead; every box in the chain
-     takes the full width. */
-  .st-key-wl_order, .st-key-wl_order .stRadio { width: 100% !important; }
-  .st-key-wl_order [role="radiogroup"] {
-    flex-direction: column !important; align-items: stretch !important; gap: 0 !important;
-    width: 100% !important;
-  }
-  .st-key-wl_order [role="radiogroup"] > label { margin-right: 0 !important; }
 }
 
 /* ── Look review 2026-11-23, second batch (live-site review, findings 1, 5, 9) ─────────────────
@@ -2454,11 +2516,14 @@ a.term-index-item:hover {
       same fr weights. Kept in lockstep for the header row, the rows and the group header.
       The lower bound is 719.01px, not 720px: a zoomed or scaled window can be 719.3px
       wide, which is past the phone reflow's `max-width: 719px` and short of 720px.
-      The upper bound is 991.98px: the wide tracks want an 812px table to keep their 12px
+      The upper bound is 1099.98px since 2026-11-24 (it was 991.98px): the table's sideways
+      scroller is released at every width now, and at 992px the wide tracks had 3px to
+      spare, none with a larger browser font. The reasoning for the first bound:
+      the wide tracks want an 812px table to keep their 12px
       right padding, and a 980px window with a 17px scrollbar leaves 803px. Plain
       min/max-width with decimals, not the `(width > 719px)` range form, which Safari
       before 16.4 does not read (it would drop this whole block). */
-@media (min-width: 719.01px) and (max-width: 991.98px) {
+@media (min-width: 719.01px) and (max-width: 1099.98px) {
   .tk-row, .tk-row.tk-head, details.tk-details > summary {
     grid-template-columns: minmax(120px, 1.15fr) minmax(100px, 0.95fr) minmax(60px, 0.85fr) minmax(60px, 0.85fr)
       minmax(116px, 1.4fr) minmax(42px, 0.65fr) minmax(90px, 0.85fr);
@@ -2472,12 +2537,12 @@ a.term-index-item:hover {
       is 44px tall and the strip looks the same (a touch tablet gets it too, at no cost). */
 .st-key-page_nav [role="radiogroup"] { padding-top: 0 !important; }
 .st-key-page_nav [role="radiogroup"] > label { padding-top: 11px !important; min-height: 44px; }
-/*    Up to 719px: Order options, "On this page" links and drawer headings take a 44px
-      minimum height with the label centred. Eleven 44px links in one column made the
+/*    Up to 719px: "On this page" links and drawer headings take a 44px minimum height
+      with the label centred (the Order options did too, until Order became a select
+      on 2026-11-24). Eleven 44px links in one column made the
       list 484px tall, so it runs in two columns, read down the left one and then the
       right (the page's own order); dimmed entries keep the height so the columns line up. */
 @media (max-width: 719px) {
-  .st-key-wl_order [role="radiogroup"] > label { min-height: 44px; align-items: center; }
   .term-index { column-count: 2; column-gap: 16px; }
   .term-index-head { column-span: all; }
   .term-index-item {
@@ -2518,23 +2583,258 @@ a.term-index-item:hover {
    stElementContainer and its parent holds the whole page. Re-check the pin when the
    Streamlit cap in requirements.txt moves: wrapper test ids have changed before. */
 [data-testid="stElementContainer"]:has(.wl-past) { position: sticky; top: 0; z-index: 40; }
-/* On a phone the latest report's date drops out of the sentence, so the pinned strip
-   is two lines, not three. */
+/* The strip has ONE known height at every width, because two things pin directly
+   under it: the column header on a PC and, at every width, the summary of an opened
+   row (layout review 2026-11-24, P3). 56px on a phone, where the latest report's date
+   drops out of the sentence: the tag and the date on one line, the sentence on the
+   next. 38px above that, on one line. Either way the sentence is cut with an ellipsis
+   before it can wrap, and the box itself clips, for a browser set to a larger
+   minimum text size. */
+.wl-past { height: 38px; padding-top: 0; padding-bottom: 0; flex-wrap: nowrap; overflow: hidden; }
+.wl-past-tag, .wl-past-date { flex: none; white-space: nowrap; }
+.wl-past-note { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The one-line form is the base and a phone overrides it, so no window width falls
+   between two rules (a 719.3px window did, between `max-width: 719px` and a
+   `min-width: 719.01px` rule). */
 @media (max-width: 719px) {
-  .wl-past { padding: 6px 10px; }
+  .wl-past { height: 56px; padding: 0 10px; flex-wrap: wrap; align-content: center; }
+  .wl-past-note { flex: 0 0 100%; }
   .wl-past-latest { display: none; }
 }
 /* On a PC the column header is pinned too; it sits under the strip, not behind it.
-   The strip is a fixed 38px there, so its sentence stays on one line and is cut
-   with an ellipsis before it can spill onto the header; the box itself clips too,
-   for a browser set to a larger minimum text size.
    The header's offset asks for the same wrapper the pin is on: if a Streamlit
    upgrade renames it, the strip stops pinning AND the header goes back to the top,
    instead of the header hanging 38px down under nothing. (One :has() with a
    descendant inside it; a :has() inside a :has() is not valid CSS.) */
 @media (min-width: 1100px) {
-  .wl-past { height: 38px; padding-top: 0; padding-bottom: 0; flex-wrap: nowrap; overflow: hidden; }
-  .wl-past-tag, .wl-past-date { flex: none; white-space: nowrap; }
-  .wl-past-note { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   [data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past) .tk-scroll > .tk-row.tk-head { top: 38px; }
+}
+
+/* ── Layout review 2026-11-24, batch 1: the phone's first screen (P1, P2, P4, P11) ────────────
+   An outside review of the layout measured what a 390 x 844 phone shows before any
+   scrolling: no company on the Watchlist and no briefing text on the Briefing. Four
+   changes; the two-line Watchlist rows (P2) and the Week ahead / Chart facts fixes (P11)
+   are edited in place above, in the phone reflow block and the briefing card's 560px
+   container block.
+
+   P1: the Watchlist's toolbar. Report date and Order are two selects in one keyed
+       container (components/watchlist/watchlist.py, key wl_toolbar), laid out here as
+       one row. Streamlit stacks a container's children, each in its own full-width
+       wrapper; the row and the two widths are set on those wrappers. On a PC the
+       selects keep a fixed width (a 1,270px bar held a ten-character date); on a phone
+       they share the row, the date taking what a date needs. 44px tall on a phone, the
+       site's tap-target minimum. */
+.st-key-wl_toolbar {
+  flex-direction: row !important; flex-wrap: nowrap !important; align-items: flex-end;
+  gap: 12px !important;
+}
+.st-key-wl_toolbar > [data-testid="stElementContainer"] { min-width: 0; }
+/* The selects' border, in two rules. Streamlit's own focus colour is its theme's amber,
+   and it keeps that colour on while it thinks the select is focused, which outlasts
+   the browser's :focus-within (seen after picking an option in a window that is not
+   in front: an amber ring on a control; outside review, 2026-11-24). So the first rule
+   holds the border clear in every state (the box's own fill shows through, the resting
+   look), and the second puts the site's accent on while the select has the focus. */
+.st-key-wl_toolbar [data-baseweb="select"] > div { border-color: transparent !important; }
+.st-key-wl_toolbar [data-baseweb="select"] > div:focus-within { border-color: var(--accent) !important; }
+.st-key-wl_toolbar > .st-key-watchlist_date { flex: 0 0 180px; width: 180px !important; }
+.st-key-wl_toolbar > .st-key-wl_order { flex: 0 1 360px; width: 360px !important; }
+@media (max-width: 719px) {
+  .st-key-wl_toolbar > .st-key-watchlist_date { flex: 0 0 140px; width: 140px !important; }
+  .st-key-wl_toolbar > .st-key-wl_order { flex: 1 1 0; width: auto !important; }
+  .st-key-wl_toolbar [data-baseweb="select"] > div { min-height: 44px; }
+  /* A select's menu is as wide as the select, about 200px for Order on a phone, and
+     Streamlit cuts a longer option with "…", which made the two sales-growth options
+     read alike. An option's text may wrap to a second line inside its fixed 40px row.
+     The menu is drawn outside the page's own boxes, so the rule cannot name the
+     Order select; the date menu's options are short and do not change. */
+  [data-baseweb="popover"] [role="option"] .stTooltipHoverTarget div {
+    white-space: normal; font-size: 13px; line-height: 1.2;
+  }
+}
+
+/* P4: the Briefing's first phone screen.
+   The masthead is two lines: the wordmark, then the report date and its "last close"
+   line side by side. The tagline is not shown (it says what the tabs already do). */
+@media (max-width: 719px) {
+  /* :not(.section-head): the Terminology page's own heading also carries the class `masthead`. */
+  .masthead:not(.section-head) { gap: 5px; padding-bottom: 10px; }
+  .masthead .kicker { display: none; }
+  .masthead .right { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+}
+/* The "as of" boxes fold to one block of text on a phone: every entry's label and
+   time stay in view, the bracketed place and the note open on a tap. The markup
+   carries both forms (daily_briefing_v2._masthead); one of the two shows. */
+.bf-asof-fold { display: none; }
+@media (max-width: 719px) {
+  .bf-asof-wide { display: none; }
+  .bf-asof-fold { display: block; }
+  .bf-asof-fold > summary {
+    cursor: pointer; list-style: none; min-height: 44px; box-sizing: border-box;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px;
+    padding: 9px 10px; border: 1px solid var(--rule); background: var(--paper-2);
+    font-size: 13px; line-height: 1.4; color: var(--ink);
+  }
+  .bf-asof-fold > summary::-webkit-details-marker { display: none; }
+  .bf-asof-fold > summary::marker { content: ""; }
+  .bf-asof-fold > summary > i {
+    font-style: normal; font-family: var(--font-display); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--eyebrow);
+  }
+  .bf-asof-fold > summary > i::before {
+    content: "\25B8"; display: inline-block; margin-right: 6px; font-size: 9px;
+  }
+  .bf-asof-fold[open] > summary > i::before { transform: rotate(90deg); }
+  .bf-asof-fold > summary b {
+    font-family: var(--font-display); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin-right: 4px;
+  }
+  /* Open, the boxes below say it all; the summary keeps only its label. */
+  .bf-asof-fold[open] > summary > span { display: none; }
+  .bf-asof-fold[open] > .bf-asof { border-top: 0; }
+  /* The card's side padding: 24px each side left the text 308px of a 390px screen. */
+  .card.blueprint { padding: 14px 10px; }
+}
+/* "Next" on a narrow card: one line an item, its time first, its text cut with an
+   ellipsis. Wrapped, the three items were 201px on a 390px phone (items of 84, 137 and
+   53 characters) and kept "What matters" off the first screen. Nothing is lost: Week
+   ahead prints the same rows in full. The time's column is as wide as the widest time
+   needs ("Wed 05:30" is 54px), so the three texts start on one line. An item whose
+   clock time is a stand-in (data-notime, daily_briefing_v2._masthead) shows its day
+   only: the words that say so are at the end of its text, which is the part cut. */
+@container (max-width: 560px) {
+  .bf-next { grid-template-columns: auto minmax(0, 1fr); }
+  /* One grid for the three items: the time's column is as wide as the widest time,
+     whatever the typeface (the display face falls back to a wider one when it has
+     not loaded), and each item takes those two tracks. A browser without `subgrid`
+     drops that line and keeps the item's own two tracks from the line before it. */
+  .bf-next-list { display: grid; grid-template-columns: minmax(58px, max-content) minmax(0, 1fr); gap: 6px 8px; }
+  .bf-next-list > span[data-kind] {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: minmax(58px, max-content) minmax(0, 1fr);
+    grid-template-columns: subgrid;
+    column-gap: 8px; align-items: baseline; min-width: 0;
+  }
+  .bf-next-list time { order: -1; }
+  .bf-next-list strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* A stand-in clock is not shown; a dash in the switched-off grey holds its place, so
+     the gap does not read as a time that failed to load. */
+  .bf-next-list > span[data-notime] .bf-next-hm { display: none; }
+  .bf-next-list > span[data-notime] time::after { content: "\2014"; color: var(--ink-4); font-weight: 500; }
+}
+
+/* ── Layout review 2026-11-24, batch 2: the PC (P3, P5, P8) and the page's width ───────────────
+   P8 (chart beside the levels) is the .dd-grid block above; the width cap is at the top
+   of this file, by `.stApp`.
+
+   P3: an opened Watchlist row.
+   Its summary (the row itself) stays pinned at the top of the window while its panel
+   scrolls, so the reader always sees whose panel it is and can close it with one tap
+   from anywhere in it; it used to take a scroll back up of 1.5 to 12 screens. The pin
+   ends where the panel ends, because a sticky box cannot leave its parent <details>,
+   so two open rows are never pinned together: one hands over to the next.
+   Known limit, measured: a tap on the pinned row closes it, and the page then stands
+   where it was scrolled to, which is now as far below the closed row as the reader
+   was deep in its panel (pinned at 0, the row 500px above the window after the tap).
+   Bringing the row back into view needs script. The review also asked for one row
+   open at a time (a shared `name`); that made a tapped row jump and was left out
+   (row.py).
+   Sticky needs a clean scroll chain, so the table's sideways scroller is released at
+   every width, not only from 1100px: since 2026-11-23 the seven columns fit from 720px
+   up and a phone has no columns, so nothing is left for it to scroll.
+   The column header used to hang over an opened panel's own tables, labelling columns
+   that were not under it. It stays pinned, and an opened panel now paints over it
+   (z-index 32, above the header's 30, under the pinned row's 35): inside a panel the
+   header is out of sight, and past the panel it is back. The first build unpinned the
+   header whenever any row was open, which left the rest of the table without column
+   labels for as long as one row stayed open (outside review of the build, 2026-11-24). */
+.tk-scroll:has(> .tk-row.tk-head) { overflow-x: visible; }
+details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
+.tk-drilldown { position: relative; z-index: 32; }
+/* Under the "Past report" strip when an older date is on screen: the strip is a fixed
+   38px (56px on a phone, below). Asked of the same wrapper the strip's own pin is on,
+   like the column header's offset: if the strip stops pinning, this goes back to 0. */
+[data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past) details.tk-details[open] > summary { top: 38px; }
+@media (max-width: 719px) {
+  [data-testid="stMain"]:has([data-testid="stElementContainer"] .wl-past) details.tk-details[open] > summary { top: 56px; }
+  /* A phone's pinned row is the whole row, both lines. The first build pinned the first
+     line only (44px), which hid the next earnings date (otherwise inside the closed
+     Earnings drawer) and, in a sales-growth order, the sales-growth sentence. An opened
+     row also names its group, which the panel no longer does and whose heading has
+     scrolled away (outside review of the build, 2026-11-24). */
+  .tk-scroll:has(> .tk-group) details.tk-details[open] > summary .tk-tick-cluster { display: block; }
+  /* In an opened row the group goes on a line of its own under the ticker. Beside the
+     ticker it had 67px and "AI Power Infrastructure" read "AI POWER IN…" next to
+     120px of empty row; the opened row is the one place that names the group once the
+     group's heading has scrolled away (outside review, 2026-11-24). A closed row in a
+     sales-growth order keeps it on the ticker's line, cut, so closed rows stay one
+     height. */
+  details.tk-details[open] > summary > .tk-tick { flex-wrap: wrap; row-gap: 1px; }
+  details.tk-details[open] > summary > .tk-tick .tk-tick-cluster { flex-basis: 100%; }
+}
+
+/* P5: the briefing card in two columns on a PC. Today on the left (what matters, after
+   the data, markets, names that moved), what is coming on the right (week ahead,
+   earnings, upcoming events); the masthead above and chart facts, data notes and
+   sources below keep the full width. The card's right half used to be empty beside
+   text capped at 78 characters, and the coming dates sat three to five screens down.
+   Each column is its own size container, so every section lays itself out for the
+   column's width with the rules it already has (the right one stacks like a phone).
+   Below 1220px the wrappers take no box and the sections stack as they always did.
+   1220, not 1100: up to about 1200px of window the left column is under 560px and its
+   sections fall into their phone layouts (outside review of the build, 2026-11-24). */
+.bf-cols, .bf-col { display: contents; }
+@media (min-width: 1220px) {
+  .bf-cols {
+    display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); column-gap: 28px;
+    align-items: start; border-top: 1px solid var(--rule);
+  }
+  .bf-col { display: block; min-width: 0; container-type: inline-size; }
+  .bf .bf-col > .bf-sec:first-child { border-top: 0; }
+  /* Full-width bars for five names were 1,033px long; the figures sit closer to
+     their names at a reading width. */
+  .bf-cfhead, .bf .bf-cf { max-width: 720px; }
+}
+
+/* ── Long text set as lists (owner 2026-11-24: "text dumps with no structuring") ───────────────
+   Four blocks of the briefing card were one paragraph each: the markets note (15 lines on a
+   phone), "Also moved, not looked up" (14), the data notes (14) and the source note under
+   Upcoming events (12). The words are the same; each now breaks where its parts end.
+   daily_briefing_v2: _points (a note of three sentences or more, one sentence a line:
+   the markets note, the chart facts note, the data notes), _movers (one row a name),
+   _sec (a source note in rows). Ink and hairlines only. */
+.bf ul.bf-pts { list-style: none; padding: 0; display: grid; gap: 7px; margin-bottom: 0; }
+/* Text under its own headline (a What-matters detail, an After-the-data item, the VIX
+   note, a result) stays a paragraph. It was set as a list from four sentences for a few
+   hours on 2026-11-24; an outside review found that worse than the paragraph (a second
+   rule beside the item's coloured one, source links read as the last sentence's, 510px
+   more on a phone), and it was taken out. */
+/* Recheck questions: one a line (they were joined into one run of text). */
+.bf-rchk li .bf-rq { display: block; }
+.bf-rchk li .bf-rq + .bf-rq { margin-top: 6px; }
+.bf ul.bf-pts > li { padding-left: 12px; border-left: 2px solid var(--rule-strong); font-size: inherit; line-height: inherit; }
+.bf ul.bf-prov-list { list-style: none; padding: 0; display: grid; gap: 5px; }
+.bf ul.bf-prov-list > li { font-size: inherit; line-height: inherit; }
+.bf-prov-list b { color: var(--ink-2); font-weight: 600; }
+/* Also moved: name, move, size against the usual day and volume, in as many columns as fit. */
+.bf .bf-also ul {
+  list-style: none; margin: 8px 0 0; padding: 0; display: grid;
+  /* 300px, not 250: the move and the detail take 214px of a row, and at 250 a name
+     had 36px (outside review of the build, 2026-11-24). min(…, 100%): a card narrower
+     than 300px (a 320px phone, 267px of card) pushed the page 7px sideways. */
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 0 28px;
+}
+.bf .bf-also li {
+  display: grid; grid-template-columns: minmax(0, 1fr) 62px 132px; gap: 10px; align-items: baseline;
+  padding: 5px 0; border-bottom: 1px dashed var(--rule); font-size: 13.5px; line-height: 1.35;
+}
+.bf-also-n { color: var(--ink-2); min-width: 0; overflow-wrap: anywhere; }
+.bf-also-m { font-family: var(--font-display); font-size: 14.5px; font-weight: 600; color: var(--ink); text-align: right; }
+.bf-also-x { font-size: 12.5px; color: var(--ink-3); }
+/* A card up to 300px (a 320px phone): the name and the move on one line, the detail
+   under them. In three columns a name had 53px and broke inside a word ("Lumentu /
+   m", "CoreWea / ve"; outside review, 2026-11-24). */
+@container (max-width: 300px) {
+  .bf .bf-also li { grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; }
+  .bf-also-x { grid-column: 1 / -1; }
 }

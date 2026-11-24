@@ -3,10 +3,11 @@ from __future__ import annotations
 
 from components.watchlist.drilldown import render_drilldown_detail_html
 from components.watchlist.row import render_ticker_details_html
-from components.watchlist.watchlist import render_watchlist
+from components.watchlist.watchlist import render_watchlist, render_watchlist_toolbar
 
 __all__ = [
     "render_drilldown_detail_html",
     "render_ticker_details_html",
     "render_watchlist",
+    "render_watchlist_toolbar",
 ]

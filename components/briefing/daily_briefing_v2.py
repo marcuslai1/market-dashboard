@@ -8,7 +8,9 @@ morning report into ``latest.numbers``. This module only lays them out.
 Reading order: masthead (date, what each number is as of, next timed events) → what
 matters → after the data → markets → names that moved (grouped by the market whose session
 the price is from) → week ahead → earnings → further out (dates only, to two months; the
-second month under a "less certain" label) → chart facts → data notes → sources.
+second month under a "less certain" label) → chart facts → data notes → sources. On a PC
+the four "today" sections and the three "coming" sections sit in two columns
+(``bf-cols``, layout review 2026-11-24); the order in the markup is the same.
 
 Constraints, all upstream decisions:
 
@@ -116,13 +118,94 @@ def _chips(idx, sources: list) -> str:
     return out
 
 
-def _sec(title: str, body: str, aside: str = "", cls: str = "", prov: str = "", kind: str = "") -> str:
+#: Words that end in a full stop without ending a sentence ("3:30 p.m. Central", "Sec. 232",
+#: "J.P. Morgan"): known abbreviations, and a single capital letter (an initial, "D.C.").
+_NOT_AN_END = re.compile(r"\b(?:p\.m|a\.m|e\.g|i\.e|vs|approx|est|incl|Inc|Corp|Co|Ltd|St|No|Mr|Ms|Mrs|Dr|Sec|Fig"
+                         r"|Sen|Rep|Gov|Pres|Prof|U\.S|U\.K|[A-Z])\.$")
+#: A month cut short is not an end when a day number follows ("Dec. 9"); before a capital it
+#: usually is one ("... shut Friday 9 Oct. Intel has not ...", the usual form in these notes).
+_MONTH_DAY = re.compile(r"\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.$")
+_SENTENCE_END = re.compile(r"""[.!?]["'”’)\]]*\s+(?=[A-Z0-9“"'‘(\[])""")
+#: A note of this many sentences or more is set as a list, one sentence a line.
+_POINTS_FROM = 3
+# A calendar row whose clock time is a stand-in (the usual release time, or the time it
+# is due by): the briefing's writer says so in the row's text, by its instructions with
+# the words "time not announced". Of the 186 "Next" items in the 66 briefings logged to
+# 2026-11-23, 55 say it that way and 5 say "time not set" or "usual release time, not
+# confirmed". The other 126 were searched for words such as "time", "usual", "expected"
+# and "about": none of the 20 different rows found says its time is a stand-in.
+# "time TBC", "time TBA", "time TBD" and "time not yet announced" are matched too; none is in the log.
+_NO_TIME = re.compile(r"\btime[,:]?\s+(?:not\s+(?:yet\s+)?(?:announced|set|confirmed|given|known)|unannounced|tbc|tba|tbd)\b", re.IGNORECASE)
+
+
+def _sentences(text) -> list:
+    """``text`` cut into its sentences. A sentence ends at ``. `` / ``! `` / ``? `` before a
+    capital, a digit, a quote or a bracket, unless the word before it is a known
+    abbreviation or initial. It never loses or changes a word; a wrong cut costs a line
+    break in the wrong place. Tried on the notes of the 66 briefings logged to 23 Nov 2026
+    (tests/test_readable_text.py says what was counted)."""
+    text = " ".join(str(text or "").split())     # one space for any run of spaces or line breaks
+    parts, start = [], 0
+    for m in _SENTENCE_END.finditer(text):
+        head = text[start:m.end()].rstrip()
+        if _NOT_AN_END.search(head) or (_MONTH_DAY.search(head) and text[m.end():m.end() + 1].isdigit()):
+            continue
+        parts.append(head)
+        start = m.end()
+    if text[start:].strip():
+        parts.append(text[start:].strip())
+    return parts
+
+
+def _lines(text) -> list:
+    """The writer's own points: the text's non-empty lines, when it has more than one.
+    The briefing's writer is to be told to put each separate point of a markets note or
+    a data note on a line of its own once this page is published (no briefing is
+    written that way as of 2026-11-24); a point may be more than one sentence. One
+    line, or a record written as one block, gives ``[]``. Blank lines between points
+    are dropped. The lines are taken as points only when every one of them ends a
+    sentence: a stray line break in the middle of a sentence gives ``[]``, and the note
+    is cut by sentence like a note written as one block."""
+    parts = [" ".join(ln.split()) for ln in str(text or "").splitlines() if ln.strip()]
+    if len(parts) < 2 or not all(re.search(r"""[.!?]["'”’)\]]*$""", ln) for ln in parts):
+        return []
+    return parts
+
+
+def _points(text, cls: str) -> str:
+    """A writer's note: a paragraph when it is short, a list when it is long. The list is
+    the writer's own lines when the note has them (``_lines``); a note written as one
+    block is cut at its sentences. Set as one paragraph, a nine-sentence data note ran 14
+    lines on a phone with nothing to hold the eye (owner 2026-11-24: "text dumps with no
+    structuring"). The words are not changed, only where the lines break. ``cls`` is the
+    class the paragraph has always had; the list keeps it."""
+    parts = _lines(text)
+    if not parts:
+        parts = _sentences(text)
+        if len(parts) < _POINTS_FROM:
+            # The sentences joined again, not the text as it came: a line break in the
+            # text would reach the page's HTML. One line break changes nothing there, but
+            # a blank line splits the paragraph, and the half after it is set as a plain
+            # <p> without this class (one test page, 2026-11-24, Streamlit 1.58; the
+            # sections after it were unchanged in that test).
+            return f'<p class="{cls}">{_txt(" ".join(parts))}</p>' if parts else ""
+    return f'<ul class="{cls} bf-pts">' + "".join(f"<li>{_txt(x)}</li>" for x in parts) + "</ul>"
+
+
+def _sec(title: str, body: str, aside: str = "", cls: str = "", prov="", kind: str = "") -> str:
     """One card section. ``kind`` tags a section that holds one kind of item (its heading
-    marker takes that kind's hue); mixed sections leave it empty and stay ink."""
+    marker takes that kind's hue); mixed sections leave it empty and stay ink. ``prov`` (the
+    small source note under the section) is a sentence, or a list of ``(lead, text)`` rows
+    when the note covers several kinds of row; the lead is the row's own first words, set
+    bold."""
     if not body:
         return ""
     aside_html = f'<span class="bf-aside">{_txt(aside)}</span>' if aside else ""
-    prov_html = f'<p class="bf-prov">{_txt(prov)}</p>' if prov else ""
+    if isinstance(prov, (list, tuple)):
+        prov_html = '<ul class="bf-prov bf-prov-list">' + "".join(
+            f'<li><b>{_txt(lead)}</b> {_txt(text)}</li>' for lead, text in prov) + "</ul>"
+    else:
+        prov_html = f'<p class="bf-prov">{_txt(prov)}</p>' if prov else ""
     kind_attr = f' data-kind="{_escape_attr(kind)}"' if kind else ""
     return (f'<section class="bf-sec {cls}"{kind_attr}><div class="bf-sh"><h3>{_txt(title)}</h3>{aside_html}</div>'
             f'{body}{prov_html}</section>')
@@ -133,21 +216,41 @@ def _sec(title: str, body: str, aside: str = "", cls: str = "", prov: str = "", 
 def _masthead(latest: dict, state: str, when: str) -> str:
     date = _date(latest.get("data_date"), "%A %-d %B")
     rows = ""
+    short = ""
     for a in latest.get("as_of") or []:
         if not isinstance(a, dict):
             continue
         note = f'<small>{_txt(a["note"])}</small>' if a.get("note") else ""
         rows += f'<div><dt>{_txt(a.get("label"))}</dt><dd>{_txt(a.get("when"))}{note}</dd></div>'
-    asof = f'<dl class="bf-asof">{rows}</dl>' if rows else ""
+        # The folded line keeps every entry's label and its time as written; only the
+        # note stays behind the tap. (A first version dropped a closing bracket such as
+        # "(New York)"; it would have dropped "(preliminary)" just the same.)
+        short += f'<span><b>{_txt(a.get("label"))}</b> {_txt(a.get("when")) or "—"}</span>'
+    # Two copies of the same lines: the boxes as they always were, and a folded form
+    # for a phone, where the four boxes pushed "What matters" off the first screen
+    # (layout review 2026-11-24, P4). The stylesheet shows one of the two by window
+    # width. A <details> cannot be opened by a stylesheet, hence the second copy.
+    asof = (f'<dl class="bf-asof bf-asof-wide">{rows}</dl>'
+            f'<details class="bf-asof-fold"><summary><i>As of</i>{short}</summary>'
+            f'<dl class="bf-asof">{rows}</dl></details>') if rows else ""
     written = str(latest.get("ts_sgt") or "")[:16].replace("T", " ")
     upcoming = [c for c in latest.get("calendar") or []
                 if isinstance(c, dict) and str(c.get("sgt", "")) > written.replace(" ", "T")][:3]
+    # On a narrow card the stylesheet sets each item on one line, its time first and its
+    # text cut with an ellipsis: three wrapped items were 201px on a phone and kept "What
+    # matters" off the first screen. Nothing is lost, Week ahead prints the same rows in
+    # full. A row whose time is a stand-in says so in its text ("time not announced",
+    # the briefing skill's wording, at the end of the text), and the end is the part
+    # the cut drops, so such a row is marked and its one-line form shows the day
+    # without the clock.
     nxt = ""
     if upcoming:
         nxt = ('<div class="bf-next"><b>Next<small>SGT</small></b><div class="bf-next-list">'
-               + "".join(f'<span data-kind="{_escape_attr(c.get("kind"))}"><strong>{_txt(c.get("what"))}</strong> '
+               + "".join(f'<span data-kind="{_escape_attr(c.get("kind"))}"'
+                         f'{" data-notime" if _NO_TIME.search(str(c.get("what") or "")) else ""}>'
+                         f'<strong>{_txt(c.get("what"))}</strong> '
                          f'<time datetime="{_escape_attr(c["sgt"])}+08:00">{_txt(_date(c["sgt"], "%a"))} '
-                         f'{_txt(_hm(c["sgt"]))}</time></span>' for c in upcoming)
+                         f'<span class="bf-next-hm">{_txt(_hm(c["sgt"]))}</span></time></span>' for c in upcoming)
                + '</div></div>')
     return (f'<section class="bf-sec bf-mast"><div class="bf-mast-top"><h2 class="bf-date">{_txt(date)}</h2>'
             f'<div class="bf-chips">{state}<span class="bf-chip">{_txt(when)}</span></div></div>'
@@ -217,7 +320,7 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
                   f'{month}</span>{_mark(r.get("mark"))}</div>')
     if not tiles:
         return ""
-    note = f'<p class="bf-cap">{_txt(latest["tape_note"])}</p>' if latest.get("tape_note") else ""
+    note = _points(latest.get("tape_note"), "bf-cap")
     vix = latest.get("vix_note")
     if isinstance(vix, dict) and str(vix.get("text") or "").strip():
         # The writer's short note: what the VIX is, where it stands and what the day's reports tie the move to.
@@ -267,11 +370,15 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
              f'<th scope="col">Why</th></tr></thead><tbody>{rows}</tbody></table>')
     also = [a for a in nums.get("also_moved") or [] if isinstance(a, dict)]
     if also:
-        bits = " · ".join(
-            f'{_txt(a.get("name") or a.get("key"))} {_signed(a.get("chg_pct"))} ({_x(a.get("x_usual"))}'
-            + (f', vol {_vol(a)}' if _num(a.get("vol_ratio")) is not None else "") + ")"
+        # One row a name (name, move, size against its usual day, volume). It was one
+        # sentence of names joined by middots: fourteen of them ran 14 lines on a phone.
+        rows = "".join(
+            f'<li><span class="bf-also-n">{_txt(a.get("name") or a.get("key"))}</span>'
+            f'<span class="bf-also-m">{_signed(a.get("chg_pct"))}</span>'
+            f'<span class="bf-also-x">{_x(a.get("x_usual"))} usual'
+            + (f' · vol {_vol(a)}' if _num(a.get("vol_ratio")) is not None else "") + '</span></li>'
             for a in also)
-        table += f'<p class="bf-also"><b>Also moved, not looked up:</b> {bits}</p>'
+        table += f'<div class="bf-also"><b>Also moved, not looked up:</b><ul>{rows}</ul></div>'
     return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
                 prov="× usual = the move divided by the name's typical daily swing (one standard deviation "
                      "over recent reports). Moves of 2× or more are always looked up; smaller ones only when "
@@ -299,7 +406,8 @@ def _week(latest: dict) -> str:
         n = sum(len(r["items"]) for r in rchk)
         li = "".join(
             f'<li><time datetime="{_escape_attr(r.get("date"))}">{_txt(_date(r.get("date")))}</time><span>'
-            + " · ".join(f'<b>{_txt(i.get("name"))}</b> {_txt(i.get("q"))}' for i in r["items"] if isinstance(i, dict))
+            + "".join(f'<span class="bf-rq"><b>{_txt(i.get("name"))}</b> {_txt(i.get("q"))}</span>'
+                      for i in r["items"] if isinstance(i, dict))
             + '</span></li>' for r in rchk)
         body += (f'<details class="bf-rchk"><summary><b>Catalyst rechecks due:</b> {n} item{"s" if n != 1 else ""} '
                  f'across {len(rchk)} date{"s" if len(rchk) != 1 else ""}</summary><ul>{li}</ul></details>')
@@ -510,16 +618,20 @@ def _further(nums: dict) -> str:
                  'Earnings dates this far out are often estimates and may move. A policy date can be moved or renewed.</p>'
                  f'{_far_list(later)}</div>')
     return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
-                prov="Earnings dates past 14 days are the exchange's local date. Most come from Yahoo "
-                     "Finance's calendar: “estimated date” marks one Yahoo itself calls an estimate, and an "
-                     "unmarked one can still move. “date confirmed” marks a date the project took from the "
-                     "company's own announcement. Macro: "
-                     "high-impact releases only, dated in New York time, so a Singapore-morning release "
-                     "(MAS) shows the day before. Policy dates (a tariff taking effect, a deadline) and "
-                     "company releases the calendar feed does not carry: entered by hand from the official notice, "
-                     "in that authority's own date. Conferences: the pipeline's tech-events list. Not held: "
-                     "results from a company off the watchlist that move names on it (looked up 21 days "
-                     "ahead).")
+                # The same words as before 2026-11-24, one row for each kind of date instead of
+                # one 700-character paragraph; the leads are the note's own.
+                prov=[("Earnings dates", "past 14 days are the exchange's local date. Most come from Yahoo "
+                                         "Finance's calendar: “estimated date” marks one Yahoo itself calls an "
+                                         "estimate, and an unmarked one can still move. “date confirmed” marks a "
+                                         "date the project took from the company's own announcement."),
+                      ("Macro:", "high-impact releases only, dated in New York time, so a Singapore-morning "
+                                 "release (MAS) shows the day before."),
+                      ("Policy dates", "(a tariff taking effect, a deadline) and company releases the calendar "
+                                       "feed does not carry: entered by hand from the official notice, in that "
+                                       "authority's own date."),
+                      ("Conferences:", "the pipeline's tech-events list."),
+                      ("Not held:", "results from a company off the watchlist that move names on it (looked up "
+                                    "21 days ahead).")])
 
 
 def _chart(latest: dict, nums: dict) -> str:
@@ -539,6 +651,13 @@ def _chart(latest: dict, nums: dict) -> str:
     ticks = ""
     for t in range(lo, hi + 1, 10):
         minor = "" if t in (lo, 0, hi) else ' class="bf-minor"'       # dropped on a narrow card
+        # An end label less than a quarter of the axis from "0" prints on top of it, or
+        # touches it, on a phone-width card (all bars one side of zero: "0" and "+10%"
+        # read "+010%"); the stylesheet drops that end label there. A fifth was the
+        # first figure: at exactly a fifth the two still touched on a 360px phone. The
+        # scale itself does not change.
+        if t in (lo, hi) and abs(pos(t) - z) < 25:
+            minor = ' class="bf-near"'
         align = ";transform:none" if t == lo else ";transform:translateX(-100%)" if t == hi else ""
         ticks += f'<span{minor} style="left:{pos(t):.2f}%{align}">{_signed(t, 0) if t else "0"}</span>'
     body = (f'<div class="bf-cfhead" aria-hidden="true"><span>Name</span><div class="bf-ax">{ticks}</div>'
@@ -551,6 +670,16 @@ def _chart(latest: dict, nums: dict) -> str:
             lab = f'<span class="bf-val bf-in" style="left:{a:.2f}%">{_signed(val, 1)}</span>'
         elif val >= 0:
             lab = f'<span class="bf-val" style="left:{a + 1.5:.2f}%">{_signed(val, 1)}</span>'
+        elif 100 - z < 25 and width > 36:
+            # Bars below zero carry their figure right of the zero line. With every bar
+            # below zero the line sits near the axis's right end (85.7% on 23 Nov 2026) and
+            # the figure ran into the RSI column on a 320px phone ("−10.7%20.5"; 4px clear
+            # at 360px). With under a quarter of the axis right of zero the figure goes
+            # inside a long bar, at its zero end (36% of the narrowest axis, 121px, holds
+            # it), and left of a short one (outside review, 2026-11-24).
+            lab = f'<span class="bf-val bf-in" style="left:{z:.2f}%">{_signed(val, 1)}</span>'
+        elif 100 - z < 25:
+            lab = f'<span class="bf-val bf-beside" style="left:{a:.2f}%">{_signed(val, 1)}</span>'
         else:
             lab = f'<span class="bf-val" style="left:{z + 1.5:.2f}%">{_signed(val, 1)}</span>'
         rsi = f'{v["rsi"]:.1f}' if _num(v.get("rsi")) is not None else "—"
@@ -559,9 +688,7 @@ def _chart(latest: dict, nums: dict) -> str:
                  f'<span class="bf-b" style="left:{left:.2f}%;width:{max(width, 0.4):.2f}%"></span>{lab}</div>'
                  f'<span class="bf-rsi">{rsi}</span></li>')
     body += "</ul>"
-    note = (latest.get("chart_facts") or {}).get("note")
-    if note:
-        body += f'<p class="bf-cap">{_txt(note)}</p>'
+    body += _points((latest.get("chart_facts") or {}).get("note"), "bf-cap")
     last = (nums.get("health") or {}).get("last_us_session")
     return _sec("Chart facts", body, "% from the 50-day average" + (f" · {_date(last)}" if last else ""),
                 prov="% from the 50-day moving average and RSI: morning report", kind="price")
@@ -582,8 +709,7 @@ def _health(latest: dict, nums: dict) -> str:
     faults = sum(f for _, _, f in chips)
     html = '<div class="bf-dn">' + "".join(
         f'<span class="bf-ok{" bf-fault" if f else ""}">{_txt(k)} <b>{_txt(v)}</b></span>' for k, v, f in chips) + "</div>"
-    if latest.get("data_notes"):
-        html += f'<p class="bf-dntext">{_txt(latest["data_notes"])}</p>'
+    html += _points(latest.get("data_notes"), "bf-dntext")
     return _sec("Data notes", html, "all clear" if not faults else f"{faults} to check")
 
 
@@ -616,15 +742,24 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
     if latest.get("revises"):
         state += '<span class="bf-chip">Revised</span>'
     when = f"Written {str(latest.get('ts_sgt') or '')[11:16]} SGT" if latest.get("ts_sgt") else "undated"
+    # Two groups in the reading order: what happened (what matters, after the data,
+    # markets, names that moved) and what is coming (week ahead, earnings, upcoming
+    # events). On a PC the stylesheet sets them side by side, today left and the
+    # coming dates right (layout review 2026-11-24, P5: the card's right half was
+    # empty beside capped text, and the coming dates sat three screens down). Below
+    # that width the two wrappers take no box and the sections stack as before. A
+    # day with only one of the two groups gets no wrappers.
+    today = (_what_matters(latest, sources) + _after(latest, sources)
+             + _tape(latest, nums, sources) + _movers(latest, nums, sources))
+    coming = _week(latest) + _earnings(latest, nums, sources, earnings or {}) + _further(nums)
+    if today and coming:
+        middle = (f'<div class="bf-cols"><div class="bf-col bf-col-today">{today}</div>'
+                  f'<div class="bf-col bf-col-coming">{coming}</div></div>')
+    else:
+        middle = today + coming
     body = (
         _masthead(latest, state, when)
-        + _what_matters(latest, sources)
-        + _after(latest, sources)
-        + _tape(latest, nums, sources)
-        + _movers(latest, nums, sources)
-        + _week(latest)
-        + _earnings(latest, nums, sources, earnings or {})
-        + _further(nums)
+        + middle
         + _chart(latest, nums)
         + _health(latest, nums)
         + _sources(sources)
