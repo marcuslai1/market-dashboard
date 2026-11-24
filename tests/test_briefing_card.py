@@ -201,21 +201,37 @@ def test_v2_staleness_and_escaping():
 def test_v2_card_css_never_puts_a_verdict_colour_on_this_surface():
     # Colour is a claim: no .bf- rule may reference a good/bad token; --stress (the data-condition
     # colour) is for two chips only: the data-fault chip, and since 2026-11-23 (owner) the chip of a
-    # briefing that is older than the report on screen.
+    # briefing that is older than the report on screen. Since 2026-11-24 (owner) the price-move pair
+    # --up / --down is allowed in exactly two rules, and each names the three elements that may carry
+    # a direction (a Markets tile's figure, a mover's move, an also-moved row's move), so no class
+    # on any other element can pick the colour up (tests/test_briefing_type.py says which figures
+    # get the class). The hex values stay banned everywhere.
     import pathlib
     import re
 
     css = (pathlib.Path(__file__).resolve().parents[1] / "assets" / "theme.css").read_text(encoding="utf-8")
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)                  # a comment cannot hide or split a selector
     rules = re.findall(r"([^{}]*\.bf\b[^{}]*)\{([^}]*)\}", css)     # .bf-x and the .bf-scoped kind hues
     assert rules, "briefing v2 CSS not found"
     banned = ("--up", "--down", "--buy", "--accumulate", "--watch", "--caution", "--avoid",
               "#22c55e", "#ef4444", "#4ade80", "#f87171")
+    direction = {
+        ".bf .bf-v.bf-up, .bf .bf-mv.bf-up, .bf .bf-also-m.bf-up": "color: var(--up);",
+        ".bf .bf-v.bf-down, .bf .bf-mv.bf-down, .bf .bf-also-m.bf-down": "color: var(--down);",
+    }
+    seen = set()
     for selector, body in rules:
+        name = " ".join(selector.split())
+        if name in direction:
+            assert body.strip() == direction[name], f"{name} must set the move colour and nothing else"
+            seen.add(name)
+            continue
         for token in banned:
             assert token not in body, f"{selector.strip()} uses {token}"
         if "--stress" in body:
             allowed = "bf-fault" in selector or 'bf-state[data-stale="1"]' in selector
             assert allowed, f"{selector.strip()} uses --stress outside the fault chip and the stale chip"
+    assert seen == set(direction), "the two move-colour rules are missing"
 
 
 def test_v2_stale_chip_takes_the_data_condition_colour():
@@ -323,11 +339,12 @@ def test_vix_tile_leads_with_the_level_and_says_when_it_is_the_highest():
              "price": 5.05, "mo_pct": -1.83, "mark": None}]
     html = briefing_card_html(_with_tape(tape), "2026-09-28")
     assert '<span class="bf-v">28.44<small>+15.80%</small></span>' in html           # level first, change beside it
-    assert '1.3× usual · 5d +52.1% · 1mo +70.5%' in html
+    assert ('<span class="bf-nw">1.3× usual</span> · <span class="bf-nw">5d +52.1%</span> · '
+            '<span class="bf-nw">1mo +70.5%</span>') in html
     assert '<span class="bf-s bf-mark">Highest since the 31 Mar report</span>' in html
     assert '<span class="bf-v">1.2918<small>+0.18%</small></span>' in html
     assert '<span class="bf-s bf-mark">Highest in the 37 reports before it</span>' in html
-    assert '<span class="bf-v">−1.96%</span>' in html                                  # an ETF price is not a level to read
+    assert '<span class="bf-v bf-down">−1.96%</span>' in html                          # an ETF price is not a level to read
     assert '<span class="bf-v">5.05%<small>−1bp</small></span>' in html               # the yield keeps its own form
     assert html.count("bf-mark") == 2
     assert "this site’s own earlier daily reports, not with all history" in html        # what "highest" is measured against
@@ -336,7 +353,8 @@ def test_vix_tile_leads_with_the_level_and_says_when_it_is_the_highest():
 
 def test_tiles_from_an_older_record_render_as_before():
     html = briefing_card_html(_v2(), "2026-09-28")                     # no price / mo_pct / mark keys
-    assert '<span class="bf-v">+0.54%</span><span class="bf-s">0.8× usual · 5d +1.3%</span></div>' in html
+    assert ('<span class="bf-v bf-up">+0.54%</span><span class="bf-s"><span class="bf-nw">0.8× usual</span> · '
+            '<span class="bf-nw">5d +1.3%</span></span></div>') in html
     assert "bf-mark" not in html and "bf-vix" not in html
     assert "Numbers: morning report</p>" in html and "earlier daily reports" not in html   # no marker, no note on it
 

@@ -111,7 +111,7 @@ def test_also_moved_is_one_row_a_name():
     block = html.split('<div class="bf-also">', 1)[1].split("</div>", 1)[0]
     assert block.startswith("<b>Also moved, not looked up:</b><ul>")
     assert block.count("<li>") == 3
-    assert ('<li><span class="bf-also-n">TSMC</span><span class="bf-also-m">−9.48%</span>'
+    assert ('<li><span class="bf-also-n">TSMC</span><span class="bf-also-m bf-down">−9.48%</span>'
             '<span class="bf-also-x">3.4× usual · vol 2.08×</span></li>') in block
     # A market still open when the report ran: volume against the usual by that time of day.
     assert "2.0× usual · vol 0.72× usual so far" in block
@@ -152,7 +152,9 @@ def test_other_sections_keep_a_one_line_source_note():
 # ── the styles ───────────────────────────────────────────────────────────────
 
 def test_list_styles_are_ink_and_hairlines_only():
-    block = _CSS[_CSS.index("Long text set as lists"):]
+    # The list block ends where the next dated block starts (text sizes and the direction of a
+    # move, 2026-11-24), which names --up / --down for two classes of its own.
+    block = _CSS[_CSS.index("Long text set as lists"):_CSS.index("Briefing card: text sizes, spacing")]
     for selector in (".bf ul.bf-pts {", ".bf ul.bf-pts > li {", ".bf ul.bf-prov-list {",
                      ".bf .bf-also ul {", ".bf .bf-also li {"):
         assert selector in block, selector

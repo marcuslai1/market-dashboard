@@ -2838,3 +2838,114 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
   .bf .bf-also li { grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; }
   .bf-also-x { grid-column: 1 / -1; }
 }
+
+/* ── Briefing card: text sizes, spacing and the direction of a move (owner 2026-11-24) ─────────
+   Owner: "its like a large dump of text ... looks very uniform"; "the colour tone makes it
+   tough to read. Maybe more spacing, or slightly larger font." An outside review of the
+   published card (2026-11-24, pack briefing-type) put the cause in this order: too little
+   space between lines and between points, lines of 84 to 106 characters on a PC, small
+   type on a phone; then one ink for every move. Sentences were 13.5-14px at 1.5 and
+   `78ch` never bound (one `ch` in Barlow is about 1.3 letters, the column is 617px).
+   This block sits after the rules it changes, so each selector repeats the one above it.
+   Sizes step down in one order: a section heading 21px > an item's headline 17.5 > a
+   name or a lead 15.5 > a heading inside a block 15 = a sentence 15 > a row 14 = a note
+   about the data 14 > a caption 12.5. Two trials broke that order and a review of the
+   build caught two more (a mover's reason above its name; "Also moved" and "Later"
+   under their own rows), so tests/test_briefing_type.py pins it. */
+
+/* a section's heading: Barlow Condensed at 18.4px read lighter than an item's headline */
+.bf .bf-sh h3, .bf .bf-srcs summary h3 { font-size: 21px !important; }
+
+/* sentences */
+.bf .bf-det, .bf .bf-box li, .bf .bf-cap, .bf .bf-vix p, .bf .bf-movers .bf-why,
+.bf .bf-facts, .bf .bf-out { font-size: 15px; line-height: 1.62; max-width: 60ch; }
+/* a mover's reason: the cap sits on the block inside the cell (a table cell ignores it) */
+.bf .bf-movers .bf-why { max-width: none; }
+.bf .bf-why-in { max-width: 60ch; }
+/* The VIX box runs the width of the tiles above it; its text keeps the line cap. */
+.bf .bf-vix { max-width: none; }
+/* notes about the data and under the chart stay a step under the day's own text */
+.bf .bf-dntext, .bf .bf-cf + .bf-cap { font-size: 14px; line-height: 1.55; max-width: 60ch; }
+
+/* an item's headline, a lead on a line of its own, a mover's name, a heading inside a block */
+.bf .bf-head { font-size: 17.5px; line-height: 1.32; max-width: 48ch; }
+.bf .bf-box li b { display: block; margin-bottom: 5px; font-size: 15.5px; }
+.bf .bf-nm b { font-size: 15.5px; }
+.bf .bf-also > b, .bf .bf-later-h b { font-size: 15px; }
+
+/* rows read line by line */
+.bf .bf-ev span, .bf .bf-far li, .bf .bf-rchk li, .bf .bf-also li, .bf .bf-srcs ol, .bf-next-list {
+  font-size: 14px; line-height: 1.45; }
+
+/* figures; a tile's figure sits at the top whether or not the tile has a fourth line */
+.bf .bf-v { font-size: 24px; line-height: 1.05; }
+.bf .bf-v small { font-size: 14px; }
+.bf .bf-mv { font-size: 20px; }
+.bf .bf-tile { align-content: start; }
+.bf-nw { white-space: nowrap; }
+
+/* space: between separate points, between a headline and its text, between blocks */
+.bf ul.bf-pts { gap: 14px; }
+.bf ul.bf-pts > li { padding-left: 14px; border-left-color: var(--ink-3); }
+.bf .bf-wm { gap: 24px; }
+.bf .bf-wm > li { gap: 8px 18px; }
+.bf .bf-box ul { gap: 18px; }
+.bf .bf-day { gap: 10px; }
+.bf .bf-ev { padding: 7px 10px 8px; gap: 4px; }
+.bf ul.bf-prov-list { gap: 8px; }
+.bf .bf-sh { margin-bottom: 16px; }
+.bf .bf-sec { padding: 28px 0; }
+.bf .bf-cap { margin-top: 16px; }
+.bf .bf-vix { margin-top: 16px; padding: 14px 16px; }
+.bf .bf-vix p { margin: 7px 0 0; }
+.bf .bf-prov { margin-top: 14px; }
+/* A card wider than 560px. The movers table's cells take padding only while it is a
+   table (on a narrow card a row is a grid, the rule at 560px above). Week ahead sets a
+   day at 200px or more: at 112px a 1024px window drew seven columns two or three
+   words wide and one event ran 29 lines (there before this block; the larger text
+   made it worse). The briefing's right-hand column on a PC is under 560px and keeps
+   its two days abreast. */
+@container (min-width: 560.01px) {
+  .bf .bf-movers td { padding: 16px 14px 16px 0; }
+  .bf .bf-wk { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+@container (max-width: 560px) {
+  .bf .bf-movers tr:not(.bf-grp) { padding: 14px 0; }
+}
+@container (max-width: 440px) {
+  .bf .bf-wm > li { gap: 6px 0; }
+}
+
+/* A phone: a window up to 719px AND a card up to 560px. The window alone would give
+   phone sizes to a 615 to 719px window, whose card is still in its wide layout; the
+   card alone would give them to the right-hand column on a PC. */
+@media (max-width: 719px) {
+  @container (max-width: 560px) {
+    .bf .bf-sh h3, .bf .bf-srcs summary h3 { font-size: 20px !important; }
+    .bf .bf-det, .bf .bf-box li, .bf .bf-cap, .bf .bf-vix p, .bf .bf-movers .bf-why,
+    .bf .bf-facts, .bf .bf-out { line-height: 1.58; max-width: none; }
+    .bf .bf-why-in { max-width: none; }
+    .bf .bf-dntext, .bf .bf-cf + .bf-cap { font-size: 14.5px; line-height: 1.55; max-width: none; }
+    .bf .bf-head { font-size: 17px; max-width: none; }
+    .bf .bf-ev span, .bf .bf-far li, .bf .bf-rchk li, .bf .bf-also li, .bf .bf-srcs ol, .bf-next-list { font-size: 14.5px; }
+    .bf .bf-rchk summary { font-size: 15px; }
+    .bf-aside, .bf-dim, .bf .bf-prov, .bf .bf-key, .bf .bf-mv small, .bf .bf-also-x, .bf-foot { font-size: 13px; }
+    .bf .bf-v { font-size: 22px; }
+    .bf .bf-mv { font-size: 19px; }
+    .bf ul.bf-pts { gap: 12px; }
+    .bf .bf-wm { gap: 22px; }
+    .bf .bf-box ul { gap: 16px; }
+    .bf .bf-sh { margin-bottom: 14px; }
+    .bf .bf-sec { padding: 24px 0; }
+  }
+}
+
+/* The direction of a price's move: the pair the Watchlist and the quote strip use
+   (daily_briefing_v2._dir). Three elements may carry it and no other: a Markets tile's
+   figure, a mover's move, an also-moved row's move. These two rules are the only place
+   a .bf rule may name the pair (tests/test_briefing_card.py). In Markets only the rows
+   in daily_briefing_v2._PRICE_TILES get a class. With the figures coloured, the tile
+   names and the VIX label step back from indigo to the caption grey. */
+.bf .bf-v.bf-up, .bf .bf-mv.bf-up, .bf .bf-also-m.bf-up { color: var(--up); }
+.bf .bf-v.bf-down, .bf .bf-mv.bf-down, .bf .bf-also-m.bf-down { color: var(--down); }
+.bf .bf-n, .bf .bf-vix b { color: var(--ink-3); }

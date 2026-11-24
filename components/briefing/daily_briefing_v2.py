@@ -16,10 +16,16 @@ Constraints, all upstream decisions:
 
 1. **Information, not advice.** No directional call, no signal label; the log and publish
    steps refuse both. Nothing here adds a judgment.
-2. **Colour is a claim.** No hue on any move — a rise is not "good", and a rise and a fall
-   share one hue. Hues encode the kind of item only (``data-kind``: macro teal, earnings
+2. **Colour is a claim.** Hues encode the kind of item (``data-kind``: macro teal, earnings
    violet, after-the-data brass, price data from the report indigo; rechecks and data
-   notes stay ink); ``--stress`` marks a real data fault and nothing else.
+   notes stay ink); ``--stress`` marks a real data fault and nothing else. Since
+   2026-11-24 (owner) a figure that is the percentage move of a price takes the
+   Watchlist's up / down pair (``_dir``: ``bf-up`` / ``bf-down``): the direction of a
+   move, never a verdict. It was one ink for every move until then, and a 10.55% fall
+   looked like a 0.09% one. In Markets only the rows in ``_PRICE_TILES`` take it (three
+   funds, oil, gold): the VIX, the 10-year yield and the two dollar rows stay ink, so a
+   jump in the VIX is never green. The 5-day and 1-month figures, the chart facts and
+   every sentence stay as they were.
 3. **No rule lines.** Chart facts draw a zero line only; +5 % / +20 % are gate rules.
 4. **Searched ≠ not looked up.** "No reported cause found" and the publish-listed names
    nobody looked up render differently.
@@ -29,6 +35,7 @@ Constraints, all upstream decisions:
 from __future__ import annotations
 
 import datetime as _dt
+import math
 import re
 
 from components.briefing.sections import _txt
@@ -54,12 +61,19 @@ _MINUS = "−"
 # VIX at 28.44, up 70% in a month, was on the card as "+15.80%"; a change alone does not say whether the level
 # is high. The 10-year yield has always shown its level (`level` / `bp`).
 _LEVEL_TILES = {"VIX": 2, "USDSGD": 4}
+# The Markets rows whose figure is coloured by direction: the price of something a reader can hold (three
+# funds, oil, gold). Every other row stays ink, whatever its figure shows: a gauge (the VIX), a rate (the
+# 10-year yield) and the two dollar rows (the index and USD/SGD), where a rise is not a gain. A list of the
+# rows that ARE coloured, so a row added later is ink until someone puts it here (outside review of the
+# build, 2026-11-24: a list of exceptions coloured the dollar index and would have coloured any new rate).
+_PRICE_TILES = {"SPY", "QQQ", "SOXX", "WTI", "Gold"}
 
 
 # ── formatting ───────────────────────────────────────────────────────────────
 
 def _num(x):
-    return x if isinstance(x, (int, float)) and not isinstance(x, bool) else None
+    # A NaN is not a figure: it printed "nan%" and compared false both ways.
+    return x if isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) else None
 
 
 def _signed(v, nd: int = 2, unit: str = "%") -> str:
@@ -69,6 +83,16 @@ def _signed(v, nd: int = 2, unit: str = "%") -> str:
     sign = "+" if v > 0 else (_MINUS if v < 0 else "")
     return f"{sign}{abs(v):.{nd}f}{unit}"
 
+
+def _dir(v) -> str:
+    """The class for a price's percentage move: `` bf-up`` for a rise, `` bf-down`` for a
+    fall, nothing for no figure or for a move that prints as 0.00 (a move of 0.004% is
+    not a green figure)."""
+    v = _num(v)
+    v = round(v, 2) if v is not None else 0
+    if not v:
+        return ""
+    return " bf-up" if v > 0 else " bf-down"
 
 
 def _vol(n: dict) -> str:
@@ -307,17 +331,23 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
     for r in nums.get("tape") or []:
         name = r.get("name", "")
         price = _num(r.get("price"))
+        moved = ""
         if r.get("level") is not None:
             val = f'{r["level"]:.2f}%<small>{_signed(r.get("bp"), 0, "bp")}</small>'
         elif name in _LEVEL_TILES and price is not None:
             val = f'{price:.{_LEVEL_TILES[name]}f}<small>{_signed(r.get("chg_pct"))}</small>'
         else:
             val = _signed(r.get("chg_pct"))
-        usual = f'{_x(r.get("x_usual"))} usual · ' if r.get("x_usual") is not None else ""
-        month = f' · 1mo {_signed(r.get("mo_pct"), 1)}' if _num(r.get("mo_pct")) is not None else ""
+            moved = _dir(r.get("chg_pct")) if name in _PRICE_TILES else ""
+        # Each figure with its label is one unbreakable piece: on a phone five of nine
+        # tiles broke "1mo" from its figure (outside review, 2026-11-24).
+        parts = ([f'{_x(r.get("x_usual"))} usual'] if r.get("x_usual") is not None else []) + [
+            f'5d {_signed(r.get("5d_pct"), 1)}'] + (
+            [f'1mo {_signed(r.get("mo_pct"), 1)}'] if _num(r.get("mo_pct")) is not None else [])
+        sub = " · ".join(f'<span class="bf-nw">{p}</span>' for p in parts)
         tiles += (f'<div class="bf-tile"><span class="bf-n">{_txt(_BENCH_LABEL.get(name, name))}</span>'
-                  f'<span class="bf-v">{val}</span><span class="bf-s">{usual}5d {_signed(r.get("5d_pct"), 1)}'
-                  f'{month}</span>{_mark(r.get("mark"))}</div>')
+                  f'<span class="bf-v{moved}">{val}</span><span class="bf-s">{sub}</span>'
+                  f'{_mark(r.get("mark"))}</div>')
     if not tiles:
         return ""
     note = _points(latest.get("tape_note"), "bf-cap")
@@ -359,11 +389,14 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
                 f'{_x(n.get("x_usual"))} usual' if n.get("x_usual") is not None else "")
             vol = f' · vol {_vol(n)}' if _num(n.get("vol_ratio")) is not None else ""
             none = it.get("why_state") == "none_found"
-            why = (f'<td class="bf-why{" bf-none" if none else ""}">{_txt(it.get("why"))} '
-                   f'{_chips(it.get("src"), sources)}</td>')
+            # The inner block carries the line cap: `max-width` does not bind on a table cell,
+            # and at 768 to 1024px a reason ran about 86 characters a line.
+            why = (f'<td class="bf-why{" bf-none" if none else ""}"><div class="bf-why-in">{_txt(it.get("why"))} '
+                   f'{_chips(it.get("src"), sources)}</div></td>')
             rows += (f'<tr><td class="bf-nm"><b>{_txt(n.get("name") or it["key"])}</b>'
                      f'<span>{_txt(it["key"].split("_")[0])}</span></td>'
-                     f'<td class="bf-mv">{_signed(n.get("chg_pct"))}<small>{size}{vol}</small></td>{why}</tr>')
+                     f'<td class="bf-mv{_dir(n.get("chg_pct"))}">{_signed(n.get("chg_pct"))}'
+                     f'<small>{size}{vol}</small></td>{why}</tr>')
     if not rows:
         return ""
     table = (f'<table class="bf-movers"><thead><tr><th scope="col">Name</th><th scope="col">Move</th>'
@@ -374,7 +407,7 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
         # sentence of names joined by middots: fourteen of them ran 14 lines on a phone.
         rows = "".join(
             f'<li><span class="bf-also-n">{_txt(a.get("name") or a.get("key"))}</span>'
-            f'<span class="bf-also-m">{_signed(a.get("chg_pct"))}</span>'
+            f'<span class="bf-also-m{_dir(a.get("chg_pct"))}">{_signed(a.get("chg_pct"))}</span>'
             f'<span class="bf-also-x">{_x(a.get("x_usual"))} usual'
             + (f' · vol {_vol(a)}' if _num(a.get("vol_ratio")) is not None else "") + '</span></li>'
             for a in also)
