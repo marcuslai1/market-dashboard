@@ -128,8 +128,10 @@ def _v2(**over):
 
 def test_v2_renders_in_reading_order():
     html = briefing_card_html(_v2(), "2026-09-28")
+    # The chart follows names that moved in the markup since 2026-11-24 (a phone and a tablet read
+    # it there; a PC places it under both columns by grid).
     heads = [f"<h3>{s}</h3>" for s in ("What matters", "After the data", "Markets", "Names that moved",
-                                        "Week ahead", "Earnings", "Upcoming events", "The watchlist through time",
+                                        "The watchlist through time", "Week ahead", "Earnings", "Upcoming events",
                                         "Data notes",
                                         "All sources")]
     order = [html.index(s) for s in ["Monday 28 September", *heads, "Information, not advice"]]
@@ -184,14 +186,16 @@ def test_calendar_sections_share_the_rose_marker():
 
 def test_v2_further_out_groups_by_date_and_names_the_estimate_caveat():
     html = briefing_card_html(_v2(), "2026-09-28")
-    far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>The watchlist through time</h3>")]
+    far = html[html.index("<h3>Upcoming events</h3>"):html.index("<h3>Data notes</h3>")]
     soon, later = far.split('<div class="bf-later">')
     assert soon.count("<li>") == 4 and "Wed 14 Oct" in soon and "Wed 28 Oct" in soon
     assert '<b data-kind="event">OCP Global Summit 2026<small>to Thu 15 Oct</small></b>' in soon
     assert "Oracle earnings<small>not held · moves Nvidia, CoreWeave</small>" in soon
     assert "Later · 31–60 days · less certain" in later and "often estimates" in later
     assert "Nvidia earnings" in later and "AMD" not in soon
-    assert "<details" not in far                                      # static: visible without a click
+    # The dates are static, visible without a click; only the source note under them is a drawer
+    # (2026-11-24).
+    assert "<details" not in far.split('<details class="bf-about">', 1)[0] and far.count("<details") == 1
     assert '<b data-kind="earnings">ASML earnings</b>' in far and '<b data-kind="macro">FOMC Rate Decision</b>' in far
     assert "Yahoo itself calls an estimate" in far and "an unmarked one can still move" in far
     none = _v2()

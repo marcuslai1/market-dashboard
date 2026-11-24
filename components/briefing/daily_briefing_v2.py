@@ -12,7 +12,8 @@ the price is from) → week ahead → earnings → further out (dates only, to t
 second month under a "less certain" label) → the watchlist through time → data notes →
 sources. On a PC
 the four "today" sections and the three "coming" sections sit in two columns
-(``bf-cols``, layout review 2026-11-24); the order in the markup is the same.
+(``bf-cols``, layout review 2026-11-24) with the chart under both. Below that width the
+chart follows names that moved (2026-11-24): in the markup it sits between the two groups.
 
 Constraints, all upstream decisions:
 
@@ -77,6 +78,10 @@ _PRICE_TILES = {"SPY", "QQQ", "SOXX", "WTI", "Gold"}
 # share price says nothing about the market it tracks.
 _SUB_LEVEL = {"DXY": ("", 2), "WTI": ("$", 2), "Gold": ("$", 0)}
 # The watchlist through time: fewer reports than this draw no chart (a line of two days says nothing).
+#: "Also moved, not looked up" shows up to this many names open; a longer list is a closed
+#: drawer whose line gives the count (owner 2026-11-24, on an outside review: twenty rows,
+#: about 650px on a phone, on a day one event moved the list).
+_ALSO_OPEN = 6
 _BREADTH_MIN = 5
 # A run of reports on one side of half the list is named in the chart's facts from this length.
 _BREADTH_RUN = 5
@@ -229,18 +234,22 @@ def _points(text, cls: str) -> str:
     return f'<ul class="{cls} bf-pts">' + "".join(f"<li>{_txt(x)}</li>" for x in parts) + "</ul>"
 
 
-def _sec(title: str, body: str, aside: str = "", cls: str = "", prov="", kind: str = "") -> str:
+def _sec(title: str, body: str, aside: str = "", cls: str = "", prov="", kind: str = "",
+         prov_title: str = "") -> str:
     """One card section. ``kind`` tags a section that holds one kind of item (its heading
     marker takes that kind's hue); mixed sections leave it empty and stay ink. ``prov`` (the
     small source note under the section) is a sentence, or a list of ``(lead, text)`` rows
     when the note covers several kinds of row; the lead is the row's own first words, set
-    bold."""
+    bold. ``prov_title`` puts a note in rows inside a closed drawer of that name: a note
+    that reads the same on every card is there for the reader who asks for it."""
     if not body:
         return ""
     aside_html = f'<span class="bf-aside">{_txt(aside)}</span>' if aside else ""
     if isinstance(prov, (list, tuple)):
         prov_html = '<ul class="bf-prov bf-prov-list">' + "".join(
             f'<li><b>{_txt(lead)}</b> {_txt(text)}</li>' for lead, text in prov) + "</ul>"
+        if prov_title:
+            prov_html = f'<details class="bf-about"><summary>{_txt(prov_title)}</summary>{prov_html}</details>'
     else:
         prov_html = f'<p class="bf-prov">{_txt(prov)}</p>' if prov else ""
     kind_attr = f' data-kind="{_escape_attr(kind)}"' if kind else ""
@@ -489,7 +498,11 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
                 ([f'{_x(a.get("x_usual"))} usual'] if _num(a.get("x_usual")) is not None else [])
                 + ([f'vol {_vol(a)}'] if _num(a.get("vol_ratio")) is not None else [])) + '</span></li>'
             for a in also)
-        table += f'<div class="bf-also"><b>Also moved, not looked up:</b><ul>{rows}</ul></div>'
+        if len(also) > _ALSO_OPEN:
+            table += (f'<details class="bf-also"><summary><b>Also moved, not looked up:</b> {len(also)} names'
+                      f'</summary><ul>{rows}</ul></details>')
+        else:
+            table += f'<div class="bf-also"><b>Also moved, not looked up:</b><ul>{rows}</ul></div>'
     return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
                 # "Moves of 2x or more are always looked up" stood here until 2026-11-25, under fifteen
                 # names at 2.2x to 4.0x that nobody had looked up (outside review of the build).
@@ -736,7 +749,10 @@ def _further(nums: dict) -> str:
                  f'{_far_list(later)}</div>')
     return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
                 # The same words as before 2026-11-24, one row for each kind of date instead of
-                # one 700-character paragraph; the leads are the note's own.
+                # one 700-character paragraph; the leads are the note's own. In a closed drawer
+                # since the same day (owner, on an outside review: five rows that read the same
+                # on every card). Not moved to Terminology: the rows above use the note's terms.
+                prov_title="About these dates",
                 prov=[("Earnings dates", "past 14 days are the exchange's local date. Most come from Yahoo "
                                          "Finance's calendar: “estimated date” marks one Yahoo itself calls an "
                                          "estimate, and an unmarked one can still move. “date confirmed” marks a "
@@ -981,14 +997,19 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
     # day cut the left column's text (the VIX box, the markets note, the movers' reasons) and
     # made the chart taller, and on that day's briefing the right column then ran 629px past
     # the left at a 1440px window. Under both columns the two are 78px apart there, and a
-    # line through nine months reads better wide. The order on a phone is as it was.
+    # line through nine months reads better wide.
+    # In the markup the chart sits BETWEEN the two wrappers (owner 2026-11-24, on the same
+    # review: under the dated blocks it was about nine screens down a phone, and it carries
+    # the 50-day count the markets note used to give). Below 1220px the wrappers take no
+    # box, so the card reads today, chart, coming; from 1220px the stylesheet puts the
+    # chart in the grid's second row, across both columns. One copy of the chart.
     today = (_what_matters(latest, sources) + _after(latest, sources)
              + _tape(latest, nums, sources) + _movers(latest, nums, sources))
     coming = _week(latest) + _earnings(latest, nums, sources, earnings or {}) + _further(nums)
     chart = _breadth(nums)
     if today and coming:
-        middle = (f'<div class="bf-cols"><div class="bf-col bf-col-today">{today}</div>'
-                  f'<div class="bf-col bf-col-coming">{coming}</div></div>{chart}')
+        middle = (f'<div class="bf-cols"><div class="bf-col bf-col-today">{today}</div>{chart}'
+                  f'<div class="bf-col bf-col-coming">{coming}</div></div>')
     else:
         middle = today + coming + chart
     body = (

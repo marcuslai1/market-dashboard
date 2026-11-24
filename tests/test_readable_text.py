@@ -125,7 +125,9 @@ def test_upcoming_events_source_note_is_one_row_for_each_kind_of_date():
     html = _card(numbers={"health": {"fetched": 35, "expected": 35},
                           "further_out": [{"date": "2026-12-09", "kind": "macro", "what": "FOMC Rate Decision",
                                            "later": False}]})
-    note = html.split('<ul class="bf-prov bf-prov-list">', 1)[1].split("</ul>", 1)[0]
+    # In a closed drawer since 2026-11-24 (tests/test_card_followup.py); the rows are unchanged.
+    note = html.split('<details class="bf-about"><summary>About these dates</summary>'
+                      '<ul class="bf-prov bf-prov-list">', 1)[1].split("</ul>", 1)[0]
     rows = re.findall(r"<li>(.*?)</li>", note)
     assert len(rows) == 5
     # Each row leads with its own first words in bold, and only those (outside review, finding 9).

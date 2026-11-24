@@ -2590,6 +2590,10 @@ a.term-index-item:hover {
      the margin above it shrinks by the same 12px. */
   .bf-rchk { margin-top: 2px; }
   .bf-rchk summary { padding: 12px 0; }
+  /* The card's two newer drawers (2026-11-24), the same way. */
+  .bf details.bf-about, .bf details.bf-also { margin-top: 2px; }
+  .bf-about > summary { padding: 12px 0; }
+  .bf-also > summary { padding: 12px 0; }
 }
 
 /* 5: an older report date on the Watchlist. The masthead always carries the latest
@@ -2826,6 +2830,14 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
   }
   .bf-col { display: block; min-width: 0; container-type: inline-size; }
   .bf .bf-col > .bf-sec:first-child { border-top: 0; }
+  /* The chart is the wrappers' sibling, between them in the markup, so that below this
+     width it follows names that moved (owner 2026-11-24: under the dated blocks it was
+     about nine screens down a phone). Here it takes the second row, across both columns,
+     where it has been since the card's filler was cut. The columns are placed by name
+     so the chart's place in the markup cannot move them. */
+  .bf-col-today { grid-column: 1; grid-row: 1; }
+  .bf-col-coming { grid-column: 2; grid-row: 1; }
+  .bf-cols > .bf-sec { grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* ── Long text set as lists (owner 2026-11-24: "text dumps with no structuring") ───────────────
@@ -2870,6 +2882,14 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
   .bf .bf-also li { grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; }
   .bf-also-x { grid-column: 1 / -1; }
 }
+/* Two more closed drawers (owner 2026-11-24, on an outside review of the card's filler).
+   "Also moved, not looked up" past six names: its line gives the count. "About these
+   dates" under Upcoming events: the five-row source note, which reads the same on every
+   card. Both are set like the rechecks line: the browser's own marker, the pointer, the
+   words in the sentence grey. Their size is in the text-sizes block below. */
+.bf .bf-also > summary, .bf .bf-about > summary { cursor: pointer; color: var(--ink-2); }
+.bf-about { margin-top: 14px; }
+.bf .bf-about > .bf-prov { margin-top: 8px; }
 
 /* ── Briefing card: text sizes, spacing and the direction of a move (owner 2026-11-24) ─────────
    Owner: "its like a large dump of text ... looks very uniform"; "the colour tone makes it
@@ -2905,6 +2925,8 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
 .bf .bf-box li b { display: block; margin-bottom: 5px; font-size: 15.5px; }
 .bf .bf-nm b { font-size: 15.5px; }
 .bf .bf-also > b, .bf .bf-later-h b, .bf .bf-rchk summary, .bf .bf-br-h { font-size: 15px; }
+/* the two newer drawers' lines: headings inside a block, like the rechecks line */
+.bf .bf-also > summary, .bf .bf-about > summary { font-size: 15px; }
 /* the company's name on an earnings card: at 22px it stood over the section's heading (21px) */
 .bf .bf-ec-name { font-size: 19px; }
 

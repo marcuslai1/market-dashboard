@@ -134,21 +134,24 @@ def _card(**over) -> str:
 
 def test_today_and_coming_sections_sit_in_two_wrappers_in_reading_order():
     html = _card()
-    today = html.split('<div class="bf-col bf-col-today">', 1)[1].split('<div class="bf-col bf-col-coming">', 1)[0]
+    left = html.split('<div class="bf-col bf-col-today">', 1)[1].split('<div class="bf-col bf-col-coming">', 1)[0]
+    today, between = left.rsplit("</section></div>", 1)          # the wrapper's end, then its sibling
     coming = html.split('<div class="bf-col bf-col-coming">', 1)[1].split("</section></div></div>", 1)[0]
     assert "<h3>What matters</h3>" in today and "<h3>Week ahead</h3>" not in today
     assert "<h3>Week ahead</h3>" in coming and "<h3>What matters</h3>" not in coming
     # The chart runs the full width under both columns. The old Chart facts block was moved into
     # the right-hand column on 2026-11-24 to even the two out; the next change cut the left
     # column's text, and with the chart in it the right column ran 629px past the left at a
-    # 1440px window (47px with the chart under both). It is still the block after the coming
-    # dates, so the order on a phone is unchanged.
-    assert _CHART not in coming and _CHART not in today
+    # 1440px window (47px with the chart under both).
+    # It is in neither wrapper: it is their sibling, between them, so a phone and a tablet read
+    # it after names that moved (owner 2026-11-24; it was the block after the coming dates,
+    # about nine screens down a phone). One copy.
+    assert _CHART not in coming and _CHART not in today and html.count(_CHART) == 1
     assert "<h3>Data notes</h3>" not in coming
-    # The masthead before the wrappers, the chart and the notes after them: full width.
-    order = [html.index(x) for x in ('class="bf-date"', 'class="bf-cols"', "<h3>What matters</h3>",
-                                     "<h3>Week ahead</h3>", "</section></div></div>", _CHART,
-                                     "<h3>Data notes</h3>")]
+    assert between.startswith('<section class="bf-sec bf-brsec"') and _CHART in between
+    # The masthead before the wrappers; today, the chart, what is coming; the notes after.
+    order = [html.index(x) for x in ('class="bf-date"', 'class="bf-cols"', "<h3>What matters</h3>", _CHART,
+                                     "<h3>Week ahead</h3>", "</section></div></div>", "<h3>Data notes</h3>")]
     assert order == sorted(order)
 
 
@@ -178,6 +181,15 @@ def test_two_columns_from_1220px_and_no_box_below():
     col = _block(wide, ".bf-col {")
     assert "display: block" in col and "container-type: inline-size" in col
     assert ".bf-br {" not in _CSS                                   # the chart runs the card's width at any window
+    # The chart is between the wrappers in the markup; the grid puts it under both and names
+    # each column's place, so the chart's place in the markup cannot move a column.
+    assert ".bf-col-today { grid-column: 1; grid-row: 1; }" in wide
+    assert ".bf-col-coming { grid-column: 2; grid-row: 1; }" in wide
+    assert ".bf-cols > .bf-sec { grid-column: 1 / -1; grid-row: 2; }" in wide
+    # Below 1220px nothing places or reorders a block: the card reads in the markup's order.
+    p5 = re.sub(r"/\*.*?\*/", "", tail[:tail.index("Long text set as lists")], flags=re.S)
+    assert "grid-row" not in _outside_media(p5) and "grid-column" not in _outside_media(p5)
+    assert not re.search(r"(?<![-\w])order\s*:", p5)
     # Only the card's first section loses its top rule, not the first one in a column.
     assert ".bf > .bf-sec:first-child { border-top: 0; padding-top: 4px; }" in _CSS
     assert ".bf .bf-sec:first-child {" not in _CSS
