@@ -332,8 +332,9 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
         name = r.get("name", "")
         price = _num(r.get("price"))
         moved = ""
-        if r.get("level") is not None:
-            val = f'{r["level"]:.2f}%<small>{_signed(r.get("bp"), 0, "bp")}</small>'
+        level = _num(r.get("level"))
+        if level is not None:
+            val = f'{level:.2f}%<small>{_signed(r.get("bp"), 0, "bp")}</small>'
         elif name in _LEVEL_TILES and price is not None:
             val = f'{price:.{_LEVEL_TILES[name]}f}<small>{_signed(r.get("chg_pct"))}</small>'
         else:
@@ -341,7 +342,7 @@ def _tape(latest: dict, nums: dict, sources: list | None = None) -> str:
             moved = _dir(r.get("chg_pct")) if name in _PRICE_TILES else ""
         # Each figure with its label is one unbreakable piece: on a phone five of nine
         # tiles broke "1mo" from its figure (outside review, 2026-11-24).
-        parts = ([f'{_x(r.get("x_usual"))} usual'] if r.get("x_usual") is not None else []) + [
+        parts = ([f'{_x(r.get("x_usual"))} usual'] if _num(r.get("x_usual")) is not None else []) + [
             f'5d {_signed(r.get("5d_pct"), 1)}'] + (
             [f'1mo {_signed(r.get("mo_pct"), 1)}'] if _num(r.get("mo_pct")) is not None else [])
         sub = " · ".join(f'<span class="bf-nw">{p}</span>' for p in parts)
@@ -386,7 +387,7 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
         for it in groups[market]:
             n = mv.get(it["key"]) or {}
             size = _txt(it["size_note"]) if it.get("size_note") else (
-                f'{_x(n.get("x_usual"))} usual' if n.get("x_usual") is not None else "")
+                f'{_x(n.get("x_usual"))} usual' if _num(n.get("x_usual")) is not None else "")
             vol = f' · vol {_vol(n)}' if _num(n.get("vol_ratio")) is not None else ""
             none = it.get("why_state") == "none_found"
             # The inner block carries the line cap: `max-width` does not bind on a table cell,
@@ -405,11 +406,13 @@ def _movers(latest: dict, nums: dict, sources: list) -> str:
     if also:
         # One row a name (name, move, size against its usual day, volume). It was one
         # sentence of names joined by middots: fourteen of them ran 14 lines on a phone.
+        # A size or a volume that is not a figure is left out: "usual" alone said nothing.
         rows = "".join(
             f'<li><span class="bf-also-n">{_txt(a.get("name") or a.get("key"))}</span>'
             f'<span class="bf-also-m{_dir(a.get("chg_pct"))}">{_signed(a.get("chg_pct"))}</span>'
-            f'<span class="bf-also-x">{_x(a.get("x_usual"))} usual'
-            + (f' · vol {_vol(a)}' if _num(a.get("vol_ratio")) is not None else "") + '</span></li>'
+            f'<span class="bf-also-x">' + " · ".join(
+                ([f'{_x(a.get("x_usual"))} usual'] if _num(a.get("x_usual")) is not None else [])
+                + ([f'vol {_vol(a)}'] if _num(a.get("vol_ratio")) is not None else [])) + '</span></li>'
             for a in also)
         table += f'<div class="bf-also"><b>Also moved, not looked up:</b><ul>{rows}</ul></div>'
     return _sec("Names that moved", table, "grouped by when the price was taken", kind="price",
@@ -548,6 +551,9 @@ def _week_grid(latest: dict, nums: dict, earnings: dict, skip: set) -> str:
     for key, recs in earnings.items():
         if key in skip:
             continue
+        # A quarter not yet reported has NaN for its actual in the loaded earnings file (None in a
+        # hand-built record). `_num` reads both as "no figure", which is what this needs: testing
+        # for None alone would find no coming quarter on the live site.
         nxt = next((r for r in recs if _num(r.get("eps_actual")) is None and r.get("announce_date")
                     and (_num(r.get("revenue_estimate")) is not None or _num(r.get("eps_estimate")) is not None)), None)
         if not nxt:

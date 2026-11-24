@@ -69,6 +69,27 @@ def test_a_move_that_prints_as_zero_or_is_not_a_number_takes_no_colour():
     assert '<span class="bf-v">+0.00%</span>' in _tiles([_row("SPY", 0.004)])
 
 
+def test_a_size_or_a_level_that_is_not_a_number_is_left_out():
+    """`_num` turns a NaN into "no figure", so a guard that only asked "is it None" printed the
+    word "usual" with no number, and a NaN level printed "nan%" (outside review, 2026-11-24)."""
+    nan = float("nan")
+    tiles = _tiles([_row("SPY", 1.0, x_usual=nan), _row("US10Y", -2.77, x_usual=nan, level=nan, bp=-14)])
+    assert "usual" not in tiles and "nan" not in tiles
+    assert '<span class="bf-s"><span class="bf-nw">5d +1.0%</span></span>' in tiles
+    assert '<span class="bf-v">−2.77%</span>' in tiles                 # no level on file: the change, in ink
+    payload = _v2()
+    nums = payload["latest"]["numbers"]
+    nums["movers"]["MSFT"]["x_usual"] = nan
+    nums["also_moved"] = [{"key": "WRD", "name": "WeRide", "chg_pct": -4.49, "x_usual": nan, "vol_ratio": 1.27},
+                          {"key": "NBIS", "name": "Nebius", "chg_pct": 5.2}]
+    html = briefing_card_html(payload, "2026-09-28")
+    assert '<td class="bf-mv bf-up">+3.66%<small> · vol 1.60×</small>' in html
+    assert '<span class="bf-also-x">vol 1.27×</span>' in html and '<span class="bf-also-x"></span>' in html
+    assert "nan×" not in html and "nan%" not in html and "> usual" not in html
+    # and a row with both figures reads as it did
+    assert '<span class="bf-also-x">1.4× usual · vol 1.27×</span>' in briefing_card_html(_v2(), "2026-09-28")
+
+
 def test_only_the_price_rows_of_markets_are_coloured():
     assert {"SPY", "QQQ", "SOXX", "WTI", "Gold"} == _PRICE_TILES
     tiles = _tiles([_row("SOXX", -10.55), _row("WTI", 0.93), _row("Gold", -4.62), _row("SPY", 0)])
@@ -158,6 +179,8 @@ def test_sizes_step_down_in_one_order_on_a_pc():
     assert _px(".bf .bf-also li") == row < _px(".bf .bf-also > b")     # "Also moved" over its rows
     assert _px(".bf .bf-far li") == row < _px(".bf .bf-later-h b")     # "Later" over its rows
     assert _px(".bf .bf-cf + .bf-cap") == note                         # the note under the chart
+    assert section > _px(".bf .bf-ec-name") > head                     # a company's name on an earnings card
+    assert _px(".bf .bf-rchk li") == row < _px(".bf .bf-rchk summary") == inner   # the drawer's line over its rows
 
 
 def test_sizes_step_down_in_one_order_on_a_phone():
@@ -172,6 +195,15 @@ def test_sizes_step_down_in_one_order_on_a_phone():
     # the phone rules make no heading inside a block smaller (the first build shrank "Later" to 13px)
     assert "bf-later-h" not in PHONE and "bf-also > b" not in PHONE
     assert _phone(".bf .bf-key") == _phone(".bf .bf-prov") == 13       # the legend and the source note beside it
+    assert section > _phone(".bf .bf-ec-name") > head
+    assert _phone(".bf .bf-box li") == sentence < lead                 # an After-the-data item under its lead
+    # the note under the chart stays at the size of the chart's own name labels (14px at every width)
+    assert _phone(".bf .bf-cf + .bf-cap") == 14 and re.search(r"\.bf-nm2 \{ font-size: 14px;", CSS)
+    assert ".bf .bf-cf + .bf-cap { max-width: none; }" in PHONE
+    # a date or a small label in a row is a caption: on a phone no smaller than the source note under it
+    for caption in (".bf .bf-ev time", ".bf .bf-far li time", ".bf .bf-far li b small", ".bf .bf-rchk li time"):
+        assert _phone(caption) == 13, caption
+    assert "bf-rchk summary" not in PHONE                              # one size for the drawer's line, set above
 
 
 def test_sentences_are_fifteen_pixels_on_a_line_that_binds():
@@ -213,6 +245,8 @@ def test_phone_sizes_need_a_phone_window_and_a_narrow_card():
     inner = PHONE.split("{", 1)[1]
     assert ".bf .bf-v { font-size: 22px; }" in inner and ".bf .bf-sec { padding: 24px 0; }" in inner
     assert "@media" not in PC and "@media" not in AFTER_PHONE          # one phone block, nothing loose after it
+    # the order tests read the PC part and the phone part: a size set after them would pass unseen
+    assert "font-size" not in AFTER_PHONE and "line-height" not in AFTER_PHONE
 
 
 def test_the_wide_card_rules_apply_only_to_a_wide_card():

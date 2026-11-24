@@ -2872,7 +2872,9 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
 .bf .bf-head { font-size: 17.5px; line-height: 1.32; max-width: 48ch; }
 .bf .bf-box li b { display: block; margin-bottom: 5px; font-size: 15.5px; }
 .bf .bf-nm b { font-size: 15.5px; }
-.bf .bf-also > b, .bf .bf-later-h b { font-size: 15px; }
+.bf .bf-also > b, .bf .bf-later-h b, .bf .bf-rchk summary { font-size: 15px; }
+/* the company's name on an earnings card: at 22px it stood over the section's heading (21px) */
+.bf .bf-ec-name { font-size: 19px; }
 
 /* rows read line by line */
 .bf .bf-ev span, .bf .bf-far li, .bf .bf-rchk li, .bf .bf-also li, .bf .bf-srcs ol, .bf-next-list {
@@ -2926,11 +2928,14 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
     .bf .bf-det, .bf .bf-box li, .bf .bf-cap, .bf .bf-vix p, .bf .bf-movers .bf-why,
     .bf .bf-facts, .bf .bf-out { line-height: 1.58; max-width: none; }
     .bf .bf-why-in { max-width: none; }
-    .bf .bf-dntext, .bf .bf-cf + .bf-cap { font-size: 14.5px; line-height: 1.55; max-width: none; }
+    .bf .bf-dntext { font-size: 14.5px; line-height: 1.55; max-width: none; }
+    /* the note under the chart stays 14px: the chart's own name labels are 14px here too */
+    .bf .bf-cf + .bf-cap { max-width: none; }
     .bf .bf-head { font-size: 17px; max-width: none; }
+    .bf .bf-ec-name { font-size: 18px; }
     .bf .bf-ev span, .bf .bf-far li, .bf .bf-rchk li, .bf .bf-also li, .bf .bf-srcs ol, .bf-next-list { font-size: 14.5px; }
-    .bf .bf-rchk summary { font-size: 15px; }
-    .bf-aside, .bf-dim, .bf .bf-prov, .bf .bf-key, .bf .bf-mv small, .bf .bf-also-x, .bf-foot { font-size: 13px; }
+    .bf-aside, .bf-dim, .bf .bf-prov, .bf .bf-key, .bf .bf-mv small, .bf .bf-also-x, .bf-foot,
+    .bf .bf-ev time, .bf .bf-far li time, .bf .bf-far li b small, .bf .bf-rchk li time { font-size: 13px; }
     .bf .bf-v { font-size: 22px; }
     .bf .bf-mv { font-size: 19px; }
     .bf ul.bf-pts { gap: 12px; }

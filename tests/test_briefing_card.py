@@ -268,6 +268,23 @@ def test_v2_earnings_detail_draws_charts_and_the_week_grid_lists_the_rest():
     assert earn.count('class="bf-eg"') == 1 and "AMZN" not in earn          # MU is written up; AMZN is 22 days out
 
 
+def test_v2_week_grid_reads_a_nan_actual_as_not_yet_reported():
+    """The loaded earnings file marks a quarter that has not reported with NaN, not None
+    (`load_earnings_map` hands on the CSV's empty cells as they are). The grid must count it
+    as coming: until 2026-11-24 it did not, so on the live site the grid never drew, and an
+    outside review then proposed testing for None alone, which would have hidden it again."""
+    emap = _earnings_map()
+    for recs in emap.values():
+        for rec in recs:
+            for k, v in rec.items():
+                if v is None and k != "announce_date":
+                    rec[k] = float("nan")
+    html = briefing_card_html(_v2(data_date="2026-09-28"), "2026-09-28", emap)
+    earn = html[html.index("<h3>Earnings</h3>"):html.index("<h3>Upcoming events</h3>")]
+    assert "Reporting in the next 7 days" in earn and "GOOG" in earn
+    assert earn.count('class="bf-eg"') == 1 and "AMZN" not in earn and "nan" not in earn.lower()
+
+
 def test_v2_earnings_falls_back_to_range_bars_without_history():
     html = briefing_card_html(_v2(), "2026-09-28")
     assert "bf-rbar" in html and "Reporting in the next 7 days" not in html
