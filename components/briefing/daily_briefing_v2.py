@@ -980,7 +980,7 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
     # larger text the left column ran about 550px past the right). The next change the same
     # day cut the left column's text (the VIX box, the markets note, the movers' reasons) and
     # made the chart taller, and on that day's briefing the right column then ran 629px past
-    # the left at a 1440px window. Under both columns the two are 47px apart there, and a
+    # the left at a 1440px window. Under both columns the two are 78px apart there, and a
     # line through nine months reads better wide. The order on a phone is as it was.
     today = (_what_matters(latest, sources) + _after(latest, sources)
              + _tape(latest, nums, sources) + _movers(latest, nums, sources))
