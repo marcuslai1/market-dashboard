@@ -131,12 +131,19 @@ def _card(**over) -> str:
 def test_today_and_coming_sections_sit_in_two_wrappers_in_reading_order():
     html = _card()
     today = html.split('<div class="bf-col bf-col-today">', 1)[1].split('<div class="bf-col bf-col-coming">', 1)[0]
-    coming = html.split('<div class="bf-col bf-col-coming">', 1)[1].split("<h3>Chart facts</h3>", 1)[0]
+    coming = html.split('<div class="bf-col bf-col-coming">', 1)[1].split("</section></div></div>", 1)[0]
     assert "<h3>What matters</h3>" in today and "<h3>Week ahead</h3>" not in today
     assert "<h3>Week ahead</h3>" in coming and "<h3>What matters</h3>" not in coming
-    # The masthead before the wrappers, chart facts and the notes after them: full width.
+    # Chart facts closes the right-hand column (2026-11-24: the left column ran about 550 to 590px
+    # past the right, and the chart sat full width under both). It is still the block after the
+    # coming dates, so the order on a phone is unchanged.
+    assert "<h3>Chart facts</h3>" in coming and "<h3>Chart facts</h3>" not in today
+    assert coming.index("<h3>Week ahead</h3>") < coming.index("<h3>Chart facts</h3>")
+    assert "<h3>Data notes</h3>" not in coming
+    # The masthead before the wrappers, the notes after them: full width.
     order = [html.index(x) for x in ('class="bf-date"', 'class="bf-cols"', "<h3>What matters</h3>",
-                                     "<h3>Week ahead</h3>", "<h3>Chart facts</h3>", "<h3>Data notes</h3>")]
+                                     "<h3>Week ahead</h3>", "<h3>Chart facts</h3>", "</section></div></div>",
+                                     "<h3>Data notes</h3>")]
     assert order == sorted(order)
 
 
@@ -144,6 +151,10 @@ def test_a_day_with_one_group_gets_no_wrappers():
     assert "bf-cols" not in _card(calendar=[])            # nothing coming
     assert "bf-cols" not in _card(what_matters=[])        # nothing for today
     assert "<h3>Week ahead</h3>" in _card(what_matters=[])
+    # and Chart facts follows the one group, as it always did
+    for html in (_card(calendar=[]), _card(what_matters=[])):
+        assert html.index("<h3>Chart facts</h3>") < html.index("<h3>Data notes</h3>")
+        assert html.count("<h3>Chart facts</h3>") == 1
 
 
 

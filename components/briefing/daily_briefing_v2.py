@@ -788,18 +788,22 @@ def briefing_v2_html(latest: dict, report_date: str | None = None, earnings: dic
     # empty beside capped text, and the coming dates sat three screens down). Below
     # that width the two wrappers take no box and the sections stack as before. A
     # day with only one of the two groups gets no wrappers.
+    # Chart facts closes the right-hand column (owner 2026-11-24, on an outside review of the
+    # published card): with the larger text the left column ran about 550 to 590px past the
+    # right, which left that much empty beside it, and the chart sat full width below both.
+    # It stays the block after Upcoming events, so the order on a phone is as it was.
     today = (_what_matters(latest, sources) + _after(latest, sources)
              + _tape(latest, nums, sources) + _movers(latest, nums, sources))
     coming = _week(latest) + _earnings(latest, nums, sources, earnings or {}) + _further(nums)
+    chart = _chart(latest, nums)
     if today and coming:
         middle = (f'<div class="bf-cols"><div class="bf-col bf-col-today">{today}</div>'
-                  f'<div class="bf-col bf-col-coming">{coming}</div></div>')
+                  f'<div class="bf-col bf-col-coming">{coming}{chart}</div></div>')
     else:
-        middle = today + coming
+        middle = today + coming + chart
     body = (
         _masthead(latest, state, when)
         + middle
-        + _chart(latest, nums)
         + _health(latest, nums)
         + _sources(sources)
         + '<div class="bf-foot">Information, not advice: no directional call and no signal labels. Written by '
