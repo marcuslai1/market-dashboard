@@ -185,7 +185,9 @@ def test_two_columns_from_1220px_and_no_box_below():
     # each column's place, so the chart's place in the markup cannot move a column.
     assert ".bf-col-today { grid-column: 1; grid-row: 1; }" in wide
     assert ".bf-col-coming { grid-column: 2; grid-row: 1; }" in wide
-    assert ".bf-cols > .bf-sec { grid-column: 1 / -1; grid-row: 2; }" in wide
+    # The chart names its columns and no row: the grid gives it the first free one, so a
+    # second full-width block would follow it, not lie on top of it (review, 2026-11-25).
+    assert ".bf-cols > .bf-sec { grid-column: 1 / -1; }" in wide
     # Below 1220px nothing places or reorders a block: the card reads in the markup's order.
     p5 = re.sub(r"/\*.*?\*/", "", tail[:tail.index("Long text set as lists")], flags=re.S)
     assert "grid-row" not in _outside_media(p5) and "grid-column" not in _outside_media(p5)

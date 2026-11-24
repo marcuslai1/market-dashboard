@@ -2594,6 +2594,12 @@ a.term-index-item:hover {
   .bf details.bf-about, .bf details.bf-also { margin-top: 2px; }
   .bf-about > summary { padding: 12px 0; }
   .bf-also > summary { padding: 12px 0; }
+  /* The 12px under each line is taken off what follows it, open or closed, so the gaps
+     are the ones a wider card has (outside review of the build, 2026-11-25: 20px above
+     an opened list, 26 and 36px under a closed line). */
+  .bf details.bf-also[open] > ul, .bf details.bf-about[open] > .bf-prov { margin-top: 0; }
+  .bf details.bf-also:not([open]) + .bf-prov { margin-top: 2px; }
+  .bf details.bf-about:not([open]) { margin-bottom: -12px; }
 }
 
 /* 5: an older report date on the Watchlist. The masthead always carries the latest
@@ -2834,10 +2840,13 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
      width it follows names that moved (owner 2026-11-24: under the dated blocks it was
      about nine screens down a phone). Here it takes the second row, across both columns,
      where it has been since the card's filler was cut. The columns are placed by name
-     so the chart's place in the markup cannot move them. */
+     so the chart's place in the markup cannot move them. The chart names its columns
+     and no row: the grid gives it the first free one, and a second full-width block
+     here would take the row after it instead of lying on top of it (outside review of
+     the build, 2026-11-25). */
   .bf-col-today { grid-column: 1; grid-row: 1; }
   .bf-col-coming { grid-column: 2; grid-row: 1; }
-  .bf-cols > .bf-sec { grid-column: 1 / -1; grid-row: 2; }
+  .bf-cols > .bf-sec { grid-column: 1 / -1; }
 }
 
 /* ── Long text set as lists (owner 2026-11-24: "text dumps with no structuring") ───────────────
@@ -2888,6 +2897,7 @@ details.tk-details[open] > summary { position: sticky; top: 0; z-index: 35; }
    card. Both are set like the rechecks line: the browser's own marker, the pointer, the
    words in the sentence grey. Their size is in the text-sizes block below. */
 .bf .bf-also > summary, .bf .bf-about > summary { cursor: pointer; color: var(--ink-2); }
+.bf .bf-also > summary b { color: var(--ink); }
 .bf-about { margin-top: 14px; }
 .bf .bf-about > .bf-prov { margin-top: 8px; }
 

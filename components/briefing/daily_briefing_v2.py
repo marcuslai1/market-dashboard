@@ -8,12 +8,12 @@ them out.
 
 Reading order: masthead (date, what each number is as of, next timed events) → what
 matters → after the data → markets → names that moved (grouped by the market whose session
-the price is from) → week ahead → earnings → further out (dates only, to two months; the
-second month under a "less certain" label) → the watchlist through time → data notes →
-sources. On a PC
+the price is from) → the watchlist through time → week ahead → earnings → upcoming events
+(dates only, to two months; the second month under a "less certain" label) → data notes →
+sources. That is the markup's order and the order on a phone and a tablet. On a PC
 the four "today" sections and the three "coming" sections sit in two columns
-(``bf-cols``, layout review 2026-11-24) with the chart under both. Below that width the
-chart follows names that moved (2026-11-24): in the markup it sits between the two groups.
+(``bf-cols``, layout review 2026-11-24) with the chart under both: in the markup the chart
+sits between the two groups (2026-11-24), so below that width it follows names that moved.
 
 Constraints, all upstream decisions:
 
@@ -245,7 +245,9 @@ def _sec(title: str, body: str, aside: str = "", cls: str = "", prov="", kind: s
     if not body:
         return ""
     aside_html = f'<span class="bf-aside">{_txt(aside)}</span>' if aside else ""
-    if isinstance(prov, (list, tuple)):
+    if isinstance(prov, (list, tuple)) and not prov:
+        prov_html = ""
+    elif isinstance(prov, (list, tuple)):
         prov_html = '<ul class="bf-prov bf-prov-list">' + "".join(
             f'<li><b>{_txt(lead)}</b> {_txt(text)}</li>' for lead, text in prov) + "</ul>"
         if prov_title:
@@ -747,7 +749,10 @@ def _further(nums: dict) -> str:
         body += ('<div class="bf-later"><p class="bf-later-h"><b>Later · 31–60 days · less certain</b> '
                  'Earnings dates this far out are often estimates and may move. A policy date can be moved or renewed.</p>'
                  f'{_far_list(later)}</div>')
-    return _sec("Upcoming events", body, "to two months · dates only", cls="bf-cal",
+    # The aside says the one thing the closed note holds that changes how a row is read:
+    # the blocks above are in Singapore time and these dates are not (outside review of the
+    # build, 2026-11-25: with the note closed nothing said so).
+    return _sec("Upcoming events", body, "to two months · dates only, not converted to SGT", cls="bf-cal",
                 # The same words as before 2026-11-24, one row for each kind of date instead of
                 # one 700-character paragraph; the leads are the note's own. In a closed drawer
                 # since the same day (owner, on an outside review: five rows that read the same
