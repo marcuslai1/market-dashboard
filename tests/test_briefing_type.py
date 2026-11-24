@@ -192,6 +192,11 @@ def test_a_movers_reason_is_capped_on_the_block_inside_its_cell():
     assert html.count('<div class="bf-why-in">') == 3 and "</div></td>" in html
     assert ".bf .bf-why-in { max-width: 60ch; }" in PC and ".bf .bf-movers .bf-why { max-width: none; }" in PC
     assert ".bf .bf-why-in { max-width: none; }" in PHONE
+    # The inner block takes its size from the cell. The order tests read the size on the cell's own
+    # selector, so a size set on the inner block would pass them (an independent check, 2026-11-24).
+    for names, body in _rules(re.sub(r"/\*.*?\*/", "", CSS, flags=re.S).replace("@", "\n@")):
+        if any("bf-why-in" in n for n in names):
+            assert "font-size" not in body and "line-height" not in body, names
 
 
 def test_the_vix_box_runs_the_width_of_the_tiles():
